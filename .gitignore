@@ -1,0 +1,9 @@
+# ignore compiled files
+*.pyc
+*.so
+# ignore automatically generated files
+*~
+cmake*
+CMakeCache.txt
+CMakeFiles
+Makefile
