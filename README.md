@@ -27,60 +27,21 @@ cmake
 
 # Usage
 
-Here is how to write a SAGE script using the functions from the
-`sboxU` module. Put the `sboxU` folder in the same directory as your
-script. Then, move to the `sboxU` folder and run:
+To retrieve this module, use the following command:
+
+git clone https://scm.gforge.inria.fr/anonscm/git/sbox-utils/sbox-utils.git
+
+Then, move to the `sbox-utils/sboxU` directory and run:
 
 ```
 cmake .
 make
 ```
 
-You can now import the `sboxU` python module (or any of its functions)
-from your script in the parent folder of `sboxU`.
-
-
-# Example
-As an example of the functions provided by `sboxU`,
-here is a script which tests the `affine_equivalence` function.
-
-```
-#!/usr/bin/sage
-
-from sage.all import *
-from sboxU import random_permutation, affine_equivalence, oplus, rand_linear_permutation, apply_bin_mat
-
-N = 5
-g = random_permutation(N)
-f = random_permutation(N)
-ae = affine_equivalence(f, g)
-if len(ae) == 0:
-    print "Random permutations are not affine equivalent"
-else:
-    print "Random permutations actually are affine equivalent!"
-print ""
-
-A = rand_linear_permutation(N)
-a = randint(0, 2**N-1)
-B = rand_linear_permutation(N)
-b = randint(0, 2**N-1)
-f = [oplus(apply_bin_mat(g[apply_bin_mat(oplus(x, a), A)], B), b)
-     for x in xrange(0, 2**N)]
-print "f = (B o g o A)(x + a) + b, where:"
-print "A = \n", A.str()
-print "a = ", a
-print "B = \n", B.str()
-print "b = ", b
-print ""
-
-ae = affine_equivalence(f, g)
-if len(ae) == 0:
-    print "AE algorithm failed"
-else:
-    print "AE relation between f and g found!"
-    print "f = (B o g o A)(x + a) + b, where:"
-    print "A = \n", ae[0].str()
-    print "a = ", ae[1]
-    print "B = \n", ae[2].str()
-    print "b = ", ae[3]
-```
+This compiles the C++ part of `sboxU` and allows it to be called from
+a SAGE script. To use it in your project, simply move the `sboxU`
+folder to your project's directory. You can then import `sboxU` it
+like any other python module.  As an example of the functions provided
+by `sboxU`, the SAGE script `example.py` stored alongside the folder
+`sboxU` generates random permutations and tests their affine
+equivalence.
