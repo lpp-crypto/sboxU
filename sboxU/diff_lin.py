@@ -1,10 +1,12 @@
 #!/usr/bin/sage
-# Time-stamp: <2017-10-03 15:28:53 lperrin>
+# Time-stamp: <2018-01-25 16:56:54 lperrin>
 
-from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial
+# from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
+from sage.all import *
+from sage.crypto.boolean_function import BooleanFunction
 
 # Loading fast C++ implemented functions
-from sboxu_cpp import walsh_spectrum_fast, differential_spectrum_fast
+from sboxu_cpp import *
 
 
 # !SECTION! Wrapping C++ functions for differential/Walsh spectrum 
@@ -265,4 +267,72 @@ def BP_criteria(s):
 #         result["linear"] = "0"
 #         return result
     
+
+
+# !SUBSECTION! Algebraic properies
+
+@parallel
+def algebraic_normal_form_coordinate(s, i):
+    """Returns the algebraic normal form of the `i`th coordinate of the
+    SBox s.
+
+    """
+    coordinate = BooleanFunction([(x >> i) & 1 for x in list(s)])
+    return coordinate.algebraic_normal_form()
+
+
+def algebraic_normal_form(s_in):
+    """Returns the algebraic normal form of the coordinates of the S-Box
+    `s`.
+
+    If we let each of the n output bits of `s` be a Boolean function
+    s_i so that $s(x) = s_{n-1}(x) s_{n-2}(x) ... s_{0}(x)$, then
+    returns a list l such that l[i] is the ANF of s_i.
+
+    """
+    result = {}
+    s = mq.SBox(s_in)
+    outputs = algebraic_normal_form_coordinate([(s, b) for b in range(0, s.n)])
+    for entry in outputs:
+        result[entry[0][0][1]] = entry[1]
+    return [result[k] for k in range(0, s.n)]
+
+
+def algebraic_degree(s):
+    """Returns the algebraic degree of `s`, i.e. the maximum algebraic
+    degree of its coordinates.
+
+    """
+    anf = algebraic_normal_form(s)
+    result = 0
+    for i in xrange(0, len(anf)):
+        result = max(result, anf[i].degree())
+    return result
+
+
+# !SECTION! Inverting a LAT
+
+def invert_lat(l):
+    """Assuming that l is a valid function LAT, returns this function.
+
+    Only works for functions with the same input and output length."""
+    n = int(log(len(l), 2))
+    s = [0 for x in xrange(0, 2**n)]
+    for i in xrange(0, n):
+        b = 1 << i
+        for x in xrange(0, 2**n):
+            v = int(1/2 - sum(l[a][b]*(-1)**(scal_prod(a, x)) for a in xrange(0, 2**n)) / 2**(n+1))
+            if v == 1:
+                s[x] = s[x] | (1 << i)
+    return s
+
+
+# !SECTION! Tests
+
+if __name__ == '__main__':
+    s = random_permutation(5)
+    print s
+    l = lat(s)
+    s_prime = invert_lat(l)
+    print s_prime
 

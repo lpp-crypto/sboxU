@@ -1,4 +1,4 @@
-/* Time-stamp: <2017-10-13 13:57:18 lperrin>
+/* Time-stamp: <2018-01-30 10:16:24 lperrin>
  *
  * LICENCE
  */
@@ -563,4 +563,142 @@ Sbox le_class_representative_cpp(const Sbox f)
     LErepr repr(f);
     repr.initialize();
     return repr.lut();
+}
+
+
+
+// !SECTION! Vector extraction
+
+
+std::vector<long int> extract_vector_cpp(
+    const std::vector<long int> z,
+    const long int a)
+{
+    // building indicator function
+    std::map<long int, bool> indicator;
+    for(auto & x : z)
+    {
+        indicator[x] = true;
+    }
+    std::vector<long int> result;
+    for(auto & x : z)
+    {
+        long int y = x ^ a;
+        if ((x < y) and (indicator.find(y) != indicator.end()))
+            result.push_back(x);
+    }
+    return result;
+}
+
+
+std::vector<long int> super_extract_vector_cpp(
+    const std::vector<long int> z,
+    const long int a)
+{
+    // building indicator function
+    std::map<long int, bool> indicator;
+    for(auto & x : z)
+    {
+        indicator[x] = true;
+    }
+    std::vector<long int> result; //(1, 0);
+    for(auto & x : z)
+    {
+        long int y = x ^ a;
+        if ((a < x) and (x < y) and (indicator.find(y) != indicator.end()))
+            result.push_back(x);
+    }
+    return result;
+}
+
+
+std::vector<std::vector<long int> > extract_bases_rec(
+    const std::vector<long int> base,
+    const std::vector<long int> z,
+    unsigned int dimension)
+{
+    std::vector<std::vector<long int> > result, tmp;
+    std::vector<long int> new_base, z_a;
+    if (z.size() == 0)
+        return result;
+    if (base.size() == dimension - 1)
+    {
+        for (auto &a : z)
+            if (a > base.back())
+            {
+                new_base.assign(base.begin(), base.end());
+                new_base.push_back(a);
+                result.push_back(new_base);
+            }
+    }
+    else
+    {
+        for (auto &a : z)
+            if (a > base.back())
+            {
+                new_base.assign(base.begin(), base.end());
+                new_base.push_back(a);
+                z_a = super_extract_vector_cpp(z, a);
+                tmp = extract_bases_rec(new_base, z_a, dimension);
+                result.insert(result.end(), tmp.begin(), tmp.end());
+            }
+    }
+    return result;
+}
+
+
+void extract_bases_starting_with(
+    const std::vector<long int> starting_vectors,
+    std::vector<std::vector<long int> > & result,
+    const std::vector<long int> z,
+    const unsigned int dimension)
+{
+    std::vector<std::vector<long int> > tmp;
+    std::vector<long int> new_base, z_a;
+    
+    for (auto &a : starting_vectors)
+    {
+        z_a = super_extract_vector_cpp(z, a);
+        new_base.assign(1, a);
+        tmp = extract_bases_rec(new_base, z_a, dimension);
+        result.insert(result.end(), tmp.begin(), tmp.end());
+    }
+}
+
+
+std::vector<std::vector<long int> > extract_bases_cpp(
+    const std::vector<long int> z,
+    const unsigned int dimension,
+    const unsigned int n_threads)
+{
+    std::vector<std::vector<long int> > result;
+    std::vector<std::thread> threads;
+    std::vector<std::vector<std::vector<long int> > > local_results(
+        n_threads,
+        std::vector<std::vector<long int> >());
+    std::vector<std::vector<long int> > all_starting_vectors(n_threads, std::vector<long int>());
+
+    unsigned int counter = 0;
+    for (auto &a : z)
+        if (a != 0)
+        {
+            all_starting_vectors[counter % n_threads].push_back(a);
+            counter ++;
+        }
+    for (unsigned int i=0; i<n_threads; i++)
+    {
+        threads.push_back(std::thread(extract_bases_starting_with,
+                                      all_starting_vectors[i],
+                                      std::ref(local_results[i]),
+                                      z,
+                                      dimension));
+    }
+    for (unsigned int i=0; i<n_threads; i++)
+    {
+        threads[i].join();
+        result.insert(result.end(),
+                      local_results[i].begin(),
+                      local_results[i].end());
+    }    
+    return result;
 }

@@ -161,7 +161,121 @@ def partial_linear_permutation_to_full(v, n):
         raise "no such matrix"
 
 
+
+# !SUBSECTION! Interacting with vector spaces and their supersets
+
+def rank_of_vector_set(V, n):
+    """Returns the rank of the matrix obtained by "stacking" the n-bit
+    binary representation of the numbers in V.
+
+    """
+    M = Matrix(GF(2), len(V), n, [tobin(x, n) for x in V])
+    return M.rank()
+
+
+
+def extract_basis(v, N):
+    """Returns a subset of v such that v is included that the span of
+    these elements is at least as big as v. In particular, if v is a
+    vector space, it returns a base.
+
+    """
+    dim = rank_of_vector_set(v, N)
+    i = 0
+    basis = []
+    while i < len(v) and v[i] == 0:
+        i += 1
+    if i == len(v):
+        return []
+    basis.append(v[i])
+    if dim == 1:
+        return basis
+    i += 1
+    r = Matrix(GF(2), 1, N, [tobin(x, N) for x in basis]).rank()
+    while r < dim and i < len(v):
+        new_basis = basis + [v[i]]
+        new_r = Matrix(GF(2), len(new_basis), N, [tobin(x, N) for x in new_basis]).rank()
+        if new_r == dim:
+            return new_basis
+        elif new_r > r:
+            basis = new_basis
+            r = new_r
+        i += 1
+    return []
+
+
+def complete_basis(basis, N):
+    """Returns a list of length N spanning the space 0..2^N-1 which
+    contains basis.
+
+    """
+    r = len(basis)
+    for i in xrange(1, 2**N):
+        new_basis = basis + [i]
+        new_r = Matrix(GF(2), len(new_basis), N, [tobin(x, N) for x in new_basis]).rank()
+        if new_r == N:
+            return new_basis
+        elif new_r > r:
+            basis = new_basis
+            r = new_r
+    return []
+
+
+def span(basis, with_zero=True):
+    result = []
+    if with_zero:
+        result.append(0)
+    visited = defaultdict(int)
+    for i in xrange(1, 2**len(basis)):
+        x = 0
+        for j in xrange(0, len(basis)):
+            if (i >> j) & 1 == 1:
+                x = oplus(x, basis[j])
+        if visited[x] != 1:
+            result.append(x)
+            visited[x] = 1
+    return result
+
+
+# !SUBSECTION! Easy interaction with finite fields
+
+def mult_ff(x, y, F):
+    return (F.fetch_int(x) * F.fetch_int(y)).integer_representation()
+
+
+def div_ff(x, y, F):
+    return (F.fetch_int(x) / F.fetch_int(y)).integer_representation()
+
+
+def pow_ff(x, a, F):
+    return (F.fetch_int(x)**a).integer_representation()
+
+
 # !SECTION! Linear/Affine Equivalence 
+
+
+# !SUBSECTION! XOR equivalence 
+
+def xor_equivalence(f, g):
+    """Returns a pair [k0, k1] of integers such that, for all x:
+
+    f[x] = g[x + k0] + k1,
+
+    where "+" denotes the bitwise XOR.
+    """
+    for k0 in xrange(0, 2**N):
+        k1 = oplus(f[0], g[k0])
+        good = True
+        for x in xrange(1, 2**N):
+            if oplus(f[x], g[oplus(k0, x)]) != k1:
+                good = False
+                break
+        if good:
+            return [k0, k1]
+    return []
+
+
+# !SUBSECTION! Linear equivalence
 
 def linear_equivalence(f, g):
     """Returns, if it exists, the pair A, B of matrix such that, for all x:
@@ -192,6 +306,8 @@ def linear_equivalence(f, g):
     B = linear_function_lut_to_matrix(result[1])
     return A, B
 
+
+# !SUBSECTION! Affine equivalence 
 
 def hash_sbox(f):
     """Returns a 64-char string obtained by hashing the base 10

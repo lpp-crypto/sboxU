@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2017-10-09 16:56:48 lperrin>
+# Time-stamp: <2018-01-26 16:11:40 lperrin>
 
 import matplotlib.pyplot as plt
 from diff_lin import *
@@ -27,11 +27,25 @@ COLOR_SEQUENCE = [
 
 def pretty_spectrum(d):
     """Returns a line containing a pretty representation of the
-    dictionnary d."""
-    line = ""
+    dictionnary d.
+
+    """
+    line = "{"
     for k in sorted(d.keys()):
         line += "{}: {}, ".format(k, d[k])
-    return line[:-2]
+    return line[:-2] + "}"
+
+
+def pretty_vector(v, template="{:d}"):
+    """Returns a string containing the representation of the integers in v
+    using the template given (defaults to a simple decimal
+    representation).
+
+    """
+    line = "["
+    for x in v:
+        line += template.format(x) + ","
+    return line[:-1] + "]"
 
 
 # !SECTION! Graph generation

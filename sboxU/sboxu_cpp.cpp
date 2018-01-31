@@ -1,4 +1,4 @@
-/* Time-stamp: <2017-10-13 11:47:37 lperrin>
+/* Time-stamp: <2018-01-29 14:56:09 lperrin>
  *
  * LICENSE
  */ 
@@ -19,13 +19,36 @@ list linear_equivalence_fast(const list& l0, const list &l1)
     std::vector<Sbox> mappings(linear_equivalence_cpp(f, g));
     list result;
     for (auto &m : mappings)
-        result.append(vec_2_lst_int(m)) ;
+        result.append(vec_2_lst_int(m));
     return result;
 }
 
 list le_class_representative(const list& l0)
 {
     return vec_2_lst_int(le_class_representative_cpp(lst_2_vec_int(l0)));
+}
+
+// !SUBSECTION! CCZ
+
+list extract_vector_fast(const list& l, const long int a) 
+{
+    std::vector<long int> b = extract_vector_cpp(lst_2_vec_int(l), a) ;
+    return vec_2_lst_int(b) ;
+}
+
+
+list extract_bases_fast(const list& l,
+                        const unsigned int dimension,
+                        const unsigned int n_threads) 
+{
+    std::vector<std::vector<long int> > bases = extract_bases_cpp(
+        lst_2_vec_int(l),
+        dimension,
+        n_threads);
+    list result;
+    for (auto &b : bases)
+        result.append(vec_2_lst_int(b));
+    return result;
 }
 
 
@@ -81,5 +104,13 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         le_class_representative,
         args("f"),
         "Returns the smallest representative of the linear-equivalence class of f.");
+    def("extract_vector_fast",
+        extract_vector_fast,
+        args("V", "a"),
+        "TODO.");
+    def("extract_bases_fast",
+        extract_bases_fast,
+        args("V", "d", "n_threads"),
+        "TODO.");
 }
 
