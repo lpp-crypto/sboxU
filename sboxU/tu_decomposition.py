@@ -6,6 +6,7 @@ from sage.graphs.cliquer import all_max_clique
 import itertools
 import random
 from sboxu_cpp import *
+from utils import oplus
 from display import *
 from linear import *
 
@@ -111,7 +112,7 @@ def extract_ae_bases_rec(l, N, base, span_base):
 
 
 def minimizing_offset(b, N):
-    s = span(b)
+    s = linear_span(b)
     best_offset = 0
     min_offset_s = s
     for offset in xrange(0, 2**N):

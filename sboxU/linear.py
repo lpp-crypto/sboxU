@@ -4,6 +4,7 @@ from sage.all import Matrix, GF, vector, log, randint
 
 import itertools
 import random
+from utils import oplus
 from sboxu_cpp import *
 from display import pretty_spectrum
 from diff_lin import lat_zeroes
@@ -223,7 +224,7 @@ def complete_basis(basis, N):
     return []
 
 
-def span(basis, with_zero=True):
+def linear_span(basis, with_zero=True):
     result = []
     if with_zero:
         result.append(0)
@@ -324,7 +325,7 @@ def ea_equivalent_permutation_mappings(f):
     result = []
     for b in spaces:
         proj_dict = {}
-        v = span(b)
+        v = linear_span(b)
         l = [-1 for x in xrange(0, 2**N)]
         for x in v:
             l[x & mask] = x >> N

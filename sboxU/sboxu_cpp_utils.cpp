@@ -1,4 +1,4 @@
-/* Time-stamp: <2017-10-13 11:48:40 lperrin>
+/* Time-stamp: <2018-04-18 17:51:01 lperrin>
  *
  * LICENSE
  */ 
@@ -8,7 +8,7 @@
 using namespace boost::python;
 
 
-uint32_t oplus(uint32_t x, uint32_t y)
+uint32_t oplus_cpp(uint32_t x, uint32_t y)
 {
     return (x ^ y);
 }

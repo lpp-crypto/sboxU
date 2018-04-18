@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-03-26 10:55:40 lperrin>
+/* Time-stamp: <2018-04-18 17:50:39 lperrin>
  *
  * LICENSE
  */ 
@@ -75,8 +75,8 @@ list extract_bases_fast(const list& l,
 BOOST_PYTHON_MODULE(sboxu_cpp)
 {
     // Utils
-    def("oplus",
-        oplus,
+    def("oplus_cpp",
+        oplus_cpp,
         args("x", "y"),
         "Returns the XOR of its (at most 32-bit) inputs.");
     def("hamming_weight",
