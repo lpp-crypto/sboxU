@@ -1,4 +1,4 @@
-/* Time-stamp: <2017-10-06 19:10:15 lperrin>
+/* Time-stamp: <2018-02-16 17:05:21 lperrin>
  *
  * LICENSE
  */ 
@@ -10,6 +10,9 @@
 #include "sboxu_cpp.hpp"
 using namespace boost::python;
 
+
+
+// !SECTION! Differential
 
 /* @return a python list of python lists d such that
  *
@@ -33,6 +36,23 @@ list ddt(const list& l);
 dict differential_spectrum_fast(const list& l, const unsigned int n_threads);
 
 
+// !SECTION! Linear
+
+Sbox invert_lat_cpp(const std::vector<std::vector<Integer> > l, const unsigned int n);
+
+/* @return the Fourier transform of the Boolean function f, i.e. an
+ * array T such that
+ *
+ * T(a) = \\sum_{x \\in \\{ 0,1 \\}^n}} (-1)^{<a,x> + f(x)} .
+ *
+ * f is assumed to be the truth-table of a Boolean function. Its size
+ * must thus be a power of two. At the end of the function, the output
+ * T is the Walsh spectrum of f. If n is the size of the input of f,
+ * then:
+ */
+std::vector<Integer> walsh_spectrum_coord(const Sbox f);
+
+
 /* @return a python list of python lists w such that
  *
  * w[a][b] = \sum_{x}(-1)^{a.x + b.l[x]},
@@ -53,6 +73,13 @@ list lat(const list& l);
  * Throws an error if the length of l is not a power of 2.
  */ 
 dict walsh_spectrum_fast(const list& l, const unsigned int n_threads);
+
+
+list lat_zeroes_fast(const list& l,
+                     const unsigned int n,
+                     const unsigned int n_threads);
+
+
 
 
 #endif /* _SBOXU_CPP_DIFF_LIN_H_ */

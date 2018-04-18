@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-01-29 14:56:09 lperrin>
+/* Time-stamp: <2018-03-26 10:55:40 lperrin>
  *
  * LICENSE
  */ 
@@ -10,6 +10,24 @@ using namespace boost::python;
 
 
 // !SECTION! Wrapping functions to use python types 
+
+// !SUBSECTION! Linear Properties
+
+list fourier_transform(const list& l)
+{
+    Sbox f(lst_2_vec_int(l));
+    std::vector<Integer> transform = walsh_spectrum_coord(f);
+    return vec_2_lst_int(transform);
+}
+
+list invert_lat_fast(const list &t, const unsigned int n)
+{
+    std::vector<std::vector<Integer> > vec_t;
+    for (unsigned int a=0; a<len(t); a++)
+        vec_t.push_back(lst_2_vec_int(extract<list>(t[a])));
+    return vec_2_lst_int(invert_lat_cpp(vec_t, n)) ;
+}
+
 
 // !SUBSECTION! Linear/Affine equivalence
 
@@ -91,10 +109,22 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         lat,
         args("S"),
         "Returns a list of lists l such that l[a][b] = \\sum_{x \\in \\{ 0,1 \\}^n} (-1)^{<a,x> + <b,S(x>)}.");
+    def("invert_lat_fast",
+        invert_lat_fast,
+        args("T", "n"),
+        "Returns an S-Box s operating on n bits such that its LAT is the table T.");
     def("walsh_spectrum_fast",
         walsh_spectrum_fast,
         args("S", "n_threads"),
         "Returns a dictionnary d such that d[k] = #{(a, b), b != 0, k = \\sum_{x \\in \\{ 0,1 \\}^n} (-1)^{<a,x> + <b,S(x>)} which is computed using n_threads different threads.");
+    def("fourier_transform",
+        fourier_transform,
+        args("f"),
+        "Returns a list T such that T[a] = \\sum_{x \\in \\{ 0,1 \\}^n} (-1)^{<a,x> + S(x)}, where f is assumed to be a Boolean function.");
+    def("lat_zeroes_fast",
+        lat_zeroes_fast,
+        args("S", "n", "n_threads"),
+        "Returns all zeroes in the LAT of S as elements a||b of \ftwo^{2n}.");
     // Equivalence
     def("linear_equivalence_fast",
         linear_equivalence_fast,
@@ -111,6 +141,6 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
     def("extract_bases_fast",
         extract_bases_fast,
         args("V", "d", "n_threads"),
-        "TODO.");
+        "Returns a list containing the minimal bases of all vector spaces of dimension d included in V.");
 }
 

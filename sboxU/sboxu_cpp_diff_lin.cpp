@@ -1,4 +1,4 @@
-/* Time-stamp: <2017-10-06 19:03:02 lperrin>
+/* Time-stamp: <2018-02-16 17:09:37 lperrin>
  *
  * LICENSE
  */ 
@@ -100,16 +100,33 @@ dict differential_spectrum_fast(const list& l, const unsigned int n_threads)
 // !SECTION! Linear properties
 
 
+Sbox invert_lat_cpp(const std::vector<std::vector<Integer> > l, const unsigned int n)
+{
+    Sbox result(l.size(), 0);
+    for (unsigned int i=0; i<n; i++)
+    {
+        Integer b = (1 << i), sum;
+        for (unsigned int x=0; x<l.size(); x++)
+        {
+            sum = 0;
+            for (unsigned int a=0; a<l.size(); a++)
+            {
+                if (scal_prod(a, x) == 0)
+                    sum += l[a][b];
+                else
+                    sum -= l[a][b];
+            }
+            if (sum < 0)
+                result[x] |= (1 << i) ;
+        }
+    }
+    return result;
+}
+
+
 // !SUBSECTION! Internal routines 
 
-/* f is assumed to be the truth-table of a Boolean function. Its size
- * must thus be a power of two. At the end of the function, the output
- * T is the Walsh spectrum of f. If n is the size of the input of f,
- * then:
- *
- * T(a) = \\sum_{x \\in \\{ 0,1 \\}^n}} (-1)^{<a,x> + f(x)} .
- *
- * The algorithm (and its notations) come from:
+/* The algorithm (and its notations) come from:
  * 
  * Antoine Joux, "Algorithmic Cryptanalysis", Chapman & Hall/CRC,
  * 2009; Algorithm 9.3 (page 276).
@@ -160,6 +177,30 @@ void walsh_spectrum_cols_count(
             result[v] ++;
     }
 }
+
+void lat_zeroes_in_columns(
+    std::vector<Integer> &result,
+    const Sbox s,
+    const uint32_t b_min,
+    const uint32_t b_max,
+    const unsigned int n)
+{
+    for (unsigned int b=b_min; b<b_max; b++)
+    {
+        // computing one coordinate
+        Sbox f(s.size(), 0);
+        for (unsigned int x=0; x<f.size(); x++)
+            f[x] = scal_prod(b, s[x]);
+        // Walsh transform
+        std::vector<Integer> w(walsh_spectrum_coord(f));
+        // getting zeroes
+        for (unsigned int a=0; a<w.size(); a++)
+            if (w[a] == 0)
+                result.push_back((a << n) | b) ;
+    }
+}
+
+
 
 
 // !SUBSECTION! Python-facing functions 
@@ -237,4 +278,48 @@ dict walsh_spectrum_fast(const list& l, const unsigned int n_threads)
     for (auto &entry : count)
         result[entry.first] = count[entry.first] ;
     return result;
+}
+
+
+list lat_zeroes_fast(const list& l,
+                     const unsigned int n,
+                     const unsigned int n_threads)
+{
+    Sbox s(lst_2_vec_int(l)) ;
+    check_length(s);
+    std::vector<Integer> zeroes;
+    if (n_threads == 1)
+    {
+        // small S-Box
+        lat_zeroes_in_columns(std::ref(zeroes), s, 0, s.size(), n);
+    }
+    else
+    {
+        std::vector<std::thread> threads;
+        std::vector<std::vector<Integer> > local_zeroes(n_threads);
+        unsigned int slice_size = s.size()/n_threads;
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            unsigned int
+                lower_bound = i*slice_size,
+                upper_bound = (i+1)*slice_size;
+            if (upper_bound > s.size())
+                upper_bound = s.size();
+            threads.push_back(std::thread(lat_zeroes_in_columns,
+                                          std::ref(local_zeroes[i]),
+                                          s,
+                                          lower_bound,
+                                          upper_bound,
+                                          n));
+
+        }
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            threads[i].join();
+            zeroes.insert(zeroes.end(),
+                          local_zeroes[i].begin(),
+                          local_zeroes[i].end());
+        }
+    }
+    return vec_2_lst_int(zeroes) ;
 }

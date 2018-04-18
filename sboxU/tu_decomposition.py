@@ -19,7 +19,27 @@ def inverse(s):
     return result
     
 
+# !SECTION! Getting zeroes
+
+def proj_lat_zeroes(s):
+    result = []
+    for b in xrange(1, len(s)):
+        w = fourier_transform([scal_prod(b, s[x]) for x in xrange(0, len(s))])
+        for c in w:
+            if c == 0:
+                result.append(b)
+                break
+    return result
+                
 # !SECTION! Finding vector spaces of zeroes
+
+
+def indicator_function(l):
+    result = defaultdict(int)
+    for x in l:
+        result[x] = 1
+    return result
+
 
 def intersection(s1, s2):
     d2 = defaultdict(int)
@@ -40,180 +60,199 @@ def list_to_integer(l, N):
     return result
     
 
-def lat_zeroes(s):
-    l = lat(s)
-    words = [0]
-    for a, b in itertools.product(xrange(0, 2**N), xrange(0, 2**N)):
-        if l[a][b] == 0:
-            words.append((a << N) | b)
-    return words
+def integer_to_list(x, N):
+    result = []
+    y = x
+    mask = sum(1 << i for i in xrange(0, N))
+    while y != 0:
+        result.append(y & mask)
+        y = y >> N
+    result.sort()
+    return result
+    
+
 
 def extract_bases(z, dimension, n_threads=DEFAULT_N_THREADS):
-    return extract_bases_fast(z, dimension, n_threads)
-
-# def clique_based_filter(z):
-#     g = Graph()
-#     g.add_vertices(z)
-#     indicator_z = defaultdict(int)
-#     for x in z:
-#         indicator_z[x] = 1
-#     for a in z:
-#         g.add_edge(a, a)
-#     for a, b in itertools.combinations(z, r=2):
-#         u = oplus(a, b)
-#         if indicator_z[u] == 1:
-#             g.add_edge(a, b)
-#     c = all_max_clique(g)
-#     return c
+    return extract_bases_fast(z, int(dimension), n_threads)
 
 
-# def indicator_function(z):
-#     result = defaultdict(int)
-#     for x in z:
-#         result[x] = 1
-#     return result
+def extract_ae_bases(l):
+    result = []
+    N = int(log(len(l), 2))
+    for a in xrange(0, len(l)):
+        if l[a][1] == 0:
+            result += extract_ae_bases_rec(l, N, [a], [[0, 0], [a, 1]])
+    return result
 
 
-# def extract_vector(z, a):
-#     if len(z) == 0:
-#         return []
-#     indicator_z = indicator_function(z)
-#     result = []
-#     for x in z:
-#         y = oplus(x, a)
-#         if y > x and indicator_z[y] == 1:
-#             result.append(x)
-#     return result
+def extract_ae_bases_rec(l, N, base, span_base):
+    """l is the LAT of a function, base is the basis currently considered and
+    span_base is its span."""
+    if len(base) == N:
+        return [base]
+    else:
+        b = (1 << len(base))
+        result = []
+        for a in xrange(0, len(l)):
+            if l[a][b] == 0:
+                new_span_base = copy(span_base)
+                valid_guess = True
+                for v in span_base:
+                    a_prime = oplus(v[0], a)
+                    b_prime = oplus(v[1], b)
+                    if l[a_prime][b_prime] != 0:
+                        valid_guess = False
+                        break
+                    new_span_base.append([a_prime, b_prime])
+                if valid_guess:
+                    # print new_span_base
+                    result += extract_ae_bases_rec(l, N, base + [a], new_span_base)
+        return result
 
 
-# def extract_spaces(z, d):
-#     if d < 1:
-#         return []
-#     result = []
-#     for a in z:
-#         z_a = extract_vector(z, a)
-#         filtered_z_a = [x for x in z_a if x > a]
-#         result += extract_spaces_rec([a], filtered_z_a, d)
-#     return result
-
-
-# def extract_spaces_rec(basis, z, d):
-#     result = []
-#     if len(basis) == 0:
-#         raise Exception("extract_spaces_rec does not allow an empty basis.")
-#     if len(z) == 0 or len(z) < 2**(d - len(basis)) - 1:
-#         return []
-#     if len(basis) == d-1:
-#         for a in z:
-#             if a > basis[-1]:
-#                 result.append(basis + [a])
-#     else:
-#         for a in z:
-#             if a > basis[-1]:
-#                 z_a = extract_vector(z, a)
-#                 filtered_z_a = [x for x in z_a if x > a]
-#                 result += extract_spaces_rec(basis + [a], filtered_z_a, d)
-#     return result
+def minimizing_offset(b, N):
+    s = span(b)
+    best_offset = 0
+    min_offset_s = s
+    for offset in xrange(0, 2**N):
+        new_s = [oplus(x, offset) for x in s]
+        if new_s < min_offset_s:
+            min_offset_s = new_s
+            best_offset = offset
+    return best_offset
         
-    
-def extract_zero_spaces(s, verbose=False, transpose=True):
-    """Computes the LAT of s and returns a list of vector spaces S_i where
-    S_i is a subspaces of $[0, 2^N] \times [0, 2^N]$ of dimension n.
 
-    """
-    N = int(log(len(s), 2))
-    mask_N = sum(int(1 << i) for i in xrange(0, N))
-    
-    l = lat(s)
-    
-    search_space = ["lat"]
-    if transpose:
-        search_space.append("lat transpose")
 
-    tu_spaces_all = []
-    for search in search_space:
-        if verbose:
-            print "\n* search in " + search
-            print "** Looking for vector spaces of zeroes in rows..."
+def offsets_rec(N, z_basis, offsets, z_columns, z_columns_charac, current_intersection, n_threads=DEFAULT_N_THREADS):
+    d = len(z_basis)
+    if len(current_intersection) < 2**(N-d):
+        return []
+    if len(offsets) == N-d:
+        return [[offsets, current_intersection]]
+    index = len(offsets)
+    b = z_basis[index]
+
+    result = []
+    for a in z_columns[b]:
+        new_intersection_indicator = indicator_function(current_intersection)
+        for i in xrange(0, 2**index):
+            new_offset = a
+            new_b = b
+            for j in xrange(0, index):
+                if (i >> j) & 1 == 1:
+                    new_b = oplus(new_b, z_basis[j])
+                    new_offset = oplus(new_offset, offsets[j])
+            for y in current_intersection:
+                if z_columns_charac[new_b][oplus(y, new_offset)] != 1:
+                    new_intersection_indicator[y] = 0
+        new_intersection = [y for y in new_intersection_indicator.keys()
+                            if new_intersection_indicator[y] == 1]
+        if len(new_intersection) >= 2**(N-d)-1:
+            result += offsets_rec(N,
+                                  z_basis,
+                                  offsets + [a],
+                                  z_columns,
+                                  z_columns_charac,
+                                  new_intersection,
+                                  n_threads=n_threads)
             
-        row_zero_spaces = defaultdict(list)
-        row_zero_cliques = []
-        for a in xrange(0, 2**N):
-            row_zeroes = []
-            for b in xrange(0, 2**N):
-                if search != "lat":
-                    if l[b][a] % 2**N == 0:
-                        row_zeroes.append(b)
-                else:
-                    if l[a][b] % 2**N == 0:
-                        row_zeroes.append(b)
-            cliques = clique_based_filter(row_zeroes)
-            big_cliques = []
-            for c in cliques:
-                if len(c) >= 2**(int(N/2)):# and 0 in c:
-                    big_cliques.append(c)
-            row_zero_cliques.append(big_cliques)
-            if verbose:
-                print a, big_cliques
-
-        if verbose:
-            print "  ... [DONE]"
-            print "** Pairing rows to find common (large enough) vector spaces of zeroes..."
-            
-        row_zero_spaces = defaultdict(list)
-        for i, j in itertools.combinations(xrange(0, 2**N), 2):
-            k = oplus(i, j)
-            if k > i and k > j:
-                for c1, c2 in itertools.product(row_zero_cliques[i], row_zero_cliques[j]):
-                    inter_ij = intersection(c1, c2)
-                    if len(inter_ij) >= 2**(int(N/2)):
-                        for c3 in row_zero_cliques[k]:
-                            inter_ijk = intersection(inter_ij, c3)
-                            if len(inter_ijk) >= 2**(int(N/2)):
-                                inter_ijk.sort()
-                                space_identifier = sum(inter_ijk[i_b] << (i_b * N) for i_b in xrange(0, len(inter_ijk)))
-                                if verbose:
-                                    print "  {:02x} {:02x} {:02x}   {}".format(
-                                        i, j, k,
-                                        pretty_vector(inter_ijk),
-                                    )
-                                for v in [0, i, j, k]:
-                                    if v not in row_zero_spaces[space_identifier]:
-                                        row_zero_spaces[space_identifier].append(v)
-        
-        if verbose:
-            print "  ... [DONE]"
-            print "** Looking for (large enough) vector spaces in row indices sharing same spaces of zeroes ..."
-
-        tu_spaces = []
-        for space_identifier in row_zero_spaces.keys():
-            original_space = []
-            y = space_identifier
-            while y != 0:
-                original_space.append(int(y & mask_N))
-                y = y >> N
-            original_space.sort()
-            all_cliques = clique_based_filter(row_zero_spaces[space_identifier])
-            for c in all_cliques:
-                if len(c) * len(original_space) >= 2**N:
-                    if search == "lat":
-                        tu_spaces.append([original_space, c])
-                    else:
-                        tu_spaces.append([c, original_space])
-                        
-        for ss in tu_spaces:
-            if ss not in tu_spaces_all:
-                tu_spaces_all.append(ss)
-                if verbose:
-                    print "  {}, {}".format(
-                        pretty_vector(ss[0], width=ceil(N/4)),
-                        pretty_vector(ss[1], width=ceil(N/4)),
-                    )
+    return result
                 
-        if verbose:
-            print "... [DONE]"
 
-    return tu_spaces_all
+def find_permutation_spaces_quadratic(l, N, n_threads=DEFAULT_N_THREADS):
+    z_0_indicator = defaultdict(int)
+    for a in xrange(0, 2**N):
+        for b in xrange(0, 2**N):
+            if l[a][b] == 0:
+                z_0_indicator[b] = 1
+    z_0 = [b for b in xrange(0, 2**N) if z_0_indicator[b] == 1]
+    spaces = extract_bases(z_0, int(N/2), n_threads=n_threads)
+    return spaces
+    
+
+def find_permutation_spaces(l, N, n_threads=16):
+    z_0 = [b for b in xrange(0, 2**N) if l[0][b] % 2**N == 0]
+    z_0_bases = []
+    for d in xrange(int(N/2), N-1):
+        new_bases = extract_bases(z_0, d, n_threads=n_threads)
+        if len(new_bases) == 0:
+            break
+        else:
+            z_0_bases += new_bases
+
+    big_enough_space_found = False
+    for base in z_0_bases:
+        if len(base) >= int(N/2):
+            big_enough_space_found = True
+    if not big_enough_space_found:
+        return []
+
+    z_columns = [[] for b in xrange(0, 2**N)]
+    for b in xrange(0, 2**N):
+        for a in xrange(0, 2**N):
+            if l[a][b] % 2**N == 0:
+                v = (a << N) | b
+                z_columns[b].append(a)
+    z_columns_charac = [indicator_function(z_columns[b]) for b in xrange(0, 2**N)]
+                
+    for b1, b2 in itertools.combinations(z_0_bases, 2):
+        if len(b1) + len(b2) == N and rank_of_vector_set(b1 + b2, 2*N) == N:
+            print pretty_vector(b1), pretty_vector(b2)
+            
+            correction_result1 = offsets_rec(N,
+                                             b1,
+                                             [],
+                                             z_columns,
+                                             z_columns_charac,
+                                             range(0, 2**N),
+                                             n_threads=n_threads)
+            print len(correction_result1)
+            correction_result2 = offsets_rec(N,
+                                             b2,
+                                             [],
+                                             z_columns,
+                                             z_columns_charac,
+                                             range(0, 2**N),
+                                             n_threads=n_threads)
+            print len(correction_result2)
+            # if len(correction_result) > 0:
+            #     correction, inter = correction_result
+            #     print correction
+            #     for base_in_intersection in extract_bases(inter, N-d, n_threads=n_threads):
+            #         space = []
+            #         for b_index in xrange(0, 2**d):
+            #             b = 0
+            #             cor = 0
+            #             for j in xrange(0, d):
+            #                 if (b_index >> j) & 1 == 1:
+            #                     b = oplus(b, proj_base[j])
+            #                     cor = oplus(cor, correction[j])
+            #             for a_index in xrange(0, 2**(N-d)):
+            #                 a = cor
+            #                 for j in xrange(0, N-d):
+            #                     if (a_index >> j) & 1 == 1:
+            #                         a = oplus(a, base_in_intersection[j])
+            #                 space.append((a << N) | b)
+            #         bases = extract_bases(space, N, n_threads=16)
+            #         candidate_bases += bases
+
+    # print len(candidate_bases)
+    # mask = sum(1 << i for i in xrange(0, N))
+    # for c in candidate_bases:
+    #     counter = 0
+    #     for x in span(c):
+    #         a = x >> N
+    #         b = x & mask
+    #         if l[a][b] % 2**N == 0:
+    #             counter += 1
+    #     print [(hex(x >> N), hex(x & mask)) for x in c], rank_of_vector_set(c, 2*N), counter
+    # result = []
+    # for v1, v2 in itertools.product(candidate_bases, candidate_bases):
+    #     if rank_of_vector_set(v1 + v2, 2*N) == 2*N:
+    #         result.append([v1, v2])
+    #         # print pretty_vector(v1, template="{:x}"), pretty_vector(v2, template="{:x}")
+    # return result
+    return []
 
 
 def extract_direct_sum(list_of_spaces, N):

@@ -6,6 +6,8 @@ import itertools
 import random
 from sboxu_cpp import *
 from display import pretty_spectrum
+from diff_lin import lat_zeroes
+from tu_decomposition import extract_bases
 from hashlib import sha256
 from collections import defaultdict
 
@@ -263,6 +265,7 @@ def xor_equivalence(f, g):
 
     where "+" denotes the bitwise XOR.
     """
+    N = int(log(len(f), 2))
     for k0 in xrange(0, 2**N):
         k1 = oplus(f[0], g[k0])
         good = True
@@ -306,6 +309,31 @@ def linear_equivalence(f, g):
     B = linear_function_lut_to_matrix(result[1])
     return A, B
 
+
+# !SUBSECTION! Extended-affine equivalence
+
+def ea_equivalent_permutation_mappings(f):
+    """Assuming f is a permutation, returns a list of all linear functions
+    L such that g(x) + L(x) is a permutation.
+
+    """
+    N = int(log(len(f), 2))
+    mask = sum((1 << i) for i in xrange(0, N))
+    z = lat_zeroes(f)
+    spaces = extract_bases(z, N)
+    result = []
+    for b in spaces:
+        proj_dict = {}
+        v = span(b)
+        l = [-1 for x in xrange(0, 2**N)]
+        for x in v:
+            l[x & mask] = x >> N
+        if -1 not in l:
+            result.append(linear_function_lut_to_matrix(l).transpose())
+    return result
+                
+        
+    
 
 # !SUBSECTION! Affine equivalence 
 

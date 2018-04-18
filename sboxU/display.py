@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-01-26 16:11:40 lperrin>
+# Time-stamp: <2018-02-06 15:52:10 lperrin>
 
 import matplotlib.pyplot as plt
 from diff_lin import *
@@ -30,18 +30,22 @@ def pretty_spectrum(d):
     dictionnary d.
 
     """
+    if len(d.keys()) == 0:
+        return "{}"
     line = "{"
     for k in sorted(d.keys()):
         line += "{}: {}, ".format(k, d[k])
     return line[:-2] + "}"
 
 
-def pretty_vector(v, template="{:d}"):
+def pretty_vector(v, template="{:x}"):
     """Returns a string containing the representation of the integers in v
     using the template given (defaults to a simple decimal
     representation).
 
     """
+    if len(v) == 0:
+        return "[]"
     line = "["
     for x in v:
         line += template.format(x) + ","

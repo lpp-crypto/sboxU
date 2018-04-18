@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-01-25 16:56:54 lperrin>
+# Time-stamp: <2018-03-29 15:13:51 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -31,7 +31,15 @@ def differential_spectrum(s, n_threads=None):
         else:
             n_threads = 1
     return differential_spectrum_fast(s, n_threads)
-            
+
+def lat_zeroes(s, n_threads=None):
+    if n_threads == None:
+        if len(s) > BIG_SBOX_THRESHOLD:
+            n_threads = DEFAULT_N_THREADS
+        else:
+            n_threads = 1
+    n = int(log(len(s), 2))
+    return lat_zeroes_fast(s, n, n_threads)
 
 
 # !SECTION! Properties of functions and permutations
@@ -317,14 +325,7 @@ def invert_lat(l):
 
     Only works for functions with the same input and output length."""
     n = int(log(len(l), 2))
-    s = [0 for x in xrange(0, 2**n)]
-    for i in xrange(0, n):
-        b = 1 << i
-        for x in xrange(0, 2**n):
-            v = int(1/2 - sum(l[a][b]*(-1)**(scal_prod(a, x)) for a in xrange(0, 2**n)) / 2**(n+1))
-            if v == 1:
-                s[x] = s[x] | (1 << i)
-    return s
+    return invert_lat_fast(l, n)
 
 
 # !SECTION! Tests

@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-01-30 10:16:24 lperrin>
+/* Time-stamp: <2018-03-26 10:40:56 lperrin>
  *
  * LICENCE
  */
@@ -604,9 +604,12 @@ std::vector<long int> super_extract_vector_cpp(
     std::vector<long int> result; //(1, 0);
     for(auto & x : z)
     {
-        long int y = x ^ a;
-        if ((a < x) and (x < y) and (indicator.find(y) != indicator.end()))
-            result.push_back(x);
+        if (a < x)
+        {
+            long int y = x ^ a;
+            if ((x < y) and (indicator.find(y) != indicator.end()))
+                result.push_back(x);
+        }
     }
     return result;
 }
@@ -619,17 +622,22 @@ std::vector<std::vector<long int> > extract_bases_rec(
 {
     std::vector<std::vector<long int> > result, tmp;
     std::vector<long int> new_base, z_a;
+    // if (z.size() < ((1 << (dimension - base.size()) - 1)))
+    //     return result;
+    // if (base.size() == dimension - 1)
+    // {
+    //     for (auto &a : z)
+    //         if (a > base.back())
+    //         {
+    //             new_base.assign(base.begin(), base.end());
+    //             new_base.push_back(a);
+    //             result.push_back(new_base);
+    //         }
+    // }
     if (z.size() == 0)
-        return result;
-    if (base.size() == dimension - 1)
     {
-        for (auto &a : z)
-            if (a > base.back())
-            {
-                new_base.assign(base.begin(), base.end());
-                new_base.push_back(a);
-                result.push_back(new_base);
-            }
+        if (base.size() >= dimension)
+            result.push_back(base);
     }
     else
     {
