@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-01-29 14:57:12 lperrin>
+/* Time-stamp: <2018-05-16 14:51:20 lperrin>
  *
  * LICENSE
  */ 
@@ -18,14 +18,15 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g);
 
 Sbox le_class_representative_cpp(const Sbox f);
 
-std::vector<long int> extract_vector_cpp(
-    const std::vector<long int> z,
-    const long int a);
+// std::vector<BinWord> extract_vector_cpp(
+//     const std::vector<uint32_t> z,
+//     const Integer a);
 
-std::vector<std::vector<long int> > extract_bases_cpp(
-    const std::vector<long int> z,
-    const unsigned int dimension,
-    const unsigned int n_threads);
+std::vector<std::vector<BinWord> > extract_bases_cpp(
+    const std::vector<BinWord> z,
+    const Integer dimension,
+    const Integer word_length,
+    const Integer n_threads);
 
     
 // !SECTION! Exceptions needed to implement guess and determine 

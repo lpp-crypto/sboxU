@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-04-18 17:50:52 lperrin>
+/* Time-stamp: <2018-05-16 14:40:12 lperrin>
  *
  * LICENSE
  */ 
@@ -15,14 +15,20 @@ using namespace boost::python;
 // !SUBSECTION! Boolean operations 
 
 /* @return the exclusive or of x and y. */ 
-uint32_t oplus_cpp(uint32_t x, uint32_t y) ;
+BinWord oplus_cpp(BinWord x, BinWord y) ;
 
 /* @return the Hamming weight of x. */ 
-unsigned int hamming_weight(uint32_t x) ;
+unsigned int hamming_weight(BinWord x) ;
+
+/* @return the parity of x, i.e. its hamming weight modulo 2. */ 
+BinWord parity(BinWord x) ;
 
 /* @return the scalar product of x and y. */ 
-Integer scal_prod(uint32_t x, uint32_t y) ;
+BinWord scal_prod(BinWord x, BinWord y) ;
 
+
+/* @return the component $x \mapsto b . f(x)$. */ 
+std::vector<BinWord> component(BinWord a, std::vector<BinWord> f);
 
 
 // !SUBSECTION! Generating and testing permutations 
@@ -30,12 +36,10 @@ Integer scal_prod(uint32_t x, uint32_t y) ;
 /* @return the LUT of a permutation of [0, 2^n) picked uniformly at
  * random using a PRNG from the C++ STL. */
 Sbox random_permutation_cpp(unsigned int n);
-list random_permutation(unsigned int n);
 
 /* @return true if and only if the LUT s contains all elements in [0,
  * s.size()). */
 bool is_permutation_cpp(Sbox s);
-bool is_permutation(list s);
 
 /* @return the LUT of the functional inverse of s. */ 
 Sbox inverse(Sbox s);
@@ -43,16 +47,26 @@ Sbox inverse(Sbox s);
 
 // !SUBSECTION! C++/Python converstion 
 
-/* @return a C++ vector of Integers containing the (signed) numbers in l.
+/* @return a C++ vector of Integers containing the signed numbers in l.
  *
  * @exception throws an exception if an element in the list is not an integer.
  */
-std::vector<Integer> lst_2_vec_int(const list& l);
+std::vector<Integer> lst_2_vec_Integer(const list& l);
 
-
-/* @return a python list of Integers containing the (signed) numbers in l.
+/* @return a C++ vector of BinWord containing the binary representations of the unsigned integers in l.
+ *
+ * @exception throws an exception if an element in the list is not an integer.
  */
-list vec_2_lst_int(const std::vector<Integer> l);
+std::vector<BinWord> lst_2_vec_BinWord(const list& l);
+
+
+/* @return a python list of Integers containing the signed numbers in l.
+ */
+list vec_2_lst_Integer(const std::vector<Integer> l);
+
+/* @return a python list of Integers containing the numbers whose binary expansion are the words in l.
+ */
+list vec_2_lst_BinWord(const std::vector<BinWord> l);
 
 
 

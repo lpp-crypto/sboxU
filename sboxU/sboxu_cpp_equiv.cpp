@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-03-26 10:40:56 lperrin>
+/* Time-stamp: <2018-05-23 15:07:03 lperrin>
  *
  * LICENCE
  */
@@ -29,7 +29,7 @@ LEguess::~LEguess()
 
 std::vector<IOpair> LEguess::add_entry(const IOpair e)
 {
-    uint32_t x = e.first, y = e.second;
+    BinWord x = e.first, y = e.second;
     if ((x != 0) and (y == 0))
         throw ContradictionFound(x, y);
     else if ((x == 0) and (y != 0))
@@ -40,11 +40,11 @@ std::vector<IOpair> LEguess::add_entry(const IOpair e)
         is_set[x] = true;
         // propagating new value
         latest_entries.clear();
-        std::map<uint32_t, bool> previously_set(is_set);
+        std::map<BinWord, bool> previously_set(is_set);
         for (auto & entry : previously_set)
             if (entry.second)
             {
-                uint32_t
+                BinWord
                     in_val = entry.first ^ x,
                     out_val = partial_lut[entry.first] ^ y;
                 if (is_set[in_val])
@@ -75,7 +75,7 @@ std::vector<IOpair> LEguess::add_entry(const IOpair e)
 }
 
 
-bool LEguess::is_entry_set(const uint32_t x)
+bool LEguess::is_entry_set(const BinWord x)
 {
     return is_set[x];
 }
@@ -93,7 +93,7 @@ bool LEguess::complete()
 }
 
 
-uint32_t LEguess::img(const uint32_t x)
+BinWord LEguess::img(const BinWord x)
 {
     if (is_set[x])
         return partial_lut[x];
@@ -232,7 +232,7 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
                 // B(y) = b_y => A(f_inv(b_y)) = g_inv(y)
                 for (auto & entry : to_treat)
                 {
-                    uint32_t y = entry.first, b_y = entry.second;
+                    BinWord y = entry.first, b_y = entry.second;
                     just_added = a.add_entry(IOpair(f_inv[b_y], g_inv[y]));
                     next_to_treat.insert(next_to_treat.end(),
                                          just_added.begin(),
@@ -245,7 +245,7 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
                 // A(x) = a_x => B(g(a_x)) = f(x)
                 for (auto & entry : to_treat)
                 {
-                    uint32_t x = entry.first, a_x = entry.second;
+                    BinWord x = entry.first, a_x = entry.second;
                     just_added = b.add_entry(IOpair(g[a_x], f[x]));
                     next_to_treat.insert(next_to_treat.end(),
                                          just_added.begin(),
@@ -310,7 +310,7 @@ LErepr::LErepr(const Sbox _f) :
 
 void LErepr::add_entry(const IOpair e)
 {
-    uint32_t x = e.first, y = e.second;
+    BinWord x = e.first, y = e.second;
     if (is_set[x])
     {
         if (partial_lut[x] != y)
@@ -570,17 +570,17 @@ Sbox le_class_representative_cpp(const Sbox f)
 // !SECTION! Vector extraction
 
 
-std::vector<long int> extract_vector_cpp(
-    const std::vector<long int> z,
-    const long int a)
+std::vector<BinWord> extract_vector_cpp(
+    const std::vector<BinWord> z,
+    const BinWord a)
 {
     // building indicator function
-    std::map<long int, bool> indicator;
+    std::map<BinWord, bool> indicator;
     for(auto & x : z)
     {
         indicator[x] = true;
     }
-    std::vector<long int> result;
+    std::vector<BinWord> result;
     for(auto & x : z)
     {
         long int y = x ^ a;
@@ -591,116 +591,137 @@ std::vector<long int> extract_vector_cpp(
 }
 
 
-std::vector<long int> super_extract_vector_cpp(
-    const std::vector<long int> z,
-    const long int a)
+std::vector<BinWord> super_extract_vector_cpp(
+    const std::vector<BinWord> z,
+    const BinWord a)
 {
-    // building indicator function
-    std::map<long int, bool> indicator;
+    std::set<BinWord> indicator(z.begin(), z.end());
+    std::vector<BinWord> result; //(1, 0);
     for(auto & x : z)
-    {
-        indicator[x] = true;
-    }
-    std::vector<long int> result; //(1, 0);
-    for(auto & x : z)
-    {
         if (a < x)
         {
-            long int y = x ^ a;
+            BinWord y = x ^ a;
             if ((x < y) and (indicator.find(y) != indicator.end()))
                 result.push_back(x);
         }
-    }
+    indicator.clear();
     return result;
 }
 
 
-std::vector<std::vector<long int> > extract_bases_rec(
-    const std::vector<long int> base,
-    const std::vector<long int> z,
-    unsigned int dimension)
+std::vector<std::vector<BinWord> > extract_bases_rec(
+    const std::vector<BinWord> base,
+    const std::vector<BinWord> z,
+    const Integer dimension,
+    const Integer word_length)
 {
-    std::vector<std::vector<long int> > result, tmp;
-    std::vector<long int> new_base, z_a;
-    // if (z.size() < ((1 << (dimension - base.size()) - 1)))
-    //     return result;
-    // if (base.size() == dimension - 1)
-    // {
-    //     for (auto &a : z)
-    //         if (a > base.back())
-    //         {
-    //             new_base.assign(base.begin(), base.end());
-    //             new_base.push_back(a);
-    //             result.push_back(new_base);
-    //         }
-    // }
+    std::vector<std::vector<BinWord> > result, tmp;
+    std::vector<BinWord> new_base, z_a;
+    bool branch_is_exhausted = false;
+
     if (z.size() == 0)
-    {
-        if (base.size() >= dimension)
-            result.push_back(base);
+    {   // branch is done if z is empty
+        branch_is_exhausted = true;
+    }
+    else if (base.size() < dimension)
+    {   // branch is done if z does not contain enough element to form
+        // a base of dimension `dimension`
+        branch_is_exhausted = (z.size() < ((1 << (dimension - base.size())) - 1)) ;
+    }
+    if (branch_is_exhausted && (base.size() >= dimension))
+    {   // if the search stopped but the base is large enough, we keep it
+        result.push_back(base);
     }
     else
-    {
-        for (auto &a : z)
-            if (a > base.back())
+    {   // otherwise, the search continues
+        BinWord mask = 0;
+        for (unsigned int i=word_length-dimension+base.size()+1; i<word_length; i++)
+            mask |= (1 << i) ;
+        for (unsigned int i=0; i<z.size(); i++)  // recursively extracting
+        { 
+            BinWord a = z[i];
+            if ((a > base.back()) && ((a & mask) == 0))
             {
                 new_base.assign(base.begin(), base.end());
                 new_base.push_back(a);
-                z_a = super_extract_vector_cpp(z, a);
-                tmp = extract_bases_rec(new_base, z_a, dimension);
+                z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i, z.end()), a);
+                tmp = extract_bases_rec(new_base, z_a, dimension, word_length);
                 result.insert(result.end(), tmp.begin(), tmp.end());
+                tmp.clear();
+                z_a.clear();
             }
+        }
     }
     return result;
 }
 
 
 void extract_bases_starting_with(
-    const std::vector<long int> starting_vectors,
-    std::vector<std::vector<long int> > & result,
-    const std::vector<long int> z,
-    const unsigned int dimension)
-{
-    std::vector<std::vector<long int> > tmp;
-    std::vector<long int> new_base, z_a;
-    
-    for (auto &a : starting_vectors)
+    const std::vector<BinWord> starting_vectors,
+    std::vector<std::vector<BinWord> > & result,
+    const std::vector<BinWord> z,
+    const Integer dimension,
+    const Integer word_length)
+{    
+    std::vector<std::vector<BinWord> > tmp, valid_starts;
+    std::vector<BinWord> new_base, z_a;
+
+    // building mask to select valid potential starting points
+    BinWord mask = 0;
+    for (unsigned int i=word_length-dimension+1; i<word_length; i++)
+        mask |= (1 << i);
+    // looping over starting points
+    for (unsigned int i=0; i<starting_vectors.size(); i++)
     {
-        z_a = super_extract_vector_cpp(z, a);
-        new_base.assign(1, a);
-        tmp = extract_bases_rec(new_base, z_a, dimension);
-        result.insert(result.end(), tmp.begin(), tmp.end());
+        BinWord a = starting_vectors[i] ;
+        if ((a & mask) == 0)
+        {
+            z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i, z.end()), a);
+            new_base.assign(1, a);
+            tmp = extract_bases_rec(new_base, z_a, dimension, word_length);
+            result.insert(result.end(), tmp.begin(), tmp.end());
+            tmp.clear();
+            z_a.clear();
+        }
     }
 }
 
 
-std::vector<std::vector<long int> > extract_bases_cpp(
-    const std::vector<long int> z,
-    const unsigned int dimension,
-    const unsigned int n_threads)
+std::vector<std::vector<BinWord> > extract_bases_cpp(
+    std::vector<BinWord> z,
+    const Integer dimension,
+    const Integer word_length,
+    const Integer n_threads)
 {
-    std::vector<std::vector<long int> > result;
+    std::vector<std::vector<BinWord> > result;
     std::vector<std::thread> threads;
-    std::vector<std::vector<std::vector<long int> > > local_results(
+    std::vector<std::vector<std::vector<BinWord> > > local_results(
         n_threads,
-        std::vector<std::vector<long int> >());
-    std::vector<std::vector<long int> > all_starting_vectors(n_threads, std::vector<long int>());
+        std::vector<std::vector<BinWord> >());
+    std::vector<std::vector<BinWord> > all_starting_vectors(n_threads, std::vector<BinWord>());
 
-    unsigned int counter = 0;
+    // ensuring that the list is initially sorted
+    std::sort(z.begin(), z.end());
+    
+    // placing all relevant vectors in different buckets
+    unsigned int counter = 0; 
     for (auto &a : z)
         if (a != 0)
         {
             all_starting_vectors[counter % n_threads].push_back(a);
             counter ++;
         }
+    // assigning each bucket to a different thread
     for (unsigned int i=0; i<n_threads; i++)
     {
         threads.push_back(std::thread(extract_bases_starting_with,
                                       all_starting_vectors[i],
                                       std::ref(local_results[i]),
                                       z,
-                                      dimension));
+                                      dimension,
+                                      word_length));
     }
+    // regrouping results
     for (unsigned int i=0; i<n_threads; i++)
     {
         threads[i].join();
@@ -710,3 +731,4 @@ std::vector<std::vector<long int> > extract_bases_cpp(
     }    
     return result;
 }
+

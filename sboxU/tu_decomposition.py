@@ -73,8 +73,8 @@ def integer_to_list(x, N):
     
 
 
-def extract_bases(z, dimension, n_threads=DEFAULT_N_THREADS):
-    return extract_bases_fast(z, int(dimension), n_threads)
+def extract_bases(z, dimension, word_length, n_threads=DEFAULT_N_THREADS):
+    return extract_bases_fast(z, int(dimension), int(word_length), n_threads)
 
 
 def extract_ae_bases(l):

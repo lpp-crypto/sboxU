@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-04-18 17:50:39 lperrin>
+/* Time-stamp: <2018-05-16 14:50:34 lperrin>
  *
  * LICENSE
  */ 
@@ -11,21 +11,35 @@ using namespace boost::python;
 
 // !SECTION! Wrapping functions to use python types 
 
+
+// !SUBSECTION! Basic utils
+
+bool is_permutation(list s)
+{
+    return is_permutation_cpp(lst_2_vec_BinWord(s));
+}
+
+list random_permutation(unsigned int n)
+{
+    return vec_2_lst_BinWord(random_permutation_cpp(n)); 
+}
+
+
 // !SUBSECTION! Linear Properties
 
 list fourier_transform(const list& l)
 {
-    Sbox f(lst_2_vec_int(l));
+    Sbox f(lst_2_vec_BinWord(l));
     std::vector<Integer> transform = walsh_spectrum_coord(f);
-    return vec_2_lst_int(transform);
+    return vec_2_lst_Integer(transform);
 }
 
 list invert_lat_fast(const list &t, const unsigned int n)
 {
     std::vector<std::vector<Integer> > vec_t;
     for (unsigned int a=0; a<len(t); a++)
-        vec_t.push_back(lst_2_vec_int(extract<list>(t[a])));
-    return vec_2_lst_int(invert_lat_cpp(vec_t, n)) ;
+        vec_t.push_back(lst_2_vec_Integer(extract<list>(t[a])));
+    return vec_2_lst_BinWord(invert_lat_cpp(vec_t, n)) ;
 }
 
 
@@ -33,39 +47,41 @@ list invert_lat_fast(const list &t, const unsigned int n)
 
 list linear_equivalence_fast(const list& l0, const list &l1)
 {
-    Sbox f(lst_2_vec_int(l0)), g(lst_2_vec_int(l1));
+    Sbox f(lst_2_vec_BinWord(l0)), g(lst_2_vec_BinWord(l1));
     std::vector<Sbox> mappings(linear_equivalence_cpp(f, g));
     list result;
     for (auto &m : mappings)
-        result.append(vec_2_lst_int(m));
+        result.append(vec_2_lst_BinWord(m));
     return result;
 }
 
 list le_class_representative(const list& l0)
 {
-    return vec_2_lst_int(le_class_representative_cpp(lst_2_vec_int(l0)));
+    return vec_2_lst_BinWord(le_class_representative_cpp(lst_2_vec_BinWord(l0)));
 }
+
 
 // !SUBSECTION! CCZ
 
-list extract_vector_fast(const list& l, const long int a) 
-{
-    std::vector<long int> b = extract_vector_cpp(lst_2_vec_int(l), a) ;
-    return vec_2_lst_int(b) ;
-}
+// list extract_vector_fast(const list& l, const Integer a) 
+// {
+//     return vec_2_lst_BinWord(extract_vector_cpp(lst_2_vec_BinWord(l), a)) ;
+// }
 
 
 list extract_bases_fast(const list& l,
                         const unsigned int dimension,
+                        const unsigned int word_length,
                         const unsigned int n_threads) 
 {
-    std::vector<std::vector<long int> > bases = extract_bases_cpp(
-        lst_2_vec_int(l),
+    std::vector<std::vector<BinWord> > bases = extract_bases_cpp(
+        lst_2_vec_BinWord(l),
         dimension,
+        word_length,
         n_threads);
     list result;
     for (auto &b : bases)
-        result.append(vec_2_lst_int(b));
+        result.append(vec_2_lst_BinWord(b));
     return result;
 }
 
@@ -87,6 +103,14 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         scal_prod,
         args("x", "y"),
         "Returns the scalar product in GF(2)^n of its inputs.");
+    def("parity",
+        parity,
+        args("x"),
+        "Returns the parity of the input, i.e. its hamming weight modulo 2.");
+    def("component",
+        component,
+        args("a", "f"),
+        "Returns the Boolean function $x \\mapsto a.f(x)$, where the dot '.' denotes the scalar product in GF(2^n).");
     def("random_permutation",
         random_permutation,
         args("n"),
@@ -134,13 +158,9 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         le_class_representative,
         args("f"),
         "Returns the smallest representative of the linear-equivalence class of f.");
-    def("extract_vector_fast",
-        extract_vector_fast,
-        args("V", "a"),
-        "TODO.");
     def("extract_bases_fast",
         extract_bases_fast,
-        args("V", "d", "n_threads"),
+        args("V", "d", "n", "n_threads"),
         "Returns a list containing the minimal bases of all vector spaces of dimension d included in V.");
 }
 

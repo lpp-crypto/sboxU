@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-02-16 17:09:37 lperrin>
+/* Time-stamp: <2018-05-16 14:45:06 lperrin>
  *
  * LICENSE
  */ 
@@ -11,7 +11,7 @@ using namespace boost::python;
 
 // !SUBSECTION! Internal routines 
 
-std::vector<Integer> ddt_row(const Sbox s, const uint32_t a)
+std::vector<Integer> ddt_row(const Sbox s, const BinWord a)
 {
     // I tried implementing this function using list
     // instead of vectors. However, it turned out to be about 2-3
@@ -26,8 +26,8 @@ std::vector<Integer> ddt_row(const Sbox s, const uint32_t a)
 void ddt_rows_count(
     std::map<Integer, Integer> &result,
     const Sbox s,
-    const uint32_t a_min,
-    const uint32_t a_max)
+    const BinWord a_min,
+    const BinWord a_max)
 {
     for (unsigned int a=a_min; a<a_max; a++)
     {
@@ -43,10 +43,10 @@ void ddt_rows_count(
 list ddt(const list& l)
 {
     list result;    
-    Sbox s(lst_2_vec_int(l)) ;
+    Sbox s(lst_2_vec_BinWord(l)) ;
     check_length(s);
     for (unsigned int a=0; a<s.size(); a++)
-        result.append(vec_2_lst_int(ddt_row(s, a)));
+        result.append(vec_2_lst_Integer(ddt_row(s, a)));
 
     return result;
 }
@@ -54,7 +54,7 @@ list ddt(const list& l)
 
 dict differential_spectrum_fast(const list& l, const unsigned int n_threads)
 {
-    Sbox s(lst_2_vec_int(l)) ;
+    Sbox s(lst_2_vec_BinWord(l)) ;
     check_length(s);
     std::map<Integer, Integer> count;
     if (n_threads == 1)
@@ -161,8 +161,8 @@ std::vector<Integer> walsh_spectrum_coord(const Sbox f)
 void walsh_spectrum_cols_count(
     std::map<Integer, Integer> &result,
     const Sbox s,
-    const uint32_t b_min,
-    const uint32_t b_max)
+    const BinWord b_min,
+    const BinWord b_max)
 {
     for (unsigned int b=b_min; b<b_max; b++)
     {
@@ -179,18 +179,16 @@ void walsh_spectrum_cols_count(
 }
 
 void lat_zeroes_in_columns(
-    std::vector<Integer> &result,
+    std::vector<BinWord> &result,
     const Sbox s,
-    const uint32_t b_min,
-    const uint32_t b_max,
+    const BinWord b_min,
+    const BinWord b_max,
     const unsigned int n)
 {
     for (unsigned int b=b_min; b<b_max; b++)
     {
         // computing one coordinate
-        Sbox f(s.size(), 0);
-        for (unsigned int x=0; x<f.size(); x++)
-            f[x] = scal_prod(b, s[x]);
+        Sbox f(component(b, s)) ;
         // Walsh transform
         std::vector<Integer> w(walsh_spectrum_coord(f));
         // getting zeroes
@@ -207,7 +205,7 @@ void lat_zeroes_in_columns(
 
 list lat(const list& l)
 {
-    Sbox s(lst_2_vec_int(l)) ;
+    Sbox s(lst_2_vec_BinWord(l)) ;
     check_length(s);
     std::vector<std::vector<Integer> > table(
         s.size(),
@@ -230,7 +228,7 @@ list lat(const list& l)
         std::vector<Integer> row(s.size(), 0);
         for (unsigned int b=0; b<s.size(); b++)
             row[b] = table[b][a];
-        result.append<list>(vec_2_lst_int(row));
+        result.append<list>(vec_2_lst_Integer(row));
     }
     return result;
 }
@@ -238,7 +236,7 @@ list lat(const list& l)
 
 dict walsh_spectrum_fast(const list& l, const unsigned int n_threads)
 {
-    Sbox s(lst_2_vec_int(l)) ;
+    Sbox s(lst_2_vec_BinWord(l)) ;
     check_length(s);
     std::map<Integer, Integer> count;
     if (n_threads == 1)
@@ -285,9 +283,9 @@ list lat_zeroes_fast(const list& l,
                      const unsigned int n,
                      const unsigned int n_threads)
 {
-    Sbox s(lst_2_vec_int(l)) ;
+    Sbox s(lst_2_vec_BinWord(l)) ;
     check_length(s);
-    std::vector<Integer> zeroes;
+    std::vector<BinWord> zeroes;
     if (n_threads == 1)
     {
         // small S-Box
@@ -296,7 +294,7 @@ list lat_zeroes_fast(const list& l,
     else
     {
         std::vector<std::thread> threads;
-        std::vector<std::vector<Integer> > local_zeroes(n_threads);
+        std::vector<std::vector<BinWord> > local_zeroes(n_threads);
         unsigned int slice_size = s.size()/n_threads;
         for (unsigned int i=0; i<n_threads; i++)
         {
@@ -321,5 +319,5 @@ list lat_zeroes_fast(const list& l,
                           local_zeroes[i].end());
         }
     }
-    return vec_2_lst_int(zeroes) ;
+    return vec_2_lst_BinWord(zeroes) ;
 }

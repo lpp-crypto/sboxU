@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-04-18 17:51:01 lperrin>
+/* Time-stamp: <2018-05-16 14:40:43 lperrin>
  *
  * LICENSE
  */ 
@@ -8,34 +8,32 @@
 using namespace boost::python;
 
 
-uint32_t oplus_cpp(uint32_t x, uint32_t y)
+BinWord oplus_cpp(BinWord x, BinWord y)
 {
     return (x ^ y);
 }
 
-unsigned int hamming_weight(uint32_t x)
+unsigned int hamming_weight(BinWord x)
 {
-    unsigned int result = 0;
-    while (x != 0)
-    {
-        if (x & 1)
-            result += 1;
-        x >>= 1;
-    }
-    return result;
+    return __builtin_popcount(x);
 }
 
 
-Integer scal_prod(uint32_t x, uint32_t y)
+BinWord parity(BinWord x)
 {
-    Integer result = 0;
-    uint32_t conjunction = x & y;
-    while (conjunction != 0)
-    {
-        if (conjunction & 1)
-            result ^= 1;
-        conjunction >>= 1;
-    }
+    return __builtin_parity(x);
+}
+
+BinWord scal_prod(BinWord x, BinWord y)
+{
+    return parity(x & y);
+}
+
+std::vector<BinWord> component(BinWord a, std::vector<BinWord> f)
+{
+    std::vector<BinWord> result(f.size(), 0);
+    for (BinWord x=0; x<f.size(); x++)
+        result[x] = scal_prod(a, f[x]);
     return result;
 }
 
@@ -63,15 +61,10 @@ Sbox random_permutation_cpp(unsigned int n)
     return result;        
 }
 
-list random_permutation(unsigned int n)
-{
-    return vec_2_lst_int(random_permutation_cpp(n)); 
-}
-
 
 bool is_permutation_cpp(Sbox s)
 {
-    std::map<uint32_t, Integer> count;
+    std::map<BinWord, Integer> count;
     for (auto &v : s)
     {
         if (count[v] == 1)
@@ -80,12 +73,6 @@ bool is_permutation_cpp(Sbox s)
             count[v] = 1;
     }
     return true;
-}
-
-
-bool is_permutation(list s)
-{
-    return is_permutation_cpp(lst_2_vec_int(s));
 }
 
 
@@ -100,7 +87,7 @@ Sbox inverse(Sbox s)
 
 // !SECTION! Conversion C++/Python 
 
-std::vector<Integer> lst_2_vec_int(const list &l)
+std::vector<Integer> lst_2_vec_Integer(const list &l)
 {
     std::vector<Integer> result;
     for (unsigned int i=0; i<len(l); i++)
@@ -109,11 +96,28 @@ std::vector<Integer> lst_2_vec_int(const list &l)
 }
 
 
-list vec_2_lst_int(const std::vector<Integer> l)
+std::vector<BinWord> lst_2_vec_BinWord(const list &l)
+{
+    std::vector<BinWord> result;
+    for (unsigned int i=0; i<len(l); i++)
+        result.push_back(extract<BinWord>(l[i]));
+    return result;
+}
+
+
+list vec_2_lst_Integer(const std::vector<Integer> l)
 {
     list result;
     for (auto &v : l)
         result.append<Integer>(v);
+    return result;
+}
+
+list vec_2_lst_BinWord(const std::vector<BinWord> l)
+{
+    list result;
+    for (auto &v : l)
+        result.append<BinWord>(v);
     return result;
 }
 

@@ -1,4 +1,4 @@
-/* Time-stamp: <2017-10-06 19:02:08 lperrin>
+/* Time-stamp: <2018-05-23 15:07:12 lperrin>
  *
  * LICENSE
  */ 
@@ -13,6 +13,7 @@
 #include <vector>
 #include <utility>
 #include <map>
+#include <set>
 #include <string>
 
 // Basic libraries
@@ -35,8 +36,9 @@ using namespace boost::python;
 
 // !SECTION! Special types 
 
-typedef signed long int Integer;
-typedef std::vector<Integer> Sbox;
+typedef signed int Integer;
+typedef uint32_t BinWord;
+typedef std::vector<BinWord> Sbox;
 typedef std::pair<uint32_t, uint32_t> IOpair;
 
 
