@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-23 15:07:03 lperrin>
+/* Time-stamp: <2018-05-24 14:48:03 lperrin>
  *
  * LICENCE
  */
@@ -597,12 +597,16 @@ std::vector<BinWord> super_extract_vector_cpp(
 {
     std::set<BinWord> indicator(z.begin(), z.end());
     std::vector<BinWord> result; //(1, 0);
+    result.reserve(1 + (z.size()/2)) ;
     for(auto & x : z)
         if (a < x)
         {
             BinWord y = x ^ a;
-            if ((x < y) and (indicator.find(y) != indicator.end()))
-                result.push_back(x);
+            if (x < y)
+            {
+                if (indicator.find(y) != indicator.end())
+                    result.push_back(x);
+            }
         }
     indicator.clear();
     return result;
@@ -644,7 +648,7 @@ std::vector<std::vector<BinWord> > extract_bases_rec(
             {
                 new_base.assign(base.begin(), base.end());
                 new_base.push_back(a);
-                z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i, z.end()), a);
+                z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i+1, z.end()), a);
                 tmp = extract_bases_rec(new_base, z_a, dimension, word_length);
                 result.insert(result.end(), tmp.begin(), tmp.end());
                 tmp.clear();
@@ -666,17 +670,13 @@ void extract_bases_starting_with(
     std::vector<std::vector<BinWord> > tmp, valid_starts;
     std::vector<BinWord> new_base, z_a;
 
-    // building mask to select valid potential starting points
-    BinWord mask = 0;
-    for (unsigned int i=word_length-dimension+1; i<word_length; i++)
-        mask |= (1 << i);
     // looping over starting points
     for (unsigned int i=0; i<starting_vectors.size(); i++)
     {
         BinWord a = starting_vectors[i] ;
-        if ((a & mask) == 0)
+        // if ((a & mask) == 0)
         {
-            z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i, z.end()), a);
+            z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i+1, z.end()), a);
             new_base.assign(1, a);
             tmp = extract_bases_rec(new_base, z_a, dimension, word_length);
             result.insert(result.end(), tmp.begin(), tmp.end());
@@ -704,9 +704,12 @@ std::vector<std::vector<BinWord> > extract_bases_cpp(
     std::sort(z.begin(), z.end());
     
     // placing all relevant vectors in different buckets
+    BinWord mask = 0;
+    for (unsigned int i=word_length-dimension+1; i<word_length; i++)
+        mask |= (1 << i);
     unsigned int counter = 0; 
     for (auto &a : z)
-        if (a != 0)
+        if ((a != 0) and ((a & mask) == 0))
         {
             all_starting_vectors[counter % n_threads].push_back(a);
             counter ++;

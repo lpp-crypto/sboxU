@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-03-29 15:13:51 lperrin>
+# Time-stamp: <2018-05-23 16:58:54 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -75,7 +75,7 @@ def lat_coeff_probability_function(m, n, c):
     """
     if m != n:
         raise "m (={}) should be equal to n (={})!".format(m, n)
-    if c % 2 != 0:
+    if c % 4 != 0:
         return 0
     if c == 0:
         return RDF(2) * RDF(2**(-2**n) * binomial(2**n, 2**(n-1)))
