@@ -7,6 +7,7 @@ import itertools
 import random
 from sboxu_cpp import *
 from utils import oplus
+from diff_lin import proj_lat_zeroes
 from display import *
 from linear import *
 
@@ -20,17 +21,6 @@ def inverse(s):
     return result
     
 
-# !SECTION! Getting zeroes
-
-def proj_lat_zeroes(s):
-    result = []
-    for b in xrange(1, len(s)):
-        w = fourier_transform([scal_prod(b, s[x]) for x in xrange(0, len(s))])
-        for c in w:
-            if c == 0:
-                result.append(b)
-                break
-    return result
                 
 # !SECTION! Finding vector spaces of zeroes
 

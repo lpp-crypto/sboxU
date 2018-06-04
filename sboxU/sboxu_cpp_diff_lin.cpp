@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-16 14:45:06 lperrin>
+/* Time-stamp: <2018-05-25 17:42:41 lperrin>
  *
  * LICENSE
  */ 
@@ -185,6 +185,7 @@ void lat_zeroes_in_columns(
     const BinWord b_max,
     const unsigned int n)
 {
+    result.reserve(result.size() + b_max - b_min) ;
     for (unsigned int b=b_min; b<b_max; b++)
     {
         // computing one coordinate
@@ -199,9 +200,32 @@ void lat_zeroes_in_columns(
 }
 
 
+void do_lat_columns_contain_zero(
+    std::vector<bool> &result,
+    const Sbox s,
+    const BinWord b_min,
+    const BinWord b_max)
+{
+    result.reserve(result.size() + b_max - b_min) ;
+    for (unsigned int b=b_min; b<b_max; b++)
+    {
+        // computing one coordinate
+        Sbox f(component(b, s)) ;
+        // Walsh transform
+        std::vector<Integer> w(walsh_spectrum_coord(f));
+        bool contains_zero = false;
+        for (auto & c : w)
+            if (c == 0)
+            {
+                contains_zero = true;
+                break;
+            }
+        result.push_back(contains_zero) ;
+    }
+}
 
 
-// !SUBSECTION! Python-facing functions 
+// !SUBSECTION! High level parallelized functions 
 
 list lat(const list& l)
 {
@@ -279,11 +303,11 @@ dict walsh_spectrum_fast(const list& l, const unsigned int n_threads)
 }
 
 
-list lat_zeroes_fast(const list& l,
-                     const unsigned int n,
-                     const unsigned int n_threads)
+std::vector<BinWord> lat_zeroes_cpp(
+    const Sbox s,
+    const unsigned int n,
+    const unsigned int n_threads)
 {
-    Sbox s(lst_2_vec_BinWord(l)) ;
     check_length(s);
     std::vector<BinWord> zeroes;
     if (n_threads == 1)
@@ -319,5 +343,53 @@ list lat_zeroes_fast(const list& l,
                           local_zeroes[i].end());
         }
     }
-    return vec_2_lst_BinWord(zeroes) ;
+    return zeroes ;
 }
+
+
+std::vector<BinWord> projected_lat_zeroes_cpp(
+    const Sbox s,
+    const unsigned int n_threads)
+{
+    check_length(s);
+    std::vector<bool> projection;
+    if (n_threads == 1)
+    {
+        // small S-Box
+        do_lat_columns_contain_zero(std::ref(projection), s, 0, s.size());
+    }
+    else
+    {
+        std::vector<std::thread> threads;
+        std::vector<std::vector<bool> > local_projections(n_threads);
+        unsigned int slice_size = s.size()/n_threads;
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            unsigned int
+                lower_bound = i*slice_size,
+                upper_bound = (i+1)*slice_size;
+            if (upper_bound > s.size())
+                upper_bound = s.size();
+            threads.push_back(std::thread(do_lat_columns_contain_zero,
+                                          std::ref(local_projections[i]),
+                                          s,
+                                          lower_bound,
+                                          upper_bound));
+
+        }
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            threads[i].join();
+            projection.insert(projection.end(),
+                          local_projections[i].begin(),
+                          local_projections[i].end());
+        }
+    }
+    std::vector<BinWord> projected_zeroes;
+    for (unsigned int i=1; i<projection.size(); i++) // we purposefully leave out the zero
+        if (projection[i])
+            projected_zeroes.push_back(i) ;
+    return projected_zeroes ;
+}
+
+

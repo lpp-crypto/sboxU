@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-16 14:50:34 lperrin>
+/* Time-stamp: <2018-06-01 10:38:42 lperrin>
  *
  * LICENSE
  */ 
@@ -34,12 +34,30 @@ list fourier_transform(const list& l)
     return vec_2_lst_Integer(transform);
 }
 
-list invert_lat_fast(const list &t, const unsigned int n)
+list invert_lat_fast(const list &t,
+                     const unsigned int n)
 {
     std::vector<std::vector<Integer> > vec_t;
     for (unsigned int a=0; a<len(t); a++)
         vec_t.push_back(lst_2_vec_Integer(extract<list>(t[a])));
     return vec_2_lst_BinWord(invert_lat_cpp(vec_t, n)) ;
+}
+
+list lat_zeroes_fast(const list &l,
+                     const unsigned int n,
+                     const unsigned int n_threads)
+
+{
+    std::vector<BinWord> s(lst_2_vec_BinWord(l)) ;
+    return vec_2_lst_BinWord(lat_zeroes_cpp(s, n, n_threads));
+}
+
+list projected_lat_zeroes_fast(const list &l,
+                               const unsigned int n_threads)
+
+{
+    std::vector<BinWord> s(lst_2_vec_BinWord(l)) ;
+    return vec_2_lst_BinWord(projected_lat_zeroes_cpp(s, n_threads));
 }
 
 
@@ -74,8 +92,9 @@ list extract_bases_fast(const list& l,
                         const unsigned int word_length,
                         const unsigned int n_threads) 
 {
+    std::vector<BinWord> space(lst_2_vec_BinWord(l)) ;
     std::vector<std::vector<BinWord> > bases = extract_bases_cpp(
-        lst_2_vec_BinWord(l),
+        space,
         dimension,
         word_length,
         n_threads);
@@ -90,7 +109,9 @@ list extract_bases_fast(const list& l,
 
 BOOST_PYTHON_MODULE(sboxu_cpp)
 {
-    // Utils
+
+// Utils
+
     def("oplus_cpp",
         oplus_cpp,
         args("x", "y"),
@@ -119,7 +140,9 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         is_permutation,
         args("S"),
         "Returns True if and only if the list S corresponds to a permutation.");
-    // Differential properties
+
+// Differential properties
+    
     def("ddt",
         ddt,
         args("S"),
@@ -128,7 +151,9 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         differential_spectrum_fast,
         args("S", "n_threads"),
         "Returns a dictionnary d such that d[k] = #{(a, b), a != 0, S(x ^ a) ^ S(x) = b has k solutions} which is computed using n_threads different threads.");
-    // Linear properties
+
+// Linear properties
+
     def("lat",
         lat,
         args("S"),
@@ -149,7 +174,13 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         lat_zeroes_fast,
         args("S", "n", "n_threads"),
         "Returns all zeroes in the LAT of S as elements a||b of \ftwo^{2n}.");
-    // Equivalence
+    def("projected_lat_zeroes_fast",
+        projected_lat_zeroes_fast,
+        args("S", "n_threads"),
+        "Returns the projected of the set of all zeroes in the LAT of S, i.e. all a such that LAT[a,b]==0 for some b.");
+
+// Equivalence
+    
     def("linear_equivalence_fast",
         linear_equivalence_fast,
         args("f", "g"),

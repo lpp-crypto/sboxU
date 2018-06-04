@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-05-23 16:58:54 lperrin>
+# Time-stamp: <2018-05-25 17:31:32 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -40,6 +40,22 @@ def lat_zeroes(s, n_threads=None):
             n_threads = 1
     n = int(log(len(s), 2))
     return lat_zeroes_fast(s, n, n_threads)
+
+def proj_lat_zeroes(s, n_threads=None):
+    # result = []
+    # for b in xrange(1, len(s)):
+    #     w = fourier_transform([scal_prod(b, s[x]) for x in xrange(0, len(s))])
+    #     for c in w:
+    #         if c == 0:
+    #             result.append(b)
+    #             break
+    # return result
+    if n_threads == None:
+        if len(s) > BIG_SBOX_THRESHOLD:
+            n_threads = DEFAULT_N_THREADS
+        else:
+            n_threads = 1
+    return projected_lat_zeroes_fast(s, n_threads)
 
 
 # !SECTION! Properties of functions and permutations

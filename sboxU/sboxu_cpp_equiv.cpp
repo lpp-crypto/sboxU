@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-24 14:48:03 lperrin>
+/* Time-stamp: <2018-06-04 10:12:12 lperrin>
  *
  * LICENCE
  */
@@ -571,7 +571,7 @@ Sbox le_class_representative_cpp(const Sbox f)
 
 
 std::vector<BinWord> extract_vector_cpp(
-    const std::vector<BinWord> z,
+    const std::vector<BinWord> & z,
     const BinWord a)
 {
     // building indicator function
@@ -592,30 +592,30 @@ std::vector<BinWord> extract_vector_cpp(
 
 
 std::vector<BinWord> super_extract_vector_cpp(
-    const std::vector<BinWord> z,
-    const BinWord a)
+    const std::vector<BinWord> &z,
+    const unsigned int start)
 {
-    std::set<BinWord> indicator(z.begin(), z.end());
-    std::vector<BinWord> result; //(1, 0);
-    result.reserve(1 + (z.size()/2)) ;
-    for(auto & x : z)
-        if (a < x)
+    std::vector<BinWord> result;
+    result.reserve((z.size() - start)/2) ;
+    BinWord a = z[start] ;
+    for (unsigned int i=start+1; i<z.size()-1; i++)
+    {
+        BinWord
+            x = z[i],
+            y = x ^ a ;
+        if (x < y)
         {
-            BinWord y = x ^ a;
-            if (x < y)
-            {
-                if (indicator.find(y) != indicator.end())
-                    result.push_back(x);
-            }
+            if (std::binary_search(z.begin()+i+1, z.end(), y))
+                result.push_back(x) ;
         }
-    indicator.clear();
+    }
     return result;
 }
 
 
 std::vector<std::vector<BinWord> > extract_bases_rec(
     const std::vector<BinWord> base,
-    const std::vector<BinWord> z,
+    const std::vector<BinWord> &z,
     const Integer dimension,
     const Integer word_length)
 {
@@ -624,34 +624,38 @@ std::vector<std::vector<BinWord> > extract_bases_rec(
     bool branch_is_exhausted = false;
 
     if (z.size() == 0)
-    {   // branch is done if z is empty
-        branch_is_exhausted = true;
-    }
-    else if (base.size() < dimension)
-    {   // branch is done if z does not contain enough element to form
-        // a base of dimension `dimension`
-        branch_is_exhausted = (z.size() < ((1 << (dimension - base.size())) - 1)) ;
-    }
-    if (branch_is_exhausted && (base.size() >= dimension))
-    {   // if the search stopped but the base is large enough, we keep it
-        result.push_back(base);
-    }
+    {
+        if (base.size() >= dimension)
+            result.push_back(base) ;
+    }    
     else
     {   // otherwise, the search continues
-        BinWord mask = 0;
-        for (unsigned int i=word_length-dimension+base.size()+1; i<word_length; i++)
-            mask |= (1 << i) ;
-        for (unsigned int i=0; i<z.size(); i++)  // recursively extracting
-        { 
+        BinWord
+            threshold_leading_zeroes = (1 << (word_length-dimension+base.size()+1)),
+            min_size_extracted = (1 << (dimension - base.size() - 1)) - 1 ;
+        unsigned int start = 0;
+        while (__builtin_clz(z[start]) >= __builtin_clz(base.back()))
+            start ++;
+        for (unsigned int i=start; i<z.size() - min_size_extracted; i++)
+        {   // recursively extracting
             BinWord a = z[i];
-            if ((a > base.back()) && ((a & mask) == 0))
+            if (a >= threshold_leading_zeroes)
+                break;
+            else
             {
                 new_base.assign(base.begin(), base.end());
                 new_base.push_back(a);
-                z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i+1, z.end()), a);
-                tmp = extract_bases_rec(new_base, z_a, dimension, word_length);
-                result.insert(result.end(), tmp.begin(), tmp.end());
-                tmp.clear();
+                z_a = std::move(super_extract_vector_cpp(z, i));
+                if (z_a.size() >= min_size_extracted)
+                {
+                    tmp = std::move(extract_bases_rec(
+                        new_base,
+                        z_a,
+                        dimension,
+                        word_length));
+                    result.insert(result.end(), tmp.begin(), tmp.end());
+                    tmp.clear();
+                }
                 z_a.clear();
             }
         }
@@ -661,34 +665,41 @@ std::vector<std::vector<BinWord> > extract_bases_rec(
 
 
 void extract_bases_starting_with(
-    const std::vector<BinWord> starting_vectors,
+    const std::vector<BinWord> & starting_vectors,
     std::vector<std::vector<BinWord> > & result,
-    const std::vector<BinWord> z,
+    const std::vector<BinWord> & z,
     const Integer dimension,
     const Integer word_length)
 {    
     std::vector<std::vector<BinWord> > tmp, valid_starts;
     std::vector<BinWord> new_base, z_a;
 
+    BinWord min_size_extracted = (1 << (dimension - 1)) - 1 ;
+
+    unsigned int index_in_z = 0;
     // looping over starting points
     for (unsigned int i=0; i<starting_vectors.size(); i++)
     {
         BinWord a = starting_vectors[i] ;
-        // if ((a & mask) == 0)
+        while (z[index_in_z] != a)
+            index_in_z ++ ;
+        // Vector Extraction
+        z_a = std::move(super_extract_vector_cpp(z, index_in_z));
+        // Continuing if the result of the extraction is big enough
+        if (z_a.size() >= min_size_extracted)
         {
-            z_a = super_extract_vector_cpp(std::vector<BinWord>(z.begin()+i+1, z.end()), a);
             new_base.assign(1, a);
-            tmp = extract_bases_rec(new_base, z_a, dimension, word_length);
+            tmp = std::move(extract_bases_rec(new_base, z_a, dimension, word_length));
             result.insert(result.end(), tmp.begin(), tmp.end());
             tmp.clear();
-            z_a.clear();
         }
+        z_a.clear();
     }
 }
 
 
 std::vector<std::vector<BinWord> > extract_bases_cpp(
-    std::vector<BinWord> z,
+    std::vector<BinWord> & z,
     const Integer dimension,
     const Integer word_length,
     const Integer n_threads)
@@ -704,16 +715,21 @@ std::vector<std::vector<BinWord> > extract_bases_cpp(
     std::sort(z.begin(), z.end());
     
     // placing all relevant vectors in different buckets
-    BinWord mask = 0;
-    for (unsigned int i=word_length-dimension+1; i<word_length; i++)
-        mask |= (1 << i);
-    unsigned int counter = 0; 
-    for (auto &a : z)
-        if ((a != 0) and ((a & mask) == 0))
+    for (unsigned int i=0; i<all_starting_vectors.size(); i++)
+        all_starting_vectors[i].reserve(z.size() / n_threads);
+    unsigned int counter = 0;
+    BinWord
+        threshold_leading_zeroes = (1 << (word_length-dimension+1)),
+        card_target_space = (1 << dimension) - 1;
+    for (unsigned int i=0; i<(z.size()-card_target_space); i++)
+    {
+        BinWord a = z[i] ;
+        if ((a != 0) && (a < threshold_leading_zeroes))
         {
             all_starting_vectors[counter % n_threads].push_back(a);
             counter ++;
         }
+    }
     // assigning each bucket to a different thread
     for (unsigned int i=0; i<n_threads; i++)
     {

@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-02-16 17:05:21 lperrin>
+/* Time-stamp: <2018-05-25 17:26:56 lperrin>
  *
  * LICENSE
  */ 
@@ -75,9 +75,24 @@ list lat(const list& l);
 dict walsh_spectrum_fast(const list& l, const unsigned int n_threads);
 
 
-list lat_zeroes_fast(const list& l,
-                     const unsigned int n,
-                     const unsigned int n_threads);
+/** @return a vector containing BinWord (a << n) | b such that
+ *
+ * L[a, b] == 0,
+ *
+ * where L is the LAT of s.
+ */
+std::vector<BinWord> lat_zeroes_cpp(
+    const Sbox s,
+    const unsigned int n,
+    const unsigned int n_threads);
+
+
+/** @return a vector containing all BinWord:s a such that there exists
+ * b where L[a, b] == 0, where L is the LAT of s.
+ */
+std::vector<BinWord> projected_lat_zeroes_cpp(
+    const Sbox s,
+    const unsigned int n_threads);
 
 
 

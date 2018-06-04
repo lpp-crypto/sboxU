@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-24 14:39:04 lperrin>
+/* Time-stamp: <2018-05-31 15:48:34 lperrin>
  *
  * LICENSE
  */ 
@@ -13,7 +13,6 @@
 #include <vector>
 #include <utility>
 #include <map>
-#include <set>
 #include <string>
 
 // Basic libraries
