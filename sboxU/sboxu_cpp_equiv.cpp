@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-06-04 10:12:12 lperrin>
+/* Time-stamp: <2018-06-11 11:26:34 lperrin>
  *
  * LICENCE
  */
@@ -596,6 +596,8 @@ std::vector<BinWord> super_extract_vector_cpp(
     const unsigned int start)
 {
     std::vector<BinWord> result;
+    if ((z.size()-start) <= 2)
+        return result ;
     result.reserve((z.size() - start)/2) ;
     BinWord a = z[start] ;
     for (unsigned int i=start+1; i<z.size()-1; i++)
@@ -621,13 +623,22 @@ std::vector<std::vector<BinWord> > extract_bases_rec(
 {
     std::vector<std::vector<BinWord> > result, tmp;
     std::vector<BinWord> new_base, z_a;
-    bool branch_is_exhausted = false;
 
-    if (z.size() == 0)
-    {
-        if (base.size() >= dimension)
+    if (z.size() <= 2)
+    {                           // Hard-coding simplest cases
+        if ((base.size() >= dimension) && (z.size() == 0))
             result.push_back(base) ;
-    }    
+        else if (((base.size()+1) >= dimension) && (z.size() > 0))
+        {
+            result.reserve(z.size());
+            for (auto & a: z)
+            {
+                new_base.assign(base.begin(), base.end());
+                new_base.push_back(a);
+                result.push_back(new_base);
+            }
+        }
+    }
     else
     {   // otherwise, the search continues
         BinWord
@@ -654,9 +665,7 @@ std::vector<std::vector<BinWord> > extract_bases_rec(
                         dimension,
                         word_length));
                     result.insert(result.end(), tmp.begin(), tmp.end());
-                    tmp.clear();
                 }
-                z_a.clear();
             }
         }
     }
@@ -691,9 +700,7 @@ void extract_bases_starting_with(
             new_base.assign(1, a);
             tmp = std::move(extract_bases_rec(new_base, z_a, dimension, word_length));
             result.insert(result.end(), tmp.begin(), tmp.end());
-            tmp.clear();
         }
-        z_a.clear();
     }
 }
 

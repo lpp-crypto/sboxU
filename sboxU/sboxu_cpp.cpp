@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-06-01 10:38:42 lperrin>
+/* Time-stamp: <2018-06-04 11:25:40 lperrin>
  *
  * LICENSE
  */ 
@@ -105,6 +105,25 @@ list extract_bases_fast(const list& l,
 }
 
 
+list get_lat_zeroes_spaces_fast(const list& l,
+                                const unsigned int n,
+                                const unsigned int n_threads)
+{
+    
+    std::vector<BinWord> s(lst_2_vec_BinWord(l));
+    std::vector<BinWord> zeroes(lat_zeroes_cpp(s, n, n_threads)) ;
+    std::vector<std::vector<BinWord> > bases = extract_bases_cpp(
+        zeroes,
+        n,
+        2*n,
+        n_threads);
+    list result;
+    for (auto &b : bases)
+        result.append(vec_2_lst_BinWord(b));
+    return result;
+}
+    
+
 // !SECTION! Declaring all python-reachable function 
 
 BOOST_PYTHON_MODULE(sboxu_cpp)
@@ -193,5 +212,9 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         extract_bases_fast,
         args("V", "d", "n", "n_threads"),
         "Returns a list containing the minimal bases of all vector spaces of dimension d included in V.");
+    def("get_lat_zeroes_spaces_fast",
+        get_lat_zeroes_spaces_fast,
+        args("S", "n", "n_threads"),
+        "Returns a list containing the minimal bases of all vector spaces of dimension n included in the Walsh zeroes of S.");
 }
 
