@@ -8,9 +8,10 @@ from utils import oplus
 from sboxu_cpp import *
 from display import pretty_spectrum
 from diff_lin import lat_zeroes
-from tu_decomposition import extract_bases
 from hashlib import sha256
 from collections import defaultdict
+
+DEFAULT_N_THREADS  = 16
 
 
 # !SECTION! Utils for dealing with linear functions
@@ -167,6 +168,19 @@ def partial_linear_permutation_to_full(v, n):
 
 # !SUBSECTION! Interacting with vector spaces and their supersets
 
+
+def extract_bases(z, dimension, word_length, n_threads=DEFAULT_N_THREADS):
+    return extract_bases_fast(z,
+                              int(dimension),
+                              int(word_length),
+                              int(n_threads))
+
+def extract_affine_bases(z, dimension, word_length, n_threads=DEFAULT_N_THREADS):
+    return extract_affine_bases_fast(z,
+                                     int(dimension),
+                                     int(word_length),
+                                     int(n_threads))
+
 def rank_of_vector_set(V, n):
     """Returns the rank of the matrix obtained by "stacking" the n-bit
     binary representation of the numbers in V.
@@ -229,6 +243,7 @@ def linear_span(basis, with_zero=True):
     if with_zero:
         result.append(0)
     visited = defaultdict(int)
+    visited[0] = 1
     for i in xrange(1, 2**len(basis)):
         x = 0
         for j in xrange(0, len(basis)):

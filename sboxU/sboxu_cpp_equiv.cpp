@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-06-11 11:26:34 lperrin>
+/* Time-stamp: <2018-07-16 13:58:11 lperrin>
  *
  * LICENCE
  */
@@ -570,6 +570,8 @@ Sbox le_class_representative_cpp(const Sbox f)
 // !SECTION! Vector extraction
 
 
+// !SUBSECTION! Linear 
+
 std::vector<BinWord> extract_vector_cpp(
     const std::vector<BinWord> & z,
     const BinWord a)
@@ -591,82 +593,166 @@ std::vector<BinWord> extract_vector_cpp(
 }
 
 
+
+
+class MSBSpectrum
+{
+private:
+    std::vector<BinWord> clz_switching_positions ;
+    Integer dimension ;
+        
+public:
+    MSBSpectrum(const std::vector<BinWord> & z, const Integer _dimension) :
+        dimension(_dimension)
+    {
+        clz_switching_positions.push_back(0);
+        unsigned int previous_switch_clz = __builtin_clz(z[0]);
+        for (unsigned int i=1; i<z.size(); i++)
+        {
+            if (previous_switch_clz > __builtin_clz(z[i]))
+            {
+                // if the number of leading zeroes in the last entry
+                // in clz_switching_positions is lower than in z[i],
+                // then i is a position at which the number of leading
+                // zeroes switches
+                clz_switching_positions.push_back(i);
+                previous_switch_clz = __builtin_clz(z[i]);
+            }
+        }
+        clz_switching_positions.push_back(z.size());
+    };
+
+    unsigned int class_size(const unsigned int i) const
+    {
+        return clz_switching_positions[i+1] - clz_switching_positions[i] ;
+    }    
+
+    unsigned int slice_start(const unsigned int i) const
+    {
+        return clz_switching_positions[i] ;
+    }
+    
+    unsigned int slice_end(const unsigned int i) const
+    {
+        return clz_switching_positions[i+1] ;
+    }
+
+    unsigned int size() const
+    {
+        return clz_switching_positions.size() - 1;
+    }
+
+    bool contains_MSB_sequence_starting_from(const unsigned int i) const
+    {
+        if (dimension <= 0)
+            return true;
+        else
+        {
+            unsigned int j = 0;
+            for (unsigned int k=i; k<size(); k++)
+            {
+                if (class_size(k) >= (((unsigned int)1) << j))
+                    j += 1;
+                if ((dimension - j) > (size() - k))
+                    return false;
+                if (j >= (unsigned int)dimension)
+                    return true;
+            }
+            return false;
+        }
+    }
+};
+
+
+
 std::vector<BinWord> super_extract_vector_cpp(
     const std::vector<BinWord> &z,
-    const unsigned int start)
+    const MSBSpectrum & spec,
+    const BinWord a,
+    const unsigned int slice_of_a)
 {
     std::vector<BinWord> result;
-    if ((z.size()-start) <= 2)
-        return result ;
-    result.reserve((z.size() - start)/2) ;
-    BinWord a = z[start] ;
-    for (unsigned int i=start+1; i<z.size()-1; i++)
+    result.reserve((z.size() - spec.slice_end(slice_of_a))/2) ;
+    for (unsigned int slice_index=slice_of_a+1; slice_index<spec.size(); slice_index++)
     {
-        BinWord
-            x = z[i],
-            y = x ^ a ;
-        if (x < y)
+        for (unsigned int i=spec.slice_start(slice_index); i<spec.slice_end(slice_index); i++)
         {
-            if (std::binary_search(z.begin()+i+1, z.end(), y))
-                result.push_back(x) ;
+            const BinWord x = z[i];
+            const BinWord y = x ^ a;
+            if (x < y)
+            {
+                if (std::binary_search(z.begin()+i+1,
+                                       z.begin()+spec.slice_end(slice_index),
+                                       y))
+                    result.push_back(x) ;
+            }            
         }
     }
     return result;
 }
 
 
+
 std::vector<std::vector<BinWord> > extract_bases_rec(
-    const std::vector<BinWord> base,
     const std::vector<BinWord> &z,
-    const Integer dimension,
-    const Integer word_length)
+    const Integer dimension)
 {
-    std::vector<std::vector<BinWord> > result, tmp;
-    std::vector<BinWord> new_base, z_a;
+    std::vector<std::vector<BinWord> > result;
 
     if (z.size() <= 2)
     {                           // Hard-coding simplest cases
-        if ((base.size() >= dimension) && (z.size() == 0))
-            result.push_back(base) ;
-        else if (((base.size()+1) >= dimension) && (z.size() > 0))
+        if ((dimension <= 0) && (z.size() == 0))
+            result.emplace_back() ;
+        else if ((dimension <= 1) && (z.size() > 0))
         {
             result.reserve(z.size());
             for (auto & a: z)
-            {
-                new_base.assign(base.begin(), base.end());
-                new_base.push_back(a);
-                result.push_back(new_base);
-            }
+                result.emplace_back(1, a);
         }
     }
     else
-    {   // otherwise, the search continues
-        BinWord
-            threshold_leading_zeroes = (1 << (word_length-dimension+base.size()+1)),
-            min_size_extracted = (1 << (dimension - base.size() - 1)) - 1 ;
-        unsigned int start = 0;
-        while (__builtin_clz(z[start]) >= __builtin_clz(base.back()))
-            start ++;
-        for (unsigned int i=start; i<z.size() - min_size_extracted; i++)
-        {   // recursively extracting
-            BinWord a = z[i];
-            if (a >= threshold_leading_zeroes)
-                break;
-            else
-            {
-                new_base.assign(base.begin(), base.end());
-                new_base.push_back(a);
-                z_a = std::move(super_extract_vector_cpp(z, i));
-                if (z_a.size() >= min_size_extracted)
+    {
+        // If the set does not satisfy the MSB criteria, we stop
+        const MSBSpectrum spec(z, dimension) ;
+        if (spec.size() < (unsigned int)dimension)
+            return result;
+
+        // otherwise, the search continues        
+        const unsigned int min_size_extracted = (1 << (dimension-1)) - 1;
+        // looping recursively over all slices independently, a slice
+        // corresponding to elements having the same MSB
+        for (unsigned int slice_index=0; slice_index<spec.size(); slice_index++)
+        {
+            if (spec.contains_MSB_sequence_starting_from(slice_index))
+            {                
+                unsigned int
+                    start = spec.slice_start(slice_index),
+                    end   = spec.slice_end(slice_index);
+                for (unsigned int i=start; i<end; i++)
                 {
-                    tmp = std::move(extract_bases_rec(
-                        new_base,
-                        z_a,
-                        dimension,
-                        word_length));
-                    result.insert(result.end(), tmp.begin(), tmp.end());
+                    const BinWord a = z[i];
+                    std::vector<BinWord> z_a = std::move(super_extract_vector_cpp(
+                                                                   z,
+                                                                   spec,
+                                                                   a,
+                                                                   slice_index));
+                    if (z_a.size() >= min_size_extracted)
+                    {
+                        std::vector<std::vector<BinWord> > tmp = std::move(
+                            extract_bases_rec(z_a,
+                                              dimension-1));
+                        result.reserve(result.size() + tmp.size()) ;
+                        for (auto & base : tmp)
+                        {
+                            std::vector<BinWord> new_base(1, a);
+                            new_base.insert(new_base.end(), base.begin(), base.end());
+                            result.push_back(new_base);
+                        }
+                    }
+                
                 }
             }
+
         }
     }
     return result;
@@ -677,29 +763,52 @@ void extract_bases_starting_with(
     const std::vector<BinWord> & starting_vectors,
     std::vector<std::vector<BinWord> > & result,
     const std::vector<BinWord> & z,
-    const Integer dimension,
-    const Integer word_length)
+    const MSBSpectrum & spec,
+    const Integer dimension)
 {    
-    std::vector<std::vector<BinWord> > tmp, valid_starts;
-    std::vector<BinWord> new_base, z_a;
-
     BinWord min_size_extracted = (1 << (dimension - 1)) - 1 ;
+    unsigned int
+        index_in_z = 0,
+        slice_index = 0;
+    // precomputing which slices are useful
+    std::vector<bool> slice_is_good(spec.size(), false);
+    for (unsigned int slice_index=0; slice_index<spec.size(); slice_index++)
+        slice_is_good[slice_index] = spec.contains_MSB_sequence_starting_from(slice_index) ;
 
-    unsigned int index_in_z = 0;
+    
     // looping over starting points
     for (unsigned int i=0; i<starting_vectors.size(); i++)
     {
         BinWord a = starting_vectors[i] ;
         while (z[index_in_z] != a)
             index_in_z ++ ;
-        // Vector Extraction
-        z_a = std::move(super_extract_vector_cpp(z, index_in_z));
-        // Continuing if the result of the extraction is big enough
-        if (z_a.size() >= min_size_extracted)
+        while (index_in_z >= spec.slice_end(slice_index))
+            slice_index ++;
+        if (slice_is_good[slice_index])
+        {        
+            // Vector Extraction
+            std::vector<BinWord> z_a = std::move(super_extract_vector_cpp(
+                                                     z,
+                                                     spec,
+                                                     a,
+                                                     slice_index));
+            // Continuing if the result of the extraction is big enough
+            if (z_a.size() >= min_size_extracted)
+            {
+                std::vector<std::vector<BinWord> > tmp =
+                    std::move(extract_bases_rec(z_a, dimension-1));
+                result.reserve(result.size() + tmp.size()) ;
+                for (auto & base : tmp)
+                {
+                    std::vector<BinWord> new_base(1, a);
+                    new_base.insert(new_base.end(), base.begin(), base.end());
+                    result.push_back(new_base);
+                }
+            }
+        }
+        else
         {
-            new_base.assign(1, a);
-            tmp = std::move(extract_bases_rec(new_base, z_a, dimension, word_length));
-            result.insert(result.end(), tmp.begin(), tmp.end());
+            break;
         }
     }
 }
@@ -720,35 +829,46 @@ std::vector<std::vector<BinWord> > extract_bases_cpp(
 
     // ensuring that the list is initially sorted
     std::sort(z.begin(), z.end());
+
+    // MSB spectrum of z
+    const MSBSpectrum spec(z, dimension);
     
     // placing all relevant vectors in different buckets
     for (unsigned int i=0; i<all_starting_vectors.size(); i++)
         all_starting_vectors[i].reserve(z.size() / n_threads);
-    unsigned int counter = 0;
-    BinWord
-        threshold_leading_zeroes = (1 << (word_length-dimension+1)),
-        card_target_space = (1 << dimension) - 1;
-    for (unsigned int i=0; i<(z.size()-card_target_space); i++)
+    unsigned int bucket_index = 0;
+    for (unsigned int slice_index=0; slice_index<spec.size(); slice_index++)
     {
-        BinWord a = z[i] ;
-        if ((a != 0) && (a < threshold_leading_zeroes))
+        if (spec.contains_MSB_sequence_starting_from(slice_index))
         {
-            all_starting_vectors[counter % n_threads].push_back(a);
-            counter ++;
+            for (unsigned int i=spec.slice_start(slice_index); i<spec.slice_end(slice_index); i++)
+            {
+                BinWord a = z[i] ;
+                if (a != 0)
+                {
+                    all_starting_vectors[bucket_index].push_back(a);
+                    bucket_index = (bucket_index+1) % n_threads;
+                }
+            }
+        }
+        else
+        {
+            break;
         }
     }
+
     // assigning each bucket to a different thread
-    for (unsigned int i=0; i<n_threads; i++)
+    for (int i=0; i<n_threads; i++)
     {
-        threads.push_back(std::thread(extract_bases_starting_with,
-                                      all_starting_vectors[i],
-                                      std::ref(local_results[i]),
-                                      z,
-                                      dimension,
-                                      word_length));
+        threads.emplace_back(extract_bases_starting_with,
+                             all_starting_vectors[i],
+                             std::ref(local_results[i]),
+                             z,
+                             spec,
+                             dimension);
     }
     // regrouping results
-    for (unsigned int i=0; i<n_threads; i++)
+    for (int i=0; i<n_threads; i++)
     {
         threads[i].join();
         result.insert(result.end(),
@@ -758,3 +878,93 @@ std::vector<std::vector<BinWord> > extract_bases_cpp(
     return result;
 }
 
+
+// !SUBSECTION! Affine 
+
+std::vector<BinWord> affine_pre_process(
+    const BinWord c,
+    const std::vector<BinWord> & z)
+{
+    std::vector<BinWord> result;
+    result.reserve(z.size());
+    for (auto & x : z)
+    {
+        if (x > c)
+            result.push_back(x ^ c) ;
+    }
+    // ensuring that the list is initially sorted
+    std::sort(result.begin(), result.end());
+    return result;
+}
+
+
+void extract_affine_bases_starting_with(
+    const std::vector<BinWord> & starting_vectors,
+    std::vector<std::vector<BinWord> > & result,
+    const std::vector<BinWord> & z,
+    const Integer dimension)
+{    
+    // looping over starting points
+    for (auto &a : starting_vectors)
+    {
+        // pre-processing
+        const std::vector<BinWord> pre_processed_z = affine_pre_process(a, z) ;
+        // linear extraction
+        std::vector<std::vector<BinWord> > tmp =
+            std::move(extract_bases_rec(pre_processed_z, dimension));
+        result.reserve(result.size() + tmp.size()) ;
+        for (auto & base : tmp)
+        {
+            std::vector<BinWord> new_base(1, a);
+            new_base.insert(new_base.end(), base.begin(), base.end());
+            result.push_back(new_base);
+        }
+    }
+}
+
+
+
+std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
+    std::vector<BinWord> & z,
+    const Integer dimension,
+    const Integer word_length,
+    const Integer n_threads)
+{
+    std::vector<std::vector<BinWord> > result;
+    std::vector<std::thread> threads;
+    std::vector<std::vector<std::vector<BinWord> > > local_results(
+        n_threads,
+        std::vector<std::vector<BinWord> >());
+    std::vector<std::vector<BinWord> > all_starting_vectors(n_threads, std::vector<BinWord>());
+
+    std::sort(z.begin(), z.end());
+
+    // placing all relevant vectors in different buckets
+    for (unsigned int i=0; i<all_starting_vectors.size(); i++)
+        all_starting_vectors[i].reserve(z.size() / n_threads);
+    unsigned int bucket_index = 0;
+    for (auto &a : z)
+    {
+        all_starting_vectors[bucket_index].push_back(a);
+        bucket_index = (bucket_index+1) % n_threads;
+    }
+
+    // assigning each bucket to a different thread
+    for (int i=0; i<n_threads; i++)
+    {
+        threads.emplace_back(extract_affine_bases_starting_with,
+                             all_starting_vectors[i],
+                             std::ref(local_results[i]),
+                             z,
+                             dimension);
+    }
+    // regrouping results
+    for (int i=0; i<n_threads; i++)
+    {
+        threads[i].join();
+        result.insert(result.end(),
+                      local_results[i].begin(),
+                      local_results[i].end());
+    }    
+    return result;
+}

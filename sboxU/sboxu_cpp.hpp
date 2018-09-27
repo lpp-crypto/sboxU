@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-31 15:48:34 lperrin>
+/* Time-stamp: <2018-06-11 15:51:53 lperrin>
  *
  * LICENSE
  */ 
@@ -22,6 +22,7 @@
 #include <random>
 #include <exception>
 #include <stdexcept>
+#include <iostream>
 
 // Using multi-threading
 #include <thread>

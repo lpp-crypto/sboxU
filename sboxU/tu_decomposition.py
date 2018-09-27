@@ -14,12 +14,6 @@ from linear import *
 DEFAULT_N_THREADS  = 16
 
 
-def inverse(s):
-    result = [0 for i in xrange(0, len(s))]
-    for x in xrange(0, len(s)):
-        result[s[x]] = x
-    return result
-    
 
                 
 # !SECTION! Finding vector spaces of zeroes
@@ -61,13 +55,6 @@ def integer_to_list(x, N):
     result.sort()
     return result
     
-
-
-def extract_bases(z, dimension, word_length, n_threads=DEFAULT_N_THREADS):
-    return extract_bases_fast(z,
-                              int(dimension),
-                              int(word_length),
-                              int(n_threads))
 
 
 def get_lat_zeroes_spaces(s, n_threads=DEFAULT_N_THREADS):

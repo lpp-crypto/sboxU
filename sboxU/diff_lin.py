@@ -1,13 +1,15 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-05-25 17:31:32 lperrin>
+# Time-stamp: <2018-09-20 15:45:33 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
 from sage.crypto.boolean_function import BooleanFunction
+import itertools
 
 # Loading fast C++ implemented functions
 from sboxu_cpp import *
 
+from utils import *
 
 # !SECTION! Wrapping C++ functions for differential/Walsh spectrum 
 
@@ -56,6 +58,21 @@ def proj_lat_zeroes(s, n_threads=None):
         else:
             n_threads = 1
     return projected_lat_zeroes_fast(s, n_threads)
+
+
+def bct(s):
+    n = int(log(len(s), 2))
+    s_inv = inverse(s)
+    table = [[0 for b in xrange(0, 2**n)] for a in xrange(0, 2**n)]
+    for b in xrange(0, 2**n):
+        T = [[] for y in xrange(0, 2**n)]
+        for x in xrange(0, 2**n):
+            y = oplus(x, s_inv[oplus(s[x], b)])
+            T[y].append(x)
+        for y in xrange(0, 2**n):
+            for x_i, x_j in itertools.product(T[y], T[y]):
+                table[oplus(x_i, x_j)][b] += 1
+    return table
 
 
 # !SECTION! Properties of functions and permutations
@@ -175,8 +192,48 @@ def probability_of_measure(m, n, v_max, occurrences, proba_func):
         added = RealNumber(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
         if abs(added) < Infinity and added != 0 and (result + added > result):
             result += added
-    return float(log(result, 2))
+    return RealNumber(log(result, 2))
 
+
+def probability_of_goodness(s):
+    """Returns the probabilities that the distribution of the coefficients
+    in the DDT and the LAT of a random permutation are at least as
+    good as those of `s`.
+
+    The criteria used to define "goodness" is the maximum value in the
+    DDT (resp. LAT) and its number of occurrences. Smaller maximum
+    value is better and, given to S-Boxes with the same max value, a
+    smaller number of occurrences is better.
+
+    """
+    result = {}
+    n = int(log(len(s), 2))
+    # Looking at the DDT
+    diff = differential_spectrum(s)
+    uniformity = max(diff.keys())
+    uniformity_occurences = diff[uniformity]
+    result["differential"] = probability_of_measure(
+        n,
+        n,
+        uniformity,
+        uniformity_occurences,
+        ddt_coeff_probability)
+    # Looking at the LAT
+    w = walsh_spectrum(s)
+    linearity = max([abs(k) for k in w.keys()])
+    linearity_occurences = 0
+    if linearity in w.keys():
+        linearity_occurences += w[linearity]
+    if -linearity in w.keys():
+        linearity_occurences += w[-linearity]
+    result["linear"] = probability_of_measure(
+        n,
+        n,
+        linearity,
+        linearity_occurences,
+        lat_coeff_probability_permutation)
+    return result
+    
 
 def BP_criteria(s):
     """Returns the quantity used by Biryukov and Perrin to generate
@@ -253,44 +310,6 @@ def BP_criteria(s):
 #                 if w < result:
 #                     result = w
 #     return result
-
-# def probability_of_goodness(s):
-#     """Returns the probabilities that the distribution of the coefficients
-#     in the DDT and the LAT of a random permutation are at least as
-#     good as those of `s`.
-
-#     The criteria used to define "goodness" is the maximum value in the
-#     DDT (resp. LAT) and its number of occurrences. Smaller maximum
-#     value is better and, given to S-Boxes with the same max value, a
-#     smaller number of occurrences is better.
-
-#     """
-#     s = mq.SBox(s)
-#     result = {}
-#     # Looking at the DDT
-#     ddt = s.difference_distribution_matrix()
-#     dif_measure = max_val_and_occurrences(ddt)
-#     result["differential"] = probability_of_measure(
-#         len(s),
-#         len(s),
-#         dif_measure[0],
-#         dif_measure[1],
-#         ddt_coeff_probability)
-#     if True:
-#         # Looking at the LAT
-#         lat = s.linear_approximation_matrix()
-#         lin_measure = max_val_and_occurrences(lat)
-#         result["linear"] = probability_of_measure(
-#             len(s),
-#             len(s),
-#             lin_measure[0],
-#             lin_measure[1],
-#             lat_coeff_probability_permutation)
-#         return result
-#     else:
-#         result["linear"] = "0"
-#         return result
-    
 
 
 # !SUBSECTION! Algebraic properies

@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-06-04 11:25:40 lperrin>
+/* Time-stamp: <2018-07-16 10:45:26 lperrin>
  *
  * LICENSE
  */ 
@@ -94,6 +94,24 @@ list extract_bases_fast(const list& l,
 {
     std::vector<BinWord> space(lst_2_vec_BinWord(l)) ;
     std::vector<std::vector<BinWord> > bases = extract_bases_cpp(
+        space,
+        dimension,
+        word_length,
+        n_threads);
+    list result;
+    for (auto &b : bases)
+        result.append(vec_2_lst_BinWord(b));
+    return result;
+}
+
+
+list extract_affine_bases_fast(const list& l,
+                               const unsigned int dimension,
+                               const unsigned int word_length,
+                               const unsigned int n_threads) 
+{
+    std::vector<BinWord> space(lst_2_vec_BinWord(l)) ;
+    std::vector<std::vector<BinWord> > bases = extract_affine_bases_cpp(
         space,
         dimension,
         word_length,
@@ -212,6 +230,10 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         extract_bases_fast,
         args("V", "d", "n", "n_threads"),
         "Returns a list containing the minimal bases of all vector spaces of dimension d included in V.");
+    def("extract_affine_bases_fast",
+        extract_affine_bases_fast,
+        args("V", "d", "n", "n_threads"),
+        "Returns a list containing the canonical bases of all affine spaces of dimension d included in V.");
     def("get_lat_zeroes_spaces_fast",
         get_lat_zeroes_spaces_fast,
         args("S", "n", "n_threads"),

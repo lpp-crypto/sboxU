@@ -1,11 +1,11 @@
-# Time-stamp: <2018-05-31 16:07:40 lperrin>
+# Time-stamp: <2018-07-11 14:29:54 lperrin>
 #
 # LICENSE
 
 cmake_minimum_required(VERSION 3.2)
 
 
-SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3 -Wall -pedantic -std=c++11")
+SET(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3 -Wall -pedantic -std=c++17")
 
 
 find_package(PythonLibs 2.7 REQUIRED)

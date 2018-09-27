@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-06-01 10:36:18 lperrin>
+/* Time-stamp: <2018-07-16 09:46:11 lperrin>
  *
  * LICENSE
  */ 
@@ -23,6 +23,12 @@ Sbox le_class_representative_cpp(const Sbox f);
 //     const Integer a);
 
 std::vector<std::vector<BinWord> > extract_bases_cpp(
+    std::vector<BinWord> & z,
+    const Integer dimension,
+    const Integer word_length,
+    const Integer n_threads);
+
+std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
     std::vector<BinWord> & z,
     const Integer dimension,
     const Integer word_length,

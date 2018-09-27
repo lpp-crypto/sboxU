@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-05-23 16:47:03 lperrin>
+# Time-stamp: <2018-08-24 15:01:54 lperrin>
 
 import matplotlib.pyplot as plt
 from diff_lin import *
@@ -25,20 +25,27 @@ COLOR_SEQUENCE = [
 
 # !SECTION! Display in the console 
 
-def pretty_spectrum(d):
+def pretty_spectrum(d, absolute=False):
     """Returns a line containing a pretty representation of the
     dictionnary d.
 
     """
     if len(d.keys()) == 0:
         return "{}"
+
+    if absolute == False:
+        printed_dict = d
+    else:
+        printed_dict = defaultdict(int)
+        for k in d.keys():
+            printed_dict[abs(k)] += d[k]
     line = "{"
-    for k in sorted(d.keys()):
-        line += "{}: {}, ".format(k, d[k])
+    for k in sorted(printed_dict.keys()):
+        line += "{}: {}, ".format(k, printed_dict[k])
     return line[:-2] + "}"
 
 
-def pretty_vector(v, template="{:x}"):
+def pretty_vector(v, template="{:2x}"):
     """Returns a string containing the representation of the integers in v
     using the template given (defaults to a simple decimal
     representation).
@@ -50,6 +57,18 @@ def pretty_vector(v, template="{:x}"):
     for x in v:
         line += template.format(x) + ","
     return line[:-1] + "]"
+
+    
+def pretty_lagrange(s, G):
+    poly_ring = PolynomialRing(G, "y")
+    p = poly_ring.lagrange_polynomial([(G.fetch_int(i), G.fetch_int(s[i])) for i in xrange(0, len(s))])
+    result = ""
+    for i, k in enumerate(p):
+        if k == 1:
+            result += "X^{:d} + ".format(i)
+        elif k != 0:
+            result += "{:x}*X^{:d} + ".format(k.integer_representation(), i)
+    return result[:-2]
 
 
 # !SECTION! Graph generation
@@ -300,8 +319,9 @@ def save_pollock(mat,
                  vmax=20,
                  folder=None,
                  frame=True,
-                 axes=False,
-                 colorbar=False):
+                 visible_axes=False,
+                 colorbar=False,
+                 file_type="png"):
     fig, p = plt.subplots(figsize=(15,15))
     abs_mat = [[abs(mat[i][j]) for j in xrange(0, len(mat[0]))]
                for i in xrange(0, len(mat))]
@@ -313,14 +333,14 @@ def save_pollock(mat,
         vmax=vmax
     )
     p.set_aspect('equal')
-    p.get_xaxis().set_visible(axes)
-    p.get_yaxis().set_visible(axes)
+    p.get_xaxis().set_visible(visible_axes)
+    p.get_yaxis().set_visible(visible_axes)
     p.patch.set_alpha(0)
     p.set_frame_on(frame)
     # if colorbar:
     #     axes.colorbar(p, orientation='vertical')
     if folder == None:
-        name_base = "{}.png"
+        name_base = "{}."+file_type
     else:
-        name_base = folder + "/{}.png"
+        name_base = folder + "/{}." + file_type
     fig.savefig(name_base.format(name))
