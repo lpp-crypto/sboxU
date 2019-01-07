@@ -255,6 +255,31 @@ def linear_span(basis, with_zero=True):
     return result
 
 
+def thickness(basis, N):
+    MASK_N = sum(int(1 << i) for i in xrange(0, N))
+    proj = [b & MASK_N for b in basis]
+    return rank_of_vector_set(proj, 2*N)
+
+
+def thickness_spectrum(s, N):
+    """Returns a dictionary containing the thickness spectra of the
+    function whose LUT is the list `s`.
+
+    It first computes the Walsh zeroes of `s`, then look for vector
+    spaces of dimension N in it. For each space, 
+
+    """
+    N = int(log(len(s), 2))
+    z_s = lat_zeroes(s)
+    minimal_bases = extract_bases(z_s, N, 2*N)
+    result = defaultdict(int)
+    for basis in minimal_bases:
+        result[thickness(basis, N)] += 1
+    return dict(result)
+
+    
+    
+
 # !SUBSECTION! Easy interaction with finite fields
 
 def mult_ff(x, y, F):

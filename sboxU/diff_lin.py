@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-09-20 15:45:33 lperrin>
+# Time-stamp: <2018-12-05 16:50:21 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -73,6 +73,14 @@ def bct(s):
             for x_i, x_j in itertools.product(T[y], T[y]):
                 table[oplus(x_i, x_j)][b] += 1
     return table
+
+def boomerang_uniformity(s):
+    b = bct(s)
+    boom_unif = 0
+    for i in xrange(1, len(s)):
+        for j in xrange(1, len(s)):
+            boom_unif = max(boom_unif, b[i][j])
+    return boom_unif
 
 
 # !SECTION! Properties of functions and permutations

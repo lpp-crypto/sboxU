@@ -7,7 +7,7 @@ import itertools
 import random
 from sboxu_cpp import *
 from utils import oplus
-from diff_lin import proj_lat_zeroes
+from diff_lin import *
 from display import *
 from linear import *
 
@@ -17,6 +17,27 @@ DEFAULT_N_THREADS  = 16
 
                 
 # !SECTION! Finding vector spaces of zeroes
+
+
+
+def thickness_spectrum(s):
+    """Returns a dictionary containing the thickness spectra of the
+    function whose LUT is the list `s`.
+
+    It first computes the Walsh zeroes of `s`, then look for vector
+    spaces of dimension N in it. For each space, 
+
+    """
+    N = int(log(len(s), 2))
+    MASK_N = sum(int(1 << i) for i in xrange(0, N))
+    z_s = lat_zeroes(s)
+    minimal_bases = extract_bases(z_s, N, 2*N)
+    result = defaultdict(int)
+    for basis in minimal_bases:
+        proj = [b_i & MASK_N for b_i in basis]
+        t = rank_of_vector_set(proj, 2*N)
+        result[t] += 1
+    return dict(result)
 
 
 def indicator_function(l):
