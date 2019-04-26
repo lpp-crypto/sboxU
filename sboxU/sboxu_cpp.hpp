@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-06-11 15:51:53 lperrin>
+/* Time-stamp: <2019-01-30 17:21:13 lperrin>
  *
  * LICENSE
  */ 
@@ -36,7 +36,7 @@ using namespace boost::python;
 
 // !SECTION! Special types 
 
-typedef signed int Integer;
+typedef int32_t Integer;
 typedef uint32_t BinWord;
 typedef std::vector<BinWord> Sbox;
 typedef std::pair<uint32_t, uint32_t> IOpair;

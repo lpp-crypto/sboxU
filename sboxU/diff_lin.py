@@ -1,10 +1,11 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-12-05 16:50:21 lperrin>
+# Time-stamp: <2019-04-15 15:42:06 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
 from sage.crypto.boolean_function import BooleanFunction
 import itertools
+from collections import defaultdict
 
 # Loading fast C++ implemented functions
 from sboxu_cpp import *
@@ -74,6 +75,14 @@ def bct(s):
                 table[oplus(x_i, x_j)][b] += 1
     return table
 
+def boomerang_spectrum(s):
+    t = bct(s)
+    result = defaultdict(int)
+    for row in t[1:]:
+        for c in row[1:]:
+            result[c] += 1
+    return result
+
 def boomerang_uniformity(s):
     b = bct(s)
     boom_unif = 0
@@ -81,6 +90,17 @@ def boomerang_uniformity(s):
         for j in xrange(1, len(s)):
             boom_unif = max(boom_unif, b[i][j])
     return boom_unif
+
+
+def dlct(s):
+    n = int(log(len(s), 2))
+    table = [[0 for b in xrange(0, 2**n)] for a in xrange(0, 2**n)]
+    for delta in xrange(0, 2**n):
+        for l in xrange(0, 2**n):
+            table[delta][l] = sum((-1)**(scal_prod(l, oplus(s[x], s[oplus(x, delta)])))
+                              for x in xrange(0, 2**n))
+    return table
+
 
 
 # !SECTION! Properties of functions and permutations
