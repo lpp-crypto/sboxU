@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-07-16 10:45:26 lperrin>
+/* Time-stamp: <2019-05-02 17:26:52 lperrin>
  *
  * LICENSE
  */ 
@@ -215,6 +215,16 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         projected_lat_zeroes_fast,
         args("S", "n_threads"),
         "Returns the projected of the set of all zeroes in the LAT of S, i.e. all a such that LAT[a,b]==0 for some b.");
+
+// Boomerang properties
+    def("bct",
+        bct,
+        args("S"),
+        "Returns a list of lists b such that b[a][b] = #{x, S^-1(S(x)^b) ^ S^-1(S(x^a)^b) = a}");
+    def("bct_spectrum_fast",
+        bct_spectrum_fast,
+        args("S", "n_threads"),
+        "Returns a dictionnary b such that b[k] = #{(a, b), a != 0, b != 0, S^-1(S(x)^b) ^ S^-1(S(x^a)^b) = a} has k solutions} which is computed using n_threads different threads.");
 
 // Equivalence
     

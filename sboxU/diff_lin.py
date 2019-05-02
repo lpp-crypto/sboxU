@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-04-15 15:42:06 lperrin>
+# Time-stamp: <2019-05-02 17:55:53 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -15,8 +15,8 @@ from utils import *
 # !SECTION! Wrapping C++ functions for differential/Walsh spectrum 
 
 # Some constants
-BIG_SBOX_THRESHOLD = 1024
-DEFAULT_N_THREADS  = 16
+BIG_SBOX_THRESHOLD = 128
+DEFAULT_N_THREADS  = 4
 
 def walsh_spectrum(s, n_threads=None):
     if n_threads == None:
@@ -45,14 +45,6 @@ def lat_zeroes(s, n_threads=None):
     return lat_zeroes_fast(s, n, n_threads)
 
 def proj_lat_zeroes(s, n_threads=None):
-    # result = []
-    # for b in xrange(1, len(s)):
-    #     w = fourier_transform([scal_prod(b, s[x]) for x in xrange(0, len(s))])
-    #     for c in w:
-    #         if c == 0:
-    #             result.append(b)
-    #             break
-    # return result
     if n_threads == None:
         if len(s) > BIG_SBOX_THRESHOLD:
             n_threads = DEFAULT_N_THREADS
@@ -61,27 +53,14 @@ def proj_lat_zeroes(s, n_threads=None):
     return projected_lat_zeroes_fast(s, n_threads)
 
 
-def bct(s):
-    n = int(log(len(s), 2))
-    s_inv = inverse(s)
-    table = [[0 for b in xrange(0, 2**n)] for a in xrange(0, 2**n)]
-    for b in xrange(0, 2**n):
-        T = [[] for y in xrange(0, 2**n)]
-        for x in xrange(0, 2**n):
-            y = oplus(x, s_inv[oplus(s[x], b)])
-            T[y].append(x)
-        for y in xrange(0, 2**n):
-            for x_i, x_j in itertools.product(T[y], T[y]):
-                table[oplus(x_i, x_j)][b] += 1
-    return table
+def boomerang_spectrum(s, n_threads=None):
+    if n_threads == None:
+        if len(s) > BIG_SBOX_THRESHOLD:
+            n_threads = DEFAULT_N_THREADS
+        else:
+            n_threads = 1
+    return bct_spectrum_fast(s, n_threads)
 
-def boomerang_spectrum(s):
-    t = bct(s)
-    result = defaultdict(int)
-    for row in t[1:]:
-        for c in row[1:]:
-            result[c] += 1
-    return result
 
 def boomerang_uniformity(s):
     b = bct(s)
@@ -120,10 +99,10 @@ def lat_coeff_probability_permutation(m, n, c):
     if c % 4 != 0:
         return 0
     elif c == 0:
-        return RealNumber(binomial(2**(n-1), 2**(n-2))**2) / RealNumber(binomial(2**n, 2**(n-1)))
+        return RDF(binomial(2**(n-1), 2**(n-2))**2) / RDF(binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return RealNumber(2) * RealNumber(binomial(2**(n-1), 2**(n-2) + c/2)**2) / RealNumber(binomial(2**n, 2**(n-1)))
+        return RDF(2) * RDF(binomial(2**(n-1), 2**(n-2) + c/2)**2) / RDF(binomial(2**n, 2**(n-1)))
 
     
 def lat_coeff_probability_function(m, n, c):
@@ -162,6 +141,31 @@ def ddt_coeff_probability(m, n, c):
             return RDF(exp(-k) * k**d / factorial(d))
         else:
             return RDF(binomial(2**(m-1), d) * 2**(-n*d) * (1 - 2**-n)**(2**(m-1)-d))
+
+
+def bct_coeff_probability(m, n, c):
+    """Returns the probability that a coefficient of the BCT of an S-Box
+    mapping m bits to n is equal to c.
+
+    This probability is only defined for permutations. Thus, an error is raised if m != n.
+
+    """
+    if m != n:
+        raise "the BCT is only defined when m==n"
+    if c % 2 == 1:
+        return RDF(0.0)
+    B = RDF(2**(n-1))
+    A = RDF(2**(2*n-2)-2**(n-1))
+    p = RDF(1.0/(2**n-1))
+    q = p**2
+    d = c/2
+    result = RDF(0.0)
+    for j1, j2 in itertools.product(xrange(0, d+1), xrange(0, d+1)):
+        if 2*j1 + 4*j2 == c:
+            added = RDF(binomial(B, j1)) * p**j1 * (1-p)**(B-j1) * RDF(binomial(A, j2)) * q**(j2) * (1-q)**(A-j2)
+            if added > 0:
+                result += added
+    return result
 
         
 def expected_max_ddt(m, n):
@@ -204,7 +208,7 @@ def expected_max_lat_function(m, n):
     
 # !SUBSECTION! Aggregated information from the tables
 
-def probability_of_measure(m, n, v_max, occurrences, proba_func):
+def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
     """Returns the logarithm in base 2 of the probability that
     $(2^m-1)(2^n-1)$ trials of an experiment yielding output c with
     probability proba_func(m, n, c) will have a result equal to
@@ -212,56 +216,84 @@ def probability_of_measure(m, n, v_max, occurrences, proba_func):
     other trials.
 
     """
-    p_strictly_smaller = sum(RealNumber(proba_func(m, n, i)) for i in xrange(0, v_max))
-    p_equal = RealNumber(proba_func(m, n, v_max))
-    result = RealNumber(0)
+    p_strictly_smaller = sum(RDF(proba_func(m, n, i)) for i in xrange(0, v_max))
+    p_equal = RDF(proba_func(m, n, v_max))
+    result = RDF(0)
     n_trials = (2**m-1) * (2**n-1)
     for occ in reversed(xrange(0, occurrences+1)):
-        added = RealNumber(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
+        added = RDF(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
         if abs(added) < Infinity and added != 0 and (result + added > result):
             result += added
-    return RealNumber(log(result, 2))
+    return -float(log(result, 2))
 
 
-def probability_of_goodness(s):
-    """Returns the probabilities that the distribution of the coefficients
-    in the DDT and the LAT of a random permutation are at least as
-    good as those of `s`.
-
-    The criteria used to define "goodness" is the maximum value in the
-    DDT (resp. LAT) and its number of occurrences. Smaller maximum
-    value is better and, given to S-Boxes with the same max value, a
-    smaller number of occurrences is better.
-
-    """
-    result = {}
-    n = int(log(len(s), 2))
-    # Looking at the DDT
-    diff = differential_spectrum(s)
-    uniformity = max(diff.keys())
-    uniformity_occurences = diff[uniformity]
-    result["differential"] = probability_of_measure(
-        n,
-        n,
-        uniformity,
-        uniformity_occurences,
-        ddt_coeff_probability)
-    # Looking at the LAT
-    w = walsh_spectrum(s)
-    linearity = max([abs(k) for k in w.keys()])
-    linearity_occurences = 0
-    if linearity in w.keys():
-        linearity_occurences += w[linearity]
-    if -linearity in w.keys():
-        linearity_occurences += w[-linearity]
-    result["linear"] = probability_of_measure(
-        n,
-        n,
-        linearity,
-        linearity_occurences,
-        lat_coeff_probability_permutation)
-    return result
+def table_anomaly(s, table):
+    if table not in ["DDT", "LAT", "BCT"]:
+        raise "The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
+    else:
+        spec = {}
+        proba_func = None
+        n = int(log(len(s), 2))
+        if table == "DDT":
+            spec = differential_spectrum(s)
+            proba_func = ddt_coeff_probability
+        elif table == "LAT":
+            spec = walsh_spectrum(s)
+            proba_func = lat_coeff_probability_permutation
+        else:
+            spec = boomerang_spectrum(s)
+            proba_func = bct_coeff_probability
+        v_max = 0
+        occurrences = 0
+        for k in spec.keys():
+            if abs(k) == v_max:
+                occurrences += spec[k]
+            elif abs(k) > v_max:
+                v_max = abs(k)
+                occurrences = spec[k]
+        return probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func)
     
+
+# def probability_of_goodness(s):
+#     """Returns the probabilities that the distribution of the coefficients
+#     in the DDT and the LAT of a random permutation are at least as
+#     good as those of `s`.
+
+#     The criteria used to define "goodness" is the maximum value in the
+#     DDT (resp. LAT) and its number of occurrences. Smaller maximum
+#     value is better and, given to S-Boxes with the same max value, a
+#     smaller number of occurrences is better.
+
+#     """
+#     result = {}
+#     n = int(log(len(s), 2))
+#     # Looking at the DDT
+#     diff = differential_spectrum(s)
+#     uniformity = max(diff.keys())
+#     uniformity_occurences = diff[uniformity]
+#     result["differential"] = probability_of_measure(
+#         n,
+#         n,
+#         uniformity,
+#         uniformity_occurences,
+#         ddt_coeff_probability)
+#     # Looking at the LAT
+#     w = walsh_spectrum(s)
+#     linearity = max([abs(k) for k in w.keys()])
+#     linearity_occurences = 0
+#     if linearity in w.keys():
+#         linearity_occurences += w[linearity]
+#     if -linearity in w.keys():
+#         linearity_occurences += w[-linearity]
+#     result["linear"] = probability_of_measure(
+#         n,
+#         n,
+#         linearity,
+#         linearity_occurences,
+#         lat_coeff_probability_permutation)
+#     return result
+
+
 
 def BP_criteria(s):
     """Returns the quantity used by Biryukov and Perrin to generate

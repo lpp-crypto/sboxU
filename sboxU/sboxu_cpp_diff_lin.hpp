@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-25 17:26:56 lperrin>
+/* Time-stamp: <2019-05-02 17:28:33 lperrin>
  *
  * LICENSE
  */ 
@@ -93,6 +93,32 @@ std::vector<BinWord> lat_zeroes_cpp(
 std::vector<BinWord> projected_lat_zeroes_cpp(
     const Sbox s,
     const unsigned int n_threads);
+
+
+
+// !SECTION! Boomerang
+
+/* @return a python list of python lists d such that
+ *
+ * d[a][b] = #{x, S^-1(S(x)+b) + S^-1(S(x+a)+b) = a}
+ *
+ * where + denotes XOR.
+ * 
+ * Throws an error if the length of l is not a power of 2.
+ */ 
+list bct(const list& l);
+
+
+/* @return a python dictionnary s such that
+ *
+ * s[k] = #{(a, b), a != 0, b != 0, S^-1(S(x)+b) + S^-1(S(x+a)+b) = a} has k solutions}
+ *
+ * where + denotes XOR. The computation is performed using `n_threads`
+ * distinct threads.
+ *
+ * Throws an error if the length of l is not a power of 2.
+ */ 
+dict bct_spectrum_fast(const list& l, const unsigned int n_threads);
 
 
 

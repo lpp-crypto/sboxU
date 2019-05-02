@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-25 17:42:41 lperrin>
+/* Time-stamp: <2019-05-02 17:47:57 lperrin>
  *
  * LICENSE
  */ 
@@ -393,3 +393,114 @@ std::vector<BinWord> projected_lat_zeroes_cpp(
 }
 
 
+// !SECTION! Boomerang properties
+
+// !SUBSECTION! Internal routines 
+
+
+// def bct(s):
+//     n = int(log(len(s), 2))
+//     s_inv = inverse(s)
+//     table = [[0 for b in xrange(0, 2**n)] for a in xrange(0, 2**n)]
+//     for b in xrange(0, 2**n):
+//         T = [[] for y in xrange(0, 2**n)]
+//         for x in xrange(0, 2**n):
+//             y = oplus(x, s_inv[oplus(s[x], b)])
+//             T[y].append(x)
+//         for y in xrange(0, 2**n):
+//             for x_i, x_j in itertools.product(T[y], T[y]):
+//                 table[oplus(x_i, x_j)][b] += 1
+//     return table
+
+
+std::vector<Integer> bct_row(const Sbox s, const Sbox s_inv, const BinWord a)
+{
+    std::vector<Integer> result(s.size(), 0);
+    std::vector<std::vector<BinWord> > xor_list(s.size(), std::vector<BinWord>(0));
+    for (BinWord x=0; x<s.size(); x++)
+    {
+        BinWord y = x ^ s[s_inv[x] ^ a];
+        xor_list[y].push_back(x);
+    }
+    for (BinWord y=0; y<s.size(); y++)
+        for (BinWord &x1 : xor_list[y])
+            for (BinWord &x2 : xor_list[y])
+                result[x1 ^ x2] ++ ;
+    return result;
+}
+
+
+void bct_rows_count(
+    std::map<Integer, Integer> &result,
+    const Sbox s,
+    const Sbox s_inv,
+    const BinWord a_min,
+    const BinWord a_max)
+{
+    for (unsigned int a=a_min; a<a_max; a++)
+    {
+        std::vector<Integer> row(bct_row(s, s_inv, a));
+        for (unsigned int i=1; i<row.size(); i++)
+            result[row[i]] ++;
+    }
+}
+
+
+// !SUBSECTION! Python-facing functions 
+
+list bct(const list& l)
+{
+    list result;    
+    Sbox s(lst_2_vec_BinWord(l)), s_inv(inverse(s)) ;
+    check_length(s);
+    for (unsigned int a=0; a<s.size(); a++)
+        result.append(vec_2_lst_Integer(bct_row(s, s_inv, a)));
+
+    return result;
+}
+
+
+dict bct_spectrum_fast(const list& l, const unsigned int n_threads)
+{
+    Sbox s(lst_2_vec_BinWord(l)), s_inv(inverse(s)) ;
+    check_length(s);
+    std::map<Integer, Integer> count;
+    if (n_threads == 1)
+    {
+        // small S-Box
+        bct_rows_count(std::ref(count), s, s_inv, 1, s.size());
+    }
+    else
+    {
+        std::vector<std::thread> threads;
+        std::vector<std::map<Integer, Integer> > local_counts(n_threads);
+        unsigned int slice_size = s.size()/n_threads;
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            unsigned int
+                lower_bound = i*slice_size,
+                upper_bound = (i+1)*slice_size;
+            if (lower_bound == 0)
+                lower_bound = 1;
+            if (upper_bound > s.size())
+                upper_bound = s.size();
+            threads.push_back(std::thread(bct_rows_count,
+                                          std::ref(local_counts[i]),
+                                          s,
+                                          s_inv,
+                                          lower_bound,
+                                          upper_bound));
+
+        }
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            threads[i].join();
+            for (auto &entry : local_counts[i])
+                count[entry.first] += entry.second ;
+        }
+    }
+    dict result;
+    for (auto &entry : count)
+        result[entry.first] = entry.second ;
+    return result;
+}
