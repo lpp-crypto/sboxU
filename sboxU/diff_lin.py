@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-05-02 17:55:53 lperrin>
+# Time-stamp: <2019-05-03 11:26:32 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -16,7 +16,7 @@ from utils import *
 
 # Some constants
 BIG_SBOX_THRESHOLD = 128
-DEFAULT_N_THREADS  = 4
+DEFAULT_N_THREADS  = 2
 
 def walsh_spectrum(s, n_threads=None):
     if n_threads == None:
@@ -99,10 +99,10 @@ def lat_coeff_probability_permutation(m, n, c):
     if c % 4 != 0:
         return 0
     elif c == 0:
-        return RDF(binomial(2**(n-1), 2**(n-2))**2) / RDF(binomial(2**n, 2**(n-1)))
+        return RealNumber(binomial(2**(n-1), 2**(n-2))**2) / RealNumber(binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return RDF(2) * RDF(binomial(2**(n-1), 2**(n-2) + c/2)**2) / RDF(binomial(2**n, 2**(n-1)))
+        return RealNumber(2) * RealNumber(binomial(2**(n-1), 2**(n-2) + c/2)**2) / RealNumber(binomial(2**n, 2**(n-1)))
 
     
 def lat_coeff_probability_function(m, n, c):
@@ -118,10 +118,10 @@ def lat_coeff_probability_function(m, n, c):
     if c % 4 != 0:
         return 0
     if c == 0:
-        return RDF(2) * RDF(2**(-2**n) * binomial(2**n, 2**(n-1)))
+        return RealNumber(2) * RealNumber(2**(-2**n) * binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return RDF(4) * RDF(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
+        return RealNumber(4) * RealNumber(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
 
 
 def ddt_coeff_probability(m, n, c):
@@ -138,9 +138,9 @@ def ddt_coeff_probability(m, n, c):
         d = c/2
         if m >= 5 and n-m <= m/4:
             k = 2**(m-n-1)
-            return RDF(exp(-k) * k**d / factorial(d))
+            return RealNumber(exp(-k) * k**d / factorial(d))
         else:
-            return RDF(binomial(2**(m-1), d) * 2**(-n*d) * (1 - 2**-n)**(2**(m-1)-d))
+            return RealNumber(binomial(2**(m-1), d) * 2**(-n*d) * (1 - 2**-n)**(2**(m-1)-d))
 
 
 def bct_coeff_probability(m, n, c):
@@ -153,27 +153,27 @@ def bct_coeff_probability(m, n, c):
     if m != n:
         raise "the BCT is only defined when m==n"
     if c % 2 == 1:
-        return RDF(0.0)
-    B = RDF(2**(n-1))
-    A = RDF(2**(2*n-2)-2**(n-1))
-    p = RDF(1.0/(2**n-1))
+        return RealNumber(0.0)
+    B = RealNumber(2**(n-1))
+    A = RealNumber(2**(2*n-2)-2**(n-1))
+    p = RealNumber(1.0/(2**n-1))
     q = p**2
     d = c/2
-    result = RDF(0.0)
+    result = RealNumber(0.0)
     for j1, j2 in itertools.product(xrange(0, d+1), xrange(0, d+1)):
         if 2*j1 + 4*j2 == c:
-            added = RDF(binomial(B, j1)) * p**j1 * (1-p)**(B-j1) * RDF(binomial(A, j2)) * q**(j2) * (1-q)**(A-j2)
+            added = RealNumber(binomial(B, j1)) * p**j1 * (1-p)**(B-j1) * RealNumber(binomial(A, j2)) * q**(j2) * (1-q)**(A-j2)
             if added > 0:
                 result += added
     return result
 
         
 def expected_max_ddt(m, n):
-    result = RDF(0.0)
+    result = RealNumber(0.0)
     cumul = [0]
     for k in range(1, 15):
         to_add = sum(ddt_coeff_probability(m, n, 2*z) for z in xrange(0, k+1))
-        to_add = to_add**RDF((2**m-1) * (2**n-1))
+        to_add = to_add**RealNumber((2**m-1) * (2**n-1))
         cumul.append(to_add)
     result = []
     for i in xrange(1, len(cumul)):
@@ -182,11 +182,11 @@ def expected_max_ddt(m, n):
 
 
 def expected_max_lat(m, n):
-    result = RDF(0.0)
+    result = RealNumber(0.0)
     cumul = [0]
     for k in range(1, 50):
         to_add = sum(lat_coeff_probability_permutation(m, n, 2*z) for z in xrange(0, k+1))
-        to_add = to_add**RDF((2**m-1) * (2**n-1))
+        to_add = to_add**RealNumber((2**m-1) * (2**n-1))
         cumul.append(to_add)
     result = []
     for i in xrange(1, len(cumul)):
@@ -194,11 +194,11 @@ def expected_max_lat(m, n):
     return result
 
 def expected_max_lat_function(m, n):
-    result = RDF(0.0)
+    result = RealNumber(0.0)
     cumul = [0]
     for k in range(1, 70):
         to_add = sum(lat_coeff_probability_function(m, n, z) for z in xrange(0, k+1))
-        to_add = to_add**RDF((2**m) * (2**n))
+        to_add = to_add**RealNumber((2**m) * (2**n))
         cumul.append(to_add)
     result = []
     for i in xrange(1, len(cumul)):
@@ -216,15 +216,15 @@ def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
     other trials.
 
     """
-    p_strictly_smaller = sum(RDF(proba_func(m, n, i)) for i in xrange(0, v_max))
-    p_equal = RDF(proba_func(m, n, v_max))
-    result = RDF(0)
+    p_strictly_smaller = sum(RealNumber(proba_func(m, n, i)) for i in xrange(0, v_max))
+    p_equal = RealNumber(proba_func(m, n, v_max))
+    result = RealNumber(0)
     n_trials = (2**m-1) * (2**n-1)
     for occ in reversed(xrange(0, occurrences+1)):
-        added = RDF(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
-        if abs(added) < Infinity and added != 0 and (result + added > result):
+        added = RealNumber(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
+        if abs(added) < Infinity and added > 0 and (result + added > result):
             result += added
-    return -float(log(result, 2))
+    return result
 
 
 def table_anomaly(s, table):
@@ -251,8 +251,41 @@ def table_anomaly(s, table):
             elif abs(k) > v_max:
                 v_max = abs(k)
                 occurrences = spec[k]
-        return probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func)
+        return -float(log(probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func), 2))
+
     
+def table_negative_anomaly(s, table):
+    if table not in ["DDT", "LAT", "BCT"]:
+        raise "The table-based negative anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
+    else:
+        spec = {}
+        proba_func = None
+        n = int(log(len(s), 2))
+        if table == "DDT":
+            spec = differential_spectrum(s)
+            proba_func = ddt_coeff_probability
+        elif table == "LAT":
+            spec = walsh_spectrum(s)
+            proba_func = lat_coeff_probability_permutation
+        else:
+            spec = boomerang_spectrum(s)
+            proba_func = bct_coeff_probability
+        v_max = 0
+        occurrences = 0
+        for k in spec.keys():
+            if abs(k) == v_max:
+                occurrences += spec[k]
+            elif abs(k) > v_max:
+                v_max = abs(k)
+                occurrences = spec[k]
+        p_anomaly = probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func)
+        p_equal = proba_func(n, n, v_max)
+        p_strictly_smaller = sum(proba_func(n, n, i) for i in xrange(0, v_max))
+        card = (2**n-1)**2
+        p_precise_equal = RealNumber(binomial(card, occurrences))*p_equal**occurrences*p_strictly_smaller**(card-occurrences)
+        return -float(log(p_precise_equal-p_anomaly+1, 2))
+
+
 
 # def probability_of_goodness(s):
 #     """Returns the probabilities that the distribution of the coefficients
