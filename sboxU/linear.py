@@ -223,7 +223,8 @@ def extract_basis(v, N):
 
 def complete_basis(basis, N):
     """Returns a list of length N spanning the space 0..2^N-1 which
-    contains basis.
+    contains the list of integers `basis`. Assumes that the elements
+    of `basis` are linearly independent.
 
     """
     r = len(basis)
@@ -236,6 +237,19 @@ def complete_basis(basis, N):
             basis = new_basis
             r = new_r
     return []
+
+
+def get_generating_matrix(basis, N):
+    """Returns an NxN binary matrix M such that M*(1 << i) = basis[i] for
+    all i < len(basis) and such that M has full rank.
+
+    """
+    b = complete_basis(basis, N)
+    print b
+    return Matrix(GF(2), N, N, [
+        [(b[i] >> j) & 1 for j in reversed(xrange(0, N))]
+        for i in reversed(xrange(0, N))
+    ]).transpose()
 
 
 def linear_span(basis, with_zero=True):

@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-05-03 11:26:32 lperrin>
+# Time-stamp: <2019-05-11 14:33:45 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -99,10 +99,10 @@ def lat_coeff_probability_permutation(m, n, c):
     if c % 4 != 0:
         return 0
     elif c == 0:
-        return RealNumber(binomial(2**(n-1), 2**(n-2))**2) / RealNumber(binomial(2**n, 2**(n-1)))
+        return RealNumber(Integer(binomial(2**(n-1), 2**(n-2)))**2) / Integer(binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return RealNumber(2) * RealNumber(binomial(2**(n-1), 2**(n-2) + c/2)**2) / RealNumber(binomial(2**n, 2**(n-1)))
+        return RealNumber(2) * RealNumber(Integer(binomial(2**(n-1), 2**(n-2) + c/2))**2) / Integer(binomial(2**n, 2**(n-1)))
 
     
 def lat_coeff_probability_function(m, n, c):
@@ -156,15 +156,18 @@ def bct_coeff_probability(m, n, c):
         return RealNumber(0.0)
     B = RealNumber(2**(n-1))
     A = RealNumber(2**(2*n-2)-2**(n-1))
-    p = RealNumber(1.0/(2**n-1))
+    # p = RealNumber(1.0/(2**n-1))
+    p = 1/(2**n-1)
     q = p**2
     d = c/2
     result = RealNumber(0.0)
+    base = RealNumber(2**n-1)**(B + 2*A)
     for j1, j2 in itertools.product(xrange(0, d+1), xrange(0, d+1)):
         if 2*j1 + 4*j2 == c:
-            added = RealNumber(binomial(B, j1)) * p**j1 * (1-p)**(B-j1) * RealNumber(binomial(A, j2)) * q**(j2) * (1-q)**(A-j2)
-            if added > 0:
-                result += added
+            # added = Integer(binomial(B, j1)) * RealNumber(p**j1) * RealNumber((1-p)**(B-j1)) * Integer(binomial(A, j2)) * RealNumber(q**(j2) * (1-q)**(A-j2))
+            added = RealNumber(binomial(B, j1)) * RealNumber((2**n-2)**(B-j1)) * RealNumber(binomial(A, j2)) * RealNumber((2**(2*n)-2**(n+1))**(A-j2))
+            if added > 0 and added < Infinity:
+                result += added / base
     return result
 
         
@@ -227,6 +230,31 @@ def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
     return result
 
 
+def anomaly_differential_uniformity(n, v_max):
+    p_0 = RealNumber(ddt_coeff_probability(n, n, 0))
+    p_non_zero = RealNumber(1-p_0)
+    p_inf = RealNumber(sum(ddt_coeff_probability(n, n, c) for c in xrange(1, v_max+1)))
+    proba_enough_zeroes_in_row = RealNumber(0.0)
+    proba_bound_and_enough_zeroes = RealNumber(0.0)
+    M = 2**(n-1)-1
+    for i in xrange(2**(n-1)-1, 2**n-1):
+        proba_enough_zeroes_in_row    += RealNumber(binomial(2**n-1, i)) * p_0**i * p_non_zero**(2**n-1-i)
+        proba_bound_and_enough_zeroes += RealNumber(binomial(2**n-1, i)) * p_0**i * p_inf**(2**n-1-i)
+    return (2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
+
+def anomaly_ddt(n, v_max, occ):
+    p_0 = RealNumber(ddt_coeff_probability(n, n, 0))
+    p_non_zero = RealNumber(1-p_0)
+    p_inf = RealNumber(sum(ddt_coeff_probability(n, n, c) for c in xrange(1, v_max+1)))
+    proba_enough_zeroes_in_row = RealNumber(0.0)
+    proba_bound_and_enough_zeroes = RealNumber(0.0)
+    M = 2**(n-1)-1
+    for i in xrange(2**(n-1)-1, 2**n-1):
+        proba_enough_zeroes_in_row    += RealNumber(binomial(2**n-1, i)) * p_0**i * p_non_zero**(2**n-1-i)
+        proba_bound_and_enough_zeroes += RealNumber(binomial(2**n-1, i)) * p_0**i * p_inf**(2**n-1-i)
+    return -(2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
+    
+
 def table_anomaly(s, table):
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
@@ -283,6 +311,8 @@ def table_negative_anomaly(s, table):
         p_strictly_smaller = sum(proba_func(n, n, i) for i in xrange(0, v_max))
         card = (2**n-1)**2
         p_precise_equal = RealNumber(binomial(card, occurrences))*p_equal**occurrences*p_strictly_smaller**(card-occurrences)
+        p_precise_equal = min(p_precise_equal, RealNumber(1.0))
+        p_anomaly       = min(p_anomaly, RealNumber(1.0))
         return -float(log(p_precise_equal-p_anomaly+1, 2))
 
 
