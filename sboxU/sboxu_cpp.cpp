@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-05-02 17:26:52 lperrin>
+/* Time-stamp: <2019-07-10 17:50:59 lperrin>
  *
  * LICENSE
  */ 
@@ -90,14 +90,16 @@ list le_class_representative(const list& l0)
 list extract_bases_fast(const list& l,
                         const unsigned int dimension,
                         const unsigned int word_length,
-                        const unsigned int n_threads) 
+                        unsigned int n_threads,
+                        const str end_condition)
 {
     std::vector<BinWord> space(lst_2_vec_BinWord(l)) ;
     std::vector<std::vector<BinWord> > bases = extract_bases_cpp(
         space,
         dimension,
         word_length,
-        n_threads);
+        n_threads,
+        extract<std::string>(end_condition));
     list result;
     for (auto &b : bases)
         result.append(vec_2_lst_BinWord(b));
@@ -108,14 +110,16 @@ list extract_bases_fast(const list& l,
 list extract_affine_bases_fast(const list& l,
                                const unsigned int dimension,
                                const unsigned int word_length,
-                               const unsigned int n_threads) 
+                               unsigned int n_threads,
+                               const str end_condition) 
 {
     std::vector<BinWord> space(lst_2_vec_BinWord(l)) ;
     std::vector<std::vector<BinWord> > bases = extract_affine_bases_cpp(
         space,
         dimension,
         word_length,
-        n_threads);
+        n_threads,
+        extract<std::string>(end_condition));
     list result;
     for (auto &b : bases)
         result.append(vec_2_lst_BinWord(b));
@@ -134,7 +138,8 @@ list get_lat_zeroes_spaces_fast(const list& l,
         zeroes,
         n,
         2*n,
-        n_threads);
+        n_threads,
+        std::string("all dimensions"));
     list result;
     for (auto &b : bases)
         result.append(vec_2_lst_BinWord(b));

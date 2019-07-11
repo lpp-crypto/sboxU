@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-07-16 09:46:11 lperrin>
+/* Time-stamp: <2019-07-10 17:13:51 lperrin>
  *
  * LICENSE
  */ 
@@ -13,26 +13,8 @@ using namespace boost::python;
 
 // !SECTION! Python-facing functions
 
-
 std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g);
-
 Sbox le_class_representative_cpp(const Sbox f);
-
-// std::vector<BinWord> extract_vector_cpp(
-//     const std::vector<uint32_t> z,
-//     const Integer a);
-
-std::vector<std::vector<BinWord> > extract_bases_cpp(
-    std::vector<BinWord> & z,
-    const Integer dimension,
-    const Integer word_length,
-    const Integer n_threads);
-
-std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
-    std::vector<BinWord> & z,
-    const Integer dimension,
-    const Integer word_length,
-    const Integer n_threads);
 
     
 // !SECTION! Exceptions needed to implement guess and determine 

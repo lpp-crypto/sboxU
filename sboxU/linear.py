@@ -169,17 +169,131 @@ def partial_linear_permutation_to_full(v, n):
 # !SUBSECTION! Interacting with vector spaces and their supersets
 
 
-def extract_bases(z, dimension, word_length, n_threads=DEFAULT_N_THREADS):
-    return extract_bases_fast(z,
-                              int(dimension),
-                              int(word_length),
-                              int(n_threads))
+def extract_bases(z,
+                  dimension,
+                  word_length,
+                  n_threads=DEFAULT_N_THREADS,
+                  number="all dimensions"):
+    """Returns a list containing the Gaussian Jacobi basis of each vector
+    space of dimension `dimension` that is contained in the list `z` of
+    integers intepreted as elements of $\F_2^n$ where $n$ is equal to
+    `word_length`.
 
-def extract_affine_bases(z, dimension, word_length, n_threads=DEFAULT_N_THREADS):
-    return extract_affine_bases_fast(z,
+    The number of threads to use can be specified using the argument `n_threads`.
+
+    It can have 3 different behaviours depending on the value of the
+    argument `number`:
+
+    - if it is "just one" then it will stop as soon as it has found a
+      vector space of the desired dimension and return its basis;
+
+    - if it is "fixed dimension" then it will return all vector spaces
+      with exactly the given dimension, even if they are subspaces of
+      a larger space contained in `z`; and
+
+    - if it is "all dimensions" then it will return all vector spaces
+      of dimensions at least `dimension`. If a larger vector space is
+      found, its bases will be return and its subspaces will be
+      ignored.
+
+    """
+    if number not in ["all dimensions", "fixed dimension", "just one"]:
+        raise Exception("Unknown value for parameter `number` in extract_bases:" + number)
+    result = extract_bases_fast(z,
+                                int(dimension),
+                                int(word_length),
+                                int(n_threads),
+                                str(number))
+    if number == "all dimensions":
+        # post-processing to remove subspaces of larger ones
+        bigger_spaces = [b for b in result if len(b) > dimension]
+        if len(bigger_spaces) == 0:
+            # nothing to do as there is no bigger space
+            return result
+        else:
+            new_result = list(bigger_spaces)
+            for b in result:
+                if len(b) == dimension:
+                    is_included_in_bigger = False
+                    for big_b in bigger_spaces:
+                        is_included = True
+                        for v in b:
+                            if v not in big_b:
+                                is_included = False
+                                break
+                        if is_included:
+                            is_included_in_bigger = True
+                            break
+                    if not is_included_in_bigger:
+                        new_result.append(b)
+            return new_result
+    else:
+        return result
+                            
+            
+
+def extract_affine_bases(z,
+                         dimension,
+                         word_length,
+                         n_threads=DEFAULT_N_THREADS,
+                         number="all dimensions"):
+    """Returns a list containing the Gaussian Jacobi basis of each vector
+    space of dimension `dimension` that is contained in the list `z` of
+    integers intepreted as elements of $\F_2^n$ where $n$ is equal to
+    `word_length`.
+
+    The number of threads to use can be specified using the argument `n_threads`.
+
+    It can have 3 different behaviours depending on the value of the
+    argument `number`:
+
+    - if it is "just one" then it will stop as soon as it has found a
+      vector space of the desired dimension and return its basis;
+
+    - if it is "fixed dimension" then it will return all vector spaces
+      with exactly the given dimension, even if they are subspaces of
+      a larger space contained in `z`; and
+
+    - if it is "all dimensions" then it will return all vector spaces
+      of dimensions at least `dimension`. If a larger vector space is
+      found, its bases will be return and its subspaces will be
+      ignored.
+
+    """
+    if number not in ["all dimensions", "fixed dimension", "just one"]:
+        raise Exception("Unknown value for parameter `number` in extract_affine_bases:" + number)
+    result = extract_affine_bases_fast(z,
                                      int(dimension),
                                      int(word_length),
-                                     int(n_threads))
+                                     int(n_threads),
+                                     str(number))
+    if number == "all dimensions":
+        bigger_affine = [[oplus(b[0], x) for x in linear_span(b[1:])]
+                         for b in result if len(b) > dimension + 1]
+        if len(bigger_affine) == 0:
+            # nothing to do as there is no bigger space
+            return result
+        else:
+            new_result = list([b for b in result if len(b) > dimension+1])
+            for b in result:
+                if len(b) == dimension+1:
+                    aff = [oplus(b[0], v) for v in linear_span(b[1:])]
+                    is_included_in_bigger = False
+                    for big_space in bigger_affine:
+                        is_included = True
+                        for v in aff:
+                            if v not in big_space:
+                                is_included = False
+                                break
+                        if is_included:
+                            is_included_in_bigger = True
+                            break
+                    if not is_included_in_bigger:
+                        new_result.append(b)
+            return new_result
+    else:
+        return result
+    
 
 def rank_of_vector_set(V, n):
     """Returns the rank of the matrix obtained by "stacking" the n-bit

@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-01-30 17:21:13 lperrin>
+/* Time-stamp: <2019-07-10 17:12:49 lperrin>
  *
  * LICENSE
  */ 
@@ -47,6 +47,7 @@ typedef std::pair<uint32_t, uint32_t> IOpair;
 #include "sboxu_cpp_utils.hpp"
 #include "sboxu_cpp_diff_lin.hpp"
 #include "sboxu_cpp_equiv.hpp"
+#include "sboxu_cpp_ccz.hpp"
 
 
 
