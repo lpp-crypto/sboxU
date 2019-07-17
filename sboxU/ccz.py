@@ -42,7 +42,7 @@ def thickness_spectrum(s):
     """
     N = int(log(len(s), 2))
     z_s = lat_zeroes(s)
-    minimal_bases = extract_bases(z_s, N, 2*N)
+    minimal_bases = extract_bases(z_s, N, 2*N, number="fixed dimension")
     result = defaultdict(int)
     for basis in minimal_bases:
         result[thickness(basis, N)] += 1
@@ -237,7 +237,7 @@ def ccz_equivalent_permutations(f, number="all permutations"):
     for dim_pairs in itertools.product(bases_by_dimensions.keys(),
                                        bases_by_dimensions.keys()):
         t1, t2 = dim_pairs[0] >> N, dim_pairs[0] & mask
-        u1, u2 = dim_pairs[0] >> N, dim_pairs[0] & mask
+        u1, u2 = dim_pairs[1] >> N, dim_pairs[1] & mask
         if (t1 + u1) >= N and (t2 + u2) >= N:
             for b0, b1 in itertools.product(bases_by_dimensions[dim_pairs[0]],
                                             bases_by_dimensions[dim_pairs[1]]):

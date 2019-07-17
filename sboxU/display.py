@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2018-08-24 15:01:54 lperrin>
+# Time-stamp: <2019-07-17 10:45:59 lperrin>
 
 import matplotlib.pyplot as plt
 from diff_lin import *
@@ -344,3 +344,4 @@ def save_pollock(mat,
     else:
         name_base = folder + "/{}." + file_type
     fig.savefig(name_base.format(name))
+    plt.close()
