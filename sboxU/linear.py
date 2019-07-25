@@ -316,13 +316,12 @@ def extract_affine_bases(z,
 # !SUBSECTION!  Vector space bases and their properties
 
 
-def rank_of_vector_set(V, n):
+def rank_of_vector_set(V, n=8):
     """Returns the rank of the matrix obtained by "stacking" the n-bit
     binary representation of the numbers in V.
 
     """
-    M = Matrix(GF(2), len(V), n, [tobin(x, n) for x in V])
-    return M.rank()
+    return rank_of_vector_set_cpp(V)
 
 
 
@@ -402,7 +401,16 @@ def linear_span(basis, with_zero=True):
             visited[x] = 1
     return result
 
-    
+
+def bin_mat_to_int(m):
+    """Turns a binary matrix into an integer via a simple bijection."""
+    result = 0
+    n_rows, n_cols  = len(m), len(m[0])
+    for i in xrange(0, n_rows):
+        for j in xrange(0, n_cols):
+            result = (result << 1) | m[i][j]
+    return result
+
 
 # !SUBSECTION! Easy interaction with finite fields
 
@@ -416,5 +424,6 @@ def div_ff(x, y, F):
 
 def pow_ff(x, a, F):
     return (F.fetch_int(x)**a).integer_representation()
+
 
 

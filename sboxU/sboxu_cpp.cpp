@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-10 17:50:59 lperrin>
+/* Time-stamp: <2019-07-25 14:11:05 lperrin>
  *
  * LICENSE
  */ 
@@ -145,7 +145,28 @@ list get_lat_zeroes_spaces_fast(const list& l,
         result.append(vec_2_lst_BinWord(b));
     return result;
 }
-    
+
+
+// !SECTION! Other simple functions
+
+Integer rank_of_vector_set_cpp(const list& V)
+{
+    Integer result = 0;
+    std::vector<BinWord> l(lst_2_vec_BinWord(V));
+    for (unsigned int i=0; i<l.size(); i++)
+    {
+        for (unsigned int j=i+1; j<l.size(); j++)
+        {
+            BinWord y = l[i] ^ l[j];
+            if (y < l[j])
+                l[j] = y;
+        }
+        if (l[i] > 0)
+            result ++;
+    }
+    return result;
+}
+
 
 // !SECTION! Declaring all python-reachable function 
 
@@ -253,5 +274,11 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         get_lat_zeroes_spaces_fast,
         args("S", "n", "n_threads"),
         "Returns a list containing the minimal bases of all vector spaces of dimension n included in the Walsh zeroes of S.");
+
+// Other functions
+    def("rank_of_vector_set_cpp",
+        rank_of_vector_set_cpp,
+        args("V"),
+        "Returns the rank of the binary representations of the unsigned integers in V.");
 }
 
