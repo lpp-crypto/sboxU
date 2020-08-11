@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-05-22 11:37:08 lperrin>
+# Time-stamp: <2019-07-10 17:05:09 lperrin>
 
 from sage.all import *
 from sboxu_cpp import oplus_cpp
@@ -15,12 +15,33 @@ def oplus(x, y):
     return oplus_cpp(long(x), long(y))
 
 
+def preprocess_into_list(s):
+    """Returns the content of `s` as a list of `int`.
+
+    The C++ part of sboxU does not understand types such as `SBox` or
+    `sage.ring.integer.Integer`. The purpose of this function is to
+    get rid of those.
+
+    """
+    if isinstance(s, sage.crypto.mq.SBox):
+        if type(s[0]) == int:
+            return list(s)
+        else:
+            return [int(x for x in s)]
+    else:
+        if type(s[0]) == int:
+            return s
+        else:
+            return [int(x for x in s)]
+        
+
 def inverse(s):
     """Returns the functional inverse of the permutation s."""
     result = [0 for i in xrange(0, len(s))]
     for x in xrange(0, len(s)):
         result[s[x]] = x
     return result
+
 
     
 def random_function_of_degree(n, m, deg):

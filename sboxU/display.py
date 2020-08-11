@@ -1,5 +1,6 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-11-21 15:20:13 leo>
+# Time-stamp: <2020-08-11 16:59:38 leo>
+
 
 import matplotlib.pyplot as plt
 from diff_lin import *
