@@ -110,38 +110,42 @@ def swap_halves(x, n):
     return (r << (n/2)) | l
 
 
+# !SUBSECTION! Fast linear mappings
+
+class FastLinearMapping:
+    """A convenient class to apply linear function on integers
+    (interpreting them as elements of F_2^n) in way that is time
+    efficient.
+
+    """
+
+    def __init__(self, L):
+        self.inner_matrix = L
+        self.masks = [
+            sum(int(L[i,j]) << (L.nrows()-i-1) for i in xrange(0, L.nrows()))
+            for j in reversed(xrange(0, L.ncols()))
+        ]
+
+    def input_size(self):
+        return self.inner_matrix.ncols()
+
+    def output_size(self):
+        return self.inner_matrix.nrows()
+
+    def __call__(self, x):
+        """Returns the result of applying L to the integer x, intepreting it
+        as a binary vector.
+
+        """
+        result = 0
+        for i in xrange(0, len(self.masks)):
+            if (x >> i) & 1 == 1:
+                result = oplus(result, self.masks[i])
+        return result
+        
+
 # !SUBSECTION! Linear functions and their LUT
 
-
-def fast_matrix_mult_with_masks(x, masks):
-    """To be used in combination with the function fast_multiplier_masks:
-    it allows a much faster multiplication of an integer by a binary
-    matrix. We have that
-
-    apply_bin_mat(x, L) == fast_matrix_mult_with_masks(x, fast_multiplier_masks(L))
-
-    is always True; the whole point to compute
-    fast_multiplier_masks(L) only once.
-
-    """
-    result = 0
-    for i in xrange(0, len(masks)):
-        if (x >> i) & 1 == 1:
-            result = oplus(result, masks[i])
-    return result
-
-
-def fast_multiplier_masks(L):
-    """Returns a list m of masks to be used with the
-    fast_matrix_mult_with_masks function.
-
-    """
-    return [
-        sum(int(L[i,j]) << (L.nrows()-i-1) for i in xrange(0, L.nrows()))
-        for j in reversed(xrange(0, L.ncols()))
-    ]
-
-    
 
 def linear_function_lut_to_matrix(l):
     """Turns the look up table of a linear function into the
@@ -506,22 +510,35 @@ def pow_ff(x, a, F):
 
 
 
-if __name__ == '__main__':
-    print("testing fast multiplier masks")
+# !SECTION! Tests
+
+def test_fast_multiplier(verbose=False):
+    print("testing fast linear mappings")
     all_good = True
-    n, m = 8, 10
+    n, m = 8, 4
     for index_L in xrange(0, 10):
+        m += 1
         L = rand_linear_function(n, m)
-        L_masks = fast_multiplier_masks(L)
-        for index_x in xrange(0, 5):
+        L_map = FastLinearMapping(L)
+        if verbose:
+            print "--- ", L_map.input_size(), L_map.output_size()
+        for index_x in xrange(0, 8):
             x = randint(1, 2**n-1)
             y = apply_bin_mat(x, L)
-            y_prime = fast_matrix_mult_with_masks(x, L_masks)
-            print y, y_prime
+            y_prime = L_map(x)
+            if verbose:
+                print y, y_prime
             if y != y_prime:
                 all_good = False
                 break
-    if all_good:
-        print("  [SUCCESS]")
-    else:
-        print("  [FAIL]")
+    if verbose:
+        if all_good:
+            print("[SUCCESS]")
+        else:
+            print("[FAIL]")
+    return all_good
+
+
+
+if __name__ == '__main__':
+    print test_fast_multiplier()
