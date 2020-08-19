@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-25 14:11:05 lperrin>
+/* Time-stamp: <2019-08-05 15:23:54 lperrin>
  *
  * LICENSE
  */ 
@@ -155,16 +155,44 @@ Integer rank_of_vector_set_cpp(const list& V)
     std::vector<BinWord> l(lst_2_vec_BinWord(V));
     for (unsigned int i=0; i<l.size(); i++)
     {
-        for (unsigned int j=i+1; j<l.size(); j++)
-        {
-            BinWord y = l[i] ^ l[j];
-            if (y < l[j])
-                l[j] = y;
-        }
         if (l[i] > 0)
+        {
             result ++;
+            for (unsigned int j=i+1; j<l.size(); j++)
+            {
+                BinWord y = l[i] ^ l[j];
+                if (y < l[j])
+                    l[j] = y;
+            }
+        }
     }
     return result;
+}
+
+
+bool rank_deficit_of_vector_set_is_at_most_cpp(const list& V, const Integer target)
+{
+    Integer count = 0;
+    std::vector<BinWord> l(lst_2_vec_BinWord(V));
+    for (unsigned int i=0; i<l.size(); i++)
+    {
+        if (l[i] == 0)
+        {
+            count ++;
+            if (count > target)
+                return false;
+        }
+        else
+        {
+            for (unsigned int j=i+1; j<l.size(); j++)
+            {
+                BinWord y = l[i] ^ l[j];
+                if (y < l[j])
+                    l[j] = y;
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -280,5 +308,9 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         rank_of_vector_set_cpp,
         args("V"),
         "Returns the rank of the binary representations of the unsigned integers in V.");
+    def("rank_deficit_of_vector_set_is_at_most_cpp",
+        rank_deficit_of_vector_set_is_at_most_cpp,
+        args("V", "target"),
+        "Returns true if and only if the c-r>=target, where `r` is rank of the binary representations of the unsigned integers in V and `c` is the number of elements in `V`.");
 }
 

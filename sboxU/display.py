@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-07-17 10:45:59 lperrin>
+# Time-stamp: <2020-01-06 18:14:34 lperrin>
 
 import matplotlib.pyplot as plt
 from diff_lin import *
@@ -321,9 +321,11 @@ def save_pollock(mat,
                  frame=True,
                  visible_axes=False,
                  colorbar=False,
-                 file_type="png"):
-    fig, p = plt.subplots(figsize=(15,15))
-    abs_mat = [[abs(mat[i][j]) for j in xrange(0, len(mat[0]))]
+                 file_type="png",
+                 modifier_func=abs,
+                 figsize=15):
+    fig, p = plt.subplots(figsize=(figsize,figsize))
+    abs_mat = [[modifier_func(mat[i][j]) for j in xrange(0, len(mat[0]))]
                for i in xrange(0, len(mat))]
     axes = p.imshow(
         abs_mat,

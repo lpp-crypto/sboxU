@@ -275,8 +275,8 @@ def enumerate_ea_classes(f):
     bases = get_lat_zeroes_spaces(f)
     result = []
     for b in bases:
-        L = get_generating_matrix(b, 2*N).transpose()
-        graph_g = [apply_bin_mat(word, L) for word in graph_f]
+        L_masks = fast_multiplier_masks(get_generating_matrix(b, 2*N).transpose())
+        graph_g = [fast_matrix_mult_with_masks(word, L_masks) for word in graph_f]
         g = [-1 for x in xrange(0, 2**N)]
         for word in graph_g:
             x, y = word >> N, word & mask

@@ -112,6 +112,37 @@ def swap_halves(x, n):
 
 # !SUBSECTION! Linear functions and their LUT
 
+
+def fast_matrix_mult_with_masks(x, masks):
+    """To be used in combination with the function fast_multiplier_masks:
+    it allows a much faster multiplication of an integer by a binary
+    matrix. We have that
+
+    apply_bin_mat(x, L) == fast_matrix_mult_with_masks(x, fast_multiplier_masks(L))
+
+    is always True; the whole point to compute
+    fast_multiplier_masks(L) only once.
+
+    """
+    result = 0
+    for i in xrange(0, len(masks)):
+        if (x >> i) & 1 == 1:
+            result = oplus(result, masks[i])
+    return result
+
+
+def fast_multiplier_masks(L):
+    """Returns a list m of masks to be used with the
+    fast_matrix_mult_with_masks function.
+
+    """
+    return [
+        sum(int(L[i,j]) << (L.nrows()-i-1) for i in xrange(0, L.nrows()))
+        for j in reversed(xrange(0, L.ncols()))
+    ]
+
+    
+
 def linear_function_lut_to_matrix(l):
     """Turns the look up table of a linear function into the
     corresponding binary matrix."""
@@ -176,6 +207,43 @@ def partial_linear_permutation_to_full(v, n):
     else:
         raise "no such matrix"
 
+
+def F_2t_to_space(basis, n):
+    """Returns the matrix corresponding to a permutation of (F_2)^n such
+    that F_2^t (i.e. the set of integers < 2^t) is mapped to the space
+    with the given basis using the function apply_bin_mat()
+
+    """
+    full_basis = complete_basis(basis, n)
+    return Matrix(GF(2), n, n, [
+        [(v >> (n-1-j)) & 1 for j in xrange(0, n)]
+        for v in reversed(full_basis)
+    ]).transpose()
+
+
+def orthogonal_basis(B, n):
+    """Returns a basis of the subspace of (F_2)^n that is orthogonal to
+    all the vectors in B, the idea being that B is itself the basis of a
+    subspace.
+
+    """
+    result = []
+    r = 0
+    v = 1
+    while r < n-len(B):
+        is_ortho = True
+        for b_i in B:
+            if scal_prod(b_i, v) != 0:
+                is_ortho = False
+                break
+        if is_ortho:
+            new_result = result + [v]
+            new_r = rank_of_vector_set(new_result, n)
+            if new_r > r :
+                r = new_r
+                result.append(v)
+        v += 1
+    return result
 
 
 # !SUBSECTION! Vector/affine space extraction
@@ -324,6 +392,15 @@ def rank_of_vector_set(V, n=8):
     return rank_of_vector_set_cpp(V)
 
 
+def rank_deficit_of_vector_set_is_at_most(V, target):
+    """Returns whether c-r>=target where c is the number of elements in V
+    and r is the rank of the matrix obtained by "stacking" the n-bit
+    binary representation of the numbers in V.
+
+    """
+    return rank_deficit_of_vector_set_is_at_most_cpp(V, target)
+
+
 
 def extract_basis(v, N):
     """Returns a subset of v such that the span of these elements is at
@@ -361,16 +438,18 @@ def complete_basis(basis, N):
     of `basis` are linearly independent.
 
     """
+    if rank_of_vector_set(basis) != len(basis):
+        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
     r = len(basis)
-    for i in xrange(1, 2**N):
-        new_basis = basis + [i]
-        new_r = Matrix(GF(2), len(new_basis), N, [tobin(x, N) for x in new_basis]).rank()
-        if new_r == N:
-            return new_basis
-        elif new_r > r:
-            basis = new_basis
+    e_i = 1
+    while r < N:
+        new_basis = basis + [e_i]
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r:
+            basis = new_basis[:]
             r = new_r
-    return []
+        e_i += 1
+    return basis
 
 
 def get_generating_matrix(basis, N):
@@ -427,3 +506,22 @@ def pow_ff(x, a, F):
 
 
 
+if __name__ == '__main__':
+    print("testing fast multiplier masks")
+    all_good = True
+    n, m = 8, 10
+    for index_L in xrange(0, 10):
+        L = rand_linear_function(n, m)
+        L_masks = fast_multiplier_masks(L)
+        for index_x in xrange(0, 5):
+            x = randint(1, 2**n-1)
+            y = apply_bin_mat(x, L)
+            y_prime = fast_matrix_mult_with_masks(x, L_masks)
+            print y, y_prime
+            if y != y_prime:
+                all_good = False
+                break
+    if all_good:
+        print("  [SUCCESS]")
+    else:
+        print("  [FAIL]")

@@ -1,9 +1,10 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-07-10 17:05:09 lperrin>
+# Time-stamp: <2019-09-26 15:43:32 lperrin>
 
 from sage.all import *
 from sboxu_cpp import oplus_cpp
 import itertools
+from collections import defaultdict
 
 
 def oplus(x, y):
@@ -69,4 +70,8 @@ def random_function_of_degree(n, m, deg):
     return result
 
         
-            
+def image(f):
+    img = defaultdict(int)
+    for x in xrange(0, len(f)):
+        img[f[x]] += 1
+    return img.keys()
