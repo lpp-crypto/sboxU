@@ -132,6 +132,12 @@ class FastLinearMapping:
     def output_size(self):
         return self.inner_matrix.nrows()
 
+    def transpose(self):
+        return FastLinearMapping(self.inner_matrix.transpose())
+    
+    def inverse(self):
+        return FastLinearMapping(self.inner_matrix.inverse())
+
     def __call__(self, x):
         """Returns the result of applying L to the integer x, intepreting it
         as a binary vector.
