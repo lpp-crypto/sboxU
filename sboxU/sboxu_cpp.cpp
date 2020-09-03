@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-08-05 15:23:54 lperrin>
+/* Time-stamp: <2020-09-03 15:25:47 lperrin>
  *
  * LICENSE
  */ 
@@ -243,6 +243,10 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         args("S", "n_threads"),
         "Returns a dictionnary d such that d[k] = #{(a, b), a != 0, S(x ^ a) ^ S(x) = b has k solutions} which is computed using n_threads different threads.");
 
+    def("ortho_derivative",
+        ortho_derivative,
+        args("S"),
+        "Returns a list containing the LUT of the ortho-derivative of S if S is both crooked and APN, an empty list otherwise.");
 // Linear properties
 
     def("lat",
