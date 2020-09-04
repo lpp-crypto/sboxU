@@ -1,4 +1,4 @@
-/* Time-stamp: <2020-09-03 15:25:47 lperrin>
+/* Time-stamp: <2020-09-04 15:21:52 lperrin>
  *
  * LICENSE
  */ 
@@ -81,10 +81,10 @@ list le_class_representative(const list& l0)
 
 // !SUBSECTION! CCZ
 
-// list extract_vector_fast(const list& l, const Integer a) 
-// {
-//     return vec_2_lst_BinWord(extract_vector_cpp(lst_2_vec_BinWord(l), a)) ;
-// }
+list extract_vector(const list& l, const BinWord a) 
+{
+    return vec_2_lst_BinWord(extract_vector_cpp(lst_2_vec_BinWord(l), a)) ;
+}
 
 
 list extract_bases_fast(const list& l,
@@ -247,6 +247,7 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         ortho_derivative,
         args("S"),
         "Returns a list containing the LUT of the ortho-derivative of S if S is both crooked and APN, an empty list otherwise.");
+
 // Linear properties
 
     def("lat",
@@ -275,6 +276,7 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         "Returns the projected of the set of all zeroes in the LAT of S, i.e. all a such that LAT[a,b]==0 for some b.");
 
 // Boomerang properties
+    
     def("bct",
         bct,
         args("S"),
@@ -308,6 +310,10 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         "Returns a list containing the minimal bases of all vector spaces of dimension n included in the Walsh zeroes of S.");
 
 // Other functions
+    def("extract_vector",
+        extract_vector,
+        args("l", "a"),
+        "Extracts the vector a from the list l in the sense of [BonPerTia19]."),
     def("rank_of_vector_set_cpp",
         rank_of_vector_set_cpp,
         args("V"),

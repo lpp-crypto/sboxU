@@ -286,7 +286,34 @@ def enumerate_ea_classes(f):
         else:
             result.append(g)
     return result
-                        
+
+
+def ea_classes_in_the_ccz_class_of(f):
+    """Returns an iterable that, when iterated over, will yield at least
+    one function from each of the EA-classes constituting the
+    CCZ-class of `f`.
+
+    Note that several functions in the same EA-class may be
+    returned. Solving this problem is in fact an open *research*
+    problem.
+
+    """
+    N = int(log(len(f), 2))
+    mask = sum(int(1 << i) for i in xrange(0, N))
+    graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
+    z = lat_zeroes(f)
+    for b in vector_spaces_bases_iterator(z, N, 2*N):
+        L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
+        graph_g = [L_map(word) for word in graph_f]
+        g = [-1 for x in xrange(0, 2**N)]
+        for word in graph_g:
+            x, y = word >> N, word & mask
+            g[x] = y
+        if -1 in g:
+            raise Exception("CCZ map is ill defined!")
+        else:
+            yield g
+    
 
 
 # !SECTION! Tests
@@ -511,7 +538,7 @@ def test_ccz_permutations(number="all permutations"):
     print "total: {}".format(len(permutations))
 
 def test_enumerate_ea():
-    N = 6
+    N = 8
     F = GF(2**N, name="a")
     # generating the Kim mapping
     kim = []
@@ -525,12 +552,30 @@ def test_enumerate_ea():
     print "total: ", len(classes)
     
 
+def test_ea_classes():
+    N = 8
+    F = GF(2**N, name="a")
+    # generating the Kim mapping
+    kim = []
+    for x_i in xrange(0, 2**N):
+        x = F.fetch_int(x_i)
+        y = x**3 + x**10 + F.gen()*x**24
+        kim.append(y.integer_representation())
+
+    total = 0
+    for f in ea_classes_in_the_ccz_class_of(kim):
+        print algebraic_degree(f), pretty_spectrum(thickness_spectrum(f))
+        total += 1
+    print "total: ", total
+    
+
 # !SECTION! Running tests
 
 if __name__ == '__main__':
     # test_ea_permutations()
     # test_ccz_permutations(number="just one")
-    test_enumerate_ea()
+    # test_enumerate_ea()
+    test_ea_classes()
     
     # import sys
     # N = int(sys.argv[1])

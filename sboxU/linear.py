@@ -263,7 +263,7 @@ def extract_bases(z,
                   dimension,
                   word_length,
                   n_threads=DEFAULT_N_THREADS,
-                  number="all dimensions"):
+                  number="fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each vector
     space of dimension `dimension` that is contained in the list `z` of
     integers intepreted as elements of $\F_2^n$ where $n$ is equal to
@@ -284,7 +284,7 @@ def extract_bases(z,
 
     - if it is "all dimensions" then it will return all vector spaces
       of dimensions at least `dimension`. If a larger vector space is
-      found, its bases will be return and its subspaces will be
+      found, its bases will be returned and its subspaces will be
       ignored.
 
     """
@@ -328,7 +328,7 @@ def extract_affine_bases(z,
                          dimension,
                          word_length,
                          n_threads=DEFAULT_N_THREADS,
-                         number="all dimensions"):
+                         number="fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each affine
     space of dimension `dimension` that is contained in the list `z` of
     integers intepreted as elements of $\F_2^n$ where $n$ is equal to
@@ -388,8 +388,29 @@ def extract_affine_bases(z,
             return new_result
     else:
         return result
-    
 
+
+
+
+def vector_spaces_bases_iterator(z,
+                                dimension,
+                                word_length,
+                                n_threads=DEFAULT_N_THREADS):
+    """Returns an iterator going through the bases of all the vector
+    spaces of dimension `dimension` that are included in `z`.
+
+    The words in `z` are assumed to be of length `word_length`.
+
+    """
+    for v_0 in z:
+        new_z = extract_vector(z, v_0)
+        for rest_of_the_basis in extract_bases(new_z,
+                                               dimension-1,
+                                               word_length,
+                                               n_threads=n_threads):
+            yield [v_0] + rest_of_the_basis
+
+            
 
 # !SUBSECTION!  Vector space bases and their properties
 
@@ -545,6 +566,22 @@ def test_fast_multiplier(verbose=False):
     return all_good
 
 
+def test_vector_spaces_bases_iterator():
+    from random import shuffle
+    N = 10
+    d = 4
+    random_set = range(1, 2**N)
+    shuffle(random_set)
+    random_set = random_set[0:int(len(random_set)/3)]
+    bases_0 = extract_bases(random_set, d, N)
+    bases_1 = []
+    for b in vector_spaces_bases_iterator(random_set, d, N):
+        bases_1.append(b)
+    print bases_0
+    print "\n"
+    print bases_1
+
 
 if __name__ == '__main__':
-    print test_fast_multiplier()
+    # print test_fast_multiplier()
+    test_vector_spaces_bases_iterator()
