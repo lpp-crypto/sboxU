@@ -1,7 +1,7 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-05-11 14:33:45 lperrin>
+# Time-stamp: <2020-09-10 10:32:56 lperrin>
 
-# from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
+# from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
 from sage.all import *
 from sage.crypto.boolean_function import BooleanFunction
 import itertools
@@ -317,122 +317,6 @@ def table_negative_anomaly(s, table):
 
 
 
-# def probability_of_goodness(s):
-#     """Returns the probabilities that the distribution of the coefficients
-#     in the DDT and the LAT of a random permutation are at least as
-#     good as those of `s`.
-
-#     The criteria used to define "goodness" is the maximum value in the
-#     DDT (resp. LAT) and its number of occurrences. Smaller maximum
-#     value is better and, given to S-Boxes with the same max value, a
-#     smaller number of occurrences is better.
-
-#     """
-#     result = {}
-#     n = int(log(len(s), 2))
-#     # Looking at the DDT
-#     diff = differential_spectrum(s)
-#     uniformity = max(diff.keys())
-#     uniformity_occurences = diff[uniformity]
-#     result["differential"] = probability_of_measure(
-#         n,
-#         n,
-#         uniformity,
-#         uniformity_occurences,
-#         ddt_coeff_probability)
-#     # Looking at the LAT
-#     w = walsh_spectrum(s)
-#     linearity = max([abs(k) for k in w.keys()])
-#     linearity_occurences = 0
-#     if linearity in w.keys():
-#         linearity_occurences += w[linearity]
-#     if -linearity in w.keys():
-#         linearity_occurences += w[-linearity]
-#     result["linear"] = probability_of_measure(
-#         n,
-#         n,
-#         linearity,
-#         linearity_occurences,
-#         lat_coeff_probability_permutation)
-#     return result
-
-
-
-def BP_criteria(s):
-    """Returns the quantity used by Biryukov and Perrin to generate
-    S-Boxes imitating the properties of the S-Box of Skipjack.
-
-    """
-    if not isinstance(s, mq.SBox):
-        s = mq.SBox(s)
-    lat = s.linear_approximation_matrix()
-    result = 0
-    for i, j in itertools.product(xrange(1, lat.nrows()),
-                                  xrange(1, lat.ncols())):
-        result += 2**(abs(lat[i, j]))
-    return result
-
-
-# def differential_uniformity(s):
-#     if not isinstance(s, mq.SBox):
-#         s = mq.SBox(s)
-#     if is_permutation(s):
-#         return max(differential_coefficients(s).keys())
-#     else:
-#         diff = differential_coefficients(s)
-#         if diff[2**s.m] > 1:
-#             return 2**s.m
-#         else:
-#             coeffs = diff.keys()
-#             coeffs.sort()
-#             return coeffs[-2]
-
-
-# def linearity(s):
-#     if not isinstance(s, mq.SBox):
-#         s = mq.SBox(s)
-#     if is_permutation(s):
-#         return int(max(linear_coefficients(s).keys()))
-#     else:
-#         lin = linear_coefficients(s)
-#         if lin[2**(s.m-1)] > 1:
-#             return int(2**(s.m-1))
-#         else:
-#             coeffs = lin.keys()
-#             coeffs.sort()
-#             return int(coeffs[-2])
-    
-
-
-# def differential_branch_number(s):
-#     if not isinstance(s, mq.SBox):
-#         s = mq.SBox(s)
-#     result = 2**s.n
-#     for delta_in in xrange(1, 2**s.n):
-#         w_in = hamming_weight(delta_in)
-#         line = [0 for x in xrange(0, 2**s.m)]
-#         for x in xrange(0, 2**s.m):
-#             line[oplus(s[x], s[oplus(x,delta_in)])] += 1
-#         for delta_out in xrange(0, 2**s.m):
-#             if line[delta_out] != 0:
-#                 w = w_in + hamming_weight(delta_out)
-#                 if w < result:
-#                     result = w
-#     return result
-
-# def linear_branch_number(s):
-#     if not isinstance(s, mq.SBox):
-#         s = mq.SBox(s)
-#     result = 2**s.n
-#     lat = s.linear_approximation_matrix()
-#     for a in xrange(1, 2**s.n):
-#         w_a = hamming_weight(a)
-#         for b in xrange(0, 2**s.m):
-#             if lat[a, b] != 0:
-#                 w = w_a + hamming_weight(b)
-#                 if w < result:
-#                     result = w
-#     return result
 
 
 # !SUBSECTION! Algebraic properies
@@ -447,7 +331,7 @@ def algebraic_normal_form_coordinate(s, i):
     return coordinate.algebraic_normal_form()
 
 
-def algebraic_normal_form(s_in):
+def algebraic_normal_form(s):
     """Returns the algebraic normal form of the coordinates of the S-Box
     `s`.
 
@@ -457,11 +341,11 @@ def algebraic_normal_form(s_in):
 
     """
     result = {}
-    s = mq.SBox(s_in)
-    outputs = algebraic_normal_form_coordinate([(s, b) for b in range(0, s.n)])
+    n = int(log(len(s, 2)))
+    outputs = algebraic_normal_form_coordinate([(s, b) for b in range(0, n)])
     for entry in outputs:
         result[entry[0][0][1]] = entry[1]
-    return [result[k] for k in range(0, s.n)]
+    return [result[k] for k in range(0, n)]
 
 
 def algebraic_degree(s):
@@ -469,10 +353,10 @@ def algebraic_degree(s):
     degree of its coordinates.
 
     """
-    anf = algebraic_normal_form(s)
+    anfs = algebraic_normal_form(s)
     result = 0
-    for i in xrange(0, len(anf)):
-        result = max(result, anf[i].degree())
+    for a in anfs:
+        result = max(result, a.degree())
     return result
 
 
