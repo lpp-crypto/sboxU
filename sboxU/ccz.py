@@ -288,7 +288,7 @@ def enumerate_ea_classes(f):
     return result
 
 
-def ea_classes_in_the_ccz_class_of(f):
+def ea_classes_in_the_ccz_class_of(f, include_start=False):
     """Returns an iterable that, when iterated over, will yield at least
     one function from each of the EA-classes constituting the
     CCZ-class of `f`.
@@ -297,22 +297,27 @@ def ea_classes_in_the_ccz_class_of(f):
     returned. Solving this problem is in fact an open *research*
     problem.
 
+    If `include_start` is set to False then the ea class of f is
+    hopefully not returned. More precisely, the spaces with thickness
+    0 are not considered.
+
     """
     N = int(log(len(f), 2))
     mask = sum(int(1 << i) for i in xrange(0, N))
     graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
     z = lat_zeroes(f)
     for b in vector_spaces_bases_iterator(z, N, 2*N):
-        L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
-        graph_g = [L_map(word) for word in graph_f]
-        g = [-1 for x in xrange(0, 2**N)]
-        for word in graph_g:
-            x, y = word >> N, word & mask
-            g[x] = y
-        if -1 in g:
-            raise Exception("CCZ map is ill defined!")
-        else:
-            yield g
+        if include_start or thickness(b, 2*N) > 0:
+            L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
+            graph_g = [L_map(word) for word in graph_f]
+            g = [-1 for x in xrange(0, 2**N)]
+            for word in graph_g:
+                x, y = word >> N, word & mask
+                g[x] = y
+            if -1 in g:
+                raise Exception("CCZ map is ill defined!")
+            else:
+                yield g
     
 
 
