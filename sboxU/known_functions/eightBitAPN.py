@@ -18,7 +18,7 @@ def poly_to_lut(p):
     return s
 
 
-def all_quadratics():
+def all_quadratic_polynomials():
     """All the functions in Table 9 of
     http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.215.5432&rep=rep1&type=pdf
 
@@ -49,6 +49,19 @@ def all_quadratics():
         poly_to_lut(X**3 + X**5 + X**18 + X**40 + X**66),
         poly_to_lut(X**3 + X**12 + X**40 + X**66 + X**130),
     ]
+
+
+def all_QAMs():
+    """All the functions found using the QAM method, see
+    https://link.springer.com/article/10.1007/s10623-014-9955-3
+    
+    """
+    from allQam import all_qam
+    return all_qam
+
+
+def all_quadratics():
+    return all_quadratic_polynomials() + all_QAMs()
 
 
 def all_non_quadratics():
