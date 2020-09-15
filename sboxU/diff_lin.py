@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2020-09-15 14:51:38 lperrin>
+# Time-stamp: <2020-09-15 14:52:54 lperrin>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
 from sage.all import *
@@ -341,7 +341,7 @@ def algebraic_normal_form(s):
 
     """
     result = {}
-    n = int(log(len(s) 2))
+    n = int(log(len(s), 2))
     outputs = algebraic_normal_form_coordinate([(s, b) for b in range(0, n)])
     for entry in outputs:
         result[entry[0][0][1]] = entry[1]
