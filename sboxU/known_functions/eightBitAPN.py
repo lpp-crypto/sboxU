@@ -56,12 +56,25 @@ def all_QAMs():
     https://link.springer.com/article/10.1007/s10623-014-9955-3
     
     """
-    from allQam import all_qam
-    return all_qam
+    from allQam import all_funcs
+    return all_funcs
+
+
+def all_BeiLea():
+    """All the functions found by Beierle and Leander in 2020, availabe
+    online at: https://zenodo.org/record/4030734
+
+    """
+    from BeierleLeander import all_funcs
+    return all_funcs
 
 
 def all_quadratics():
-    return all_quadratic_polynomials() + all_QAMs()
+    """Returns all known quadratic APN functions operating on 8 bits. They
+    are all in distinct CCZ-classes.
+
+    """
+    return all_QAMs() + all_BeiLea()
 
 
 def all_non_quadratics():

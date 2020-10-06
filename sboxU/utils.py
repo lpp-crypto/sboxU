@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-09-26 15:43:32 lperrin>
+# Time-stamp: <2020-09-21 15:09:10 lperrin>
 
 from sage.all import *
 from sboxu_cpp import oplus_cpp
@@ -46,8 +46,8 @@ def inverse(s):
 
     
 def random_function_of_degree(n, m, deg):
-    """Returns a function picked randomly in the set of quadratic
-    functions mapping n bits to m.
+    """Returns a function picked randomly in the set of functions mapping
+    n bits to m with algebraic degree at most deg.
 
     """
     result = [0 for x in xrange(0, 2**n)]

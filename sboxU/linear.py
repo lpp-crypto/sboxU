@@ -154,8 +154,10 @@ class FastLinearMapping:
 
 
 def linear_function_lut_to_matrix(l):
-    """Turns the look up table of a linear function into the
-    corresponding binary matrix."""
+    """Turns the look up table of a linear function into the corresponding
+    binary matrix.
+
+    """
     n = int(log(len(l), 2))
     result = []
     for i in xrange(0, n):

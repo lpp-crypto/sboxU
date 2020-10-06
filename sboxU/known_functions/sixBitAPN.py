@@ -17,6 +17,13 @@ def poly_to_lut(p):
         s.append(y)
     return s
 
+def kim_mapping():
+    """The "Kim mapping", as used by Dillon et al to identify the 6-bit
+    APN permutation.
+
+    """
+    return poly_to_lut(X**3 + g*X**24 + X**10)
+
 
 def all_quadratics():
     """What follows is the Banff complete list of quadratic APN functions"""
