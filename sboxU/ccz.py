@@ -140,6 +140,35 @@ def get_lat_zeroes_spaces(s, n_threads=DEFAULT_N_THREADS):
                                       int(log(len(s), 2)),
                                       int(n_threads))
 
+
+# !SUBSECTION! TU projection and decomposition
+
+def tu_projection(s, t):
+    """Returns a pair T, U of lists of lists such that
+
+    s[(j << t) | i] == (U[i][j] << t) | T[j][i]
+
+    i.e. such that T and U for the TU projection of s in the sense of
+    https://eprint.iacr.org/2018/713
+
+    """
+    N = int(log(len(s), 2))
+    mask = sum(int(1 << j) for j in xrange(0, N-t))
+    T = [
+        [-1 for i in xrange(0, 2**t)]
+        for j in xrange(0, 2**(N-t))
+    ]
+    U = [
+        [-1 for j in xrange(0, 2**(N-t))]
+        for i in xrange(0, 2**t)
+    ]
+    for j in xrange(0, 2**(N-t)):
+        for i in xrange(0, 2**t):
+            y = s[(j << t) | i]
+            T[j][i] = y & mask
+            U[i][j] = y >> t
+    return T, U
+
     
 
 # !SECTION! Linear/Affine Equivalence 

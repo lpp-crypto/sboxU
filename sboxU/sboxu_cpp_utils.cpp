@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-16 14:40:43 lperrin>
+/* Time-stamp: <2020-10-06 15:17:32 lperrin>
  *
  * LICENSE
  */ 
@@ -67,7 +67,7 @@ bool is_permutation_cpp(Sbox s)
     std::map<BinWord, Integer> count;
     for (auto &v : s)
     {
-        if (count[v] == 1)
+        if ((count[v] == 1) or (v >= s.size()))
             return false;
         else
             count[v] = 1;

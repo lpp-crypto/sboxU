@@ -148,6 +148,9 @@ class FastLinearMapping:
             if (x >> i) & 1 == 1:
                 result = oplus(result, self.masks[i])
         return result
+
+    def __str__(self):
+        return self.inner_matrix.str()
         
 
 # !SUBSECTION! Linear functions and their LUT
