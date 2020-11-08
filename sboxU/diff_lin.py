@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2019-05-11 14:33:45 lperrin>
+# Time-stamp: <2019-08-09 10:04:44 leo>
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial, mq
 from sage.all import *
@@ -242,6 +242,7 @@ def anomaly_differential_uniformity(n, v_max):
         proba_bound_and_enough_zeroes += RealNumber(binomial(2**n-1, i)) * p_0**i * p_inf**(2**n-1-i)
     return (2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
 
+
 def anomaly_ddt(n, v_max, occ):
     p_0 = RealNumber(ddt_coeff_probability(n, n, 0))
     p_non_zero = RealNumber(1-p_0)
@@ -447,7 +448,7 @@ def algebraic_normal_form_coordinate(s, i):
     return coordinate.algebraic_normal_form()
 
 
-def algebraic_normal_form(s_in):
+def algebraic_normal_form(s):
     """Returns the algebraic normal form of the coordinates of the S-Box
     `s`.
 
@@ -457,11 +458,11 @@ def algebraic_normal_form(s_in):
 
     """
     result = {}
-    s = mq.SBox(s_in)
-    outputs = algebraic_normal_form_coordinate([(s, b) for b in range(0, s.n)])
+    N = int(log(len(s), 2))
+    outputs = algebraic_normal_form_coordinate([(s, b) for b in range(0, N)])
     for entry in outputs:
         result[entry[0][0][1]] = entry[1]
-    return [result[k] for k in range(0, s.n)]
+    return [result[k] for k in range(0, N)]
 
 
 def algebraic_degree(s):
