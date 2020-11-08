@@ -110,11 +110,57 @@ def swap_halves(x, n):
     return (r << (n/2)) | l
 
 
+# !SUBSECTION! Fast linear mappings
+
+class FastLinearMapping:
+    """A convenient class to apply linear function on integers
+    (interpreting them as elements of F_2^n) in way that is time
+    efficient.
+
+    """
+
+    def __init__(self, L):
+        self.inner_matrix = L
+        self.masks = [
+            sum(int(L[i,j]) << (L.nrows()-i-1) for i in xrange(0, L.nrows()))
+            for j in reversed(xrange(0, L.ncols()))
+        ]
+
+    def input_size(self):
+        return self.inner_matrix.ncols()
+
+    def output_size(self):
+        return self.inner_matrix.nrows()
+
+    def transpose(self):
+        return FastLinearMapping(self.inner_matrix.transpose())
+    
+    def inverse(self):
+        return FastLinearMapping(self.inner_matrix.inverse())
+
+    def __call__(self, x):
+        """Returns the result of applying L to the integer x, intepreting it
+        as a binary vector.
+
+        """
+        result = 0
+        for i in xrange(0, len(self.masks)):
+            if (x >> i) & 1 == 1:
+                result = oplus(result, self.masks[i])
+        return result
+
+    def __str__(self):
+        return self.inner_matrix.str()
+        
+
 # !SUBSECTION! Linear functions and their LUT
 
+
 def linear_function_lut_to_matrix(l):
-    """Turns the look up table of a linear function into the
-    corresponding binary matrix."""
+    """Turns the look up table of a linear function into the corresponding
+    binary matrix.
+
+    """
     n = int(log(len(l), 2))
     result = []
     for i in xrange(0, n):
@@ -177,6 +223,43 @@ def partial_linear_permutation_to_full(v, n):
         raise "no such matrix"
 
 
+def F_2t_to_space(basis, n):
+    """Returns the matrix corresponding to a permutation of (F_2)^n such
+    that F_2^t (i.e. the set of integers < 2^t) is mapped to the space
+    with the given basis using the function apply_bin_mat()
+
+    """
+    full_basis = complete_basis(basis, n)
+    return Matrix(GF(2), n, n, [
+        [(v >> (n-1-j)) & 1 for j in xrange(0, n)]
+        for v in reversed(full_basis)
+    ]).transpose()
+
+
+def orthogonal_basis(B, n):
+    """Returns a basis of the subspace of (F_2)^n that is orthogonal to
+    all the vectors in B, the idea being that B is itself the basis of a
+    subspace.
+
+    """
+    result = []
+    r = 0
+    v = 1
+    while r < n-len(B):
+        is_ortho = True
+        for b_i in B:
+            if scal_prod(b_i, v) != 0:
+                is_ortho = False
+                break
+        if is_ortho:
+            new_result = result + [v]
+            new_r = rank_of_vector_set(new_result, n)
+            if new_r > r :
+                r = new_r
+                result.append(v)
+        v += 1
+    return result
+
 
 # !SUBSECTION! Vector/affine space extraction
 
@@ -185,7 +268,7 @@ def extract_bases(z,
                   dimension,
                   word_length,
                   n_threads=DEFAULT_N_THREADS,
-                  number="all dimensions"):
+                  number="fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each vector
     space of dimension `dimension` that is contained in the list `z` of
     integers intepreted as elements of $\F_2^n$ where $n$ is equal to
@@ -206,7 +289,7 @@ def extract_bases(z,
 
     - if it is "all dimensions" then it will return all vector spaces
       of dimensions at least `dimension`. If a larger vector space is
-      found, its bases will be return and its subspaces will be
+      found, its bases will be returned and its subspaces will be
       ignored.
 
     """
@@ -250,7 +333,7 @@ def extract_affine_bases(z,
                          dimension,
                          word_length,
                          n_threads=DEFAULT_N_THREADS,
-                         number="all dimensions"):
+                         number="fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each affine
     space of dimension `dimension` that is contained in the list `z` of
     integers intepreted as elements of $\F_2^n$ where $n$ is equal to
@@ -310,8 +393,29 @@ def extract_affine_bases(z,
             return new_result
     else:
         return result
-    
 
+
+
+
+def vector_spaces_bases_iterator(z,
+                                dimension,
+                                word_length,
+                                n_threads=DEFAULT_N_THREADS):
+    """Returns an iterator going through the bases of all the vector
+    spaces of dimension `dimension` that are included in `z`.
+
+    The words in `z` are assumed to be of length `word_length`.
+
+    """
+    for v_0 in z:
+        new_z = extract_vector(z, v_0)
+        for rest_of_the_basis in extract_bases(new_z,
+                                               dimension-1,
+                                               word_length,
+                                               n_threads=n_threads):
+            yield [v_0] + rest_of_the_basis
+
+            
 
 # !SUBSECTION!  Vector space bases and their properties
 
@@ -322,6 +426,15 @@ def rank_of_vector_set(V, n=8):
 
     """
     return rank_of_vector_set_cpp(V)
+
+
+def rank_deficit_of_vector_set_is_at_most(V, target):
+    """Returns whether c-r>=target where c is the number of elements in V
+    and r is the rank of the matrix obtained by "stacking" the n-bit
+    binary representation of the numbers in V.
+
+    """
+    return rank_deficit_of_vector_set_is_at_most_cpp(V, target)
 
 
 
@@ -361,16 +474,18 @@ def complete_basis(basis, N):
     of `basis` are linearly independent.
 
     """
+    if rank_of_vector_set(basis) != len(basis):
+        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
     r = len(basis)
-    for i in xrange(1, 2**N):
-        new_basis = basis + [i]
-        new_r = Matrix(GF(2), len(new_basis), N, [tobin(x, N) for x in new_basis]).rank()
-        if new_r == N:
-            return new_basis
-        elif new_r > r:
-            basis = new_basis
+    e_i = 1
+    while r < N:
+        new_basis = basis + [e_i]
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r:
+            basis = new_basis[:]
             r = new_r
-    return []
+        e_i += 1
+    return basis
 
 
 def get_generating_matrix(basis, N):
@@ -427,3 +542,51 @@ def pow_ff(x, a, F):
 
 
 
+# !SECTION! Tests
+
+def test_fast_multiplier(verbose=False):
+    print("testing fast linear mappings")
+    all_good = True
+    n, m = 8, 4
+    for index_L in xrange(0, 10):
+        m += 1
+        L = rand_linear_function(n, m)
+        L_map = FastLinearMapping(L)
+        if verbose:
+            print "--- ", L_map.input_size(), L_map.output_size()
+        for index_x in xrange(0, 8):
+            x = randint(1, 2**n-1)
+            y = apply_bin_mat(x, L)
+            y_prime = L_map(x)
+            if verbose:
+                print y, y_prime
+            if y != y_prime:
+                all_good = False
+                break
+    if verbose:
+        if all_good:
+            print("[SUCCESS]")
+        else:
+            print("[FAIL]")
+    return all_good
+
+
+def test_vector_spaces_bases_iterator():
+    from random import shuffle
+    N = 10
+    d = 4
+    random_set = range(1, 2**N)
+    shuffle(random_set)
+    random_set = random_set[0:int(len(random_set)/3)]
+    bases_0 = extract_bases(random_set, d, N)
+    bases_1 = []
+    for b in vector_spaces_bases_iterator(random_set, d, N):
+        bases_1.append(b)
+    print bases_0
+    print "\n"
+    print bases_1
+
+
+if __name__ == '__main__':
+    # print test_fast_multiplier()
+    test_vector_spaces_bases_iterator()

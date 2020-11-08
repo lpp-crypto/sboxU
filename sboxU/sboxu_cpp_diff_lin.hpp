@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-05-02 17:28:33 lperrin>
+/* Time-stamp: <2020-09-03 15:13:47 lperrin>
  *
  * LICENSE
  */ 
@@ -119,6 +119,16 @@ list bct(const list& l);
  * Throws an error if the length of l is not a power of 2.
  */ 
 dict bct_spectrum_fast(const list& l, const unsigned int n_threads);
+
+
+// !SECTION! Quadratic functions
+
+/* @return a python list containing the LUT of the ortho-derivative of
+ * the function s.
+ *
+ * If s is not crooked or if it is not APN, returns an empty list.
+ */ 
+list ortho_derivative(const list& s);
 
 
 

@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-05-02 17:47:57 lperrin>
+/* Time-stamp: <2020-09-03 15:38:21 lperrin>
  *
  * LICENSE
  */ 
@@ -503,4 +503,63 @@ dict bct_spectrum_fast(const list& l, const unsigned int n_threads)
     for (auto &entry : count)
         result[entry.first] = entry.second ;
     return result;
+}
+
+
+// !SECTION! Quadratic functions
+
+
+Sbox ortho_derivative_fast(const Sbox& s)
+{
+    Sbox result(s.size(), 0);
+    for (unsigned int a=1; a<s.size(); a++)
+    {
+        // getting the hyperplane
+        std::vector<Integer> row(ddt_row(s, a));
+        std::vector<Integer> hyperplane;
+        hyperplane.reserve(s.size() / 2);
+        for(unsigned int b=1; b<s.size(); b++)
+            if (row[b] != row[0])
+                hyperplane.push_back(b);
+
+        // we return an empty list if the function is not APN, which
+        // is equivalent to all rows having exactly half of their
+        // elements be non-zero
+        if (hyperplane.size() < (s.size()/2))
+            return Sbox(0);
+
+        // bruteforcing "ortho" until it is orthogonal to all elements
+        // in the hyperplane
+        BinWord ortho = 1;
+        bool found = false;
+        while ((not found) and (ortho < s.size()))
+        {
+            found = true;
+            for(auto &b : hyperplane)
+                if (scal_prod(ortho, b) == 0)
+                {
+                    found = false;
+                    break;
+                }
+            if (not found)
+                ortho += 1;
+        }
+        // if we couldn't find an element orthogonal to the
+        // hyperplane, then it is not a hyperplane and we return an
+        // empty function
+        if (found)
+            result[a] = ortho;
+        else
+            result[a] = 256;
+    }
+    return result;
+}
+
+
+list ortho_derivative(const list& l)
+{
+    list result;    
+    Sbox s(lst_2_vec_BinWord(l));
+    check_length(s);
+    return vec_2_lst_BinWord(ortho_derivative_fast(s));
 }

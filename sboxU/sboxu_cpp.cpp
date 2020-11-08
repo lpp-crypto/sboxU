@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-25 14:11:05 lperrin>
+/* Time-stamp: <2020-09-04 15:21:52 lperrin>
  *
  * LICENSE
  */ 
@@ -81,10 +81,10 @@ list le_class_representative(const list& l0)
 
 // !SUBSECTION! CCZ
 
-// list extract_vector_fast(const list& l, const Integer a) 
-// {
-//     return vec_2_lst_BinWord(extract_vector_cpp(lst_2_vec_BinWord(l), a)) ;
-// }
+list extract_vector(const list& l, const BinWord a) 
+{
+    return vec_2_lst_BinWord(extract_vector_cpp(lst_2_vec_BinWord(l), a)) ;
+}
 
 
 list extract_bases_fast(const list& l,
@@ -155,16 +155,44 @@ Integer rank_of_vector_set_cpp(const list& V)
     std::vector<BinWord> l(lst_2_vec_BinWord(V));
     for (unsigned int i=0; i<l.size(); i++)
     {
-        for (unsigned int j=i+1; j<l.size(); j++)
-        {
-            BinWord y = l[i] ^ l[j];
-            if (y < l[j])
-                l[j] = y;
-        }
         if (l[i] > 0)
+        {
             result ++;
+            for (unsigned int j=i+1; j<l.size(); j++)
+            {
+                BinWord y = l[i] ^ l[j];
+                if (y < l[j])
+                    l[j] = y;
+            }
+        }
     }
     return result;
+}
+
+
+bool rank_deficit_of_vector_set_is_at_most_cpp(const list& V, const Integer target)
+{
+    Integer count = 0;
+    std::vector<BinWord> l(lst_2_vec_BinWord(V));
+    for (unsigned int i=0; i<l.size(); i++)
+    {
+        if (l[i] == 0)
+        {
+            count ++;
+            if (count > target)
+                return false;
+        }
+        else
+        {
+            for (unsigned int j=i+1; j<l.size(); j++)
+            {
+                BinWord y = l[i] ^ l[j];
+                if (y < l[j])
+                    l[j] = y;
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -215,6 +243,11 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         args("S", "n_threads"),
         "Returns a dictionnary d such that d[k] = #{(a, b), a != 0, S(x ^ a) ^ S(x) = b has k solutions} which is computed using n_threads different threads.");
 
+    def("ortho_derivative",
+        ortho_derivative,
+        args("S"),
+        "Returns a list containing the LUT of the ortho-derivative of S if S is both crooked and APN, an empty list otherwise.");
+
 // Linear properties
 
     def("lat",
@@ -243,6 +276,7 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         "Returns the projected of the set of all zeroes in the LAT of S, i.e. all a such that LAT[a,b]==0 for some b.");
 
 // Boomerang properties
+    
     def("bct",
         bct,
         args("S"),
@@ -276,9 +310,17 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         "Returns a list containing the minimal bases of all vector spaces of dimension n included in the Walsh zeroes of S.");
 
 // Other functions
+    def("extract_vector",
+        extract_vector,
+        args("l", "a"),
+        "Extracts the vector a from the list l in the sense of [BonPerTia19]."),
     def("rank_of_vector_set_cpp",
         rank_of_vector_set_cpp,
         args("V"),
         "Returns the rank of the binary representations of the unsigned integers in V.");
+    def("rank_deficit_of_vector_set_is_at_most_cpp",
+        rank_deficit_of_vector_set_is_at_most_cpp,
+        args("V", "target"),
+        "Returns true if and only if the c-r>=target, where `r` is rank of the binary representations of the unsigned integers in V and `c` is the number of elements in `V`.");
 }
 

@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-11 09:25:07 lperrin>
+/* Time-stamp: <2020-09-04 15:54:14 lperrin>
  *
  * LICENCE
  */
@@ -24,16 +24,18 @@ std::vector<BinWord> extract_vector_cpp(
     // building indicator function
     std::map<BinWord, bool> indicator;
     for(auto & x : z)
-    {
-        indicator[x] = true;
-    }
+        if (x > a)
+        {
+            indicator[x] = true;
+        }
     std::vector<BinWord> result;
     for(auto & x : z)
-    {
-        long int y = x ^ a;
-        if ((x < y) and (indicator.find(y) != indicator.end()))
-            result.push_back(x);
-    }
+        if (x > a)
+        {
+            BinWord y = x ^ a;
+            if ((x < y) and (indicator.find(y) != indicator.end()))
+                result.push_back(x);
+        }
     return result;
 }
 
@@ -327,6 +329,10 @@ std::vector<std::vector<BinWord> > extract_bases_cpp(
     Integer n_threads,
     const std::string end_condition)
 {
+    std::vector<std::vector<BinWord> > result;
+    if (z.size() == 0)
+        return result;
+    
     Integer end_code = VECTOR_EXTRACT_DEFAULT;
     if (end_condition.compare("all dimensions") == 0)
         end_code = VECTOR_EXTRACT_ALL_DIMS;
@@ -338,7 +344,6 @@ std::vector<std::vector<BinWord> > extract_bases_cpp(
         end_code = VECTOR_EXTRACT_JUST_ONE;
     }
     
-    std::vector<std::vector<BinWord> > result;
     std::vector<std::thread> threads;
     std::vector<std::vector<std::vector<BinWord> > > local_results(
         n_threads,
@@ -453,6 +458,10 @@ std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
     Integer n_threads,
     const std::string end_condition)
 {
+    std::vector<std::vector<BinWord> > result;
+    if (z.size() == 0)
+        return result;
+        
     Integer end_code = VECTOR_EXTRACT_DEFAULT;
     if (end_condition.compare("all dimensions") == 0)
         end_code = VECTOR_EXTRACT_ALL_DIMS;
@@ -464,7 +473,6 @@ std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
         end_code = VECTOR_EXTRACT_JUST_ONE;
     }
     
-    std::vector<std::vector<BinWord> > result;
     std::vector<std::thread> threads;
     std::vector<std::vector<std::vector<BinWord> > > local_results(
         n_threads,

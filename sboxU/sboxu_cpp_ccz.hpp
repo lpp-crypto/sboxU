@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-10 17:41:31 lperrin>
+/* Time-stamp: <2020-09-04 15:22:29 lperrin>
  *
  * LICENSE
  */ 
@@ -13,6 +13,11 @@ using namespace boost::python;
 
 // !SECTION! Python-facing functions
 
+std::vector<BinWord> extract_vector_cpp(
+    const std::vector<BinWord> & z,
+    const BinWord a);
+
+    
 std::vector<std::vector<BinWord> > extract_bases_cpp(
     std::vector<BinWord> & z,
     const Integer dimension,

@@ -18,6 +18,89 @@ DEFAULT_N_THREADS  = 16
 
 # !SECTION! Utils
 
+
+# !SUBSECTION! Basic CCZ-class invariant
+
+
+def gamma_rank(f):
+    """Returns the Gamma-rank of the function with LUT f.
+
+    The Gamma-rank is the rank of the 2^{2n} \times 2^{2n} binary
+    matrix M defined by
+
+    M[x][y] = 1 if and only if x + y \in \Gamma,
+
+    where \Gamma is the codebook of f, i.e.
+
+    \Gamma = \{ (x, f(x)), x \in \F_2^n  \} ~.
+
+    """
+    n = int(log(len(f), 2))
+    dim = 2**(2*n)
+    gamma = [(x << n) | f[x] for x in xrange(0, 2**n)]
+    mat_content = []
+    for x in xrange(0, dim):
+        row = [0 for j in xrange(0, dim)]
+        for y in gamma:
+            row[oplus(x, y)] = 1
+        mat_content.append(row)
+    mat_gf2 = Matrix(GF(2), dim, dim, mat_content)
+    return mat_gf2.rank()
+
+
+def delta_rank(f):
+    """Returns the Gamma-rank of the function with LUT f.
+
+    The Gamma-rank is the rank of the 2^{2n} \times 2^{2n} binary
+    matrix M defined by
+
+    M[x][y] = 1 if and only if x + y \in \Delta,
+
+    where \Delta is defined as
+
+    \Delta = \{ (a, b), DDT_f[a][b] == 2  \} ~.
+
+    """
+    n = int(log(len(f), 2))
+    dim = 2**(2*n)
+    d = ddt(f)
+    gamma = [(a << n) | b
+             for a, b in itertools.product(xrange(1, 2**n), xrange(0, 2**n))
+             if d[a][b] == 2
+    ]
+    mat_content = []
+    for x in xrange(0, dim):
+        row = [0 for j in xrange(0, dim)]
+        for y in gamma:
+            row[oplus(x, y)] = 1
+        mat_content.append(row)
+    mat_gf2 = Matrix(GF(2), dim, dim, mat_content)
+    return mat_gf2.rank()
+
+
+def sigma_multiplicities(f, k):
+    """The multiset \Sigma_F^k(0) as defined in
+    https://seta-2020.org/assets/files/program/papers/paper-44.pdf
+
+    """
+    n = int(log(len(f), 2))
+    sums = defaultdict(int)
+    for x_i_s in itertools.product(xrange(0, 2**n), repeat=k-1):
+        sum_F = 0
+        last_x_i = 0
+        for x in x_i_s:
+            sum_F    = oplus(sum_F,    f[x])
+            last_x_i = oplus(last_x_i, x   )
+        sum_F = oplus(sum_F, f[last_x_i])
+        sums[sum_F] += 1
+    result = defaultdict(int)
+    for sum_F in sums:
+        result[sums[sum_F]] += 1
+    return result
+
+
+# !SUBSECTION! Thickness related 
+
 def thickness(basis, N):
     """Returns the thickness of the vector space with basis `basis`, where
     this vector space is a subspace of $\F_2^{N+M}$ for the given `N` and
@@ -56,6 +139,35 @@ def get_lat_zeroes_spaces(s, n_threads=DEFAULT_N_THREADS):
     return get_lat_zeroes_spaces_fast(s,
                                       int(log(len(s), 2)),
                                       int(n_threads))
+
+
+# !SUBSECTION! TU projection and decomposition
+
+def tu_projection(s, t):
+    """Returns a pair T, U of lists of lists such that
+
+    s[(j << t) | i] == (U[i][j] << t) | T[j][i]
+
+    i.e. such that T and U for the TU projection of s in the sense of
+    https://eprint.iacr.org/2018/713
+
+    """
+    N = int(log(len(s), 2))
+    mask = sum(int(1 << j) for j in xrange(0, N-t))
+    T = [
+        [-1 for i in xrange(0, 2**t)]
+        for j in xrange(0, 2**(N-t))
+    ]
+    U = [
+        [-1 for j in xrange(0, 2**(N-t))]
+        for i in xrange(0, 2**t)
+    ]
+    for j in xrange(0, 2**(N-t)):
+        for i in xrange(0, 2**t):
+            y = s[(j << t) | i]
+            T[j][i] = y & mask
+            U[i][j] = y >> t
+    return T, U
 
     
 
@@ -183,9 +295,9 @@ def affine_equivalence(f, g):
 
 
 
-# !SECTION! CCZ-equivalence to a permutation 
+# !SECTION! CCZ-equivalence 
 
-# !SUBSECTION! Extended Affine equivalence
+# !SUBSECTION! CCZ-equivalence to a permutation
 
 def ea_equivalent_permutation_mappings(f):
     """Returns the list of all the linear functions L such that f(x) +
@@ -208,8 +320,6 @@ def ea_equivalent_permutation_mappings(f):
             result.append(linear_function_lut_to_matrix(l).transpose())
     return result
 
-
-# !SUBSECTION! General case
 
 def ccz_equivalent_permutations(f, number="all permutations"):
     """Returns a list of permutations that are CCZ-equivalent to
@@ -258,7 +368,30 @@ def ccz_equivalent_permutations(f, number="all permutations"):
 
 
 
-# !SECTION! Exploring CCZ-class
+# !SUBSECTION! Exploring a CCZ-class
+
+
+def ccz_equivalent_function(f, V):
+    """Assuming that V is a vector space of dimension n contained in the
+    Walsh zeroes of f, applies a linear permutation L to the codebook of f
+    which is such that L^T({(0, x), x \in F_2^n}) = V.
+
+    """
+    n = int(log(len(f), 2))
+    mask = sum(int(1 << i) for i in xrange(0, n))
+    L_map = FastLinearMapping(get_generating_matrix(V, 2*n).transpose())
+    graph_f = [(x << n) | f[x] for x in xrange(0, 2**n)]
+    graph_g = [L_map(word) for word in graph_f]
+    g = [-1 for x in xrange(0, 2**n)]
+    for word in graph_g:
+        x, y = word >> n, word & mask
+        g[x] = y
+    if -1 in g:
+        raise Exception("V was not contained in the Walsh zeroes of f!")
+    else:
+        return g
+    
+    
 
 def enumerate_ea_classes(f):
     """Returns a list containing at least one function from each of the
@@ -275,8 +408,8 @@ def enumerate_ea_classes(f):
     bases = get_lat_zeroes_spaces(f)
     result = []
     for b in bases:
-        L = get_generating_matrix(b, 2*N).transpose()
-        graph_g = [apply_bin_mat(word, L) for word in graph_f]
+        L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
+        graph_g = [L_map(word) for word in graph_f]
         g = [-1 for x in xrange(0, 2**N)]
         for word in graph_g:
             x, y = word >> N, word & mask
@@ -286,7 +419,39 @@ def enumerate_ea_classes(f):
         else:
             result.append(g)
     return result
-                        
+
+
+def ea_classes_in_the_ccz_class_of(f, include_start=False):
+    """Returns an iterable that, when iterated over, will yield at least
+    one function from each of the EA-classes constituting the
+    CCZ-class of `f`.
+
+    Note that several functions in the same EA-class may be
+    returned. Solving this problem is in fact an open *research*
+    problem.
+
+    If `include_start` is set to False then the ea class of f is
+    hopefully not returned. More precisely, the spaces with thickness
+    0 are not considered.
+
+    """
+    N = int(log(len(f), 2))
+    mask = sum(int(1 << i) for i in xrange(0, N))
+    graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
+    z = lat_zeroes(f)
+    for b in vector_spaces_bases_iterator(z, N, 2*N):
+        if include_start or thickness(b, 2*N) > 0:
+            L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
+            graph_g = [L_map(word) for word in graph_f]
+            g = [-1 for x in xrange(0, 2**N)]
+            for word in graph_g:
+                x, y = word >> N, word & mask
+                g[x] = y
+            if -1 in g:
+                raise Exception("CCZ map is ill defined!")
+            else:
+                yield g
+    
 
 
 # !SECTION! Tests
@@ -511,7 +676,7 @@ def test_ccz_permutations(number="all permutations"):
     print "total: {}".format(len(permutations))
 
 def test_enumerate_ea():
-    N = 6
+    N = 8
     F = GF(2**N, name="a")
     # generating the Kim mapping
     kim = []
@@ -525,12 +690,30 @@ def test_enumerate_ea():
     print "total: ", len(classes)
     
 
+def test_ea_classes():
+    N = 8
+    F = GF(2**N, name="a")
+    # generating the Kim mapping
+    kim = []
+    for x_i in xrange(0, 2**N):
+        x = F.fetch_int(x_i)
+        y = x**3 + x**10 + F.gen()*x**24
+        kim.append(y.integer_representation())
+
+    total = 0
+    for f in ea_classes_in_the_ccz_class_of(kim):
+        print algebraic_degree(f), pretty_spectrum(thickness_spectrum(f))
+        total += 1
+    print "total: ", total
+    
+
 # !SECTION! Running tests
 
 if __name__ == '__main__':
     # test_ea_permutations()
     # test_ccz_permutations(number="just one")
-    test_enumerate_ea()
+    # test_enumerate_ea()
+    test_ea_classes()
     
     # import sys
     # N = int(sys.argv[1])
