@@ -487,6 +487,17 @@ def complete_basis(basis, N):
         e_i += 1
     return basis
 
+def matrix_from_masks(basis, N):
+    """Returns an NxN binary matrix M such that M*(1 << i) = basis[i] for
+    all i < len(basis).
+
+    """
+    b = basis + [0]*(N - len(basis))
+    return Matrix(GF(2), N, N, [
+        [(b[i] >> j) & 1 for j in reversed(xrange(0, N))]
+        for i in xrange(0, N)
+    ]).transpose()
+
 
 def get_generating_matrix(basis, N):
     """Returns an NxN binary matrix M such that M*(1 << i) = basis[i] for

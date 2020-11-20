@@ -169,7 +169,6 @@ def tu_projection(s, t):
             U[i][j] = y >> t
     return T, U
 
-    
 
 # !SECTION! Linear/Affine Equivalence 
 
@@ -370,6 +369,22 @@ def ccz_equivalent_permutations(f, number="all permutations"):
 
 # !SUBSECTION! Exploring a CCZ-class
 
+
+def apply_mapping_to_graph(f, L):
+    n = int(log(len(f), 2))
+    mask = sum(int(1 << i) for i in xrange(0, n))
+    graph_f = [(x << n) | f[x] for x in xrange(0, 2**n)]
+    L_map = FastLinearMapping(L)
+    graph_g = [L_map(word) for word in graph_f]
+    g = [-1 for x in xrange(0, 2**n)]
+    for word in graph_g:
+        x, y = word >> n, word & mask
+        g[x] = y
+    if -1 in g:
+        raise Exception("The mapping is L not admissible for f")
+    else:
+        return g
+    
 
 def ccz_equivalent_function(f, V):
     """Assuming that V is a vector space of dimension n contained in the

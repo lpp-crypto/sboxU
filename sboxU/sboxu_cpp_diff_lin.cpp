@@ -1,4 +1,4 @@
-/* Time-stamp: <2020-09-03 15:38:21 lperrin>
+/* Time-stamp: <2020-11-20 13:10:22 leo>
  *
  * LICENSE
  */ 
@@ -550,7 +550,7 @@ Sbox ortho_derivative_fast(const Sbox& s)
         if (found)
             result[a] = ortho;
         else
-            result[a] = 256;
+            return Sbox(0);
     }
     return result;
 }
