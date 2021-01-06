@@ -298,7 +298,7 @@ def affine_equivalence(f, g):
 
 # !SUBSECTION! CCZ-equivalence to a permutation
 
-def ea_equivalent_permutation_mappings(f):
+def ea_equivalent_permutation_mappings(f, spaces=None):
     """Returns the list of all the linear functions L such that f(x) +
     L(x) is a permutation, where L is in fact the matrix
     representation of this function.
@@ -307,7 +307,8 @@ def ea_equivalent_permutation_mappings(f):
     N = int(log(len(f), 2))
     mask = sum((1 << i) for i in xrange(0, N))
     z = lat_zeroes(f)
-    spaces = extract_bases(z, N, 2*N, number="fixed dimension")
+    if spaces == None:
+        spaces = extract_bases(z, N, 2*N, number="fixed dimension")
     result = []
     for b in spaces:
         proj_dict = {}
@@ -320,7 +321,10 @@ def ea_equivalent_permutation_mappings(f):
     return result
 
 
-def ccz_equivalent_permutations(f, number="all permutations"):
+def ccz_equivalent_permutations(f, 
+                                number="all permutations", 
+                                spaces="None",
+                                minimize_ea_classes=False):
     """Returns a list of permutations that are CCZ-equivalent to
     `f`. 
 
@@ -332,38 +336,39 @@ def ccz_equivalent_permutations(f, number="all permutations"):
     - if it is set to "just one" then the output contains at most one
       permutation, namely the first one found.
 
+    If the list of the vector space bases is known, it is possible to
+    avoid its recomputation by passing it via the `spaces` argument.
+
+
     """
-    result = []
     N = int(log(len(f), 2))
     mask = sum(int(1 << i) for i in xrange(0, N))
     graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
-    bases = get_lat_zeroes_spaces(f)
-    bases_by_dimensions = defaultdict(list)
-    for b in bases:
+    if spaces == None:
+        spaces = get_lat_zeroes_spaces(f)
+    spaces_by_dimensions = defaultdict(list)
+    for b in spaces:
         t1 = rank_of_vector_set([v >> N for v in b], N)
         t2 = rank_of_vector_set([v & mask for v in b], N)
-        bases_by_dimensions[(t1 << N) | t2].append(b)
-    for dim_pairs in itertools.product(bases_by_dimensions.keys(),
-                                       bases_by_dimensions.keys()):
+        spaces_by_dimensions[(t1 << N) | t2].append(b)
+    for dim_pairs in itertools.product(spaces_by_dimensions.keys(), 
+                                       spaces_by_dimensions.keys()):
         t1, t2 = dim_pairs[0] >> N, dim_pairs[0] & mask
         u1, u2 = dim_pairs[1] >> N, dim_pairs[1] & mask
         if (t1 + u1) >= N and (t2 + u2) >= N:
-            for b0, b1 in itertools.product(bases_by_dimensions[dim_pairs[0]],
-                                            bases_by_dimensions[dim_pairs[1]]):
-                if rank_of_vector_set(b0 + b1, 2*N) == 2*N:
-                    L = Matrix(GF(2), 2*N, 2*N, [tobin(x, 2*N) for x in b0 + b1])
-                    graph_g = [apply_bin_mat(word, L) for word in graph_f]
-                    g = [-1 for x in xrange(0, 2**N)]
-                    for word in graph_g:
-                        x, y = word >> N, word & mask
-                        g[x] = y
-                    if -1 in g:
-                        raise Exception("permutation ill defined!")
-                    else:
-                        result.append(g)
+            for b0 in spaces_by_dimensions[dim_pairs[0]]:
+                for b1 in spaces_by_dimensions[dim_pairs[1]]:
+                    if rank_of_vector_set(b0 + b1, 2*N) == 2*N:
+                        L = Matrix(GF(2), 2*N, 2*N, [tobin(x, 2*N) for x in b0 + b1])
+                        g = apply_mapping_to_graph(f, L)
                         if number == "just one":
-                            return result
-    return result
+                            yield g
+                            return 
+                        else:
+                            yield g
+                            if minimize_ea_classes:
+                                break
+    
 
 
 
