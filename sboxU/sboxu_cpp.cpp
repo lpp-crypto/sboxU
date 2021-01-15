@@ -1,4 +1,4 @@
-/* Time-stamp: <2020-09-04 15:21:52 lperrin>
+/* Time-stamp: <2021-01-14 10:19:08 leo>
  *
  * LICENSE
  */ 
@@ -139,7 +139,7 @@ list get_lat_zeroes_spaces_fast(const list& l,
         n,
         2*n,
         n_threads,
-        std::string("all dimensions"));
+        std::string("fixed dimension"));
     list result;
     for (auto &b : bases)
         result.append(vec_2_lst_BinWord(b));

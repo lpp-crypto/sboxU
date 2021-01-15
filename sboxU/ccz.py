@@ -115,20 +115,21 @@ def thickness(basis, N):
     return rank_of_vector_set(proj, 2*N)
 
 
-def thickness_spectrum(s):
+def thickness_spectrum(s, spaces=None):
     """Returns a dictionary containing the thickness spectra of the
     function whose LUT is the list `s`.
 
-    It first computes the Walsh zeroes of `s`, then look for vector
-    spaces of dimension N in it. For each space, 
+    If the spaces in the Walsh zeroes have already been extracted then
+    it is possible to avoid their re-computation by passing them via
+    the `spaces` input of this function.
 
     """
     N = int(log(len(s), 2))
-    z_s = lat_zeroes(s)
-    minimal_bases = extract_bases(z_s, N, 2*N, number="fixed dimension")
+    if spaces == None:
+        spaces = get_lat_zeroes_spaces(s)
     result = defaultdict(int)
-    for basis in minimal_bases:
-        result[thickness(basis, N)] += 1
+    for V in spaces:
+        result[thickness(V, N)] += 1
     return dict(result)
 
 def get_lat_zeroes_spaces(s, n_threads=DEFAULT_N_THREADS):

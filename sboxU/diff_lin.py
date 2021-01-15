@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2020-11-08 12:26:37 leo>
+# Time-stamp: <2021-01-14 10:15:44 leo>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -360,6 +360,24 @@ def algebraic_degree(s):
     result = 0
     for a in anfs:
         result = max(result, a.degree())
+    return result
+
+
+def degree_spectrum(s):
+    """Returns a dictionnary `d` such that `d[k]==l` if and only if the
+    function with LUT `s` has exactly `l` components with algebraic degree
+    `k`.
+
+    """
+    anf = algebraic_normal_form(s)
+    result = defaultdict(int)
+    n = int(log(len(s), 2))
+    for mask in xrange(1, 2**n):
+            component = 0
+            for i in xrange(0, n):
+                if ((mask >> i) & 1) == 1:
+                    component += anf[i]
+            result[component.degree()] += 1
     return result
 
 
