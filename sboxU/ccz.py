@@ -307,18 +307,21 @@ def ea_equivalent_permutation_mappings(f, spaces=None):
     """
     N = int(log(len(f), 2))
     mask = sum((1 << i) for i in xrange(0, N))
-    z = lat_zeroes(f)
     if spaces == None:
-        spaces = extract_bases(z, N, 2*N, number="fixed dimension")
+        spaces = get_lat_zeroes_spaces(f)
     result = []
-    for b in spaces:
-        proj_dict = {}
-        v = linear_span(b)
-        l = [-1 for x in xrange(0, 2**N)]
-        for x in v:
-            l[x & mask] = x >> N
-        if -1 not in l:
-            result.append(linear_function_lut_to_matrix(l).transpose())
+    for V in spaces:
+        if thickness(V, N) == N:
+            L_lut = [-1 for x in xrange(0, 2**N)]
+            full_space = linear_span(V)
+            for x in full_space:
+                L_lut[x & mask] = x >> N
+            if -1 in L_lut:
+                raise Exception("Problem in EA-equivalent mapping")
+            else:
+                result.append(
+                    linear_function_lut_to_matrix(L_lut).transpose()
+                )
     return result
 
 

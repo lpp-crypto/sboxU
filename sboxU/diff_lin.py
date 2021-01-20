@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-01-14 10:15:44 leo>
+# Time-stamp: <2021-01-19 18:16:24 leo>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -362,6 +362,15 @@ def algebraic_degree(s):
         result = max(result, a.degree())
     return result
 
+
+def degree_coordinates(s):
+    """Returns a dictionnary `d` such that `d[k]==l` if and only if the
+    function with LUT `s` has exactly `l` coordinates with algebraic degree
+    `k`.
+
+    """
+    return [a.degree() for a in algebraic_normal_form(s)]
+    
 
 def degree_spectrum(s):
     """Returns a dictionnary `d` such that `d[k]==l` if and only if the

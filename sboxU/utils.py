@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2020-09-21 15:09:10 lperrin>
+# Time-stamp: <2021-01-19 16:54:42 leo>
 
 from sage.all import *
 from sboxu_cpp import oplus_cpp
@@ -75,3 +75,4 @@ def image(f):
     for x in xrange(0, len(f)):
         img[f[x]] += 1
     return img.keys()
+

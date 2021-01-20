@@ -1,4 +1,4 @@
-/* Time-stamp: <2021-01-14 10:19:08 leo>
+/* Time-stamp: <2021-01-19 17:01:53 leo>
  *
  * LICENSE
  */ 
@@ -22,6 +22,34 @@ bool is_permutation(list s)
 list random_permutation(unsigned int n)
 {
     return vec_2_lst_BinWord(random_permutation_cpp(n)); 
+}
+
+dict cycle_type(list s)
+{
+    std::vector<Integer> lut(lst_2_vec_Integer(s));
+    Integer i = 0;
+    std::map<Integer, Integer> result;
+    do
+    {
+        if (lut[i] != -1)
+        {
+            unsigned int length = 0;
+            Integer j = i, prev_j = 0;
+            do
+            {
+                prev_j = j;
+                j = lut[j];
+                lut[prev_j] = -1;
+                length += 1;
+            } while (j != i);
+            result[length] += 1;
+        }
+        i ++;
+    } while (i < lut.size());    
+    dict result_py;
+    for (auto it : result)
+        result_py[it.first] = it.second;
+    return result_py;
 }
 
 
@@ -231,6 +259,10 @@ BOOST_PYTHON_MODULE(sboxu_cpp)
         is_permutation,
         args("S"),
         "Returns True if and only if the list S corresponds to a permutation.");
+    def("cycle_type",
+        cycle_type,
+        args("S"),
+        "If `S` is the LUT of a permutation P, returns a dictionnary `d` such that `d[k]` = l if and only if the permutation P has exactly `l` cycles of length `k`.");
 
 // Differential properties
     
