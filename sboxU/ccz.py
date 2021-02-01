@@ -4,13 +4,15 @@ from sage.all import Matrix, GF, vector, log, randint
 
 import itertools
 import random
-from utils import oplus
-from sboxu_cpp import *
-from linear import *
-from display import *
-from diff_lin import *
 from hashlib import sha256
 from collections import defaultdict
+
+from .utils import oplus
+from .sboxu_cpp import *
+from .linear import *
+from .display import *
+from .diff_lin import *
+
 
 DEFAULT_N_THREADS  = 16
 
@@ -484,11 +486,11 @@ def print_result(n_valid, n_tested):
     verdict = "[success]"
     if (n_valid != n_tested):
         verdict = "[FAIL]"
-    print "{} success rate: {}/{} = {:.03f}".format(
+    print("{} success rate: {}/{} = {:.03f}".format(
         verdict,
         n_valid,
         n_tested,
-        float(n_valid)/n_tested)
+        float(n_valid)/n_tested))
 
 # !SUBSECTION! Linear equivalence 
 
@@ -522,36 +524,36 @@ def test_le_equivalence(N, verbose=False):
                 # (A,B) can be correct. We check for those.
                 if check_linear_equivalence(f, g, result[0], result[1]):
                     if verbose:
-                        print "[success]     LE {:0.4f}s (other matrices found)".format(elapsed)
+                        print("[success]     LE {:0.4f}s (other matrices found)".format(elapsed))
                 else:
                     false_negatives += 1
                     if verbose:
-                        print "[FAIL]     LE {:0.4f}s (wrong matrices found)".format(elapsed)
+                        print("[FAIL]     LE {:0.4f}s (wrong matrices found)".format(elapsed))
             else:
                 if verbose:
-                    print "[success]     LE {:0.4f}s".format(elapsed)
+                    print("[success]     LE {:0.4f}s".format(elapsed))
         else:
             false_negatives += 1
             if verbose:
-                print "[FAIL]     LE {:0.4f} (nothing found)".format(
-                    computation_end - computation_start)
+                print("[FAIL]     LE {:0.4f} (nothing found)".format(
+                    computation_end - computation_start))
         # checking if non-linearly equivalent functions are identified
         g = random_permutation(N)
         result = linear_equivalence(f, g)
         if len(result) == 0:
             if verbose:
-                print "[success] non-LE {:0.4f}".format(elapsed)
+                print("[success] non-LE {:0.4f}".format(elapsed))
         else:
             if check_linear_equivalence(f, g, result[0], result[1]):
                 if verbose:
-                    print "[success] act.LE {:0.4f}".format(elapsed)
+                    print("[success] act.LE {:0.4f}".format(elapsed))
             else:
                 false_positives += 1
                 if verbose:
-                    "[FAIL] matrices found for non-LE permutations"
-    print "* testing if LE functions are identified correctly (with correct linear permutations)"
+                    print("[FAIL] matrices found for non-LE permutations")
+    print("* testing if LE functions are identified correctly (with correct linear permutations)")
     print_result(n_tested-false_negatives, n_tested)
-    print "* testing if NON-LE functions are identified correctly"
+    print("* testing if NON-LE functions are identified correctly")
     print_result(n_tested-false_positives, n_tested)
 
 
@@ -563,7 +565,7 @@ def test_le_repr(N, verbose=False):
     from timeit import default_timer
     n_valid = 0
     n_tested = 50
-    print "* Testing whether f and le_class_representative(f) are LE"
+    print("* Testing whether f and le_class_representative(f) are LE")
     for i in xrange(0, n_tested):
         f = random_permutation(N)
         computation_start = default_timer()
@@ -572,11 +574,11 @@ def test_le_repr(N, verbose=False):
         if len(linear_equivalence(f, g)) != 0:
             n_valid += 1
             if verbose:
-                print "[success] {:0.4f}s".format(computation_end - computation_start)
+                print("[success] {:0.4f}s".format(computation_end - computation_start))
         else:
-            print "[FAIL]"
+            print("[FAIL]")
     print_result(n_valid, n_tested)
-    print "* testing whether two linear equivalent functions have the same representative"
+    print("* testing whether two linear equivalent functions have the same representative")
     n_valid = 0
     for i in xrange(0, n_tested):
         f = random_permutation(N)
@@ -593,12 +595,12 @@ def test_le_repr(N, verbose=False):
         if identical:
             n_valid += 1
             if verbose:
-                print "[success]"
+                print("[success]")
         else:
             if verbose:
-                print "[FAIL] representatives don't match"
-                print rs_f, pretty_spectrum(diff_lin.differential_spectrum(rs_f))
-                print rs_g, pretty_spectrum(diff_lin.differential_spectrum(rs_g))
+                print("[FAIL] representatives don't match")
+                print(rs_f, pretty_spectrum(diff_lin.differential_spectrum(rs_f)))
+                print(rs_g, pretty_spectrum(diff_lin.differential_spectrum(rs_g)))
     print_result(n_valid, n_tested)
     
 
@@ -639,32 +641,32 @@ def test_ae_equivalence(N, verbose=False):
             if not check_affine_equivalence(f, g, result[0], result[1], result[2], result[3]):
                 false_negatives += 1
                 if verbose:
-                    print "[FAIL] wrong affine permutations"
+                    print("[FAIL] wrong affine permutations")
             else:
                 if verbose:
-                    print "[success]     AE {:0.4f}".format(elapsed)
+                    print("[success]     AE {:0.4f}".format(elapsed))
 
         else:
             false_negatives += 1
             if verbose:
-                print "[FAIL]     AE {:0.4f}s (nothing found)".format(elapsed)
+                print("[FAIL]     AE {:0.4f}s (nothing found)".format(elapsed))
         # checking if non-affine equivalent functions are identified
         g = random_permutation(N)
         result = affine_equivalence(f, g)
         if len(result) == 0:
             if verbose:
-                print "[success] non-AE {:0.4f}s".format(elapsed)
+                print("[success] non-AE {:0.4f}s".format(elapsed))
         else:
             if check_affine_equivalence(f, g, result[0], result[1], result[2], result[3]):
                 if verbose:
-                    print "[success] act.AE {:0.4f}".format(elapsed)
+                    print("[success] act.AE {:0.4f}".format(elapsed))
             else:
                 false_positives += 1
                 if verbose:
-                    "[FAIL] matrices found for non-LE permutations"
-    print "* testing if AE functions are identified correctly (with correct affine permutations)"
+                    print("[FAIL] matrices found for non-LE permutations")
+    print("* testing if AE functions are identified correctly (with correct affine permutations)")
     print_result(n_tested-false_negatives, n_tested)
-    print "* testing if NON-LE functions are identified correctly"
+    print("* testing if NON-LE functions are identified correctly")
     print_result(n_tested-false_positives, n_tested)
 
 
@@ -676,9 +678,9 @@ def test_ea_permutations():
         F = GF(2**N, name="a")
         inv = [(F.fetch_int(x)**(2**N-2)).integer_representation()
                for x in xrange(0, 2**N)]
-        print "== ", N
+        print("== " + str(N))
         for L in ea_equivalent_permutation_mappings(inv):
-            print L.str(), "\n"
+            print(L.str() + "\n")
 
 def test_ccz_permutations(number="all permutations"):
     N = 6
@@ -691,13 +693,13 @@ def test_ccz_permutations(number="all permutations"):
         kim.append(y.integer_representation())
     permutations = ccz_equivalent_permutations(kim, number=number)
     for i, p in enumerate(permutations):
-        print "{:2d} {} {} {}".format(
+        print("{:2d} {} {} {}".format(
             i,
             is_permutation(p),
             pretty_spectrum(differential_spectrum(p)),
             pretty_vector(p)            
-        )
-    print "total: {}".format(len(permutations))
+        ))
+    print("total: {}".format(len(permutations)))
 
 def test_enumerate_ea():
     N = 8
@@ -710,8 +712,8 @@ def test_enumerate_ea():
         kim.append(y.integer_representation())
     classes = enumerate_ea_classes(kim)
     for f in classes:
-        print algebraic_degree(f), pretty_spectrum(thickness_spectrum(f))
-    print "total: ", len(classes)
+        print(str(algebraic_degree(f)) + pretty_spectrum(thickness_spectrum(f)))
+    print("total: " + str(len(classes)))
     
 
 def test_ea_classes():
@@ -726,9 +728,9 @@ def test_ea_classes():
 
     total = 0
     for f in ea_classes_in_the_ccz_class_of(kim):
-        print algebraic_degree(f), pretty_spectrum(thickness_spectrum(f))
+        print(str(algebraic_degree(f)) + pretty_spectrum(thickness_spectrum(f)))
         total += 1
-    print "total: ", total
+    print("total: " + str(total))
     
 
 # !SECTION! Running tests
@@ -741,9 +743,9 @@ if __name__ == '__main__':
     
     # import sys
     # N = int(sys.argv[1])
-    # print "=== Linear Equivalence ==="
+    # print("=== Linear Equivalence ===")
     # test_le_equivalence(N, verbose=True)
-    # print "\n=== Linear Representative ==="
+    # print("\n=== Linear Representative ===")
     # test_le_repr(N, verbose=False)
-    # print "\n=== Affine Equivalence ==="
+    # print("\n=== Affine Equivalence ===")
     # test_ae_equivalence(N, verbose=True)

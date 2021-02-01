@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-01-19 18:16:24 leo>
+# Time-stamp: <2021-02-01 09:46:04 leo>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -9,9 +9,8 @@ import itertools
 from collections import defaultdict
 
 # Loading fast C++ implemented functions
-from sboxu_cpp import *
-
-from utils import *
+from .sboxu_cpp import *
+from .utils import *
 
 # !SECTION! Wrapping C++ functions for differential/Walsh spectrum 
 
@@ -404,8 +403,8 @@ def invert_lat(l):
 
 if __name__ == '__main__':
     s = random_permutation(5)
-    print s
+    print(s)
     l = lat(s)
     s_prime = invert_lat(l)
-    print s_prime
+    print(s_prime)
 

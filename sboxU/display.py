@@ -1,9 +1,9 @@
 #!/usr/bin/sage
-# Time-stamp: <2020-11-08 12:27:51 leo>
+# Time-stamp: <2021-02-01 09:44:44 leo>
 
 
 import matplotlib.pyplot as plt
-from diff_lin import *
+from .diff_lin import *
 from math import log
 from collections import defaultdict
 

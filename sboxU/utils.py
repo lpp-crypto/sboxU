@@ -1,10 +1,11 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-01-19 16:54:42 leo>
+# Time-stamp: <2021-02-01 09:44:56 leo>
 
 from sage.all import *
-from sboxu_cpp import oplus_cpp
 import itertools
 from collections import defaultdict
+
+from .sboxu_cpp import *
 
 
 def oplus(x, y):

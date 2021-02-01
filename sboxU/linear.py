@@ -4,12 +4,13 @@ from sage.all import Matrix, GF, vector, log, randint
 
 import itertools
 import random
-from utils import oplus
-from sboxu_cpp import *
-from display import pretty_spectrum
-from diff_lin import lat_zeroes
 from hashlib import sha256
 from collections import defaultdict
+
+from .sboxu_cpp import *
+from .utils import oplus
+from .display import pretty_spectrum
+from .diff_lin import lat_zeroes
 
 DEFAULT_N_THREADS  = 16
 
@@ -564,13 +565,13 @@ def test_fast_multiplier(verbose=False):
         L = rand_linear_function(n, m)
         L_map = FastLinearMapping(L)
         if verbose:
-            print "--- ", L_map.input_size(), L_map.output_size()
+            print("--- " + str(L_map.input_size()) + str(L_map.output_size()))
         for index_x in xrange(0, 8):
             x = randint(1, 2**n-1)
             y = apply_bin_mat(x, L)
             y_prime = L_map(x)
             if verbose:
-                print y, y_prime
+                print(str(y) + " " + str(y_prime))
             if y != y_prime:
                 all_good = False
                 break
@@ -593,11 +594,11 @@ def test_vector_spaces_bases_iterator():
     bases_1 = []
     for b in vector_spaces_bases_iterator(random_set, d, N):
         bases_1.append(b)
-    print bases_0
-    print "\n"
-    print bases_1
+    print(bases_0)
+    print("\n")
+    print(bases_1)
 
 
 if __name__ == '__main__':
-    # print test_fast_multiplier()
+    # print(test_fast_multiplier())
     test_vector_spaces_bases_iterator()
