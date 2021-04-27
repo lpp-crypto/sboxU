@@ -51,12 +51,20 @@ def all_quadratic_polynomials():
     ]
 
 
-def all_QAMs():
-    """All the functions found using the QAM method, see
+def first_QAMs():
+    """All the functions found using the QAM method before 2020, see
     https://link.springer.com/article/10.1007/s10623-014-9955-3
-    
+
     """
-    from allQam import all_funcs
+    from firstQAM import all_funcs
+    return all_funcs
+
+def second_QAMs():
+    """All the functions found using the QAM method *after* 2021 (paper to
+appear)
+
+    """
+    from secondQAM all_funcs
     return all_funcs
 
 
@@ -74,7 +82,7 @@ def all_quadratics():
     are all in distinct CCZ-classes.
 
     """
-    return all_QAMs() + all_BeiLea()
+    return first_QAMs() + all_BeiLea() + second_QAMs()
 
 
 def all_non_quadratics():
