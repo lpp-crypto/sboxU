@@ -64,7 +64,7 @@ def second_QAMs():
 appear)
 
     """
-    from secondQAM all_funcs
+    from secondQAM import all_funcs
     return all_funcs
 
 
