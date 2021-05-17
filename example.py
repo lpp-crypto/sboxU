@@ -44,9 +44,9 @@ def test_vector_extraction(N):
     
     for number in ["just one", "all dimensions", "fixed dimension"]:
         #for number in ["all dimensions"]:
-        print "\n\n=== {}\n".format(number)
+        print("\n\n=== {}\n".format(number))
         bases = extract_affine_bases(z, int(N/2), N, number=number)
-        print "total = {}".format(len(bases))
+        print("total = {}".format(len(bases)))
         for b in bases:
             print len(b), pretty_vector(b)
 
