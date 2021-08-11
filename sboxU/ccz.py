@@ -233,13 +233,13 @@ def linear_equivalence(f, g):
 # !SUBSECTION! Affine equivalence 
 
 def hash_sbox(f):
-    """Returns a 64-char string obtained by hashing the base 10
+    """Returns a 64-char string obtained by hashing the base 16
     representation of each entry of the lookup table f with SHA-256.
 
     """
     hf = sha256()
     for x in f:
-        hf.update(str(x))
+        hf.update(hex(x).encode('utf-8'))
     return hf.hexdigest()
     
 
