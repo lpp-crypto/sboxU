@@ -49,3 +49,8 @@ and the file `test.py` should contain `from sboxU import *`. You can
 also import sboxU in a sage notebook session provided that you started
 sage from the folder containing it.
 
+
+## Authors
+
+Mathias Joly
+Léo Perrin
