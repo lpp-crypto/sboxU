@@ -1,9 +1,4 @@
-# SboxU v0.1
-
-
-## Disclaimer
-
-`sboxU` is at a very early stage. Its API might change over time!
+# SboxU v1.0
 
 ## Description
 
@@ -47,6 +42,7 @@ should look like this:
 
     $ ls
     test.py
+    README.md
     sboxu/
     
 and the file `test.py` should contain `from sboxU import *`. You can

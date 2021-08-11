@@ -1,9 +1,11 @@
 # ignore compiled files
 *.pyc
 *.so
+sboxU/sboxU_cython/ccz.cpp
+sboxU/sboxU_cython/diff_lin.cpp
+sboxU/sboxU_cython/equiv.cpp
+sboxU/sboxU_cython/fp.cpp
+sboxU/sboxU_cython/utils.cpp
 # ignore automatically generated files
 *~
-cmake*
-CMakeCache.txt
-CMakeFiles
-Makefile
+
