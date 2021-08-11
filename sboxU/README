@@ -1,20 +1,23 @@
 # SBOXU
 
 To use this software, you first need to compile the content of the
-sboxU folder. To this end, you need `cmake` (see
-https://cmake.org/). It is achieved by running the following commands
-in the folder `sboxU`:
+sboxU/sboxU_cython folder. This process only relies on SAGE, however,
+you need a recent version of it (it works with SAGE 9.3). To compile
+it:
 
-    cmake .
-    make
+    cd sboxU/sboxU_cython
+    sage setup.py build_ext --inplace
     
-Then, in order to use this function, simply paste/make a link to the
-folder sboxU from the directory in which you are working. For example,
-if you have a script called `test.py` in which you want to call the
-functions in sboxU then your directory should look like this:
+Then, in order to use the functions provided by sboxU, simply
+paste/make a link to the folder sboxU from the directory in which you
+are working. For example, if you have a script called `test.py` in
+which you want to call the functions in sboxU then your directory
+should look like this:
 
     $ ls
     test.py
     sboxu/
     
-and the file `test.py` should contain `from sboxU import *`.
+and the file `test.py` should contain `from sboxU import *`. You can
+also import sboxU in a sage notebook session provided that you started
+sage from the folder containing it.

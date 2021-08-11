@@ -7,7 +7,7 @@ import random
 from hashlib import sha256
 from collections import defaultdict
 
-from .sboxu_cpp import *
+from .sboxU_cython import *
 from .utils import oplus
 from .display import pretty_spectrum
 from .diff_lin import lat_zeroes
@@ -18,11 +18,11 @@ DEFAULT_N_THREADS  = 16
 # !SECTION! Utils for dealing with linear functions
 
 def tobin(x, n):
-    return [(x >> i) & 1 for i in reversed(xrange(0, n))]
+    return [(x >> i) & 1 for i in reversed(range(0, n))]
 
 def frombin(v):
     y = 0
-    for i in xrange(0, len(v)):
+    for i in range(0, len(v)):
         y = (y << 1) | int(v[i])
     return y
 
@@ -39,8 +39,8 @@ def rand_linear_permutation(n, density=0.5):
 
     """
     while True:
-        result = [[0 for j in xrange(0, n)] for i in xrange(0, n)]
-        for i, j in itertools.product(xrange(0, n), repeat=2):
+        result = [[0 for j in range(0, n)] for i in range(0, n)]
+        for i, j in itertools.product(range(0, n), repeat=2):
             if random.random() < density:
                 result[i][j] = 1
         result = Matrix(GF(2), n, n, result)
@@ -52,8 +52,8 @@ def rand_linear_function(m, n, density=0.5):
     {0,1}^m to {0,1}^m.
 
     """
-    result = [[0 for j in xrange(0, m)] for i in xrange(0, n)]
-    for i, j in itertools.product(xrange(0, n), xrange(0, m)):
+    result = [[0 for j in range(0, m)] for i in range(0, n)]
+    for i, j in itertools.product(range(0, n), range(0, m)):
         if random.random() < density:
             result[i][j] = 1
     return Matrix(GF(2), n, m, result)
@@ -93,19 +93,19 @@ def apply_bin_mat_lsb_first(x, mat):
 
 
 def apply_bit_permutation(x, p):
-    """Let $x = \sum x_i 2^i$ and p = [p_0, ... p_{n-1}]. Returns
-    $y = \sum x_{p_i} 2^i$.
+    """Let $x = \\sum x_i 2^i$ and p = [p_0, ... p_{n-1}]. Returns
+    $y = \\sum x_{p_i} 2^i$.
 
     """
     n = len(p)
-    bin_x = [(x >> i) & 1 for i in xrange(0, n)]
-    return sum(int(bin_x[p[i]] << i) for i in xrange(0, n))
+    bin_x = [(x >> i) & 1 for i in range(0, n)]
+    return sum(int(bin_x[p[i]] << i) for i in range(0, n))
 
 def swap_halves(x, n):
     """If n=2k, swaps the first k bits of x with its last k bits."""
     if n % 2 == 1:
         raise Exception("Can't cut a word of {} bits in 2!".format(n))
-    mask = sum(1 << i for i in xrange(0, n/2))
+    mask = sum(1 << i for i in range(0, n/2))
     l = x >> (n/2)
     r = x & mask
     return (r << (n/2)) | l
@@ -123,8 +123,8 @@ class FastLinearMapping:
     def __init__(self, L):
         self.inner_matrix = L
         self.masks = [
-            sum(int(L[i,j]) << (L.nrows()-i-1) for i in xrange(0, L.nrows()))
-            for j in reversed(xrange(0, L.ncols()))
+            sum(int(L[i,j]) << (L.nrows()-i-1) for i in range(0, L.nrows()))
+            for j in reversed(range(0, L.ncols()))
         ]
 
     def input_size(self):
@@ -145,7 +145,7 @@ class FastLinearMapping:
 
         """
         result = 0
-        for i in xrange(0, len(self.masks)):
+        for i in range(0, len(self.masks)):
             if (x >> i) & 1 == 1:
                 result = oplus(result, self.masks[i])
         return result
@@ -164,16 +164,16 @@ def linear_function_lut_to_matrix(l):
     """
     n = int(log(len(l), 2))
     result = []
-    for i in xrange(0, n):
-        line = [(int(l[1 << (n-1-j)]) >> (n-1-i)) & 1 for j in xrange(0, n)]
+    for i in range(0, n):
+        line = [(int(l[1 << (n-1-j)]) >> (n-1-i)) & 1 for j in range(0, n)]
         result.append(line)
     return Matrix(GF(2), n, n, result)
 
 
 def linear_function_matrix_to_lut(mat):
     """Returns the codebook of the matrix mat."""
-    result = [0 for x in xrange(0, 2**mat.ncols())]
-    for x in xrange(0, 2**mat.ncols()):
+    result = [0 for x in range(0, 2**mat.ncols())]
+    for x in range(0, 2**mat.ncols()):
         x_vec = tobin(x, mat.ncols())
         y = frombin(mat * vector(x_vec))
         result[x] = y
@@ -215,7 +215,7 @@ def partial_linear_permutation_to_full(v, n):
             new_rebuilt_space.append(oplus(x, new_vector))
         rebuilt_space = new_rebuilt_space
     result = Matrix(GF(2), n, n, [
-        [(b >> (n - 1 - i)) & 1 for i in xrange(0, n)]
+        [(b >> (n - 1 - i)) & 1 for i in range(0, n)]
         for b in reversed(basis)]).transpose()
     check = linear_function_matrix_to_lut(result)
     if check[0:len(v)] == v:
@@ -232,7 +232,7 @@ def F_2t_to_space(basis, n):
     """
     full_basis = complete_basis(basis, n)
     return Matrix(GF(2), n, n, [
-        [(v >> (n-1-j)) & 1 for j in xrange(0, n)]
+        [(v >> (n-1-j)) & 1 for j in range(0, n)]
         for v in reversed(full_basis)
     ]).transpose()
 
@@ -254,7 +254,7 @@ def orthogonal_basis(B, n):
                 break
         if is_ortho:
             new_result = result + [v]
-            new_r = rank_of_vector_set(new_result, n)
+            new_r = rank_of_vector_set(new_result)
             if new_r > r :
                 r = new_r
                 result.append(v)
@@ -272,7 +272,7 @@ def extract_bases(z,
                   number="fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each vector
     space of dimension `dimension` that is contained in the list `z` of
-    integers intepreted as elements of $\F_2^n$ where $n$ is equal to
+    integers intepreted as elements of $\\F_2^n$ where $n$ is equal to
     `word_length`.
 
     The number of threads to use can be specified using the argument
@@ -337,7 +337,7 @@ def extract_affine_bases(z,
                          number="fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each affine
     space of dimension `dimension` that is contained in the list `z` of
-    integers intepreted as elements of $\F_2^n$ where $n$ is equal to
+    integers intepreted as elements of $\\F_2^n$ where $n$ is equal to
     `word_length`.
 
     The number of threads to use can be specified using the argument
@@ -421,21 +421,14 @@ def vector_spaces_bases_iterator(z,
 # !SUBSECTION!  Vector space bases and their properties
 
 
-def rank_of_vector_set(V, n=8):
-    """Returns the rank of the matrix obtained by "stacking" the n-bit
-    binary representation of the numbers in V.
 
-    """
-    return rank_of_vector_set_cpp(V)
-
-
-def rank_deficit_of_vector_set_is_at_most(V, target):
-    """Returns whether c-r>=target where c is the number of elements in V
-    and r is the rank of the matrix obtained by "stacking" the n-bit
-    binary representation of the numbers in V.
-
-    """
-    return rank_deficit_of_vector_set_is_at_most_cpp(V, target)
+# def rank_deficit_of_vector_set_is_at_most(V, target):
+#    """Returns whether c-r>=target where c is the number of elements in V
+#    and r is the rank of the matrix obtained by "stacking" the n-bit
+#    binary representation of the numbers in V.
+#
+#    """
+#    return rank_deficit_of_vector_set_is_at_most_cpp(V, target)
 
 
 
@@ -445,7 +438,7 @@ def extract_basis(v, N):
     base.
 
     """
-    dim = rank_of_vector_set(v, N)
+    dim = rank_of_vector_set(v)
     i = 0
     basis = []
     while i < len(v) and v[i] == 0:
@@ -495,8 +488,8 @@ def matrix_from_masks(basis, N):
     """
     b = basis + [0]*(N - len(basis))
     return Matrix(GF(2), N, N, [
-        [(b[i] >> j) & 1 for j in reversed(xrange(0, N))]
-        for i in xrange(0, N)
+        [(b[i] >> j) & 1 for j in reversed(range(0, N))]
+        for i in range(0, N)
     ]).transpose()
 
 
@@ -507,8 +500,8 @@ def get_generating_matrix(basis, N):
     """
     b = complete_basis(basis, N)
     return Matrix(GF(2), N, N, [
-        [(b[i] >> j) & 1 for j in reversed(xrange(0, N))]
-        for i in xrange(0, N)
+        [(b[i] >> j) & 1 for j in reversed(range(0, N))]
+        for i in range(0, N)
     ]).transpose()
 
 
@@ -518,9 +511,9 @@ def linear_span(basis, with_zero=True):
         result.append(0)
     visited = defaultdict(int)
     visited[0] = 1
-    for i in xrange(1, 2**len(basis)):
+    for i in range(1, 2**len(basis)):
         x = 0
-        for j in xrange(0, len(basis)):
+        for j in range(0, len(basis)):
             if (i >> j) & 1 == 1:
                 x = oplus(x, basis[j])
         if visited[x] != 1:
@@ -533,8 +526,8 @@ def bin_mat_to_int(m):
     """Turns a binary matrix into an integer via a simple bijection."""
     result = 0
     n_rows, n_cols  = len(m), len(m[0])
-    for i in xrange(0, n_rows):
-        for j in xrange(0, n_cols):
+    for i in range(0, n_rows):
+        for j in range(0, n_cols):
             result = (result << 1) | m[i][j]
     return result
 
@@ -560,13 +553,13 @@ def test_fast_multiplier(verbose=False):
     print("testing fast linear mappings")
     all_good = True
     n, m = 8, 4
-    for index_L in xrange(0, 10):
+    for index_L in range(0, 10):
         m += 1
         L = rand_linear_function(n, m)
         L_map = FastLinearMapping(L)
         if verbose:
             print("--- " + str(L_map.input_size()) + str(L_map.output_size()))
-        for index_x in xrange(0, 8):
+        for index_x in range(0, 8):
             x = randint(1, 2**n-1)
             y = apply_bin_mat(x, L)
             y_prime = L_map(x)

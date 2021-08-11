@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-02-01 09:44:44 leo>
+# Time-stamp: <2021-08-11 16:40:10 lperrin>
 
 
 import matplotlib.pyplot as plt
@@ -62,7 +62,7 @@ def pretty_vector(v, template="{:2x}"):
     
 def pretty_lagrange(s, G):
     poly_ring = PolynomialRing(G, "y")
-    p = poly_ring.lagrange_polynomial([(G.fetch_int(i), G.fetch_int(s[i])) for i in xrange(0, len(s))])
+    p = poly_ring.lagrange_polynomial([(G.fetch_int(i), G.fetch_int(s[i])) for i in range(0, len(s))])
     result = ""
     for i, k in enumerate(p):
         if k == 1:
@@ -94,7 +94,7 @@ def plot_table_averages(l,
     # rows
     if rows:
         avgs_a = []
-        for a in xrange(1, len(l)):
+        for a in range(1, len(l)):
             avg = 0.0
             for w in l[a]:
                 avg += abs(float(w))
@@ -110,9 +110,9 @@ def plot_table_averages(l,
     # columns
     if cols:
         avgs_b = []
-        for b in xrange(1, len(l)):
+        for b in range(1, len(l)):
             avg = 0.0
-            col = [l[a][b] for a in xrange(0, len(l))]
+            col = [l[a][b] for a in range(0, len(l))]
             for w in col:
                 avg += abs(float(w))
             avg = avg/len(col)
@@ -150,7 +150,7 @@ def plot_table_variances(l,
     # rows
     if rows:
         variances_a = []
-        for a in xrange(1, len(l)):
+        for a in range(1, len(l)):
             avg = 0.0
             for w in l[a]:
                 avg += abs(float(w))
@@ -170,9 +170,9 @@ def plot_table_variances(l,
     # columns
     if cols:
         variances_b = []
-        for b in xrange(1, len(l)):
+        for b in range(1, len(l)):
             avg = 0.0
-            col = [l[a][b] for a in xrange(0, len(l))]
+            col = [l[a][b] for a in range(0, len(l))]
             for w in col:
                 avg += abs(float(w))
             avg = avg/len(col)
@@ -216,7 +216,7 @@ def plot_differential(dict_s,
     if with_random:
         spectra["Random Permutation"] = {
             c: ddt_coeff_probability(n, n, c)
-            for c in xrange(0, u_max+1, 2)
+            for c in range(0, u_max+1, 2)
         }
     # plotting
     abscissa = range(0, u_max+1, 2)
@@ -230,7 +230,7 @@ def plot_differential(dict_s,
     color_index = 0
     for w in spectra.keys():
         ordenna = []
-        for c in xrange(0, u_max+1, 2):
+        for c in range(0, u_max+1, 2):
             if c in spectra[w].keys():
                 ordenna.append(float(spectra[w][c]))
             else:
@@ -273,13 +273,13 @@ def plot_linear(dict_s,
     if with_random_function:
         spectra["Random Function"] = {
             c: lat_coeff_probability_function(n, n, c)
-            for c in xrange(l_min, l_max+1, 4)
+            for c in range(l_min, l_max+1, 4)
         }
     n = float(log(len(s), 2))
     if with_random_permutation:
         spectra["Random Permutation"] = {
             c: lat_coeff_probability_permutation(n, n, c)
-            for c in xrange(l_min, l_max+1, 4)
+            for c in range(l_min, l_max+1, 4)
         }
     # plotting
     abscissa = range(l_min, l_max+1, 4)
@@ -289,7 +289,7 @@ def plot_linear(dict_s,
     color_index = 0
     for w in spectra.keys():
         ordenna = []
-        for c in xrange(l_min, l_max+1, 4):
+        for c in range(l_min, l_max+1, 4):
             if c in spectra[w].keys():
                 ordenna.append(float(spectra[w][c]))
             else:
@@ -326,8 +326,8 @@ def save_pollock(mat,
                  modifier_func=abs,
                  figsize=15):
     fig, p = plt.subplots(figsize=(figsize,figsize))
-    abs_mat = [[modifier_func(mat[i][j]) for j in xrange(0, len(mat[0]))]
-               for i in xrange(0, len(mat))]
+    abs_mat = [[modifier_func(mat[i][j]) for j in range(0, len(mat[0]))]
+               for i in range(0, len(mat))]
     axes = p.imshow(
         abs_mat,
         interpolation="None",

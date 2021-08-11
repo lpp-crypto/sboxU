@@ -8,7 +8,7 @@ from hashlib import sha256
 from collections import defaultdict
 
 from .utils import oplus
-from .sboxu_cpp import *
+from .sboxU_cython import *
 from .linear import *
 from .display import *
 from .diff_lin import *
@@ -27,22 +27,22 @@ DEFAULT_N_THREADS  = 16
 def gamma_rank(f):
     """Returns the Gamma-rank of the function with LUT f.
 
-    The Gamma-rank is the rank of the 2^{2n} \times 2^{2n} binary
+    The Gamma-rank is the rank of the 2^{2n} \\times 2^{2n} binary
     matrix M defined by
 
-    M[x][y] = 1 if and only if x + y \in \Gamma,
+    M[x][y] = 1 if and only if x + y \\in \\Gamma,
 
-    where \Gamma is the codebook of f, i.e.
+    where \\Gamma is the codebook of f, i.e.
 
-    \Gamma = \{ (x, f(x)), x \in \F_2^n  \} ~.
+    \\Gamma = \\{ (x, f(x)), x \\in \\F_2^n  \\} ~.
 
     """
     n = int(log(len(f), 2))
     dim = 2**(2*n)
-    gamma = [(x << n) | f[x] for x in xrange(0, 2**n)]
+    gamma = [(x << n) | f[x] for x in range(0, 2**n)]
     mat_content = []
-    for x in xrange(0, dim):
-        row = [0 for j in xrange(0, dim)]
+    for x in range(0, dim):
+        row = [0 for j in range(0, dim)]
         for y in gamma:
             row[oplus(x, y)] = 1
         mat_content.append(row)
@@ -53,26 +53,26 @@ def gamma_rank(f):
 def delta_rank(f):
     """Returns the Gamma-rank of the function with LUT f.
 
-    The Gamma-rank is the rank of the 2^{2n} \times 2^{2n} binary
+    The Gamma-rank is the rank of the 2^{2n} \\times 2^{2n} binary
     matrix M defined by
 
-    M[x][y] = 1 if and only if x + y \in \Delta,
+    M[x][y] = 1 if and only if x + y \\in \\Delta,
 
-    where \Delta is defined as
+    where \\Delta is defined as
 
-    \Delta = \{ (a, b), DDT_f[a][b] == 2  \} ~.
+    \\Delta = \\{ (a, b), DDT_f[a][b] == 2  \\} ~.
 
     """
     n = int(log(len(f), 2))
     dim = 2**(2*n)
     d = ddt(f)
     gamma = [(a << n) | b
-             for a, b in itertools.product(xrange(1, 2**n), xrange(0, 2**n))
+             for a, b in itertools.product(range(1, 2**n), range(0, 2**n))
              if d[a][b] == 2
     ]
     mat_content = []
-    for x in xrange(0, dim):
-        row = [0 for j in xrange(0, dim)]
+    for x in range(0, dim):
+        row = [0 for j in range(0, dim)]
         for y in gamma:
             row[oplus(x, y)] = 1
         mat_content.append(row)
@@ -81,13 +81,13 @@ def delta_rank(f):
 
 
 def sigma_multiplicities(f, k):
-    """The multiset \Sigma_F^k(0) as defined in
+    """The multiset \\Sigma_F^k(0) as defined in
     https://seta-2020.org/assets/files/program/papers/paper-44.pdf
 
     """
     n = int(log(len(f), 2))
     sums = defaultdict(int)
-    for x_i_s in itertools.product(xrange(0, 2**n), repeat=k-1):
+    for x_i_s in itertools.product(range(0, 2**n), repeat=k-1):
         sum_F = 0
         last_x_i = 0
         for x in x_i_s:
@@ -105,14 +105,14 @@ def sigma_multiplicities(f, k):
 
 def thickness(basis, N):
     """Returns the thickness of the vector space with basis `basis`, where
-    this vector space is a subspace of $\F_2^{N+M}$ for the given `N` and
+    this vector space is a subspace of $\\F_2^{N+M}$ for the given `N` and
     for some $M$.
 
     The thickness is the rank of the projection of this space on its
     `N` bits of lowest weight.
 
     """
-    MASK_N = sum(int(1 << i) for i in xrange(0, N))
+    MASK_N = sum(int(1 << i) for i in range(0, N))
     proj = [b & MASK_N for b in basis]
     return rank_of_vector_set(proj, 2*N)
 
@@ -156,17 +156,17 @@ def tu_projection(s, t):
 
     """
     N = int(log(len(s), 2))
-    mask = sum(int(1 << j) for j in xrange(0, N-t))
+    mask = sum(int(1 << j) for j in range(0, N-t))
     T = [
-        [-1 for i in xrange(0, 2**t)]
-        for j in xrange(0, 2**(N-t))
+        [-1 for i in range(0, 2**t)]
+        for j in range(0, 2**(N-t))
     ]
     U = [
-        [-1 for j in xrange(0, 2**(N-t))]
-        for i in xrange(0, 2**t)
+        [-1 for j in range(0, 2**(N-t))]
+        for i in range(0, 2**t)
     ]
-    for j in xrange(0, 2**(N-t)):
-        for i in xrange(0, 2**t):
+    for j in range(0, 2**(N-t)):
+        for i in range(0, 2**t):
             y = s[(j << t) | i]
             T[j][i] = y & mask
             U[i][j] = y >> t
@@ -186,10 +186,10 @@ def xor_equivalence(f, g):
     where "+" denotes the bitwise XOR.
     """
     N = int(log(len(f), 2))
-    for k0 in xrange(0, 2**N):
+    for k0 in range(0, 2**N):
         k1 = oplus(f[0], g[k0])
         good = True
-        for x in xrange(1, 2**N):
+        for x in range(1, 2**N):
             if oplus(f[x], g[oplus(k0, x)]) != k1:
                 good = False
                 break
@@ -266,16 +266,16 @@ def affine_equivalence(f, g):
         raise "f and g are of different dimensions!"
     table_f = defaultdict(list)
     table_c = defaultdict(int)
-    for c in xrange(0, len(f)):
-        f_c = le_class_representative([oplus(f[x], c) for x in xrange(0, len(f))])
+    for c in range(0, len(f)):
+        f_c = le_class_representative([oplus(f[x], c) for x in range(0, len(f))])
         d = hash_sbox(f_c)
         table_f[d] = f_c
         table_c[d] = c
     rs = []
     a = -1
     b = -1    
-    for c in xrange(0, len(f)):
-        g_c = le_class_representative([g[oplus(x, c)] for x in xrange(0, len(f))])
+    for c in range(0, len(f)):
+        g_c = le_class_representative([g[oplus(x, c)] for x in range(0, len(f))])
         d = hash_sbox(g_c)
         if d in table_c.keys():
             a = c
@@ -284,10 +284,10 @@ def affine_equivalence(f, g):
             break
     if a == -1:
         return []
-    l_f = linear_equivalence([oplus(f[x], b) for x in xrange(0, len(f))],
+    l_f = linear_equivalence([oplus(f[x], b) for x in range(0, len(f))],
                              rs)
     A_f, B_f = l_f[0], l_f[1]
-    l_g = linear_equivalence([g[oplus(x, a)] for x in xrange(0, len(f))],
+    l_g = linear_equivalence([g[oplus(x, a)] for x in range(0, len(f))],
                              rs)
     A_g, B_g = l_g[0], l_g[1]
     A = A_g.inverse() * A_f
@@ -308,13 +308,13 @@ def ea_equivalent_permutation_mappings(f, spaces=None):
 
     """
     N = int(log(len(f), 2))
-    mask = sum((1 << i) for i in xrange(0, N))
+    mask = sum((1 << i) for i in range(0, N))
     if spaces == None:
         spaces = get_lat_zeroes_spaces(f)
     result = []
     for V in spaces:
         if thickness(V, N) == N:
-            L_lut = [-1 for x in xrange(0, 2**N)]
+            L_lut = [-1 for x in range(0, 2**N)]
             full_space = linear_span(V)
             for x in full_space:
                 L_lut[x & mask] = x >> N
@@ -348,8 +348,8 @@ def ccz_equivalent_permutations(f,
 
     """
     N = int(log(len(f), 2))
-    mask = sum(int(1 << i) for i in xrange(0, N))
-    graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
+    mask = sum(int(1 << i) for i in range(0, N))
+    graph_f = [(x << N) | f[x] for x in range(0, 2**N)]
     if spaces == None:
         spaces = get_lat_zeroes_spaces(f)
     spaces_by_dimensions = defaultdict(list)
@@ -383,11 +383,11 @@ def ccz_equivalent_permutations(f,
 
 def apply_mapping_to_graph(f, L):
     n = int(log(len(f), 2))
-    mask = sum(int(1 << i) for i in xrange(0, n))
-    graph_f = [(x << n) | f[x] for x in xrange(0, 2**n)]
+    mask = sum(int(1 << i) for i in range(0, n))
+    graph_f = [(x << n) | f[x] for x in range(0, 2**n)]
     L_map = FastLinearMapping(L)
     graph_g = [L_map(word) for word in graph_f]
-    g = [-1 for x in xrange(0, 2**n)]
+    g = [-1 for x in range(0, 2**n)]
     for word in graph_g:
         x, y = word >> n, word & mask
         g[x] = y
@@ -400,15 +400,15 @@ def apply_mapping_to_graph(f, L):
 def ccz_equivalent_function(f, V):
     """Assuming that V is a vector space of dimension n contained in the
     Walsh zeroes of f, applies a linear permutation L to the codebook of f
-    which is such that L^T({(0, x), x \in F_2^n}) = V.
+    which is such that L^T({(0, x), x \\in F_2^n}) = V.
 
     """
     n = int(log(len(f), 2))
-    mask = sum(int(1 << i) for i in xrange(0, n))
+    mask = sum(int(1 << i) for i in range(0, n))
     L_map = FastLinearMapping(get_generating_matrix(V, 2*n).transpose())
-    graph_f = [(x << n) | f[x] for x in xrange(0, 2**n)]
+    graph_f = [(x << n) | f[x] for x in range(0, 2**n)]
     graph_g = [L_map(word) for word in graph_f]
-    g = [-1 for x in xrange(0, 2**n)]
+    g = [-1 for x in range(0, 2**n)]
     for word in graph_g:
         x, y = word >> n, word & mask
         g[x] = y
@@ -429,14 +429,14 @@ def enumerate_ea_classes(f):
 
     """
     N = int(log(len(f), 2))
-    mask = sum(int(1 << i) for i in xrange(0, N))
-    graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
+    mask = sum(int(1 << i) for i in range(0, N))
+    graph_f = [(x << N) | f[x] for x in range(0, 2**N)]
     bases = get_lat_zeroes_spaces(f)
     result = []
     for b in bases:
         L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
         graph_g = [L_map(word) for word in graph_f]
-        g = [-1 for x in xrange(0, 2**N)]
+        g = [-1 for x in range(0, 2**N)]
         for word in graph_g:
             x, y = word >> N, word & mask
             g[x] = y
@@ -462,14 +462,14 @@ def ea_classes_in_the_ccz_class_of(f, include_start=False):
 
     """
     N = int(log(len(f), 2))
-    mask = sum(int(1 << i) for i in xrange(0, N))
-    graph_f = [(x << N) | f[x] for x in xrange(0, 2**N)]
+    mask = sum(int(1 << i) for i in range(0, N))
+    graph_f = [(x << N) | f[x] for x in range(0, 2**N)]
     z = lat_zeroes(f)
     for b in vector_spaces_bases_iterator(z, N, 2*N):
         if include_start or thickness(b, 2*N) > 0:
             L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
             graph_g = [L_map(word) for word in graph_f]
-            g = [-1 for x in xrange(0, 2**N)]
+            g = [-1 for x in range(0, 2**N)]
             for word in graph_g:
                 x, y = word >> N, word & mask
                 g[x] = y
@@ -496,7 +496,7 @@ def print_result(n_valid, n_tested):
 
 def check_linear_equivalence(f, g, A, B):
     """Returns True if and only if f = B o g o A."""
-    for x in xrange(0, 2**N):
+    for x in range(0, 2**N):
         y = apply_bin_mat(g[apply_bin_mat(x, A)], B)
         if y != f[x]:
             return False
@@ -508,12 +508,12 @@ def test_le_equivalence(N, verbose=False):
     false_negatives = 0
     false_positives = 0
     n_tested = 500
-    for i in xrange(0, n_tested):
+    for i in range(0, n_tested):
         # checking if linearly equivalent permutations are identified
         g = random_permutation(N)
         A = rand_linear_permutation(N)
         B = rand_linear_permutation(N)
-        f = [apply_bin_mat(g[apply_bin_mat(x, A)], B) for x in xrange(0, 2**N)]
+        f = [apply_bin_mat(g[apply_bin_mat(x, A)], B) for x in range(0, 2**N)]
         computation_start = default_timer()
         result = linear_equivalence(f, g)
         computation_end = default_timer()
@@ -566,7 +566,7 @@ def test_le_repr(N, verbose=False):
     n_valid = 0
     n_tested = 50
     print("* Testing whether f and le_class_representative(f) are LE")
-    for i in xrange(0, n_tested):
+    for i in range(0, n_tested):
         f = random_permutation(N)
         computation_start = default_timer()
         g = le_class_representative(f)
@@ -580,15 +580,15 @@ def test_le_repr(N, verbose=False):
     print_result(n_valid, n_tested)
     print("* testing whether two linear equivalent functions have the same representative")
     n_valid = 0
-    for i in xrange(0, n_tested):
+    for i in range(0, n_tested):
         f = random_permutation(N)
         A = rand_linear_permutation(N)
         B = rand_linear_permutation(N)
-        g = [apply_bin_mat(f[apply_bin_mat(x, A)], B) for x in xrange(0, 2**N)]
+        g = [apply_bin_mat(f[apply_bin_mat(x, A)], B) for x in range(0, 2**N)]
         rs_f = le_class_representative(f)
         rs_g = le_class_representative(g)
         identical = True
-        for x in xrange(0, 2**N):
+        for x in range(0, 2**N):
             if rs_f[x] != rs_g[x]:
                 identical = False
                 break
@@ -608,7 +608,7 @@ def test_le_repr(N, verbose=False):
     
 def check_affine_equivalence(f, g, A, a, B, b):
     """Checks whether f(x) = (B o g o A)(x + a) + b"""
-    for x in xrange(0, 2**N):
+    for x in range(0, 2**N):
         y = oplus(x, a)
         y = apply_bin_mat(y, A)
         y = g[y]
@@ -624,7 +624,7 @@ def test_ae_equivalence(N, verbose=False):
     false_negatives = 0
     false_positives = 0
     n_tested = 10
-    for i in xrange(0, n_tested):
+    for i in range(0, n_tested):
         # checking if linearly equivalent permutations are identified
         f = random_permutation(N)
         A = rand_linear_permutation(N)
@@ -632,7 +632,7 @@ def test_ae_equivalence(N, verbose=False):
         B = rand_linear_permutation(N)
         b = randint(0, 2**N-1)
         g = [oplus(apply_bin_mat(f[apply_bin_mat(oplus(x, a), A)], B), b)
-             for x in xrange(0, 2**N)]
+             for x in range(0, 2**N)]
         computation_start = default_timer()
         result = affine_equivalence(f, g)
         computation_end = default_timer()
@@ -677,7 +677,7 @@ def test_ea_permutations():
     for N in [4, 5]:
         F = GF(2**N, name="a")
         inv = [(F.fetch_int(x)**(2**N-2)).integer_representation()
-               for x in xrange(0, 2**N)]
+               for x in range(0, 2**N)]
         print("== " + str(N))
         for L in ea_equivalent_permutation_mappings(inv):
             print(L.str() + "\n")
@@ -687,7 +687,7 @@ def test_ccz_permutations(number="all permutations"):
     F = GF(2**N, name="a")
     # generating the Kim mapping
     kim = []
-    for x_i in xrange(0, 2**N):
+    for x_i in range(0, 2**N):
         x = F.fetch_int(x_i)
         y = x**3 + x**10 + F.gen()*x**24
         kim.append(y.integer_representation())
@@ -706,7 +706,7 @@ def test_enumerate_ea():
     F = GF(2**N, name="a")
     # generating the Kim mapping
     kim = []
-    for x_i in xrange(0, 2**N):
+    for x_i in range(0, 2**N):
         x = F.fetch_int(x_i)
         y = x**3 + x**10 + F.gen()*x**24
         kim.append(y.integer_representation())
@@ -721,7 +721,7 @@ def test_ea_classes():
     F = GF(2**N, name="a")
     # generating the Kim mapping
     kim = []
-    for x_i in xrange(0, 2**N):
+    for x_i in range(0, 2**N):
         x = F.fetch_int(x_i)
         y = x**3 + x**10 + F.gen()*x**24
         kim.append(y.integer_representation())

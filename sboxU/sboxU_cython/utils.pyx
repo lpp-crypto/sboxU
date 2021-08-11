@@ -1,10 +1,15 @@
 # -*-python-*- 
-# Time-stamp: <2021-08-11 15:02:57 lperrin>
+# Time-stamp: <2021-08-11 16:41:42 lperrin>
 
 from sboxu_cpp cimport *
 
 
 def oplus(x, y):
+    """Ensures that the XOR is computed correctly in a lighter way than
+    using Integer(x).__xor__(Integer(y)) as is necessary to work in both
+    prompt and script mode.
+
+    """
     return oplus_cpp(x,y)
 
 def hamming_weight(x):
