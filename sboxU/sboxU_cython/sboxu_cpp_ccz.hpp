@@ -1,4 +1,4 @@
-/* Time-stamp: <2020-09-04 15:22:29 lperrin>
+/* Time-stamp: <2021-08-12 17:10:24 lperrin>
  *
  * LICENSE
  */ 
@@ -31,6 +31,14 @@ std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
     Integer n_threads,
     const std::string end_condition);
 
+
+// !SECTION! Sigma multiplicities
+
+std::map<BinWord, Integer> sigma_multiplicities_cpp(
+    const Sbox f,
+    const Integer k,
+    const Integer n,
+    const Integer n_threads);
 
 
 #endif /* _SBOXU_CPP_CCZ_H_ */

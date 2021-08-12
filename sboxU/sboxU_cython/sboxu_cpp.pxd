@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2021-08-11 15:38:25 lperrin>
+# Time-stamp: <2021-08-12 17:11:53 lperrin>
 
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -54,7 +54,8 @@ cdef extern from "sboxu_cpp_ccz.hpp" :
     cdef vector[uint64_t] extract_vector_cpp(const vector[uint64_t]& z, const uint64_t a)
     cdef vector[ vector[uint64_t] ] extract_bases_cpp(vector[uint64_t]& z, const int64_t dimension, const int64_t word_length, int64_t n_threads, const string end_condition)
     cdef vector[ vector[uint64_t] ] extract_affine_bases_cpp(vector[uint64_t]& z, const int64_t dimension, const int64_t word_length, int64_t n_threads, const string end_condition)
-
+    cdef map[uint64_t, int64_t] sigma_multiplicities_cpp(const vector[uint64_t] f, const int k, const int n, const int n_threads)
+    
 cdef extern from "sboxu_cpp_fp.cpp" :
     pass
 
