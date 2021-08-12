@@ -50,7 +50,16 @@ also import sboxU in a sage notebook session provided that you started
 sage from the folder containing it.
 
 
+## Troubleshooting
+
+- `undefined symbol: _Py_ZeroStruct` If you get such an error, there
+  are probably mismatches between the python versions used. This
+  typically happens if you have 2 versions of SAGE installed, used the
+  most recent one to compile `sboxU`, but then use an older one in
+  your scripts.
+
 ## Authors
 
-Mathias Joly
-Léo Perrin
+[Mathias Joly](https://github.com/MathiasJoly)
+
+[Léo Perrin](https://who.paris.inria.fr/Leo.Perrin/)
