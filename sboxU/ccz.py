@@ -333,7 +333,6 @@ def ccz_equivalent_permutations(f,
     if spaces == None:
         spaces = get_lat_zeroes_spaces(f)
     spaces_by_dimensions = defaultdict(list)
-    print(spaces)
     for b in spaces:
         t1 = rank_of_vector_set([v >> N for v in b])
         t2 = rank_of_vector_set([v & mask for v in b])
