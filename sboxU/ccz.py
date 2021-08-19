@@ -80,26 +80,6 @@ def delta_rank(f):
     return mat_gf2.rank()
 
 
-def sigma_multiplicities(f, k):
-    """The multiset \\Sigma_F^k(0) as defined in
-    https://seta-2020.org/assets/files/program/papers/paper-44.pdf
-
-    """
-    n = int(log(len(f), 2))
-    sums = defaultdict(int)
-    for x_i_s in itertools.product(range(0, 2**n), repeat=k-1):
-        sum_F = 0
-        last_x_i = 0
-        for x in x_i_s:
-            sum_F    = oplus(sum_F,    f[x])
-            last_x_i = oplus(last_x_i, x   )
-        sum_F = oplus(sum_F, f[last_x_i])
-        sums[sum_F] += 1
-    result = defaultdict(int)
-    for sum_F in sums:
-        result[sums[sum_F]] += 1
-    return result
-
 
 # !SUBSECTION! Thickness related 
 
@@ -114,7 +94,7 @@ def thickness(basis, N):
     """
     MASK_N = sum(int(1 << i) for i in range(0, N))
     proj = [b & MASK_N for b in basis]
-    return rank_of_vector_set(proj, 2*N)
+    return rank_of_vector_set(proj)
 
 
 def thickness_spectrum(s, spaces=None):
@@ -329,7 +309,7 @@ def ea_equivalent_permutation_mappings(f, spaces=None):
 
 def ccz_equivalent_permutations(f, 
                                 number="all permutations", 
-                                spaces="None",
+                                spaces=None,
                                 minimize_ea_classes=False):
     """Returns a list of permutations that are CCZ-equivalent to
     `f`. 
@@ -353,9 +333,10 @@ def ccz_equivalent_permutations(f,
     if spaces == None:
         spaces = get_lat_zeroes_spaces(f)
     spaces_by_dimensions = defaultdict(list)
+    print(spaces)
     for b in spaces:
-        t1 = rank_of_vector_set([v >> N for v in b], N)
-        t2 = rank_of_vector_set([v & mask for v in b], N)
+        t1 = rank_of_vector_set([v >> N for v in b])
+        t2 = rank_of_vector_set([v & mask for v in b])
         spaces_by_dimensions[(t1 << N) | t2].append(b)
     for dim_pairs in itertools.product(spaces_by_dimensions.keys(), 
                                        spaces_by_dimensions.keys()):
@@ -364,7 +345,7 @@ def ccz_equivalent_permutations(f,
         if (t1 + u1) >= N and (t2 + u2) >= N:
             for b0 in spaces_by_dimensions[dim_pairs[0]]:
                 for b1 in spaces_by_dimensions[dim_pairs[1]]:
-                    if rank_of_vector_set(b0 + b1, 2*N) == 2*N:
+                    if rank_of_vector_set(b0 + b1) == 2*N:
                         L = Matrix(GF(2), 2*N, 2*N, [tobin(x, 2*N) for x in b0 + b1])
                         g = apply_mapping_to_graph(f, L)
                         if number == "just one":
