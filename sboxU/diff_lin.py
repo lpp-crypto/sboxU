@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-08-11 16:40:18 lperrin>
+# Time-stamp: <2021-09-02 14:36:29 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -18,23 +18,6 @@ from .utils import *
 BIG_SBOX_THRESHOLD = 128
 DEFAULT_N_THREADS  = 2
 
-def walsh_spectrum(s, n_threads=None):
-    if n_threads == None:
-        if len(s) > BIG_SBOX_THRESHOLD:
-            n_threads = DEFAULT_N_THREADS
-        else:
-            n_threads = 1
-    return walsh_spectrum_fast(s, n_threads)
-
-
-def differential_spectrum(s, n_threads=None):
-    if n_threads == None:
-        if len(s) > BIG_SBOX_THRESHOLD:
-            n_threads = DEFAULT_N_THREADS
-        else:
-            n_threads = 1
-    return differential_spectrum_fast(s, n_threads)
-
 def lat_zeroes(s, n_threads=None):
     if n_threads == None:
         if len(s) > BIG_SBOX_THRESHOLD:
@@ -51,16 +34,6 @@ def proj_lat_zeroes(s, n_threads=None):
         else:
             n_threads = 1
     return projected_lat_zeroes_fast(s, n_threads)
-
-
-def boomerang_spectrum(s, n_threads=None):
-    if n_threads == None:
-        if len(s) > BIG_SBOX_THRESHOLD:
-            n_threads = DEFAULT_N_THREADS
-        else:
-            n_threads = 1
-    return bct_spectrum_fast(s, n_threads)
-
 
 def boomerang_uniformity(s):
     b = bct(s)
