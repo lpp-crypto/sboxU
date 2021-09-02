@@ -124,6 +124,23 @@ def get_lat_zeroes_spaces(s, n_threads=DEFAULT_N_THREADS):
                                       int(n_threads))
 
 
+# !SUBSECTION! Using the ortho-derivative
+
+def ortho_derivative_label(f):
+    """Returns a string representation of the differential and extended
+    Walsh spectra of the ortho-derivative of the function given.
+
+    Can only be applied to quadratic APN functions (this is not
+    verified).
+
+    """
+    o = ortho_derivative(f)
+    return "d{}; w{}".format(
+        pretty_spectrum(differential_spectrum(o)),
+        pretty_spectrum(walsh_spectrum(o), absolute=True),
+    )
+    
+
 # !SUBSECTION! TU projection and decomposition
 
 def tu_projection(s, t):
