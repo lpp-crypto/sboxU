@@ -4,7 +4,6 @@
  */
 
 #include "sboxu_cpp_equiv.hpp"
-using namespace boost::python;
 
 
 // !SECTION! LEguess class
@@ -182,8 +181,8 @@ LEguessIterator LEguessIterator::deeper_guess_gen()
 
 std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
 {
-    check_length(f);
-    check_length(g);
+    check_length_cpp(f);
+    check_length_cpp(g);
     std::vector<Sbox> result;
     // if f(0) == 0 then it is necessary that g(0) == 0...
     if ((f[0] == 0) and (g[0] != 0))
@@ -192,7 +191,7 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
     else if ((f[0] != 0) and (g[0] == 0))
         return result;
     // We look for A,B such that f = B o g o A
-    Sbox f_inv = inverse(f), g_inv = inverse(g);
+    Sbox f_inv = inverse_cpp(f), g_inv = inverse_cpp(g);
     std::vector<IOpair> constraints;
     if (f[0] != 0)
     {                           // in this case, we know that B(g[0]) = f[0]
@@ -273,7 +272,7 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
                 Sbox A(f.size(), 0), B(b.lut());
                 if (is_permutation_cpp(B))
                 {
-                    Sbox B_inv(inverse(B));
+                    Sbox B_inv(inverse_cpp(B));
                     // A is rebuilt from scratch using that f = B o g o A
                     for (unsigned int x=0; x<B.size(); x++)
                         A[x] = g_inv[B_inv[f[x]]];
@@ -297,7 +296,7 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
 
 LErepr::LErepr(const Sbox _f) :
     f(_f),
-    f_inv(inverse(f)),
+    f_inv(inverse_cpp(f)),
     contiguous_length(0),
     best_guess(f.size(), f.size()),
     a(0),
@@ -558,8 +557,7 @@ void LErepr::initialize()
 
 Sbox le_class_representative_cpp(const Sbox f)
 {
-    check_length(f);
-    list result;
+    check_length_cpp(f);
     LErepr repr(f);
     repr.initialize();
     return repr.lut();

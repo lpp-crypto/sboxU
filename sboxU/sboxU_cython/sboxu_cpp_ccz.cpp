@@ -1,10 +1,9 @@
-/* Time-stamp: <2020-09-04 15:54:14 lperrin>
+/* Time-stamp: <2021-08-12 17:16:07 lperrin>
  *
  * LICENCE
  */
 
 #include "sboxu_cpp_ccz.hpp"
-using namespace boost::python;
 
 
 #define VECTOR_EXTRACT_ALL_DIMS 0
@@ -511,3 +510,82 @@ std::vector<std::vector<BinWord> > extract_affine_bases_cpp(
     }    
     return result;
 }
+
+
+
+// !SECTION! Sigma multiplicities
+
+
+
+void sigma_multiplicities_local_cpp(
+    std::map<BinWord, Integer> & result,
+    const Sbox f,
+    const Integer k,
+    const Integer n,
+    const unsigned int s_min,
+    const unsigned int s_max)
+{
+    for (unsigned int s=s_min; s<s_max; s++)
+    {
+        Integer multiplicity = 0;
+        for (unsigned int b=0; b<f.size(); b++)
+        {
+            int sign = (scal_prod_cpp(b, s) == 0) ? 1 : -1;
+            std::vector<Integer> w = walsh_spectrum_coord(component_cpp(b, f));
+            for (auto &l : w)
+            {
+                Integer pow = l;
+                for (unsigned int i=1; i<k; i++)
+                    pow *= l;
+                multiplicity += sign * pow; 
+            }
+        }
+        result[multiplicity >> (2*n)] += 1;
+    }
+}
+
+
+std::map<BinWord, Integer> sigma_multiplicities_cpp(const Sbox f,
+                                                    const Integer k,
+                                                    const Integer n,
+                                                    const Integer n_threads)
+{
+    check_length_cpp(f);
+    std::map<BinWord, Integer> result;
+    if (n_threads == 1)
+    {
+        // small S-Box
+        sigma_multiplicities_local_cpp(std::ref(result), f, k, n, 0, f.size());
+    }
+    else
+    {
+        std::vector<std::thread> threads;
+        std::vector<std::map<BinWord, Integer> > local_counts(n_threads);
+        unsigned int slice_size = f.size()/n_threads;
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            unsigned int
+                lower_bound = i*slice_size,
+                upper_bound = (i+1)*slice_size;
+            if (upper_bound > f.size())
+                upper_bound = f.size();
+            threads.push_back(std::thread(sigma_multiplicities_local_cpp,
+                                          std::ref(local_counts[i]),
+                                          f,
+                                          k,
+                                          n,
+                                          lower_bound,
+                                          upper_bound));
+
+        }
+        for (unsigned int i=0; i<n_threads; i++)
+        {
+            threads[i].join();
+            for (auto &entry : local_counts[i])
+                result[entry.first] += entry.second ;
+        }
+    }
+    return result;
+}
+
+

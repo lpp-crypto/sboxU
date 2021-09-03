@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-02-01 09:46:04 leo>
+# Time-stamp: <2021-09-02 14:36:29 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -9,7 +9,7 @@ import itertools
 from collections import defaultdict
 
 # Loading fast C++ implemented functions
-from .sboxu_cpp import *
+from .sboxU_cython import *
 from .utils import *
 
 # !SECTION! Wrapping C++ functions for differential/Walsh spectrum 
@@ -17,23 +17,6 @@ from .utils import *
 # Some constants
 BIG_SBOX_THRESHOLD = 128
 DEFAULT_N_THREADS  = 2
-
-def walsh_spectrum(s, n_threads=None):
-    if n_threads == None:
-        if len(s) > BIG_SBOX_THRESHOLD:
-            n_threads = DEFAULT_N_THREADS
-        else:
-            n_threads = 1
-    return walsh_spectrum_fast(s, n_threads)
-
-
-def differential_spectrum(s, n_threads=None):
-    if n_threads == None:
-        if len(s) > BIG_SBOX_THRESHOLD:
-            n_threads = DEFAULT_N_THREADS
-        else:
-            n_threads = 1
-    return differential_spectrum_fast(s, n_threads)
 
 def lat_zeroes(s, n_threads=None):
     if n_threads == None:
@@ -52,32 +35,22 @@ def proj_lat_zeroes(s, n_threads=None):
             n_threads = 1
     return projected_lat_zeroes_fast(s, n_threads)
 
-
-def boomerang_spectrum(s, n_threads=None):
-    if n_threads == None:
-        if len(s) > BIG_SBOX_THRESHOLD:
-            n_threads = DEFAULT_N_THREADS
-        else:
-            n_threads = 1
-    return bct_spectrum_fast(s, n_threads)
-
-
 def boomerang_uniformity(s):
     b = bct(s)
     boom_unif = 0
-    for i in xrange(1, len(s)):
-        for j in xrange(1, len(s)):
+    for i in range(1, len(s)):
+        for j in range(1, len(s)):
             boom_unif = max(boom_unif, b[i][j])
     return boom_unif
 
 
 def dlct(s):
     n = int(log(len(s), 2))
-    table = [[0 for b in xrange(0, 2**n)] for a in xrange(0, 2**n)]
-    for delta in xrange(0, 2**n):
-        for l in xrange(0, 2**n):
+    table = [[0 for b in range(0, 2**n)] for a in range(0, 2**n)]
+    for delta in range(0, 2**n):
+        for l in range(0, 2**n):
             table[delta][l] = sum((-1)**(scal_prod(l, oplus(s[x], s[oplus(x, delta)])))
-                              for x in xrange(0, 2**n))
+                              for x in range(0, 2**n))
     return table
 
 
@@ -162,7 +135,7 @@ def bct_coeff_probability(m, n, c):
     d = c/2
     result = RealNumber(0.0)
     base = RealNumber(2**n-1)**(B + 2*A)
-    for j1, j2 in itertools.product(xrange(0, d+1), xrange(0, d+1)):
+    for j1, j2 in itertools.product(range(0, d+1), range(0, d+1)):
         if 2*j1 + 4*j2 == c:
             # added = Integer(binomial(B, j1)) * RealNumber(p**j1) * RealNumber((1-p)**(B-j1)) * Integer(binomial(A, j2)) * RealNumber(q**(j2) * (1-q)**(A-j2))
             added = RealNumber(binomial(B, j1)) * RealNumber((2**n-2)**(B-j1)) * RealNumber(binomial(A, j2)) * RealNumber((2**(2*n)-2**(n+1))**(A-j2))
@@ -175,11 +148,11 @@ def expected_max_ddt(m, n):
     result = RealNumber(0.0)
     cumul = [0]
     for k in range(1, 15):
-        to_add = sum(ddt_coeff_probability(m, n, 2*z) for z in xrange(0, k+1))
+        to_add = sum(ddt_coeff_probability(m, n, 2*z) for z in range(0, k+1))
         to_add = to_add**RealNumber((2**m-1) * (2**n-1))
         cumul.append(to_add)
     result = []
-    for i in xrange(1, len(cumul)):
+    for i in range(1, len(cumul)):
         result.append(cumul[i] - cumul[i-1])
     return result
 
@@ -188,11 +161,11 @@ def expected_max_lat(m, n):
     result = RealNumber(0.0)
     cumul = [0]
     for k in range(1, 50):
-        to_add = sum(lat_coeff_probability_permutation(m, n, 2*z) for z in xrange(0, k+1))
+        to_add = sum(lat_coeff_probability_permutation(m, n, 2*z) for z in range(0, k+1))
         to_add = to_add**RealNumber((2**m-1) * (2**n-1))
         cumul.append(to_add)
     result = []
-    for i in xrange(1, len(cumul)):
+    for i in range(1, len(cumul)):
         result.append(cumul[i] - cumul[i-1])
     return result
 
@@ -200,11 +173,11 @@ def expected_max_lat_function(m, n):
     result = RealNumber(0.0)
     cumul = [0]
     for k in range(1, 70):
-        to_add = sum(lat_coeff_probability_function(m, n, z) for z in xrange(0, k+1))
+        to_add = sum(lat_coeff_probability_function(m, n, z) for z in range(0, k+1))
         to_add = to_add**RealNumber((2**m) * (2**n))
         cumul.append(to_add)
     result = []
-    for i in xrange(1, len(cumul)):
+    for i in range(1, len(cumul)):
         result.append(cumul[i] - cumul[i-1])
     return result
     
@@ -219,11 +192,11 @@ def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
     other trials.
 
     """
-    p_strictly_smaller = sum(RealNumber(proba_func(m, n, i)) for i in xrange(0, v_max))
+    p_strictly_smaller = sum(RealNumber(proba_func(m, n, i)) for i in range(0, v_max))
     p_equal = RealNumber(proba_func(m, n, v_max))
     result = RealNumber(0)
     n_trials = (2**m-1) * (2**n-1)
-    for occ in reversed(xrange(0, occurrences+1)):
+    for occ in reversed(range(0, occurrences+1)):
         added = RealNumber(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
         if abs(added) < Infinity and added > 0 and (result + added > result):
             result += added
@@ -233,11 +206,11 @@ def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
 def anomaly_differential_uniformity(n, v_max):
     p_0 = RealNumber(ddt_coeff_probability(n, n, 0))
     p_non_zero = RealNumber(1-p_0)
-    p_inf = RealNumber(sum(ddt_coeff_probability(n, n, c) for c in xrange(1, v_max+1)))
+    p_inf = RealNumber(sum(ddt_coeff_probability(n, n, c) for c in range(1, v_max+1)))
     proba_enough_zeroes_in_row = RealNumber(0.0)
     proba_bound_and_enough_zeroes = RealNumber(0.0)
     M = 2**(n-1)-1
-    for i in xrange(2**(n-1)-1, 2**n-1):
+    for i in range(2**(n-1)-1, 2**n-1):
         proba_enough_zeroes_in_row    += RealNumber(binomial(2**n-1, i)) * p_0**i * p_non_zero**(2**n-1-i)
         proba_bound_and_enough_zeroes += RealNumber(binomial(2**n-1, i)) * p_0**i * p_inf**(2**n-1-i)
     return (2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
@@ -246,11 +219,11 @@ def anomaly_differential_uniformity(n, v_max):
 def anomaly_ddt(n, v_max, occ):
     p_0 = RealNumber(ddt_coeff_probability(n, n, 0))
     p_non_zero = RealNumber(1-p_0)
-    p_inf = RealNumber(sum(ddt_coeff_probability(n, n, c) for c in xrange(1, v_max+1)))
+    p_inf = RealNumber(sum(ddt_coeff_probability(n, n, c) for c in range(1, v_max+1)))
     proba_enough_zeroes_in_row = RealNumber(0.0)
     proba_bound_and_enough_zeroes = RealNumber(0.0)
     M = 2**(n-1)-1
-    for i in xrange(2**(n-1)-1, 2**n-1):
+    for i in range(2**(n-1)-1, 2**n-1):
         proba_enough_zeroes_in_row    += RealNumber(binomial(2**n-1, i)) * p_0**i * p_non_zero**(2**n-1-i)
         proba_bound_and_enough_zeroes += RealNumber(binomial(2**n-1, i)) * p_0**i * p_inf**(2**n-1-i)
     return -(2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
@@ -309,7 +282,7 @@ def table_negative_anomaly(s, table):
                 occurrences = spec[k]
         p_anomaly = probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func)
         p_equal = proba_func(n, n, v_max)
-        p_strictly_smaller = sum(proba_func(n, n, i) for i in xrange(0, v_max))
+        p_strictly_smaller = sum(proba_func(n, n, i) for i in range(0, v_max))
         card = (2**n-1)**2
         p_precise_equal = RealNumber(binomial(card, occurrences))*p_equal**occurrences*p_strictly_smaller**(card-occurrences)
         p_precise_equal = min(p_precise_equal, RealNumber(1.0))
@@ -380,9 +353,9 @@ def degree_spectrum(s):
     anf = algebraic_normal_form(s)
     result = defaultdict(int)
     n = int(log(len(s), 2))
-    for mask in xrange(1, 2**n):
+    for mask in range(1, 2**n):
             component = 0
-            for i in xrange(0, n):
+            for i in range(0, n):
                 if ((mask >> i) & 1) == 1:
                     component += anf[i]
             result[component.degree()] += 1

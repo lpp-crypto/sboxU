@@ -1,4 +1,4 @@
-/* Time-stamp: <2018-05-16 14:40:12 lperrin>
+/* Time-stamp: <2021-08-11 15:08:37 lperrin>
  *
  * LICENSE
  */ 
@@ -7,7 +7,6 @@
 #define _SBOXU_CPP_UTILS_H_
 
 #include "sboxu_cpp.hpp"
-using namespace boost::python;
 
 
 // !SECTION! Basic functions 
@@ -18,17 +17,17 @@ using namespace boost::python;
 BinWord oplus_cpp(BinWord x, BinWord y) ;
 
 /* @return the Hamming weight of x. */ 
-unsigned int hamming_weight(BinWord x) ;
+unsigned int hamming_weight_cpp(BinWord x) ;
 
 /* @return the parity of x, i.e. its hamming weight modulo 2. */ 
-BinWord parity(BinWord x) ;
+BinWord parity_cpp(BinWord x) ;
 
 /* @return the scalar product of x and y. */ 
-BinWord scal_prod(BinWord x, BinWord y) ;
+BinWord scal_prod_cpp(BinWord x, BinWord y) ;
 
 
 /* @return the component $x \mapsto b . f(x)$. */ 
-std::vector<BinWord> component(BinWord a, std::vector<BinWord> f);
+std::vector<BinWord> component_cpp(BinWord a, std::vector<BinWord> f);
 
 
 // !SUBSECTION! Generating and testing permutations 
@@ -42,32 +41,15 @@ Sbox random_permutation_cpp(unsigned int n);
 bool is_permutation_cpp(Sbox s);
 
 /* @return the LUT of the functional inverse of s. */ 
-Sbox inverse(Sbox s);
+Sbox inverse_cpp(Sbox s);
 
 
-// !SUBSECTION! C++/Python converstion 
+// !SECTION! Rank of sets of vectors
 
-/* @return a C++ vector of Integers containing the signed numbers in l.
- *
- * @exception throws an exception if an element in the list is not an integer.
+/* @return interpreting the elements in l as binary vectors of length
+ * at most 64, returns the rank of this set of vectors.
  */
-std::vector<Integer> lst_2_vec_Integer(const list& l);
-
-/* @return a C++ vector of BinWord containing the binary representations of the unsigned integers in l.
- *
- * @exception throws an exception if an element in the list is not an integer.
- */
-std::vector<BinWord> lst_2_vec_BinWord(const list& l);
-
-
-/* @return a python list of Integers containing the signed numbers in l.
- */
-list vec_2_lst_Integer(const std::vector<Integer> l);
-
-/* @return a python list of Integers containing the numbers whose binary expansion are the words in l.
- */
-list vec_2_lst_BinWord(const std::vector<BinWord> l);
-
+Integer rank_of_vector_set_cpp(std::vector<BinWord> l);
 
 
 // !SECTION! Basic verifications
@@ -93,9 +75,7 @@ public:
 /* If the length of s is a power of 2, does nothing. Otherwise, throws
  * a NotSboxSized exception.
  */ 
-void check_length(Sbox s);
-
-
+void check_length_cpp(Sbox s);
 
 
 #endif /* _SBOXU_CPP_UTILS_H_ */

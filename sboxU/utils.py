@@ -1,20 +1,12 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-02-01 09:44:56 leo>
+# Time-stamp: <2021-08-11 16:41:46 lperrin>
 
 from sage.all import *
 import itertools
 from collections import defaultdict
 
-from .sboxu_cpp import *
+from .sboxU_cython import *
 
-
-def oplus(x, y):
-    """Ensures that the XOR is computed correctly in a lighter way than
-    using Integer(x).__xor__(Integer(y)) as is necessary to work in both
-    prompt and script mode.
-
-    """
-    return oplus_cpp(long(x), long(y))
 
 
 def preprocess_into_list(s):
@@ -39,8 +31,8 @@ def preprocess_into_list(s):
 
 def inverse(s):
     """Returns the functional inverse of the permutation s."""
-    result = [0 for i in xrange(0, len(s))]
-    for x in xrange(0, len(s)):
+    result = [0 for i in range(0, len(s))]
+    for x in range(0, len(s)):
         result[s[x]] = x
     return result
 
@@ -51,29 +43,29 @@ def random_function_of_degree(n, m, deg):
     n bits to m with algebraic degree at most deg.
 
     """
-    result = [0 for x in xrange(0, 2**n)]
+    result = [0 for x in range(0, 2**n)]
     r = PolynomialRing(GF(2**n, name="a"), 'x', n)
     x_is = r.gens()
-    for output_bit in xrange(0, m):
+    for output_bit in range(0, m):
         pol = r.zero()
         if randint(0, 1) == 1:
             pol = r.one()
-        for d in xrange(1, deg+1):
+        for d in range(1, deg+1):
             for monomial_x_is in itertools.combinations(x_is, d):
                 if randint(0, 1) == 1:
                     monomial = r.one()
                     for x_i in monomial_x_is:
                         monomial = x_i*monomial
                     pol += monomial
-        for y in xrange(0, 2**n):
-            f_y_bit = pol([(y >> j) & 1 for j in xrange(0, n)])
+        for y in range(0, 2**n):
+            f_y_bit = pol([(y >> j) & 1 for j in range(0, n)])
             result[y] = result[y] | (int(f_y_bit) << output_bit)
     return result
 
         
 def image(f):
     img = defaultdict(int)
-    for x in xrange(0, len(f)):
+    for x in range(0, len(f)):
         img[f[x]] += 1
     return img.keys()
 

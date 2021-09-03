@@ -1,42 +1,33 @@
-/* Time-stamp: <2020-10-06 15:17:32 lperrin>
- *
- * LICENSE
- */ 
-
-
 #include "sboxu_cpp_utils.hpp"
-using namespace boost::python;
-
 
 BinWord oplus_cpp(BinWord x, BinWord y)
 {
     return (x ^ y);
 }
 
-unsigned int hamming_weight(BinWord x)
+unsigned int hamming_weight_cpp(BinWord x)
 {
     return __builtin_popcount(x);
 }
 
 
-BinWord parity(BinWord x)
+BinWord parity_cpp(BinWord x)
 {
     return __builtin_parity(x);
 }
 
-BinWord scal_prod(BinWord x, BinWord y)
+BinWord scal_prod_cpp(BinWord x, BinWord y)
 {
-    return parity(x & y);
+    return parity_cpp(x & y);
 }
 
-std::vector<BinWord> component(BinWord a, std::vector<BinWord> f)
+std::vector<BinWord> component_cpp(BinWord a, std::vector<BinWord> f)
 {
     std::vector<BinWord> result(f.size(), 0);
     for (BinWord x=0; x<f.size(); x++)
-        result[x] = scal_prod(a, f[x]);
+        result[x] = scal_prod_cpp(a, f[x]);
     return result;
 }
-
 
 // !SECTION! Generating and studying permutations 
 
@@ -76,7 +67,7 @@ bool is_permutation_cpp(Sbox s)
 }
 
 
-Sbox inverse(Sbox s)
+Sbox inverse_cpp(Sbox s)
 {
     Sbox result(s.size(), 0);
     for (unsigned int x=0; x<s.size(); x++)
@@ -85,46 +76,35 @@ Sbox inverse(Sbox s)
 }
 
 
-// !SECTION! Conversion C++/Python 
 
-std::vector<Integer> lst_2_vec_Integer(const list &l)
+// !SECTION! Rank of sets of vectors
+
+
+Integer rank_of_vector_set_cpp(std::vector<BinWord> l)
 {
-    std::vector<Integer> result;
-    for (unsigned int i=0; i<len(l); i++)
-        result.push_back(extract<Integer>(l[i]));
+    Integer result = 0;
+    for (unsigned int i=0; i<l.size(); i++)
+    {
+        if (l[i] > 0)
+        {
+            result ++;
+            for (unsigned int j=i+1; j<l.size(); j++)
+            {
+                BinWord y = l[i] ^ l[j];
+                if (y < l[j])
+                    l[j] = y;
+            }
+        }
+    }
     return result;
 }
 
 
-std::vector<BinWord> lst_2_vec_BinWord(const list &l)
-{
-    std::vector<BinWord> result;
-    for (unsigned int i=0; i<len(l); i++)
-        result.push_back(extract<BinWord>(l[i]));
-    return result;
-}
-
-
-list vec_2_lst_Integer(const std::vector<Integer> l)
-{
-    list result;
-    for (auto &v : l)
-        result.append<Integer>(v);
-    return result;
-}
-
-list vec_2_lst_BinWord(const std::vector<BinWord> l)
-{
-    list result;
-    for (auto &v : l)
-        result.append<BinWord>(v);
-    return result;
-}
 
 
 // !SECTION! Simple verifications
 
-void check_length(Sbox s)
+void check_length_cpp(Sbox s)
 {
     unsigned long int pow_2 = 1;
     while (pow_2 < s.size())
@@ -132,4 +112,3 @@ void check_length(Sbox s)
     if (pow_2 != s.size())
         throw NotSboxSized(s.size());
 }
-

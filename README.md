@@ -1,9 +1,4 @@
-# SboxU v0.1
-
-
-## Disclaimer
-
-`sboxU` is at a very early stage. Its API might change over time!
+# SboxU v1.0
 
 ## Description
 
@@ -15,28 +10,21 @@ and/or in parallel to improve their performances.
 
 ## Dependencies
 
-The `SboxU` was only tested on Linux (Ubuntu 16.04). To install it,
-you need the following packages.
+`sboxU` only depends on a recent version of SAGE (it was tested with
+version 9.3).
 
-```
-libboost-python-dev
-libpython-dev
-sage
-cmake
-```
 
 ## Usage
 
 To retrieve this module, use the following command:
 
-git clone https://github.com/lpp-crypto/sboxU/
+    git clone https://github.com/lpp-crypto/sboxU/
 
-Then, move to the `sbox-utils/sboxU` directory and run:
+Then, you need to compile the content of the `sboxU/sboxU_cython` folder.
+This process only relies on SAGE To compile it:
 
-```
-cmake .
-make
-```
+    cd sboxU/sboxU_cython
+    sage setup.py build_ext --inplace
 
 This compiles the C++ part of `sboxU` and allows it to be called from
 a SAGE script. To use it in your project, simply move the `sboxU`
@@ -45,23 +33,33 @@ any other python module.  As an example of the functions provided by
 `sboxU`, the SAGE script `example.py` stored alongside the folder
 `sboxU` generates random permutations and tests their affine
 equivalence.
+    
+Then, in order to use the functions provided by sboxU, simply
+paste/make a link to the folder sboxU from the directory in which you
+are working. For example, if you have a script called `test.py` in
+which you want to call the functions in sboxU then your directory
+should look like this:
+
+    $ ls
+    test.py
+    README.md
+    sboxu/
+    
+and the file `test.py` should contain `from sboxU import *`. You can
+also import sboxU in a sage notebook session provided that you started
+sage from the folder containing it.
 
 
-# For MAC Users
+## Troubleshooting
 
-`sboxU` should work out of the box on a MAC. If Sage complains about
-`ValueError: unknown locale: UTF-8 in Python`, try adding the
-following lines to your `~/.bash_profile`:
+- `undefined symbol: _Py_ZeroStruct` If you get such an error, there
+  are probably mismatches between the python versions used. This
+  typically happens if you have 2 versions of SAGE installed, used the
+  most recent one to compile `sboxU`, but then use an older one in
+  your scripts.
 
-```
-export LC_ALL=en_US.UTF-8
-export LANG=en_US.UTF-8
-```
+## Authors
 
-To install the boost library needed, you can use the following
-command:
+[Mathias Joly](https://github.com/MathiasJoly)
 
-```
-brew install boost-python
-```
-
+[Léo Perrin](https://who.paris.inria.fr/Leo.Perrin/)

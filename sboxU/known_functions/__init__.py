@@ -2,3 +2,8 @@
 functions/S-boxes.
 
 """
+
+from . import sixBitAPN
+from . import sevenBitAPN
+from . import eightBitAPN
+from . import tenBitAPN

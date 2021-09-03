@@ -7,7 +7,6 @@
 #define _SBOXU_CPP_EQUIV_H_
 
 #include "sboxu_cpp.hpp"
-using namespace boost::python;
 
 
 
@@ -26,7 +25,7 @@ class ContradictionFound: public std::exception
 {
 public:
     std::string msg;
-    ContradictionFound(uint32_t x, uint32_t y)
+    ContradictionFound(uint64_t x, uint64_t y)
     {
         msg = "Contradiction found: " + std::to_string(x) + " -> " + std::to_string(y) ;
     }
@@ -46,18 +45,18 @@ class LEguess
 {
 private:
     unsigned int target_size;
-    std::map<uint32_t, uint32_t> partial_lut;
+    std::map<uint64_t, uint64_t> partial_lut;
     std::vector<IOpair> latest_entries;
     unsigned int min_unset;
 public:
     LEguess(const unsigned int _target_size);
     ~LEguess();
-    std::map<uint32_t, bool> is_set;
+    std::map<uint64_t, bool> is_set;
     std::vector<IOpair> add_entry(const IOpair e);
-    bool is_entry_set(const uint32_t x);
+    bool is_entry_set(const uint64_t x);
     unsigned int min_u();
     bool complete();
-    uint32_t img(const uint32_t x);
+    uint64_t img(const uint64_t x);
     Sbox lut();
 };
 
@@ -89,10 +88,10 @@ class LErepr
 private:
     Sbox f;
     Sbox f_inv;
-    std::map<uint32_t, uint32_t> partial_lut;
-    std::map<uint32_t, uint32_t> partial_inv_lut;
-    std::map<uint32_t, bool> is_set;
-    std::map<uint32_t, bool> is_inv_set;
+    std::map<uint64_t, uint64_t> partial_lut;
+    std::map<uint64_t, uint64_t> partial_inv_lut;
+    std::map<uint64_t, bool> is_set;
+    std::map<uint64_t, bool> is_inv_set;
     unsigned int contiguous_length;
     Sbox best_guess;
     LEguess a;

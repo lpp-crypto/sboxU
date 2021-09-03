@@ -15,7 +15,7 @@ def test_ea(N):
     B = rand_linear_permutation(N)  # B is a SAGE Matrix instance
     b = randint(0, 2**N-1)          # a is a random number of [0,2^n)
     f = [oplus(apply_bin_mat(g[apply_bin_mat(oplus(x, a), A)], B), b)
-         for x in xrange(0, 2**N)]
+         for x in range(0, 2**N)]
     print("f = (B o g o A)(x + a) + b, where:")
     print("A = \n" + A.str())
     print("a = " + str(a))
@@ -37,18 +37,18 @@ def test_ea(N):
         
 def test_vector_extraction(N):
     z = []
-    for x in xrange(0, 2**(N)+2**(N-1)):
+    for x in range(0, 2**(N)+2**(N-1)):
         y = randint(0, 2**N-1)
         if y not in z:
             z.append(y)
     
     for number in ["just one", "all dimensions", "fixed dimension"]:
         #for number in ["all dimensions"]:
-        print "\n\n=== {}\n".format(number)
+        print("\n\n=== {}\n".format(number))
         bases = extract_affine_bases(z, int(N/2), N, number=number)
-        print "total = {}".format(len(bases))
+        print("total = {}".format(len(bases)))
         for b in bases:
-            print len(b), pretty_vector(b)
+            print(str(len(b)) + "  " + pretty_vector(b))
 
 
 if __name__ == '__main__':

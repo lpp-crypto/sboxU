@@ -1,30 +1,27 @@
-/* Time-stamp: <2020-11-20 13:10:22 leo>
+/* Time-stamp: <2021-08-11 15:41:21 lperrin>
  *
  * LICENSE
  */ 
 
 #include "sboxu_cpp_diff_lin.hpp"
-using namespace boost::python;
 
 
 // !SECTION! Differential properties
 
 // !SUBSECTION! Internal routines 
 
+
 std::vector<Integer> ddt_row(const Sbox s, const BinWord a)
 {
-    // I tried implementing this function using list
-    // instead of vectors. However, it turned out to be about 2-3
-    // times slower.
     std::vector<Integer> result(s.size(), 0);
-    for (unsigned int x=0; x<s.size(); x++)
+    for (unsigned int x=0; x< s.size(); x++)
         result[s[x^a] ^ s[x]] ++ ;
     return result;
-}
+};
 
 
 void ddt_rows_count(
-    std::map<Integer, Integer> &result,
+    std::map<Integer,Integer> &result,
     const Sbox s,
     const BinWord a_min,
     const BinWord a_max)
@@ -37,26 +34,37 @@ void ddt_rows_count(
     }
 }
 
-
-// !SUBSECTION! Python-facing functions 
-
-list ddt(const list& l)
+bool is_ddt_row_max_smaller_than(const Sbox s, const BinWord a, const Integer u)
 {
-    list result;    
-    Sbox s(lst_2_vec_BinWord(l)) ;
-    check_length(s);
-    for (unsigned int a=0; a<s.size(); a++)
-        result.append(vec_2_lst_Integer(ddt_row(s, a)));
-
-    return result;
+    std::vector<Integer> row(s.size(), 0);
+    for (unsigned int x=0; x<s.size(); x++)
+    {
+        BinWord d_out = s[x^a] ^ s[x];
+        row[d_out] ++ ;
+        if (row[d_out] > u)
+            return false;
+    }
+    return true;
 }
 
 
-dict differential_spectrum_fast(const list& l, const unsigned int n_threads)
+// !SUBSECTION! Python-facing functions 
+
+std::vector< std::vector<Integer> > ddt_cpp(const Sbox s)
 {
-    Sbox s(lst_2_vec_BinWord(l)) ;
-    check_length(s);
-    std::map<Integer, Integer> count;
+	std::vector< std::vector<Integer> > table_ddt ;
+	check_length_cpp(s);
+	for (unsigned int i = 0 ; i < s.size(); i++)
+	{
+		table_ddt.push_back(ddt_row(s,i));
+	}
+	return table_ddt ;
+}
+
+std::map<Integer,Integer> differential_spectrum_fast(const Sbox  s, const unsigned int n_threads)
+{
+    check_length_cpp(s);
+    std::map<Integer,Integer> count;
     if (n_threads == 1)
     {
         // small S-Box
@@ -65,7 +73,7 @@ dict differential_spectrum_fast(const list& l, const unsigned int n_threads)
     else
     {
         std::vector<std::thread> threads;
-        std::vector<std::map<Integer, Integer> > local_counts(n_threads);
+        std::vector<std::map<Integer,Integer> > local_counts(n_threads);
         unsigned int slice_size = s.size()/n_threads;
         for (unsigned int i=0; i<n_threads; i++)
         {
@@ -90,17 +98,24 @@ dict differential_spectrum_fast(const list& l, const unsigned int n_threads)
                 count[entry.first] += entry.second ;
         }
     }
-    dict result;
-    for (auto &entry : count)
-        result[entry.first] = entry.second ;
-    return result;
+    return count;
 }
+
+
+bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
+{
+    check_length_cpp(s);
+    for (unsigned int a=1; a<s.size(); a++)
+        if (is_ddt_row_max_smaller_than(s, a, u) == false)
+            return false;
+    return true;
+}
+
 
 
 // !SECTION! Linear properties
 
-
-Sbox invert_lat_cpp(const std::vector<std::vector<Integer> > l, const unsigned int n)
+Sbox invert_lat_cpp(const std::vector< std::vector<Integer> > l, const unsigned int n)
 {
     Sbox result(l.size(), 0);
     for (unsigned int i=0; i<n; i++)
@@ -111,7 +126,7 @@ Sbox invert_lat_cpp(const std::vector<std::vector<Integer> > l, const unsigned i
             sum = 0;
             for (unsigned int a=0; a<l.size(); a++)
             {
-                if (scal_prod(a, x) == 0)
+                if (scal_prod_cpp(a, x) == 0)
                     sum += l[a][b];
                 else
                     sum -= l[a][b];
@@ -122,7 +137,6 @@ Sbox invert_lat_cpp(const std::vector<std::vector<Integer> > l, const unsigned i
     }
     return result;
 }
-
 
 // !SUBSECTION! Internal routines 
 
@@ -169,7 +183,7 @@ void walsh_spectrum_cols_count(
         // computing one coordinate
         Sbox f(s.size(), 0);
         for (unsigned int x=0; x<f.size(); x++)
-            f[x] = scal_prod(b, s[x]);
+            f[x] = scal_prod_cpp(b, s[x]);
         // Walsh transform
         std::vector<Integer> w(walsh_spectrum_coord(f));
         // counting
@@ -189,7 +203,7 @@ void lat_zeroes_in_columns(
     for (unsigned int b=b_min; b<b_max; b++)
     {
         // computing one coordinate
-        Sbox f(component(b, s)) ;
+        Sbox f(component_cpp(b, s)) ;
         // Walsh transform
         std::vector<Integer> w(walsh_spectrum_coord(f));
         // getting zeroes
@@ -210,7 +224,7 @@ void do_lat_columns_contain_zero(
     for (unsigned int b=b_min; b<b_max; b++)
     {
         // computing one coordinate
-        Sbox f(component(b, s)) ;
+        Sbox f(component_cpp(b, s)) ;
         // Walsh transform
         std::vector<Integer> w(walsh_spectrum_coord(f));
         bool contains_zero = false;
@@ -224,44 +238,37 @@ void do_lat_columns_contain_zero(
     }
 }
 
-
 // !SUBSECTION! High level parallelized functions 
 
-list lat(const list& l)
+std::vector< std::vector<Integer> > lat_cpp(const Sbox s)
 {
-    Sbox s(lst_2_vec_BinWord(l)) ;
-    check_length(s);
-    std::vector<std::vector<Integer> > table(
-        s.size(),
-        std::vector<Integer>(s.size(), 0));
+    check_length_cpp(s);
+    std::vector<std::vector<Integer> > table(s.size(), std::vector<Integer>(s.size(), 0));
     // generating table
     for (unsigned int b=0; b<s.size(); b++)
     {
         // computing one coordinate
         Sbox f(s.size(), 0);
         for (unsigned int x=0; x<f.size(); x++)
-            f[x] = scal_prod(b, s[x]);
+            f[x] = scal_prod_cpp(b, s[x]);
         // Walsh transform
         std::vector<Integer> w(walsh_spectrum_coord(f));
         table[b].assign(w.begin(), w.end()); 
     }
-    // transposing
-    list result;
+    std::vector<std::vector<Integer>> result ; 
     for (unsigned int a=0; a<s.size(); a++)
     {
         std::vector<Integer> row(s.size(), 0);
         for (unsigned int b=0; b<s.size(); b++)
             row[b] = table[b][a];
-        result.append<list>(vec_2_lst_Integer(row));
+        result.push_back(row);
     }
     return result;
 }
 
-
-dict walsh_spectrum_fast(const list& l, const unsigned int n_threads)
+std::map<Integer, Integer> walsh_spectrum_fast_cpp(const Sbox s, const unsigned int n_threads)
 {
-    Sbox s(lst_2_vec_BinWord(l)) ;
-    check_length(s);
+    check_length_cpp(s);
     std::map<Integer, Integer> count;
     if (n_threads == 1)
     {
@@ -296,19 +303,15 @@ dict walsh_spectrum_fast(const list& l, const unsigned int n_threads)
                 count[entry.first] += entry.second ;
         }
     }
-    dict result;
-    for (auto &entry : count)
-        result[entry.first] = count[entry.first] ;
-    return result;
+    return count;
 }
-
 
 std::vector<BinWord> lat_zeroes_cpp(
     const Sbox s,
     const unsigned int n,
     const unsigned int n_threads)
 {
-    check_length(s);
+    check_length_cpp(s);
     std::vector<BinWord> zeroes;
     if (n_threads == 1)
     {
@@ -351,7 +354,7 @@ std::vector<BinWord> projected_lat_zeroes_cpp(
     const Sbox s,
     const unsigned int n_threads)
 {
-    check_length(s);
+    check_length_cpp(s);
     std::vector<bool> projection;
     if (n_threads == 1)
     {
@@ -392,6 +395,56 @@ std::vector<BinWord> projected_lat_zeroes_cpp(
     return projected_zeroes ;
 }
 
+
+// !SECTION! Quadratic functions
+
+
+Sbox ortho_derivative_fast(const Sbox& s)
+{
+    check_length_cpp(s);
+    Sbox result(s.size(), 0);
+    for (unsigned int a=1; a<s.size(); a++)
+    {
+        // getting the hyperplane
+        std::vector<Integer> row(ddt_row(s, a));
+        std::vector<Integer> hyperplane;
+        hyperplane.reserve(s.size() / 2);
+        for(unsigned int b=1; b<s.size(); b++)
+            if (row[b] != row[0])
+                hyperplane.push_back(b);
+
+        // we return an empty list if the function is not APN, which
+        // is equivalent to all rows having exactly half of their
+        // elements be non-zero
+        if (hyperplane.size() < (s.size()/2))
+            return Sbox(0);
+
+        // bruteforcing "ortho" until it is orthogonal to all elements
+        // in the hyperplane
+        BinWord ortho = 1;
+        bool found = false;
+        while ((not found) and (ortho < s.size()))
+        {
+            found = true;
+            for(auto &b : hyperplane)
+                if (scal_prod_cpp(ortho, b) == 0)
+                {
+                    found = false;
+                    break;
+                }
+            if (not found)
+                ortho += 1;
+        }
+        // if we couldn't find an element orthogonal to the
+        // hyperplane, then it is not a hyperplane and we return an
+        // empty function
+        if (found)
+            result[a] = ortho;
+        else
+            return Sbox(0);
+    }
+    return result;
+}
 
 // !SECTION! Boomerang properties
 
@@ -448,22 +501,20 @@ void bct_rows_count(
 
 // !SUBSECTION! Python-facing functions 
 
-list bct(const list& l)
+std::vector< std::vector<Integer>> bct_cpp(const Sbox s)
 {
-    list result;    
-    Sbox s(lst_2_vec_BinWord(l)), s_inv(inverse(s)) ;
-    check_length(s);
-    for (unsigned int a=0; a<s.size(); a++)
-        result.append(vec_2_lst_Integer(bct_row(s, s_inv, a)));
-
-    return result;
+	std::vector< std::vector<Integer>> table_bct ;
+	check_length_cpp(s) ;
+	Sbox s_inv(inverse_cpp(s)) ;
+	for(unsigned int a = 0; a < s.size(); a++)
+		table_bct.push_back(bct_row(s,s_inv,a)) ;
+	return table_bct ;
 }
 
-
-dict bct_spectrum_fast(const list& l, const unsigned int n_threads)
+std::map<Integer, Integer> bct_spectrum_fast_cpp(const Sbox s, const unsigned int n_threads)
 {
-    Sbox s(lst_2_vec_BinWord(l)), s_inv(inverse(s)) ;
-    check_length(s);
+    check_length_cpp(s);
+    Sbox s_inv(inverse_cpp(s)) ;
     std::map<Integer, Integer> count;
     if (n_threads == 1)
     {
@@ -499,67 +550,5 @@ dict bct_spectrum_fast(const list& l, const unsigned int n_threads)
                 count[entry.first] += entry.second ;
         }
     }
-    dict result;
-    for (auto &entry : count)
-        result[entry.first] = entry.second ;
-    return result;
-}
-
-
-// !SECTION! Quadratic functions
-
-
-Sbox ortho_derivative_fast(const Sbox& s)
-{
-    Sbox result(s.size(), 0);
-    for (unsigned int a=1; a<s.size(); a++)
-    {
-        // getting the hyperplane
-        std::vector<Integer> row(ddt_row(s, a));
-        std::vector<Integer> hyperplane;
-        hyperplane.reserve(s.size() / 2);
-        for(unsigned int b=1; b<s.size(); b++)
-            if (row[b] != row[0])
-                hyperplane.push_back(b);
-
-        // we return an empty list if the function is not APN, which
-        // is equivalent to all rows having exactly half of their
-        // elements be non-zero
-        if (hyperplane.size() < (s.size()/2))
-            return Sbox(0);
-
-        // bruteforcing "ortho" until it is orthogonal to all elements
-        // in the hyperplane
-        BinWord ortho = 1;
-        bool found = false;
-        while ((not found) and (ortho < s.size()))
-        {
-            found = true;
-            for(auto &b : hyperplane)
-                if (scal_prod(ortho, b) == 0)
-                {
-                    found = false;
-                    break;
-                }
-            if (not found)
-                ortho += 1;
-        }
-        // if we couldn't find an element orthogonal to the
-        // hyperplane, then it is not a hyperplane and we return an
-        // empty function
-        if (found)
-            result[a] = ortho;
-        else
-            return Sbox(0);
-    }
-    return result;
-}
-
-
-list ortho_derivative(const list& l)
-{
-    list result;    
-    Sbox s(lst_2_vec_BinWord(l));
-    check_length(s);
-    return vec_2_lst_BinWord(ortho_derivative_fast(s));
+    return count;
 }
