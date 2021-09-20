@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2021-09-20 10:19:38 lperrin>
+# Time-stamp: <2021-09-20 16:25:20 lperrin>
 
 from sboxu_cpp cimport *
 
@@ -95,8 +95,17 @@ def c_differential_spectra(s, F, l_table=None, e_table=None):
 
 # !SECTION! Linear properties (Walsh/Fourier)
 
-def lat(l):
-    return lat_cpp(l)
+def lat(s):
+    """Return the Linear Approximation Table of `l` (or its Walsh
+    coefficients). It is a 2-dimensional array `T` such that
+
+    T[a][b] = \sum_{x=0}^{2^n-1} (-1)^{ax + b s[x]}
+
+    where `s` is the function whose LUT is given as the input to this
+    function, and where n is the size of the input set in bits.
+
+    """
+    return lat_cpp(s)
     
 def walsh_spectrum(l, n_threads=None):
     if n_threads == None:
