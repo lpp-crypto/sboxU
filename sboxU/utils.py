@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-08-11 16:41:46 lperrin>
+# Time-stamp: <2021-09-20 10:22:45 lperrin>
 
 from sage.all import *
 import itertools
@@ -69,3 +69,15 @@ def image(f):
         img[f[x]] += 1
     return img.keys()
 
+
+def all_fields_of_degree(n):
+    """Returns a list of all the fields of characteristic 2 and degree
+    `n`, meaning that all the primitive polynomials of degree `n` of
+    GF(2) are used to create GF instances.
+
+    """
+    result = []
+    for p in GF(2).polynomial_ring().polynomials(of_degree=n):
+        if p.is_primitive():
+            result.append(GF(2**n, modulus=p, name="a"))
+    return result

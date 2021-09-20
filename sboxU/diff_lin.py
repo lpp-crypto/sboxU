@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-09-02 14:36:29 lperrin>
+# Time-stamp: <2021-09-15 14:43:43 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -54,6 +54,20 @@ def dlct(s):
     return table
 
 
+def c_differential_uniformity_spectrum(s, F, l_table=None, e_table=None):
+    """Returns a dictionnary `d` such that `d[u]` is a list containing all
+    values `c` such that c != 0, and such that s[x ^ a] ^ c s[x] = b
+    has at most u solutions x, the maximum being taken over all pairs
+    (a, b).
+
+    """
+    c_spectra = c_differential_spectra(s, F, l_table=None, e_table=None)
+    result = defaultdict(list)
+    for c in range(1, len(s)):
+        uniformity = max(c_spectra[c].keys())
+        result[uniformity].append(c)
+    return result
+    
 
 # !SECTION! Properties of functions and permutations
 
@@ -370,6 +384,8 @@ def invert_lat(l):
     Only works for functions with the same input and output length."""
     n = int(log(len(l), 2))
     return invert_lat_fast(l, n)
+
+
 
 
 # !SECTION! Tests

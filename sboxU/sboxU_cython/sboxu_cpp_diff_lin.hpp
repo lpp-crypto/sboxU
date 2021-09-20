@@ -1,4 +1,4 @@
-/* Time-stamp: <2021-08-11 15:38:30 lperrin>
+/* Time-stamp: <2021-09-15 14:26:51 lperrin>
  *
  * LICENSE
  */ 
@@ -39,6 +39,15 @@ std::map<Integer,Integer> differential_spectrum_fast(const Sbox s, const unsigne
  */ 
 bool is_differential_uniformity_smaller_than_cpp(const Sbox  s, const Integer u);
 
+
+/**@return a vector v such that v[c] is a map of the form {k : n_k}
+ * such that s[x^a] ^ c s[x] = b has exactly k solutions x for n_k
+ * different pairs (a,b).
+ */
+std::vector<std::map<Integer, BinWord> > c_differential_spectra_hpp(
+    const Sbox s,
+    const Sbox l_table,
+    const Sbox e_table);
 
 // !SECTION! Linear
 

@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2021-08-11 15:43:20 lperrin>
+# Time-stamp: <2021-09-20 10:19:38 lperrin>
 
 from sboxu_cpp cimport *
 
@@ -45,7 +45,7 @@ def ortho_derivative(s):
 
     """
     return ortho_derivative_fast(s)
-
+    
 
 def is_differential_uniformity_smaller_than(s, u):
     """Returns true if and only if the differential uniformity of the
@@ -54,6 +54,44 @@ def is_differential_uniformity_smaller_than(s, u):
 
     """
     return is_differential_uniformity_smaller_than_cpp(s, u)
+
+
+
+# !SUBSECTION! c-differential properties
+
+def log_exp_table(F):
+    """Returns a pair of tables of integers. Let `a` be a root of the
+    polynomial generator of the multiplicative
+
+    - The first, L, is a logarithm table. It is such that a**L[x] = x,
+      and L[0] = -1.
+    - The second, E, is the inverse of L: E[L[x]] = x.
+
+    """
+    a = F.gen()
+    x = a
+    N = F.degree()
+    E = [1]
+    for i in range(1, 2**N-1):
+        E.append(x.integer_representation())
+        x *= a
+    L = [2**N]
+    for i in range(1, 2**N):
+        L.append(E.index(i))
+    return [L, E]
+
+
+def c_differential_spectra(s, F, l_table=None, e_table=None):
+    """Returns a vector v such that v[c] is a map of the form {k : n_k}
+    such that s[x^a] ^ c s[x] = b has exactly k solutions x for n_k
+    different pairs (a,b).
+
+    """
+    if l_table == None or e_table == None:
+        l_table, e_table = log_exp_table(F)
+    return c_differential_spectra_cpp(s, l_table, e_table)
+
+
 
 # !SECTION! Linear properties (Walsh/Fourier)
 

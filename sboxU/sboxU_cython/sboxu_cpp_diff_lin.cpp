@@ -1,4 +1,4 @@
-/* Time-stamp: <2021-08-11 15:41:21 lperrin>
+/* Time-stamp: <2021-09-15 14:27:13 lperrin>
  *
  * LICENSE
  */ 
@@ -111,6 +111,33 @@ bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
     return true;
 }
 
+
+std::vector<std::map<Integer, BinWord> > c_differential_spectra_cpp(
+    const Sbox s,
+    const Sbox l_table,
+    const Sbox e_table)
+{
+    std::vector<std::map<Integer, BinWord> > result(1, std::map<Integer, BinWord>());
+    unsigned int modulus = s.size() - 1;
+    for (unsigned int c=1; c<s.size(); c++)
+    {
+        std::map<Integer, BinWord> spectrum;
+        BinWord log_c = l_table[c];
+        for(unsigned int a=0; a<s.size(); a++)
+        {
+            std::vector<BinWord> c_ddt_row(s.size(), 0);
+            for(unsigned int x=0; x<s.size(); x++)
+            {
+                BinWord b = s[x ^ a] ^ e_table[(log_c + l_table[s[x]]) % modulus];
+                c_ddt_row[b] += 1;
+            }
+            for(auto & val : c_ddt_row)
+                spectrum[val] += 1;
+        }
+        result.push_back(spectrum);
+    }
+    return result;
+}
 
 
 // !SECTION! Linear properties
