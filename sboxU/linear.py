@@ -269,7 +269,7 @@ def extract_bases(z,
                   dimension,
                   word_length,
                   n_threads=DEFAULT_N_THREADS,
-                  number="fixed dimension"):
+                  number=b"fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each vector
     space of dimension `dimension` that is contained in the list `z` of
     integers intepreted as elements of $\\F_2^n$ where $n$ is equal to
@@ -294,14 +294,14 @@ def extract_bases(z,
       ignored.
 
     """
-    if number not in ["all dimensions", "fixed dimension", "just one"]:
-        raise Exception("Unknown value for parameter `number` in extract_bases:" + number)
+    if number not in [b"all dimensions", b"fixed dimension", b"just one"]:
+        raise Exception(b"Unknown value for parameter `number` in extract_bases:" + number)
     result = extract_bases_fast(z,
-                                int(dimension),
-                                int(word_length),
-                                int(n_threads),
-                                str(number))
-    if number == "all dimensions":
+                               dimension,
+                               word_length,
+                               n_threads,
+                               number)
+    if number == b"all dimensions":
         # in the case where we have obtained larger spaces, we remove
         # their subspaces from the list
         bigger_spaces = [b for b in result if len(b) > dimension]
@@ -334,7 +334,7 @@ def extract_affine_bases(z,
                          dimension,
                          word_length,
                          n_threads=DEFAULT_N_THREADS,
-                         number="fixed dimension"):
+                         number=b"fixed dimension"):
     """Returns a list containing the Gaussian Jacobi basis of each affine
     space of dimension `dimension` that is contained in the list `z` of
     integers intepreted as elements of $\\F_2^n$ where $n$ is equal to
@@ -359,14 +359,14 @@ def extract_affine_bases(z,
       ignored.
 
     """
-    if number not in ["all dimensions", "fixed dimension", "just one"]:
-        raise Exception("Unknown value for parameter `number` in extract_affine_bases:" + number)
+    if number not in [b"all dimensions", b"fixed dimension", b"just one"]:
+        raise Exception(b"Unknown value for parameter `number` in extract_affine_bases:" + number)
     result = extract_affine_bases_fast(z,
                                      int(dimension),
                                      int(word_length),
                                      int(n_threads),
-                                     str(number))
-    if number == "all dimensions":
+                                     number)
+    if number == b"all dimensions":
         # in the case where we have obtained larger spaces, we remove
         # their subspaces from the list
         bigger_affine = [[oplus(b[0], x) for x in linear_span(b[1:])]
