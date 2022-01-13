@@ -296,6 +296,33 @@ def affine_equivalence(f, g):
 
 # !SECTION! CCZ-equivalence 
 
+
+# !SUBSECTION! Basic test with SAGE built-in linear code function
+
+def are_ccz_equivalent(f, g):
+    """Returns True if and only if the functions with LUT f and g are
+    CCZ-equivalent. This implementation is inspired by the one of
+    Kazymyrov:
+
+    https://github.com/okazymyrov/sbox/blob/master/Sage/CSbox.sage#L624
+
+    """
+    if len(f) != len(g):
+        raise Exception("f and g are of different sizes!")
+    N = int(log(len(f), 2))
+    mask = sum((1 << i) for i in range(0, N))
+    mat_f = Matrix(GF(2), len(f), 2*N+1, [
+        [1] + tobin((x << N) | f[x], 2*N) for x in range(0, 2**N)
+    ])
+    mat_g = Matrix(GF(2), len(f), 2*N+1, [
+        [1] + tobin((x << N) | g[x], 2*N) for x in range(0, 2**N)
+    ])
+    code_f = LinearCode(mat_f.transpose())
+    code_g = LinearCode(mat_g.transpose())
+    return code_f.is_permutation_equivalent(code_g)
+    
+    
+
 # !SUBSECTION! CCZ-equivalence to a permutation
 
 def ea_equivalent_permutation_mappings(f, spaces=None):
@@ -736,7 +763,7 @@ if __name__ == '__main__':
     # test_ea_permutations()
     # test_ccz_permutations(number="just one")
     # test_enumerate_ea()
-    test_ea_classes()
+    # test_ea_classes()
     
     # import sys
     # N = int(sys.argv[1])
@@ -746,3 +773,10 @@ if __name__ == '__main__':
     # test_le_repr(N, verbose=False)
     # print("\n=== Affine Equivalence ===")
     # test_ae_equivalence(N, verbose=True)
+
+    N = 5
+    gf = GF(2**N, name="a")
+    cube = [(gf.fetch_int(x)**3) for x in range(0, 2**N)]
+    for g in ea_classes_in_the_ccz_class_of(cube):
+        print(are_ccz_equivalent(f, g), g)
+        

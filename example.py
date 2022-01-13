@@ -2,6 +2,7 @@
 
 from sage.all import *
 from sboxU import *
+import time
 
 
 
@@ -50,6 +51,33 @@ def test_vector_extraction(N):
         for b in bases:
             print(str(len(b)) + "  " + pretty_vector(b))
 
+def test_ccz_equivalence(N, n_trials):
+    gf = GF(2**N, name="a")
+    cube = [(gf.fetch_int(x)**3).integer_representation() for x in range(0, 2**N)]
+    print("Should be True:")
+    total_time_ccz = 0.0
+    for i, g in enumerate(ea_classes_in_the_ccz_class_of(cube)):
+        start_time = time.time()
+        equiv = are_ccz_equivalent(cube, g)
+        elapsed_seconds = float(time.time() - start_time)
+        total_time_ccz += elapsed_seconds
+        print("{} {:.3f}s".format(equiv, elapsed_seconds))
+        if (i == n_trials-1):
+            break
+    print("average time: {:.3f}s".format(total_time_ccz / n_trials))
+    total_time_ccz = 0.0
+    print("\nShould be False:")
+    for i in range(0, n_trials):
+        g = [randint(0, 2**N-1) for i in range(0, 2**N)]
+        start_time = time.time()
+        equiv = are_ccz_equivalent(cube, g)
+        elapsed_seconds = float(time.time() - start_time)
+        total_time_ccz += elapsed_seconds
+        print("{} {:.3f}s".format(equiv, elapsed_seconds))
+    print("average time: {:.3f}s".format(total_time_ccz / n_trials))
+
+
+
 
 if __name__ == '__main__':
-    test_ea(6)
+    test_ccz_equivalence(8, 10)
