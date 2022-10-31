@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2021-09-20 16:25:20 lperrin>
+# Time-stamp: <2022-10-31 10:04:44 lperrin>
 
 from sboxu_cpp cimport *
 
@@ -35,6 +35,14 @@ def ddt(s):
     """
     return ddt_cpp(s)
 
+
+def ddt_row(s, a):
+    """Returns the row corresponding to input difference `a` in the DDT of
+    the function with lookup table `s`.
+
+    """
+    return ddt_row_cpp(s, a)
+    
 
 def ortho_derivative(s):
     """Assuming that `s` corresponds to a quadratic APN function, returns

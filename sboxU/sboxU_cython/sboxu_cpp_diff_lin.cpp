@@ -1,4 +1,4 @@
-/* Time-stamp: <2021-09-21 11:07:53 lperrin>
+/* Time-stamp: <2022-10-31 10:33:01 lperrin>
  *
  * LICENSE
  */ 
@@ -11,7 +11,7 @@
 // !SUBSECTION! Internal routines 
 
 
-std::vector<Integer> ddt_row(const Sbox s, const BinWord a)
+std::vector<Integer> ddt_row_cpp(const Sbox s, const BinWord a)
 {
     std::vector<Integer> result(s.size(), 0);
     for (unsigned int x=0; x< s.size(); x++)
@@ -28,7 +28,7 @@ void ddt_rows_count(
 {
     for (unsigned int a=a_min; a<a_max; a++)
     {
-        std::vector<Integer> row(ddt_row(s, a));
+        std::vector<Integer> row(ddt_row_cpp(s, a));
         for (auto &v : row)
             result[v] ++;
     }
@@ -56,7 +56,7 @@ std::vector< std::vector<Integer> > ddt_cpp(const Sbox s)
 	check_length_cpp(s);
 	for (unsigned int i = 0 ; i < s.size(); i++)
 	{
-		table_ddt.push_back(ddt_row(s,i));
+		table_ddt.push_back(ddt_row_cpp(s,i));
 	}
 	return table_ddt ;
 }
@@ -434,7 +434,7 @@ Sbox ortho_derivative_fast(const Sbox& s)
     for (unsigned int a=1; a<s.size(); a++)
     {
         // getting the hyperplane
-        std::vector<Integer> row(ddt_row(s, a));
+        std::vector<Integer> row(ddt_row_cpp(s, a));
         std::vector<Integer> hyperplane;
         hyperplane.reserve(s.size() / 2);
         for(unsigned int b=1; b<s.size(); b++)
