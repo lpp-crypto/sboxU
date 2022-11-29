@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-09-20 10:22:45 lperrin>
+# Time-stamp: <2022-11-29 13:39:03 lperrin>
 
 from sage.all import *
 import itertools
@@ -81,3 +81,16 @@ def all_fields_of_degree(n):
         if p.is_primitive():
             result.append(GF(2**n, modulus=p, name="a"))
     return result
+
+
+def covered_set(mask):
+    """Returns a list containing all the integers whose binary
+    representation is covered by `mask`, i.e. covered_set(3) = [0, 1, 2,
+    3]."""
+    if mask == 0:
+        return [0]
+    elif (mask & 1) == 0:
+        return [(x << 1) for x in covered_set(mask >> 1)]
+    else:
+        c = [(x << 1) for x in covered_set(mask >> 1)]
+        return c + [(x | 1) for x in c]
