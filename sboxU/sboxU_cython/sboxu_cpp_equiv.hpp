@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-10 17:13:51 lperrin>
+/* Time-stamp: <2023-01-04 15:52:05 lperrin>
  *
  * LICENSE
  */ 
@@ -12,7 +12,7 @@
 
 // !SECTION! Python-facing functions
 
-std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g);
+std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g, bool all_mappings);
 Sbox le_class_representative_cpp(const Sbox f);
 
     

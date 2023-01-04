@@ -197,13 +197,16 @@ def xor_equivalence(f, g):
 
 # !SUBSECTION! Linear equivalence
 
-def linear_equivalence(f, g):
+def linear_equivalence(f, g, all_mappings=False):
     """Returns, if it exists, the pair A, B of matrix such that, for all x:
 
     f(x) = (B o g o A)(x),
 
     where "o" denotes functional composition. If no such linear
     permutations exist, returns an empty list.
+    
+    If the `all_mappings` argument is set to True, returns a list of
+    all such pairs instead.
 
     Internally calls a function written in C++ for speed which
     implements the "Linear Equivalence (LE)" algorithm from
@@ -219,12 +222,20 @@ def linear_equivalence(f, g):
         raise "f and g are of different dimensions!"
     if (f[0] == 0 and g[0] != 0) or (f[0] != 0 and g[0] == 0):
         return []
-    result = linear_equivalence_fast(f, g)
+    result = linear_equivalence_fast(f, g, all_mappings=all_mappings)
     if len(result) == 0:
         return result
-    A = linear_function_lut_to_matrix(result[0])
-    B = linear_function_lut_to_matrix(result[1])
-    return A, B
+    if not all_mappings:
+        A = linear_function_lut_to_matrix(result[0])
+        B = linear_function_lut_to_matrix(result[1])
+        return A, B
+    else:
+        all_pairs = []
+        for i in range(0, len(result), 2):
+            A = linear_function_lut_to_matrix(result[i  ])
+            B = linear_function_lut_to_matrix(result[i+1])
+            all_pairs.append([A, B])
+        return all_pairs
 
 
 # !SUBSECTION! Affine equivalence 
@@ -293,6 +304,26 @@ def affine_equivalence(f, g):
     return [A, a, B, b]
 
 
+def self_affine_equivalent_mappings(s):
+    """Returns a list of affine permutations A,B such that B[s[A[x]]] =
+    s[x] for all x, where the permutations are specified via their lookup
+    tables.
+
+    """
+    result = []
+    for cstt_in in range(0, len(s)):
+        for cstt_out in range(0, len(s)):
+            mappings = linear_equivalence(
+                s,
+                [oplus(cstt_out, s[oplus(cstt_in, x)]) for x in range(0, len(s))],
+                all_mappings=True
+            )
+            for AB in mappings:
+                A = [oplus(apply_bin_mat(x, AB[0]), cstt_in) for x in range(0, len(s))]
+                B = [oplus(apply_bin_mat(x, AB[1]), cstt_out) for x in range(0, len(s))]
+                result.append([A, B])
+    return result
+                
 
 # !SECTION! CCZ-equivalence 
 

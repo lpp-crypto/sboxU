@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2022-10-31 10:34:41 lperrin>
+# Time-stamp: <2023-01-04 15:57:23 lperrin>
 
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -46,7 +46,7 @@ cdef extern from "sboxu_cpp_equiv.cpp":
     pass
 
 cdef extern from "sboxu_cpp_equiv.hpp" :
-    cdef vector[ vector[uint64_t] ] linear_equivalence_cpp(const vector[uint64_t] f, const vector[uint64_t] g);
+    cdef vector[ vector[uint64_t] ] linear_equivalence_cpp(const vector[uint64_t] f, const vector[uint64_t] g, const bool);
     cdef vector[uint64_t] le_class_representative_cpp(const vector[uint64_t] f);
 
 cdef extern from "sboxu_cpp_ccz.cpp":

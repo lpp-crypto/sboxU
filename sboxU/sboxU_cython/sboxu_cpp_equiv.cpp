@@ -1,4 +1,4 @@
-/* Time-stamp: <2019-07-10 17:14:22 lperrin>
+/* Time-stamp: <2023-01-04 16:11:57 lperrin>
  *
  * LICENCE
  */
@@ -179,7 +179,7 @@ LEguessIterator LEguessIterator::deeper_guess_gen()
 
 // !SECTION! Actual algorithm LE
 
-std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
+std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g, bool all_mappings)
 {
     check_length_cpp(f);
     check_length_cpp(g);
@@ -204,9 +204,8 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
         while ((b_generators.size() > 0) and (not b_generators.back().prepare_successfully()))
             b_generators.pop_back();
         if (b_generators.size() == 0)
-                return std::vector<Sbox>(); // nothing to be found, we
-                                            // have exhausted all
-                                            // possible guesses
+                return result; // nothing more to be found, we have
+                               // exhausted all possible guesses
         LEguess
             a(f.size()),
             b = b_generators.back().get_prepared_guess();
@@ -268,7 +267,6 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
                 b_generators.push_back(b_generators.back().deeper_guess_gen());
             else
             {                   // we have everything we need
-                std::vector<Sbox> result;
                 Sbox A(f.size(), 0), B(b.lut());
                 if (is_permutation_cpp(B))
                 {
@@ -278,7 +276,8 @@ std::vector<Sbox> linear_equivalence_cpp(const Sbox f, const Sbox g)
                         A[x] = g_inv[B_inv[f[x]]];
                     result.push_back(A);
                     result.push_back(B);
-                    return result;
+                    if (not all_mappings)
+                        return result;
                 }
                 else
                     // inconclusive: we will guess one more entry
