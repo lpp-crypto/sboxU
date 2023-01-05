@@ -320,7 +320,7 @@ def self_affine_equivalent_mappings(s):
             )
             for AB in mappings:
                 A = [oplus(apply_bin_mat(x, AB[0]), cstt_in) for x in range(0, len(s))]
-                B = [oplus(apply_bin_mat(x, AB[1]), cstt_out) for x in range(0, len(s))]
+                B = [apply_bin_mat(oplus(x, cstt_out), AB[1]) for x in range(0, len(s))]
                 result.append([A, B])
     return result
                 
