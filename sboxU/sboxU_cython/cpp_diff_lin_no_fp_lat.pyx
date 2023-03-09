@@ -5,7 +5,7 @@ import os
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libc.stdint cimport int64_t, uint64_t
-from sboxu_cpp cimport *
+from sboxu_cpp_no_fp_lat cimport *
 import os
 
 BIG_SBOX_THRESHOLD = 128
@@ -84,6 +84,7 @@ def differential_spectrum(s, p=None, n_threads=None):
     The optional parameter `n_threads` can be used to specify the
     number of threads used to perform this computation.
 
+    If p is not given, it is assumed to be 2.
     """
     if n_threads == None:
         if len(s) > BIG_SBOX_THRESHOLD:
@@ -216,7 +217,6 @@ def lat(s, p=None, n_threads=DEFAULT_N_THREADS):
     where `s` is the function whose LUT is given as the input to this
     function, omega is a complex pth root of unity (-1 when p == 2)
     and where n is the size of the input set in bits.
-    If p is not given, it is assumed to be 2.
 
     """
     if len(s)%2 == 0 or p == 2:
@@ -225,21 +225,11 @@ def lat(s, p=None, n_threads=DEFAULT_N_THREADS):
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat(f, p=None, n_threads=2)")
     if not p.is_prime():
         raise ValueError("p is not a prime.")
-    m = 1
-    l = len(s)
-    temp = p
-    while temp < l:
-        temp *= p
-        m += 1
-    if temp != l:
-        raise ValueError(f"Table size is not a power of {p}.")
-    assert(p**m == l)
-    return fpt_lat(s, p, m, n_threads)
+    raise ValueError("fftw library (and maybe openmp) not installed with the right commands. Follow the instructions in the readme and rerun setup.py.")
 
 def lat_column(s, b, p=None):
     """
     Return the column at index b of the LAT of `s`.
-    If p is not given, it is assumed to be 2.
     """
     if len(s)%2 == 0 or p == 2:
         raise ValueError("Not implemented for sizes powers of two.")
@@ -247,22 +237,12 @@ def lat_column(s, b, p=None):
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat_column(f, b, p=None)")
     if not p.is_prime():
         raise ValueError("p is not a prime.")
-    m = 1
-    l = len(s)
-    temp = p
-    while temp < l:
-        temp *= p
-        m += 1
-    if temp != l:
-        raise ValueError(f"Table size is not a power of {p}.")
-    assert(p**m == l)
-    return fpt_lat_column(s, p, m, b)
+    raise ValueError("fftw library (and maybe openmp) not installed with the right commands. Follow the instructions in the readme and rerun setup.py.")
     
 def lat_row(s, a, p=None):
     """
     Return the row at index a of the LAT of `s`.
     /!\ ONLY WORKS IF s IS A PERMUTATION
-    If p is not given, it is assumed to be 2.
     """
     if len(s)%2 == 0 or p == 2:
         raise ValueError("Not implemented for sizes powers of two.")
@@ -270,23 +250,11 @@ def lat_row(s, a, p=None):
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat_row(f, a, p=None)")
     if not p.is_prime():
         raise ValueError("p is not a prime.")
-    m = 1
-    l = len(s)
-    temp = p
-    while temp < l:
-        temp *= p
-        m += 1
-    if temp != l:
-        raise ValueError(f"Table size is not a power of {p}.")
-    assert(p**m == l)
-    if (len(set(s)) != len(s)):
-        raise ValueError("lat_row is not implemented for functions that are not permutations. Try lat or lat_column.")
-    return fpt_lat_row(s, p, m, a)
+    raise ValueError("fftw library (and maybe openmp) not installed. Follow the instructions in the readme and rerun setup.py.")
 
 def lat_max(s, p=None, n_threads=DEFAULT_N_THREADS):
     """
     Return the linearity of `s`, i.e. the maximum of its coefficients.
-    If p is not given, it is assumed to be 2.
     """
     if len(s)%2 == 0 or p == 2:
         raise ValueError("Not implemented for sizes powers of two.")
@@ -294,18 +262,9 @@ def lat_max(s, p=None, n_threads=DEFAULT_N_THREADS):
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat_max(f, p=None, n_threads=2)")
     if not p.is_prime():
         raise ValueError("p is not a prime.")
-    m = 1
-    l = len(s)
-    temp = p
-    while temp < l:
-        temp *= p
-        m += 1
-    if temp != l:
-        raise ValueError(f"Table size is not a power of {p}.")
-    assert(p**m == l)
-    return fpt_max_lat(s, p, m, n_threads)
+    raise ValueError("fftw library (and maybe openmp) not installed. Follow the instructions in the readme and rerun setup.py.")
 
-def walsh_spectrum(s, p=None, epsilon=1e-5, n_threads=None):
+def walsh_spectrum(s, p=None, n_threads=None):
     """
     Returns the walsh spectrum of s, a.k.a. a dict ws such that ws[value] is the number
     of entries of the LAT at value.
@@ -324,16 +283,7 @@ def walsh_spectrum(s, p=None, epsilon=1e-5, n_threads=None):
         raise ValueError("Base prime p not given and assumed != 2. Usage: walsh_spectrum(f, p=None, n_threads=None)")
     if not p.is_prime():
         raise ValueError("p is not a prime.")
-    m = 1
-    l = len(s)
-    temp = p
-    while temp < l:
-        temp *= p
-        m += 1
-    if temp != l:
-        raise ValueError(f"Table size is not a power of {p}.")
-    assert(p**m == l)
-    return fpt_walsh_spectrum(s, p, m, epsilon, n_threads)
+    raise ValueError("fftw library (and maybe openmp) not installed. Follow the instructions in the readme and rerun setup.py.")
 
 def fourier_transform(l):
     return walsh_spectrum_coord(l)

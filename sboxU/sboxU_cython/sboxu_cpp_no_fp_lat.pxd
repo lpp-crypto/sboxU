@@ -75,13 +75,3 @@ cdef extern from "sboxu_cpp_fp.hpp" :
         vector[int64_t] fpt_ddt_row(int64_t)
         vector[ vector[int64_t] ] fpt_ddt()
         map[int64_t,int64_t] fpt_differential_spectrum_fast(const unsigned int)
-        
-cdef extern from "sboxu_cpp_fp_lat.cpp":
-    pass
-
-cdef extern from "sboxu_cpp_fp_lat.hpp":
-    cdef vector[ vector[double] ] fpt_lat(const vector[int] s, const int p, const int m, const int num_threads)
-    cdef vector[ double ] fpt_lat_column(const vector[int] s, const int p, const int m, const int b)
-    cdef vector[ double ] fpt_lat_row(const vector[int] s, const int p, const int m, const int a)
-    cdef double fpt_max_lat(const vector[int] s, const int p, const int m, const int num_threads)
-    cdef map[double, int] fpt_walsh_spectrum(const vector[int] s, const int p, const int m, const double epsilon, const int num_threads)        

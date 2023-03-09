@@ -6,6 +6,8 @@ sboxU/sboxU_cython/cpp_diff_lin.cpp
 sboxU/sboxU_cython/cpp_equiv.cpp
 sboxU/sboxU_cython/cpp_fp.cpp
 sboxU/sboxU_cython/cpp_utils.cpp
+sboxU/sboxU_cython/cpp_diff_lin_no_fp_lat.cpp
+sboxU/sboxU_cython/build/
 # ignore automatically generated files
 *~
 

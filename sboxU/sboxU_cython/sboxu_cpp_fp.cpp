@@ -61,7 +61,7 @@ std::vector<std::vector<Integer>> CppFptFunction::fpt_ddt()
 {
 	Integer n = this->indexes.size() ;
 	std::vector<std::vector<Integer>> ddt ;
-	for (unsigned int a = 1 ; a < n; a ++)
+	for (unsigned int a = 0 ; a < n; a ++)
 	{
 		ddt.push_back( this->fpt_ddt_row(a) ) ;
 	}

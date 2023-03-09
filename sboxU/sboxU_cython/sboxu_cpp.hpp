@@ -23,6 +23,8 @@
 #include <exception>
 #include <stdexcept>
 #include <iostream>
+#include <stdexcept>
+#include <complex>
 
 // Using multi-threading
 #include <thread>

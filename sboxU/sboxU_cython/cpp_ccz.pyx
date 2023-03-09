@@ -1,7 +1,8 @@
 # -*-python-*- 
 # Time-stamp: <2021-10-14 11:52:10 lperrin>
 
-from sboxu_cpp cimport *
+import os
+from sboxu_cpp_no_fp_lat cimport *
 from math import log
 
 
