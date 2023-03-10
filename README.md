@@ -104,3 +104,7 @@ sage from the folder containing it.
 [Léo Perrin](https://who.paris.inria.fr/Leo.Perrin/)
 
 [Aurélien Boeuf](https://who.paris.inria.fr/Aurelien.Boeuf/)
+
+## Acknowledgements
+
+When operating over fields of odd characteristic, we use the [fftw] (http://www.fftw.org/) library and would like to thank their authors.
