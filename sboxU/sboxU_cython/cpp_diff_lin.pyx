@@ -7,6 +7,7 @@ from libcpp.vector cimport vector
 from libc.stdint cimport int64_t, uint64_t
 from sboxu_cpp cimport *
 import os
+from sage.all import Integer
 
 BIG_SBOX_THRESHOLD = 128
 DEFAULT_N_THREADS  = 2
@@ -94,7 +95,7 @@ def differential_spectrum(s, p=None, n_threads=None):
         return differential_spectrum_fast(s, n_threads)
     if p == None:
         raise ValueError("Base prime p not given. Usage: differential_spectrum(f, p=None, n_threads=None)")        
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
@@ -123,7 +124,7 @@ def ddt(s, p=None):
         return ddt_cpp(s)
     if p == None:
         raise ValueError("Base prime p not given. Usage: ddt(f, p=None)")        
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
@@ -223,7 +224,7 @@ def lat(s, p=None, n_threads=DEFAULT_N_THREADS):
         return lat_cpp(s)
     if p == None:
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat(f, p=None, n_threads=2)")
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
@@ -245,7 +246,7 @@ def lat_column(s, b, p=None):
         raise ValueError("Not implemented for sizes powers of two.")
     if p == None:
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat_column(f, b, p=None)")
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
@@ -268,7 +269,7 @@ def lat_row(s, a, p=None):
         raise ValueError("Not implemented for sizes powers of two.")
     if p == None:
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat_row(f, a, p=None)")
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
@@ -292,7 +293,7 @@ def lat_max(s, p=None, n_threads=DEFAULT_N_THREADS):
         raise ValueError("Not implemented for sizes powers of two.")
     if p == None:
         raise ValueError("Base prime p not given and assumed != 2. Usage: lat_max(f, p=None, n_threads=2)")
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
@@ -322,7 +323,7 @@ def walsh_spectrum(s, p=None, epsilon=1e-5, n_threads=None):
         return walsh_spectrum_fast_cpp(s, n_threads)
     if p == None:
         raise ValueError("Base prime p not given and assumed != 2. Usage: walsh_spectrum(f, p=None, n_threads=None)")
-    if not p.is_prime():
+    if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1
     l = len(s)
