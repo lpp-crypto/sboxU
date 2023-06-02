@@ -49,6 +49,12 @@ cdef extern from "sboxu_cpp_equiv.hpp" :
     cdef vector[ vector[uint64_t] ] linear_equivalence_cpp(const vector[uint64_t] f, const vector[uint64_t] g, const bool);
     cdef vector[uint64_t] le_class_representative_cpp(const vector[uint64_t] f);
 
+cdef extern from "sboxu_cpp_equiv_approx.cpp":
+    pass
+
+cdef extern from "sboxu_cpp_equiv_approx.hpp" :
+    cdef vector[ vector[uint64_t] ] linear_equivalence_approx_cpp(const vector[uint64_t] f, const vector[uint64_t] g, const bool a, const unsigned int m);
+
 cdef extern from "sboxu_cpp_ccz.cpp":
     pass
 

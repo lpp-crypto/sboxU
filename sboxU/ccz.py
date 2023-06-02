@@ -238,6 +238,49 @@ def linear_equivalence(f, g, all_mappings=False):
         return all_pairs
 
 
+def linear_equivalence_approx(f, g, max_contradictions, all_mappings=False):
+    """Returns, if it exists, the pair A, B of matrix such that
+
+    f(x) = (B o g o A)(x),
+
+    where this equality for all x except at most `max_contradictions`
+    of them, where "o" denotes functional composition. If no such
+    linear permutations exist, returns an empty list.
+    
+    If the `all_mappings` argument is set to True, returns a list of
+    all such pairs instead.
+
+    Internally calls a function written in C++ for speed which
+    implements an algorithm corresponding to a tweaked version of the
+    "Linear Equivalence (LE)" algorithm from
+
+    Alex Biryukov, Christophe De Canniere, An Braeken, and Bart
+    Preneel (2003).  "A Toolbox for Cryptanalysis: Linear and Affine
+    Equivalence Algorithms", Advances in Cryptology -- EUROCRYPT 2003,
+    Lecture Notes in Computer Science 2656, E. Biham (ed.),
+    Springer-Verlag, pp. 33--50, 2003.
+
+    """
+    if len(f) != len(g):
+        raise "f and g are of different dimensions!"
+    if (f[0] == 0 and g[0] != 0) or (f[0] != 0 and g[0] == 0):
+        return []
+    result = linear_equivalence_approx_fast(f, g, all_mappings, max_contradictions)
+    if len(result) == 0:
+        return result
+    if not all_mappings:
+        A = linear_function_lut_to_matrix(result[0])
+        B = linear_function_lut_to_matrix(result[1])
+        return A, B
+    else:
+        all_pairs = []
+        for i in range(0, len(result), 2):
+            A = linear_function_lut_to_matrix(result[i  ])
+            B = linear_function_lut_to_matrix(result[i+1])
+            all_pairs.append([A, B])
+        return all_pairs
+
+
 # !SUBSECTION! Affine equivalence 
 
 def hash_sbox(f):
@@ -317,6 +360,29 @@ def self_affine_equivalent_mappings(s):
                 s,
                 [oplus(cstt_out, s[oplus(cstt_in, x)]) for x in range(0, len(s))],
                 all_mappings=True
+            )
+            for AB in mappings:
+                A = [oplus(apply_bin_mat(x, AB[0]), cstt_in) for x in range(0, len(s))]
+                B = [apply_bin_mat(oplus(x, cstt_out), AB[1]) for x in range(0, len(s))]
+                result.append([A, B])
+    return result
+                
+
+
+def self_affine_equivalent_mappings_approx(s, max_contradictions):
+    """Returns a list of affine permutations A,B such that B[s[A[x]]] =
+    s[x] for all x except at most `max_contradictions` of them, where
+    the permutations are specified via their lookup tables.
+
+    """
+    result = []
+    for cstt_in in range(0, len(s)):
+        for cstt_out in range(0, len(s)):
+            mappings = linear_equivalence_approx(
+                s,
+                [oplus(cstt_out, s[oplus(cstt_in, x)]) for x in range(0, len(s))],
+                max_contradictions,
+                all_mappings=True,
             )
             for AB in mappings:
                 A = [oplus(apply_bin_mat(x, AB[0]), cstt_in) for x in range(0, len(s))]

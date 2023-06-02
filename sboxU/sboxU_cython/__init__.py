@@ -10,4 +10,5 @@ else:
 
 from .cpp_utils import *
 from .cpp_equiv import *
+from .cpp_equiv_approx import *
 from .cpp_ccz import *
