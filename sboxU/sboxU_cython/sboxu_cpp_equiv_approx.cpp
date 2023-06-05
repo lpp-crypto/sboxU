@@ -142,7 +142,10 @@ LEguessIteratorApprox::LEguessIteratorApprox(const unsigned int _target_size,
         guess_mask = (guess_mask << 1) | 1;
     }
     if (guess_bit_length <= constraints.size())
-        throw std::runtime_error("Guess too deep!");
+    {
+        throw ContradictionFound(0, 0);
+        // throw std::runtime_error("Guess too deep!");
+    }
     for (auto & c : constraints)
         base_guess.add_entry(c);
     x = base_guess.min_u();
@@ -292,8 +295,16 @@ std::vector<Sbox> linear_equivalence_approx_cpp(const Sbox f,
                 }
                 else
                     // inconclusive: we will guess one more entry
-                    b_generators.push_back(b_generators.back().deeper_guess_gen());
-                    
+		{
+		    try
+		    {
+		        b_generators.push_back(b_generators.back().deeper_guess_gen());
+		    }
+		    catch (ContradictionFound & e)
+		    {
+                        contradiction_found = true;
+		    }
+		}
             }
         }
     }
