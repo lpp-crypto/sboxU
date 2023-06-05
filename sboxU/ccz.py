@@ -366,7 +366,17 @@ def self_affine_equivalent_mappings(s):
                 B = [apply_bin_mat(oplus(x, cstt_out), AB[1]) for x in range(0, len(s))]
                 result.append([A, B])
     return result
-                
+
+@parallel
+def self_affine_equivalent_mappings_approx_attempt(s, max_contradictions, cstts):
+    cstt_in, cstt_out = cstts
+    result = linear_equivalence_approx(
+        s,
+        [oplus(cstt_out, s[oplus(cstt_in, x)]) for x in range(0, len(s))],
+        max_contradictions,
+        all_mappings=True,
+    )
+    return result
 
 
 def self_affine_equivalent_mappings_approx(s, max_contradictions):
@@ -376,18 +386,30 @@ def self_affine_equivalent_mappings_approx(s, max_contradictions):
 
     """
     result = []
-    for cstt_in in range(0, len(s)):
-        for cstt_out in range(0, len(s)):
-            mappings = linear_equivalence_approx(
-                s,
-                [oplus(cstt_out, s[oplus(cstt_in, x)]) for x in range(0, len(s))],
-                max_contradictions,
-                all_mappings=True,
-            )
-            for AB in mappings:
-                A = [oplus(apply_bin_mat(x, AB[0]), cstt_in) for x in range(0, len(s))]
-                B = [apply_bin_mat(oplus(x, cstt_out), AB[1]) for x in range(0, len(s))]
-                result.append([A, B])
+    all_pairs_of_mappings = self_affine_equivalent_mappings_approx_attempt([
+        (s, max_contradictions, [cstt_in, cstt_out])
+        for cstt_in, cstt_out in itertools.product(range(0, len(s)), repeat=2)
+    ])
+
+    for entry in all_pairs_of_mappings:
+        mappings = entry[1]
+        for AB in mappings:
+            # the linear part of A and Bobtaining A and B
+            L_A = [apply_bin_mat(x, AB[0]) for x in range(0, len(s))]
+            L_B = [apply_bin_mat(x, AB[1]) for x in range(0, len(s))]
+            # brute-forcing constants to find those that actually work
+            for c_a, c_b in itertools.product(range(0, len(s)), repeat=2):
+                wrong_entries = 0
+                A = [oplus(L_A[x], c_a) for x in range(0, len(s))]
+                B = [L_B[oplus(x, c_b)] for x in range(0, len(s))]
+                wrong_entries = 0
+                for x in range(0, len(s)):
+                    if A[s[x]] != s[B[x]]:
+                        wrong_entries += 1
+                        if wrong_entries > max_contradictions:
+                            break
+                if wrong_entries <= max_contradictions:
+                    result.append([A, B])
     return result
                 
 
