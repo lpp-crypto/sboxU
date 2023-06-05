@@ -58,7 +58,6 @@ std::vector<IOpair> LEguessApprox::add_entry(const IOpair e)
                         )
                         {
 			     opp.process_contradiction();
-			     break;
 			}
                 }                    
                 else
