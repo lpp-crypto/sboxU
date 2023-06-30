@@ -219,9 +219,10 @@ vector<vector<double>> fpt_lat(const vector<int>& lut, const int p, const int m,
 
     double* in;
     fftw_plan pl;
+    
+    in = fftw_alloc_real(p);
     #pragma omp critical
     {
-    in = fftw_alloc_real(p);
     pl = fftw_plan_r2r_1d(p, in, in, FFTW_R2HC, FFTW_MEASURE);
     }
 
@@ -244,9 +245,9 @@ vector<vector<double>> fpt_lat(const vector<int>& lut, const int p, const int m,
         }
     }
 
+    fftw_free(in);
     #pragma omp critical
     {
-    fftw_free(in);
     fftw_free(pl);
     }
     }
@@ -562,9 +563,10 @@ map<double, int> fpt_walsh_spectrum(const vector<int>& lut, const int p, const i
     map<double,int> thread_spectrum;
     double* in;
     fftw_plan pl;
+
+    in = fftw_alloc_real(p);
     #pragma omp critical
     {
-    in = fftw_alloc_real(p);
     pl = fftw_plan_r2r_1d(p, in, in, FFTW_R2HC, FFTW_MEASURE);
     }
 
@@ -587,9 +589,9 @@ map<double, int> fpt_walsh_spectrum(const vector<int>& lut, const int p, const i
         }
     }
 
+    fftw_free(in);
     #pragma omp critical
     {
-    fftw_free(in);
     fftw_free(pl);
     }
 
