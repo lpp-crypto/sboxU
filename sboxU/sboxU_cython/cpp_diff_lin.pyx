@@ -105,6 +105,8 @@ def differential_spectrum(s, p=None, n_threads=None):
         m += 1
     if temp != l:
         raise ValueError(f"Table size is not a power of {p}.")
+    if m == 1:
+        return PyFptFunction(p, m, m, [[i] for i in range(p)], [[s[i]] for i in range(p)]).fpt_differential_spectrum(n_threads)
     if isinstance(s[0], int):
         s_linearized = tab_int_to_tab_vector(s, p, m)
         return PyFptFunction(p, m, m, tab_int_to_tab_vector(list(range(len(s))), p, m), s_linearized).fpt_differential_spectrum(n_threads)
@@ -134,6 +136,8 @@ def ddt(s, p=None):
         m += 1
     if temp != l:
         raise ValueError(f"Table size is not a power of {p}.")
+    if m == 1:
+        return PyFptFunction(p, m, m, [[i] for i in range(p)], [[s[i]] for i in range(p)]).fpt_ddt()
     if isinstance(s[0], int):
         s_linearized = tab_int_to_tab_vector(s, p, m)
         return PyFptFunction(p, m, m, tab_int_to_tab_vector(list(range(len(s))), p, m), s_linearized).fpt_ddt()
