@@ -2,7 +2,7 @@
 #define _SBOXU_CPP_FP_LAT_H_
 
 #include "sboxu_cpp.hpp"
-#include <fftw3.h>
+#include <pocketfft_hdronly.h>
 #include <omp.h>
 
 std::vector<std::vector<double>> fpt_lat(const std::vector<int>& s, const int p, const int m, const unsigned int num_threads);

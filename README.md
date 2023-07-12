@@ -1,4 +1,4 @@
-# SboxU v1.1
+# SboxU v1.2
 
 ## Description
 
@@ -11,46 +11,17 @@ and/or in parallel to improve their performances.
 ## Dependencies
 
 Most functions in `sboxU` only depend on a recent version of SAGE (it was tested with
-version 9.0).
+version 9.0). Some use `openmp` for multithreading, and you may need to install it in order to successfully compile. 
 
-**/!\ Functions related to linear approximations of sboxes defined in fields of base prime p != 2 require the installation of the `fftw` library found at http://www.fftw.org/ and `openmp`. They must be downloaded and installed prior to running `setup.py` using the instructions below, in particular with the same directory prefix for fftw.** LAT-related functions now accept an additional argument p (assumed to be equal to 2 by default).  `fftw3` must be configured with the flags `--enable-shared --enable-openmp --prefix $HOME/.fftw` (as seen below).
-
-
-### **Optional**: Installing openmp and fftw on Ubuntu
+**UPDATE (v1.2)**: `fftw` is no longer required. It was replaced with `pocketfft`.
 
 Installing openmp can be done with:
 
     sudo apt-get install libomp-dev
 
-To download fftw, first go into your working directory, then input the following commands:
-
-    wget http://www.fftw.org/fftw-3.3.10.tar.gz
-    tar -xf fftw-3.3.10.tar.gz
-    cd fftw-3.3.10/
-
-The commands to install fftw with the right options are, once in the `fftw-*/` directory:
-
-    ./configure --enable-shared --enable-openmp --prefix $HOME/.fftw
-    make
-    make install
-
-### **Optional**: Installing openmp and fftw on macOS
-
-Installing openmp can be done with:
+or, on macOS:
 
     brew install libomp
-
-To download fftw, first go into your working directory, then input the following commands:
-
-    curl -O http://www.fftw.org/fftw-3.3.10.tar.gz
-    tar -xf fftw-3.3.10.tar.gz
-    cd fftw-3.3.10/
-
-Installing fftw requires `gfortran` (`brew install gfortran`), as `clang` can have trouble linking with openmp:
-
-    ./configure CC="gfortran" --enable-shared --enable-openmp --prefix $HOME/.fftw
-    make
-    make install
 
 
 ## Usage
@@ -107,4 +78,4 @@ sage from the folder containing it.
 
 ## Acknowledgements
 
-When operating over fields of odd characteristic, we use the [fftw] (http://www.fftw.org/) library and would like to thank their authors.
+When operating over fields of odd characteristic, we use the [pocketfft] (https://gitlab.mpcdf.mpg.de/mtr/pocketfft) library (`pocketfft_hdronly.h` was taken from the `cpp` branch) and we would like to thank their authors.

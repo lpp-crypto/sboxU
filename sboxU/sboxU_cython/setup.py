@@ -10,37 +10,27 @@ if platform == 'darwin':	#macOs
 else:
 	os.environ["CC"] = "g++"
 	os.environ["CXX"] = "g++"
-extra_compile_args = ["-O3", "-march=native", "-std=c++17"]
+extra_compile_args = ["-O3", "-march=native", "-std=c++17", "-pthread", "-Wno-narrowing"]	#narrowing warnings in fp_lat when calling shape_t{p}
 extra_link_args=[]
 
 HOME = os.path.expanduser('~')
-if os.path.exists(HOME + '/.fftw'):
-	extra_compile_args += ["-I" + os.path.expanduser("~") + "/.fftw/include", "-L" + os.path.expanduser("~") + "/.fftw/lib", "-lfftw3_omp", "-lfftw3", "-lm"]
-	extra_link_args += ["-L" + os.path.expanduser("~") + "/.fftw/lib", "-lfftw3_omp", "-lfftw3", "-lm"]
-	if platform == 'darwin':
-		extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include']
-		extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include']
-	else:
-		extra_compile_args += ['-fopenmp']
-		extra_link_args += ['-fopenmp']
-
-
-
-if os.path.exists(HOME + '/.fftw'):
-	module_diff_lin = Extension("cpp_diff_lin",
-		                    sources=["cpp_diff_lin.pyx"],
-                                    libraries=['m', 'fftw3'],
-		                    include_dirs=['.'], 
-		                    language='c++',
- 			   	    extra_link_args=extra_link_args,
-				    extra_compile_args=extra_compile_args)
+if platform == 'darwin':
+	extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include']
+	extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include']
 else:
-	module_diff_lin = Extension("cpp_diff_lin_no_fp_lat",
-		                    sources=["cpp_diff_lin_no_fp_lat.pyx"],
-		                    include_dirs=['.'], 
-		                    language='c++',
- 			   	    extra_link_args=extra_link_args,
-				    extra_compile_args=extra_compile_args)						
+	extra_compile_args += ['-fopenmp']
+	extra_link_args += ['-fopenmp']
+
+
+
+module_diff_lin = Extension("cpp_diff_lin",
+						sources=["cpp_diff_lin.pyx"],
+								libraries=[],
+						include_dirs=['.'], 
+						language='c++',
+				extra_link_args=extra_link_args,
+				extra_compile_args=extra_compile_args)
+				
 
 module_utils = Extension("cpp_utils",
 		         sources=["cpp_utils.pyx"], 

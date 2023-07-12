@@ -227,7 +227,7 @@ def lat(s, p=None, n_threads=DEFAULT_N_THREADS):
     if len(s)%2 == 0 or p == 2:
         return lat_cpp(s)
     if p == None:
-        raise ValueError("Base prime p not given and assumed != 2. Usage: lat(f, p=None, n_threads=2)")
+        raise ValueError("Base prime p not given and probably not 2... Usage: lat(f, p, n_threads)")
     if not Integer(p).is_prime():
         raise ValueError("p is not a prime.")
     m = 1

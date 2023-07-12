@@ -3,6 +3,7 @@
 using std::vector;
 using std::complex;
 using std::map;
+using namespace pocketfft;
 
 int my_pow(int x, unsigned int p)
 {
@@ -31,7 +32,8 @@ int fp_n_scalar(int alpha, int x, int p, int m) {
     return sol;
 }
 
-void fft(const vector<int>& pol, vector<vector<double>>& walsh_tab, fftw_plan pl, double *in, const int p, const int m, int a, int b) {
+void fft(const vector<int>& pol, vector<vector<double>>& walsh_tab, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<double>& in, const int p, const int m, int a, int b) {
     /***
     Updates walsh_tab with the p coefficients outputted by the fft.
     ***/
@@ -39,14 +41,13 @@ void fft(const vector<int>& pol, vector<vector<double>>& walsh_tab, fftw_plan pl
         in[i] = pol[i];
     }
 
-    fftw_execute(pl);
+    r2r_fftpack(shape, strided, strided, axes, true, FORWARD, in.data(), in.data(), 1.);
     double walsh_coef;
-    // the output is of the form r0, r1, ... , r(p/2), i((n+1)/2-1), ... , i2, i1.
-    // see fftw documentation.
+    // the output is of the form r0, r1, i1, r2, i2, ..., r((p-1)/2), i((p-1)/2).
     for (int i = 1; i <= (p-1)/2; i++) {
-        walsh_coef = sqrt(in[i]*in[i] + in[p-i]*in[p-i]);
+        walsh_coef = sqrt(in[2*i-1] * in[2*i-1] + in[2*i] * in[2*i]);
         walsh_tab[fp_n_scalar(i, a, p, m)][fp_n_scalar(i, b, p, m)] = walsh_coef > 1e-6 ? walsh_coef : 0.0;
-        walsh_tab[fp_n_scalar((p-i), a, p, m)][fp_n_scalar((p-i), b, p, m)] = walsh_coef > 1e-6 ? walsh_coef : 0.0;
+        walsh_tab[fp_n_scalar(p-i, a, p, m)][fp_n_scalar(p-i, b, p, m)] = walsh_coef > 1e-6 ? walsh_coef : 0.0;
     }
 
     // p/2 is treated specially if p = 2.
@@ -162,7 +163,8 @@ void mid_compute(
     }
 }
 
-void lat_diagonal(const vector<int>& lut, vector<vector<double>>& walsh_tab, const int p, const int m, const int q, const int q_div_p, const int b, const fftw_plan pl, double* in) {
+void lat_diagonal(const vector<int>& lut, vector<vector<double>>& walsh_tab, const int p, const int m, const int q, const int q_div_p, const int b, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<double>& in) {
     // Now to compute the "polynomial" tied to all a's for a given b.
 
     if (m == 1) {
@@ -173,7 +175,7 @@ void lat_diagonal(const vector<int>& lut, vector<vector<double>>& walsh_tab, con
                 int expo = (a*x - (b*lut[x])%p + p)%p;
                 temp_poly[expo]++;
             }
-            fft(temp_poly, walsh_tab, pl, in, p, m, a, b);
+            fft(temp_poly, walsh_tab, shape, strided, axes, in, p, m, a, b);
         }
     }
 
@@ -187,7 +189,7 @@ void lat_diagonal(const vector<int>& lut, vector<vector<double>>& walsh_tab, con
                 for (int a_mm2_to_1 = 0; a_mm2_to_1 < q_div_p; a_mm2_to_1 += p) {
                     temp_poly = vector<int>(p);
                     sum_of_polys(p, array_of_polys, temp_poly, a_mm1, a_mm2_to_1);
-                    fft(temp_poly, walsh_tab, pl, in, p, m, q_div_p * a_mm1 + a_mm2_to_1 + a_0, b);
+                    fft(temp_poly, walsh_tab, shape, strided, axes, in, p, m, q_div_p * a_mm1 + a_mm2_to_1 + a_0, b);
                 }
             }
         }
@@ -196,8 +198,6 @@ void lat_diagonal(const vector<int>& lut, vector<vector<double>>& walsh_tab, con
 
 vector<vector<double>> fpt_lat(const vector<int>& lut, const int p, const int m, const unsigned int n_threads) {
 
-    fftw_init_threads();
-    fftw_plan_with_nthreads(n_threads);
 
     const int q = my_pow(p, m);
     const int q_div_p = q/p;
@@ -217,14 +217,13 @@ vector<vector<double>> fpt_lat(const vector<int>& lut, const int p, const int m,
     // Next is fft stuff:
     // in-place dft of a real input to a hermitian-complex input.
 
-    double* in;
-    fftw_plan pl;
+    vector<double> in(p, 0);
     
-    in = fftw_alloc_real(p);
-    #pragma omp critical
-    {
-    pl = fftw_plan_r2r_1d(p, in, in, FFTW_R2HC, FFTW_MEASURE);
-    }
+    shape_t shape{p};
+    stride_t strided(1);
+    strided[0] = sizeof(double);
+    shape_t axes;
+    axes.push_back(0);
 
     int first_nonzero_index;
     int b_temp;
@@ -239,17 +238,12 @@ vector<vector<double>> fpt_lat(const vector<int>& lut, const int p, const int m,
         }
         b_temp = my_pow(p, first_nonzero_index) + b_right;
         while (b_temp < q) {
-            lat_diagonal(lut, walsh_tab, p, m, q, q_div_p, b_temp, pl, in);
+            lat_diagonal(lut, walsh_tab, p, m, q, q_div_p, b_temp, shape, strided, axes, in);
             first_nonzero_index++;
             b_temp = b_right + my_pow(p, first_nonzero_index);
         }
     }
 
-    fftw_free(in);
-    #pragma omp critical
-    {
-    fftw_free(pl);
-    }
     }
 
     return walsh_tab;
@@ -264,18 +258,18 @@ bool test_first_nonzero_is_one(const int a, const int p) {
 }
 
 
-void fft_column(const vector<complex<float>>& pol, vector<double>& walsh_column, const int a, const fftw_plan pl, fftw_complex* in, const int p, const int m) {
+void fft_column(const vector<complex<float>>& pol, vector<double>& walsh_column, const int a, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<complex<double>>& in, const int p, const int m) {
     
     for (int i = 0; i < p; i++) {
-        in[i][0] = std::real(pol[i]);
-        in[i][1] = std::imag(pol[i]);
+        in[i] = pol[i];
     }
     
-    fftw_execute(pl);
+    c2c(shape, strided, strided, axes, FORWARD, in.data(), in.data(), 1.);
     double walsh_coef;
     
     for (int i = 0; i < p; i++) {
-        walsh_coef = sqrt(in[i][0]*in[i][0] + in[i][1]*in[i][1]);
+        walsh_coef = abs(in[i]);
         walsh_column[fp_n_scalar(i, a, p, m)] = walsh_coef > 1e-6 ? walsh_coef : 0.0;
     }
 }
@@ -296,18 +290,17 @@ vector<double> fpt_lat_column(const vector<int>& lut, const int p, const int m, 
 
     if (m == 1) {   // No need for intermediary computations. Compute for b, then fft.
 
-        fftw_complex* in;
-        fftw_plan pl;
-        in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * p);
-        pl = fftw_plan_dft_1d(p, in, in, FFTW_BACKWARD, FFTW_MEASURE);
-
+        vector<complex<double>> in(p,0);
+        shape_t shape{p};
+        stride_t strided(1);
+        strided[0] = sizeof(double);
+        shape_t axes;
+        axes.push_back(0);
         vector<complex<float>> temp_poly = vector<complex<float>>(p);
         for (int x = 0; x < p; x++) {
             temp_poly[x] += omega_power[((-b*lut[x])%p + p)%p];
         }
-        fft_column(temp_poly, walsh_column, 1, pl, in, p, m);
-        fftw_free(in);
-        fftw_free(pl);
+        fft_column(temp_poly, walsh_column, 1, shape, strided, axes, in, p, m);
     }
 
     else {
@@ -353,7 +346,8 @@ vector<double> fpt_lat_row(const vector<int>& lut, const int p, const int m, con
     return fpt_lat_column(inv_lut, p, m, a);
 }
 
-double max_fft(const vector<int>& pol, fftw_plan pl, double *in, const int p) {
+double max_fft(const vector<int>& pol, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<double>& in, const int p) {
     /***
     Returns the maximum squared norm of the FFT of pol's coefficients.
     ***/
@@ -364,13 +358,11 @@ double max_fft(const vector<int>& pol, fftw_plan pl, double *in, const int p) {
         in[i] = pol[i];
     }
 
-    fftw_execute(pl);
+    r2r_fftpack(shape, strided, strided, axes, true, FORWARD, in.data(), in.data(), 1.);
 
-
-    // the output is of the form r0, r1, ... , r(p/2), i((n+1)/2-1), ... , i2, i1.
-    // see fftw documentation.
+    // the output is of the form r0, r1, i1, r2, i2, ..., r((p-1)/2), i((p-1)/2).
     for (int i = 1; i < (p + 1)/2; i++) {
-        sol = std::max(sol,(in[i]*in[i] + in[p - i]*in[p - i]));
+        sol = std::max(sol,(in[2*i-1] * in[2*i-1] + in[2*i] * in[2*i]));
     }
 
     // p/2 is treated specially if p = 2.
@@ -380,7 +372,8 @@ double max_fft(const vector<int>& pol, fftw_plan pl, double *in, const int p) {
     return sol;
 }
 
-double max_lat_diagonal(const vector<int>& lut, const int p, const int m, const int q, const int q_div_p, const int b, const fftw_plan pl, double* in) {
+double max_lat_diagonal(const vector<int>& lut, const int p, const int m, const int q, const int q_div_p, const int b, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<double>& in) {
     // Now to compute the "polynomial" tied to all a's for a given b and retrieve the max walsh coeff.
     double sol = 0;
 
@@ -391,7 +384,7 @@ double max_lat_diagonal(const vector<int>& lut, const int p, const int m, const 
                 int expo = (a*x - (b*lut[x])%p + p)%p;
                 temp_poly[expo]++;
             }
-            sol = std::max(sol, max_fft(temp_poly, pl, in, p));
+            sol = std::max(sol, max_fft(temp_poly, shape, strided, axes, in, p));
         }
     }
 
@@ -405,7 +398,7 @@ double max_lat_diagonal(const vector<int>& lut, const int p, const int m, const 
                 for (int a_mm2_to_1 = 0; a_mm2_to_1 < q_div_p; a_mm2_to_1 += p) {
                     temp_poly = vector<int>(p);
                     sum_of_polys(p, array_of_polys, temp_poly, a_mm1, a_mm2_to_1);
-                    sol = std::max(sol, max_fft(temp_poly, pl, in, p));
+                    sol = std::max(sol, max_fft(temp_poly, shape, strided, axes, in, p));
                 }
             }
         }
@@ -419,8 +412,6 @@ double fpt_max_lat(const vector<int>& lut, const int p, const int m, const unsig
     Returns the linearity of the function whose lookup table is in lut.
     ***/
 
-    fftw_init_threads();
-    fftw_plan_with_nthreads(n_threads);
 
     const int q = my_pow(p, m);
     const int q_div_p = q/p;
@@ -434,13 +425,12 @@ double fpt_max_lat(const vector<int>& lut, const int p, const int m, const unsig
     #pragma omp parallel private(temp_poly, array_of_polys) firstprivate(lut, p, m, q, q_div_p) reduction(max:sol)
     {
 
-    double* in;
-    fftw_plan pl;
-    #pragma omp critical
-    {
-    in = fftw_alloc_real(p);
-    pl = fftw_plan_r2r_1d(p, in, in, FFTW_R2HC, FFTW_MEASURE);
-    }
+    vector<double> in(p, 0);
+    shape_t shape{p};
+    stride_t strided(1);
+    strided[0] = sizeof(double);
+    shape_t axes;
+    axes.push_back(0);
 
     double thread_sol = 0;
     int first_nonzero_index;
@@ -456,23 +446,15 @@ double fpt_max_lat(const vector<int>& lut, const int p, const int m, const unsig
         }
         b_temp = my_pow(p, first_nonzero_index) + b_right;
         while (b_temp < q) {
-            thread_sol = std::max(thread_sol, max_lat_diagonal(lut, p, m, q, q_div_p, b_temp, pl, in));
+            thread_sol = std::max(thread_sol, max_lat_diagonal(lut, p, m, q, q_div_p, b_temp, shape, strided, axes, in));
             first_nonzero_index++;
             b_temp = b_right + my_pow(p, first_nonzero_index);
         }
     }
 
-    #pragma omp critical
-    {
-    fftw_free(in);
-    fftw_free(pl);
-    }
-
     sol = std::max(sol, thread_sol);
 
     }
-
-    fftw_cleanup_threads();
 
     return sqrt(sol);
 }
@@ -491,17 +473,17 @@ void add_to_spectrum(map<double,int>& spectrum, const double key, const int valu
     }
 }
 
-void spectrum_fft(const vector<int>& pol, map<double,int>& spectrum, fftw_plan pl, double *in, const int p, const double epsilon) {
+void spectrum_fft(const vector<int>& pol, map<double,int>& spectrum, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<double>& in, const int p, const double epsilon) {
     for (int i = 0; i < p; i++) {
         in[i] = pol[i];
     }
 
-    fftw_execute(pl);
+    r2r_fftpack(shape, strided, strided, axes, true, FORWARD, in.data(), in.data(), 1.);
 
-    // the output is of the form r0, r1, ... , r(p/2), i((n+1)/2-1), ... , i2, i1.
-    // see fftw documentation.
+    // the output is of the form r0, r1, i1, r2, i2, ..., r((p-1)/2), i((p-1)/2).
     for (int i = 1; i < (p + 1)/2; i++) {
-        add_to_spectrum(spectrum, sqrt(in[i]*in[i] + in[p - i]*in[p - i]), 2, epsilon);
+        add_to_spectrum(spectrum, sqrt(in[2*i-1] * in[2*i-1] + in[2*i] * in[2*i]), 2, epsilon);
     }
 
     // p/2 is treated specially if p = 2.
@@ -509,7 +491,8 @@ void spectrum_fft(const vector<int>& pol, map<double,int>& spectrum, fftw_plan p
         add_to_spectrum(spectrum, std::abs(in[p/2]), 1, epsilon);
 }
 
-void spectrum_lat_diagonal(const vector<int>& lut, map<double,int>& spectrum, const int p, const int m, const int q, const int q_div_p, const int b, const fftw_plan pl, double* in, const double epsilon) {
+void spectrum_lat_diagonal(const vector<int>& lut, map<double,int>& spectrum, const int p, const int m, const int q, const int q_div_p, const int b, const shape_t& shape,
+         const stride_t& strided, const shape_t& axes, vector<double>& in, const double epsilon) {
     if (m == 1) {
         for (int a = 0; a < p; a++) {
             vector<int> temp_poly = vector<int>(q);
@@ -517,7 +500,7 @@ void spectrum_lat_diagonal(const vector<int>& lut, map<double,int>& spectrum, co
                 int expo = (a*x - (b*lut[x])%p + p)%p;
                 temp_poly[expo]++;
             }
-            spectrum_fft(temp_poly, spectrum, pl, in, p, epsilon);
+            spectrum_fft(temp_poly, spectrum, shape, strided, axes, in, p, epsilon);
         }
     }
 
@@ -531,7 +514,7 @@ void spectrum_lat_diagonal(const vector<int>& lut, map<double,int>& spectrum, co
                 for (int a_mm2_to_1 = 0; a_mm2_to_1 < q_div_p; a_mm2_to_1 += p) {
                     temp_poly = vector<int>(p);
                     sum_of_polys(p, array_of_polys, temp_poly, a_mm1, a_mm2_to_1);
-                    spectrum_fft(temp_poly, spectrum, pl, in, p, epsilon);
+                    spectrum_fft(temp_poly, spectrum, shape, strided, axes, in, p, epsilon);
                 }
             }
         }
@@ -543,8 +526,6 @@ map<double, int> fpt_walsh_spectrum(const vector<int>& lut, const int p, const i
     Returns the linearity of the function whose lookup table is in lut.
     ***/
 
-    fftw_init_threads();
-    fftw_plan_with_nthreads(n_threads);
 
     const int q = my_pow(p, m);
     const int q_div_p = q/p;
@@ -561,14 +542,13 @@ map<double, int> fpt_walsh_spectrum(const vector<int>& lut, const int p, const i
     {
 
     map<double,int> thread_spectrum;
-    double* in;
-    fftw_plan pl;
+    vector<double> in(p, 0);
 
-    in = fftw_alloc_real(p);
-    #pragma omp critical
-    {
-    pl = fftw_plan_r2r_1d(p, in, in, FFTW_R2HC, FFTW_MEASURE);
-    }
+    shape_t shape{p};
+    stride_t strided(1);
+    strided[0] = sizeof(double);
+    shape_t axes;
+    axes.push_back(0);
 
     int first_nonzero_index;
     int b_temp;
@@ -583,17 +563,12 @@ map<double, int> fpt_walsh_spectrum(const vector<int>& lut, const int p, const i
         }
         b_temp = my_pow(p, first_nonzero_index) + b_right;
         while (b_temp < q) {
-            spectrum_lat_diagonal(lut, thread_spectrum, p, m, q, q_div_p, b_temp, pl, in, epsilon);
+            spectrum_lat_diagonal(lut, thread_spectrum, p, m, q, q_div_p, b_temp, shape, strided, axes, in, epsilon);
             first_nonzero_index++;
             b_temp = b_right + my_pow(p, first_nonzero_index);
         }
     }
 
-    fftw_free(in);
-    #pragma omp critical
-    {
-    fftw_free(pl);
-    }
 
     // Join all the thread solutions
     for (auto it = thread_spectrum.begin(); it != thread_spectrum.end(); it++) {
@@ -607,7 +582,6 @@ map<double, int> fpt_walsh_spectrum(const vector<int>& lut, const int p, const i
 
     }
 
-    fftw_cleanup_threads();
 
     return sol;
 }
