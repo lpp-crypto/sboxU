@@ -13,7 +13,7 @@ and/or in parallel to improve their performances.
 Most functions in `sboxU` only depend on a recent version of SAGE (it was tested with
 version 9.0). Some use `openmp` for multithreading, and you may need to install it in order to successfully compile. 
 
-**UPDATE (v1.2)**: `fftw` is no longer required. It was replaced with `pocketfft`.
+**UPDATE (v1.2)**: `fftw` is no longer required. It was replaced with `pocketfft`, which is contained entirely within `pocketfft_hdronly.h`.
 
 Installing openmp can be done with:
 
