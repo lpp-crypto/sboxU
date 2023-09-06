@@ -219,7 +219,11 @@ def linear_equivalence(f, g, all_mappings=False):
 
     """
     if len(f) != len(g):
-        raise "f and g are of different dimensions!"
+        raise Exception("f and g are of different dimensions!")
+    if not is_permutation(f):
+        raise Exception("first argument is not a permutation!")
+    if not is_permutation(g):
+        raise Exception("second argument is not a permutation!")
     if (f[0] == 0 and g[0] != 0) or (f[0] != 0 and g[0] == 0):
         return []
     result = linear_equivalence_fast(f, g, all_mappings=all_mappings)
@@ -315,6 +319,10 @@ def affine_equivalence(f, g):
     """
     if len(f) != len(g):
         raise "f and g are of different dimensions!"
+    if not is_permutation(f):
+        raise Exception("first argument is not a permutation!")
+    if not is_permutation(g):
+        raise Exception("second argument is not a permutation!")
     table_f = defaultdict(list)
     table_c = defaultdict(int)
     for c in range(0, len(f)):
@@ -353,6 +361,8 @@ def self_affine_equivalent_mappings(s):
     tables.
 
     """
+    if not is_permutation(s):
+        raise Exception("argument is not a permutation!")
     result = []
     for cstt_in in range(0, len(s)):
         for cstt_out in range(0, len(s)):
