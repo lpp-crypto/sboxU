@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-09-15 14:43:43 lperrin>
+# Time-stamp: <2023-09-05 16:07:43 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -17,6 +17,8 @@ from .utils import *
 # Some constants
 BIG_SBOX_THRESHOLD = 128
 DEFAULT_N_THREADS  = 2
+DEFAULT_HIGH_PRECISION = 100
+
 
 def lat_zeroes(s, n_threads=None):
     if n_threads == None:
@@ -73,7 +75,7 @@ def c_differential_uniformity_spectrum(s, F, l_table=None, e_table=None):
 
 # !SUBSECTION! Probability distributions
 
-def lat_coeff_probability_permutation(m, n, c):
+def lat_coeff_probability_permutation(m, n, c, precision=DEFAULT_HIGH_PRECISION):
     """Returns the probability that a coefficient of the Walsh spectrum of
     a random bijective permutation mapping m bits to n is equal, in
     absolute value, to c.
@@ -81,18 +83,19 @@ def lat_coeff_probability_permutation(m, n, c):
     If m != n, raises an error.
 
     """
+    big_precision = RealField(precision)
     if m != n:
         raise "A permutation cannot map {} bits to {}!".format(m, n)
     if c % 4 != 0:
         return 0
     elif c == 0:
-        return RealNumber(Integer(binomial(2**(n-1), 2**(n-2)))**2) / Integer(binomial(2**n, 2**(n-1)))
+        return big_precision(Integer(binomial(2**(n-1), 2**(n-2)))**2) / Integer(binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return RealNumber(2) * RealNumber(Integer(binomial(2**(n-1), 2**(n-2) + c/2))**2) / Integer(binomial(2**n, 2**(n-1)))
+        return 2 * big_precision(Integer(binomial(2**(n-1), 2**(n-2) + c/2))**2) / Integer(binomial(2**n, 2**(n-1)))
 
     
-def lat_coeff_probability_function(m, n, c):
+def lat_coeff_probability_function(m, n, c, precision=DEFAULT_HIGH_PRECISION):
     """Returns the probability that a coefficient of the Walsh spectrum of
     a random function mapping m bits to n is equal, in absolute value, to
     c.
@@ -100,18 +103,19 @@ def lat_coeff_probability_function(m, n, c):
     If m != n, raises an error.
 
     """
+    big_precision = RealField(precision)
     if m != n:
         raise "m (={}) should be equal to n (={})!".format(m, n)
     if c % 4 != 0:
         return 0
     if c == 0:
-        return RealNumber(2) * RealNumber(2**(-2**n) * binomial(2**n, 2**(n-1)))
+        return 2 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return RealNumber(4) * RealNumber(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
+        return 4 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
 
 
-def ddt_coeff_probability(m, n, c):
+def ddt_coeff_probability(m, n, c, precision=DEFAULT_HIGH_PRECISION):
     """Returns the probability that a coefficient of the DDT of a S-Box
     mapping m bits to n is equal to c.
 
@@ -119,6 +123,7 @@ def ddt_coeff_probability(m, n, c):
     random non-bijective function.
 
     """
+    big_precision = RealField(precision)
     if c % 2 == 1:
         return 0
     else:
@@ -130,29 +135,29 @@ def ddt_coeff_probability(m, n, c):
             return RealNumber(binomial(2**(m-1), d) * 2**(-n*d) * (1 - 2**-n)**(2**(m-1)-d))
 
 
-def bct_coeff_probability(m, n, c):
+def bct_coeff_probability(m, n, c, precision=DEFAULT_HIGH_PRECISION):
     """Returns the probability that a coefficient of the BCT of an S-Box
     mapping m bits to n is equal to c.
 
     This probability is only defined for permutations. Thus, an error is raised if m != n.
 
     """
+    big_precision = RealField(precision)
     if m != n:
         raise "the BCT is only defined when m==n"
     if c % 2 == 1:
         return RealNumber(0.0)
-    B = RealNumber(2**(n-1))
-    A = RealNumber(2**(2*n-2)-2**(n-1))
-    # p = RealNumber(1.0/(2**n-1))
-    p = 1/(2**n-1)
+    B = big_precision(2**(n-1))
+    A = big_precision(2**(2*n-2)-2**(n-1))
+    p = big_precision(1/(2**n-1))
     q = p**2
-    d = c/2
-    result = RealNumber(0.0)
-    base = RealNumber(2**n-1)**(B + 2*A)
+    d = int(c/2)
+    result = big_precision(0.0)
+    base = big_precision(2**n-1)**(B + 2*A)
     for j1, j2 in itertools.product(range(0, d+1), range(0, d+1)):
         if 2*j1 + 4*j2 == c:
             # added = Integer(binomial(B, j1)) * RealNumber(p**j1) * RealNumber((1-p)**(B-j1)) * Integer(binomial(A, j2)) * RealNumber(q**(j2) * (1-q)**(A-j2))
-            added = RealNumber(binomial(B, j1)) * RealNumber((2**n-2)**(B-j1)) * RealNumber(binomial(A, j2)) * RealNumber((2**(2*n)-2**(n+1))**(A-j2))
+            added = big_precision(binomial(B, j1)) * big_precision((2**n-2)**(B-j1)) * big_precision(binomial(A, j2)) * big_precision((2**(2*n)-2**(n+1))**(A-j2))
             if added > 0 and added < Infinity:
                 result += added / base
     return result
@@ -198,7 +203,7 @@ def expected_max_lat_function(m, n):
     
 # !SUBSECTION! Aggregated information from the tables
 
-def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
+def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func, precision=DEFAULT_HIGH_PRECISION):
     """Returns the logarithm in base 2 of the probability that
     $(2^m-1)(2^n-1)$ trials of an experiment yielding output c with
     probability proba_func(m, n, c) will have a result equal to
@@ -206,15 +211,19 @@ def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func):
     other trials.
 
     """
-    p_strictly_smaller = sum(RealNumber(proba_func(m, n, i)) for i in range(0, v_max))
-    p_equal = RealNumber(proba_func(m, n, v_max))
-    result = RealNumber(0)
-    n_trials = (2**m-1) * (2**n-1)
-    for occ in reversed(range(0, occurrences+1)):
-        added = RealNumber(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
-        if abs(added) < Infinity and added > 0 and (result + added > result):
+    try:
+        big_precision = RealField(precision)
+        p_strictly_smaller = sum(big_precision(proba_func(m, n, i, precision=precision)) for i in range(0, v_max))
+        p_equal = big_precision(proba_func(m, n, v_max, precision=precision))
+        result = big_precision(0)
+        n_trials = (2**m-1) * (2**n-1)
+        for occ in reversed(range(0, occurrences+1)):
+            added = big_precision(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
             result += added
-    return result
+        return result
+    except:
+        print("failure in sum: occ={}, result={}, added={}".format(occ, result, added))
+        return 0
 
 
 def anomaly_differential_uniformity(n, v_max):
@@ -243,21 +252,23 @@ def anomaly_ddt(n, v_max, occ):
     return -(2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
     
 
-def table_anomaly(s, table):
+def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
     else:
-        spec = {}
         proba_func = None
         n = int(log(len(s), 2))
         if table == "DDT":
-            spec = differential_spectrum(s)
+            if spec == None:
+                spec = differential_spectrum(s)
             proba_func = ddt_coeff_probability
         elif table == "LAT":
-            spec = walsh_spectrum(s)
+            if spec == None:
+                spec = walsh_spectrum(s)
             proba_func = lat_coeff_probability_permutation
         else:
-            spec = boomerang_spectrum(s)
+            if spec == None:
+                spec = boomerang_spectrum(s)
             proba_func = bct_coeff_probability
         v_max = 0
         occurrences = 0
@@ -267,24 +278,28 @@ def table_anomaly(s, table):
             elif abs(k) > v_max:
                 v_max = abs(k)
                 occurrences = spec[k]
-        return -float(log(probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func), 2))
+        big_precision = RealField(precision)
+        p = big_precision(probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func, precision=precision))
+        return -p.log2()
 
     
-def table_negative_anomaly(s, table):
+def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based negative anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
     else:
-        spec = {}
         proba_func = None
         n = int(log(len(s), 2))
         if table == "DDT":
-            spec = differential_spectrum(s)
+            if spec == None:
+                spec = differential_spectrum(s)
             proba_func = ddt_coeff_probability
         elif table == "LAT":
-            spec = walsh_spectrum(s)
+            if spec == None:
+                spec = walsh_spectrum(s)
             proba_func = lat_coeff_probability_permutation
         else:
-            spec = boomerang_spectrum(s)
+            if spec == None:
+                spec = boomerang_spectrum(s)
             proba_func = bct_coeff_probability
         v_max = 0
         occurrences = 0
@@ -294,15 +309,15 @@ def table_negative_anomaly(s, table):
             elif abs(k) > v_max:
                 v_max = abs(k)
                 occurrences = spec[k]
-        p_anomaly = probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func)
-        p_equal = proba_func(n, n, v_max)
-        p_strictly_smaller = sum(proba_func(n, n, i) for i in range(0, v_max))
+        p_anomaly = probability_of_max_and_occurrences(n, n, v_max, occurrences, proba_func, precision=precision)
+        p_equal = proba_func(n, n, v_max, precision=precision)
+        p_strictly_smaller = sum(proba_func(n, n, i, precision=precision) for i in range(0, v_max))
         card = (2**n-1)**2
-        p_precise_equal = RealNumber(binomial(card, occurrences))*p_equal**occurrences*p_strictly_smaller**(card-occurrences)
-        p_precise_equal = min(p_precise_equal, RealNumber(1.0))
-        p_anomaly       = min(p_anomaly, RealNumber(1.0))
-        return -float(log(p_precise_equal-p_anomaly+1, 2))
-
+        big_precision = RealField(precision)
+        p_precise_equal = big_precision(binomial(card, occurrences))*p_equal**occurrences*p_strictly_smaller**(card-occurrences)
+        # p_precise_equal = min(p_precise_equal, big_precision(1.0))
+        # p_anomaly       = min(p_anomaly, big_precision(1.0))
+        return -big_precision(p_precise_equal-p_anomaly+1).log2()
 
 
 

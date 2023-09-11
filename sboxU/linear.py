@@ -120,12 +120,18 @@ class FastLinearMapping:
 
     """
 
-    def __init__(self, L):
+    def __init__(self, L, lsb_first=False):
         self.inner_matrix = L
-        self.masks = [
-            sum(int(L[i,j]) << (L.nrows()-i-1) for i in range(0, L.nrows()))
-            for j in reversed(range(0, L.ncols()))
-        ]
+        if not lsb_first:
+            self.masks = [
+                sum(int(L[i,j]) << (L.nrows()-i-1) for i in range(0, L.nrows()))
+                for j in reversed(range(0, L.ncols()))
+            ]
+        else:
+            self.masks = [
+                sum(int(L[i,j]) << i for i in range(0, L.nrows()))
+                for j in range(0, L.ncols())
+            ]
 
     def input_size(self):
         return self.inner_matrix.ncols()
@@ -158,8 +164,8 @@ class FastLinearMapping:
 
 
 def linear_function_lut_to_matrix(l):
-    """Turns the look up table of a linear function into the corresponding
-    binary matrix.
+    """Turns the look up table `l` of a linear function into the
+    corresponding binary matrix.
 
     """
     n = int(log(len(l), 2))
@@ -168,6 +174,21 @@ def linear_function_lut_to_matrix(l):
         line = [(int(l[1 << (n-1-j)]) >> (n-1-i)) & 1 for j in range(0, n)]
         result.append(line)
     return Matrix(GF(2), n, n, result)
+
+
+def affine_function_lut_to_offset_and_matrix(a):
+    """Turns the look up table `a` of an affine function into a list
+    [c, L], where L is the binary matrix corresponding to its linear
+    part, and where `c = a[0]`
+
+    """
+    n = int(log(len(a), 2))
+    result = []
+    l = [oplus(a[0], y) for y in a]
+    for i in range(0, n):
+        line = [(int(l[1 << (n-1-j)]) >> (n-1-i)) & 1 for j in range(0, n)]
+        result.append(line)
+    return [a[0], Matrix(GF(2), n, n, result)]
 
 
 def linear_function_matrix_to_lut(mat):

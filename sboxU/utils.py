@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2022-11-29 13:39:03 lperrin>
+# Time-stamp: <2023-09-08 14:27:52 lperrin>
 
 from sage.all import *
 import itertools
@@ -94,3 +94,7 @@ def covered_set(mask):
     else:
         c = [(x << 1) for x in covered_set(mask >> 1)]
         return c + [(x | 1) for x in c]
+
+
+def lg2(x):
+    return float(log(x, 2))
