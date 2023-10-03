@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-09-05 16:07:43 lperrin>
+# Time-stamp: <2023-10-02 16:14:30 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -17,7 +17,7 @@ from .utils import *
 # Some constants
 BIG_SBOX_THRESHOLD = 128
 DEFAULT_N_THREADS  = 2
-DEFAULT_HIGH_PRECISION = 100
+DEFAULT_HIGH_PRECISION = 40
 
 
 def lat_zeroes(s, n_threads=None):
@@ -321,7 +321,6 @@ def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION
 
 
 
-
 # !SUBSECTION! Algebraic properies
 
 @parallel
@@ -391,6 +390,31 @@ def degree_spectrum(s):
     return result
 
 
+def hdim(s):
+    """Returns the High Degree Indicator Matrix of `s`.
+
+    Let n be such that `s` is the LUT of a function mapping F_2^n to
+    itself. Then the HDIM is the n x n matrix with binary coefficients
+    m_{i,j}, where
+
+    m_{i,j} = \\sum_x (e_i \\cdot F(x)) (e_j \\cdot x)
+
+    as defined in
+
+    Perrin, Léo, and Aleksei Udovenko. "Algebraic insights into the
+    secret Feistel network (full version)." Cryptology ePrint Archive
+    (2016).
+
+    """
+    n = int(log(len(s), 2))
+    H = [[0 for j in range(0, n)] for i in range(0, n)]
+    b = [int(1 << i) for i in range(0, n)] # canonical basis
+    for i, j in itertools.product(range(0, n), range(0, n)):
+        H[i][j] = sum(scal_prod(b[i], s[x]) * scal_prod(b[j], x) for x in range(0, 2**n)) % 2
+    return Matrix(GF(2), n, n, H)
+    
+
+    
 # !SECTION! Inverting a LAT
 
 def invert_lat(l):

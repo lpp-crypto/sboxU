@@ -1,7 +1,7 @@
 #!/usr/bin/sage
-# Time-stamp: <2021-08-12 16:50:35 lperrin>
+# Time-stamp: <2023-10-02 16:52:00 lperrin>
 
-
+import matplotlib
 import matplotlib.pyplot as plt
 from .diff_lin import *
 from math import log
@@ -21,7 +21,7 @@ COLOR_SEQUENCE = [
     "#bcbd22",
     "#17becf",
 ]
-
+DEFAULT_FIG_X, DEFAULT_FIG_Y = 15, 15
 
 
 # !SECTION! Display in the console 
@@ -46,7 +46,7 @@ def pretty_spectrum(d, absolute=False):
     return line[:-2] + "}"
 
 
-def pretty_vector(v, template="{:2x}"):
+def pretty_vector(v, template="{:2x},"):
     """Returns a string containing the representation of the integers in v
     using the template given (defaults to a simple decimal
     representation).
@@ -56,7 +56,7 @@ def pretty_vector(v, template="{:2x}"):
         return "[]"
     line = "["
     for x in v:
-        line += template.format(x) + ","
+        line += template.format(x)
     return line[:-1] + "]"
 
     
@@ -88,7 +88,7 @@ def plot_table_averages(l,
         col_cols = COLOR_SEQUENCE[0]
     else:
         raise "At least rows or cols should be set to True!"
-    fig, p = plt.subplots(figsize=(15,10))
+    fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
     p.set_xlabel('row/column index')
     p.set_ylabel('Average of the absolute value')
     # rows
@@ -128,6 +128,7 @@ def plot_table_averages(l,
     legend = p.legend(loc='upper right', shadow=True)
     p.set_xlim([0, len(l)])
     fig.savefig("{}.png".format(file_name))
+    plt.close()
 
 
 def plot_table_variances(l,
@@ -144,7 +145,7 @@ def plot_table_variances(l,
         col_cols = COLOR_SEQUENCE[0]
     else:
         raise "At least rows or cols should be set to True!"
-    fig, p = plt.subplots(figsize=(15,10))
+    fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
     p.set_xlabel('row/column index')
     p.set_ylabel('Variance of the absolute value')
     # rows
@@ -189,9 +190,20 @@ def plot_table_variances(l,
                markersize=2,
                label="Columns")
     # finalizing graph
-    legend = p.legend(loc='upper right', shadow=True)
+    p.legend(loc='upper right', shadow=True, fontsize=18)
+    p.yaxis.get_label().set_fontsize(18)
+    p.xaxis.get_label().set_fontsize(18)
+    p.tick_params(labelsize=12)
     p.set_xlim([0, len(l)])
+    n = int(round(log(len(l), 2)))
+    if n > 4:
+        tick_space = int(2**(n-4))
+    else:
+        tick_space = 1
+    plt.xticks(list(range(0, 2**n, tick_space)))
+    p.grid(color="0.8")
     fig.savefig("{}.png".format(file_name))
+    plt.close()
 
 
 def plot_differential(dict_s,
@@ -220,7 +232,7 @@ def plot_differential(dict_s,
         }
     # plotting
     abscissa = range(0, u_max+1, 2)
-    fig, p = plt.subplots(figsize=(15,10))
+    fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
     p.set_xlabel('DDT coefficients')
     p.set_ylabel('Number of occurrences')
     if x_log_scale:
@@ -246,6 +258,7 @@ def plot_differential(dict_s,
         legend = p.legend(loc='upper right', shadow=True)
     p.set_xlim([0, u_max])
     fig.savefig("{}.png".format(file_name))
+    plt.close()
     
         
 
@@ -283,7 +296,7 @@ def plot_linear(dict_s,
         }
     # plotting
     abscissa = range(l_min, l_max+1, 4)
-    fig, p = plt.subplots(figsize=(15,10))
+    fig, p = plt.subplots(figsize=(DEFAULT_FIG_X,DEFAULT_FIG_Y))
     p.set_xlabel('abs(LAT coefficients)')
     p.set_ylabel('Number of occurrences')
     color_index = 0
@@ -309,6 +322,157 @@ def plot_linear(dict_s,
     if y_log_scale:
         p.set_yscale("log", nonposy="clip")
     fig.savefig("{}.png".format(file_name))
+    plt.close()
+
+        
+
+def plot_statistical(spec,
+                     n=None,
+                     file_name="statistical",
+                     expected_distrib=None,
+                     l_min=None,
+                     l_max=None,
+                     x_log_scale=False,
+                     y_log_scale=True):
+    spectra = {}
+    spectra["F"] = defaultdict(float)
+    absolute_spec = defaultdict(int)
+    for k in spec.keys():
+        spectra["F"][abs(k)] += spec[k]
+    if l_min == None:
+        l_min = max(0, min(spectra["F"].keys())-2)
+    if l_max == None:
+        l_max = max(spectra["F"].keys())+2
+    if expected_distrib != None:
+        if n == None:
+            raise Exception("in plot_statistical: `n` must be specified!")
+        spectra["Expected"] = {}
+        for c in range(l_min, l_max+1):
+            p = expected_distrib(n, n, c)
+            expected_card = p*2**n*(2**n-1)
+            if expected_card > 2**-4:
+                spectra["Expected"][c] = expected_card
+    # plotting
+    fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
+    p.set_xlabel("c")
+    p.set_ylabel("# {(a, b), |T[a,b]| = c}")
+    color_index = 0
+    for w in spectra.keys():
+        abscissa = []
+        ordenna = []
+        for c in sorted(spectra[w].keys()):
+            if c >= l_min and c <= l_max:
+                abscissa.append(c)
+                ordenna.append(float(spectra[w][c]))
+        if w == "Expected":
+            p.plot(abscissa,
+                   ordenna,
+                   color=COLOR_SEQUENCE[color_index],
+                   marker="x",
+                   linestyle="-",
+                   markersize=4,
+                   label=w)
+        else:
+            p.plot(abscissa,
+                   ordenna,
+                   color=COLOR_SEQUENCE[color_index],
+                   marker="o",
+                   linestyle="",
+                   markersize=8,
+                   label=w)
+        color_index +=1
+    p.legend(shadow=True, fontsize=18)
+    p.set_xlim([l_min, l_max])
+    p.yaxis.get_label().set_fontsize(18)
+    p.xaxis.get_label().set_fontsize(18)
+    p.tick_params(labelsize=12)
+    p.grid(color="0.8")
+    if x_log_scale:
+        p.set_xscale("log", nonpositive="clip")
+    if y_log_scale:
+        p.set_yscale("log", nonpositive="clip")
+    fig.savefig("{}.png".format(file_name))
+    plt.close()
+
+
+
+# !SUBSECTION! Properties of rows and columns
+
+def plot_statistical_by_rows(t, 
+                             n=None,
+                             file_name="statistical",
+                             expected_distrib=None,
+                             l_min=None,
+                             l_max=None,
+                             x_log_scale=False,
+                             y_log_scale=True):
+    spectra = {}
+    min_c = 2**n
+    max_c = 0
+    for a in range(1, 256):
+        spectra[a] = defaultdict(int)
+        for b in range(1, len(t[a])):
+            c = abs(t[a][b])
+            spectra[a][c] += 1
+            max_c = max(c, max_c)
+            min_c = min(c, min_c)
+    if l_min == None:
+        l_min = max(0, min_c)
+    if l_max == None:
+        l_max = max_c + 2
+    if expected_distrib != None:
+        if n == None:
+            raise Exception("in plot_statistical: `n` must be specified!")
+        spectra[-1] = {}
+        for c in range(l_min, l_max+1):
+            p = expected_distrib(n, n, c)
+            expected_card = p*2**n
+            if expected_card > 0.8:
+                spectra[-1][c] = expected_card
+    # plotting
+    fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
+    p.set_xlabel("c")
+    p.set_ylabel("# {b, |T[a,b]| = c}")
+    color_index = 0
+    local_color_sequence = matplotlib.cm.rainbow(range(0, 2**n+1))
+    for w in sorted(spectra.keys()):
+        abscissa = []
+        ordenna = []
+        for c in sorted(spectra[w].keys()):
+            if c >= l_min and c <= l_max:
+                abscissa.append(c)
+                ordenna.append(float(spectra[w][c]))
+        if w == -1:
+            p.plot(abscissa,
+                   ordenna,
+                   color="black",
+                   marker="x",
+                   linestyle="-",
+                   markersize=4,
+                   label=w)
+        else:
+            p.plot(abscissa,
+                   ordenna,
+                   color=local_color_sequence[color_index],
+                   marker="o",
+                   linestyle="-",
+                   markersize=2,
+                   alpha=0.2,
+                   label=w)
+        color_index +=1
+    p.set_xlim([l_min, l_max])
+    p.yaxis.get_label().set_fontsize(18)
+    p.xaxis.get_label().set_fontsize(18)
+    p.tick_params(labelsize=12)
+    p.grid(color="0.8")
+    if x_log_scale:
+        p.set_xscale("log", nonpositive="clip")
+    if y_log_scale:
+        p.set_yscale("log", nonpositive="clip")
+    fig.savefig("{}.png".format(file_name))
+    plt.close()
+
+    
 
 
 # !SECTION! Jackson Pollock
@@ -324,7 +488,7 @@ def save_pollock(mat,
                  colorbar=False,
                  file_type="png",
                  modifier_func=abs,
-                 figsize=15):
+                 figsize=DEFAULT_FIG_X):
     fig, p = plt.subplots(figsize=(figsize,figsize))
     abs_mat = [[modifier_func(mat[i][j]) for j in range(0, len(mat[0]))]
                for i in range(0, len(mat))]
@@ -340,8 +504,8 @@ def save_pollock(mat,
     p.get_yaxis().set_visible(visible_axes)
     p.patch.set_alpha(0)
     p.set_frame_on(frame)
-    # if colorbar:
-    #     axes.colorbar(p, orientation='vertical')
+    if colorbar:
+        fig.colorbar(axes, orientation='vertical')
     if folder == None:
         name_base = "{}."+file_type
     else:
