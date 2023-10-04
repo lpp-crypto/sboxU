@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-02 16:52:00 lperrin>
+# Time-stamp: <2023-10-04 10:38:31 lperrin>
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -407,9 +407,11 @@ def plot_statistical_by_rows(t,
                              x_log_scale=False,
                              y_log_scale=True):
     spectra = {}
+    if n == None:
+        n = int(round(log(len(t), 2)))
     min_c = 2**n
     max_c = 0
-    for a in range(1, 256):
+    for a in range(1, len(t)):
         spectra[a] = defaultdict(int)
         for b in range(1, len(t[a])):
             c = abs(t[a][b])

@@ -314,8 +314,8 @@ class Analysis:
         if ccz:
             self.anomalies["CCZ"] = CCZAnomaly(s)
             self.spectra["CCZ"] = self.anomalies["CCZ"].spectrum
+        self.advanced = {}
         if deep:
-            self.advanced = {}
             for table_name in sorted(self.tables.keys()):
                 t = self.tables[table_name]
                 threshold = 4 if table_name == "DDT" else 2
@@ -348,7 +348,7 @@ class Analysis:
 
 
     def show(self,
-             indent="",
+             indent="",    
              noteworthy_threshold=10,
              noteworthy_mark="  # Noteworty"):
         print(indent + "LUT:")
