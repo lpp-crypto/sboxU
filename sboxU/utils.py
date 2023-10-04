@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-09-08 14:27:52 lperrin>
+# Time-stamp: <2023-10-04 15:31:19 lperrin>
 
 from sage.all import *
 import itertools
@@ -37,8 +37,57 @@ def inverse(s):
     return result
 
 
+def eval_object(x, o):
+    """Allows querying LUTs and matrices on a given in a generic way."""
+    if not isinstance(x, (int, Integer)):
+        raise Exception("trying to evaluate a function on a non-integer input\nl={}\nx={}".format(o, x))
+    if isinstance(o, list):
+        return o[x]
+    elif "__call__" in dir(o):
+        return o(x)
+    elif isinstance(o, sage.matrix.matrix0.Matrix):
+        return apply_bin_mat(x, o)
+    else:
+        raise Exception("don't know how to evaluate o={}".format(o))
+
     
+def compose(func_list):
+    """Implements the composition of functions. Takes as input a list
+    of function-like objects, and returns the lookup table of their
+    composition.
+
+    The function of highest index is applied first, then the second to
+    last, etc. The aim is to mimic the behaviour of the "o" operator,
+    i.e. compose([F, G]) returns the lookup table of `F \circle G`.
+
+    """
+    # determining function domain
+    f_0 = func_list[0]
+    if isinstance(f_0, list):
+        input_size = len(f_0)
+    elif isinstance(f_0, FastLinearMapping):
+        input_size = 2**f_0.inner_matrix.ncols()
+    elif isinstance(f_0, sage.matrix.matrix0.Matrix):
+        input_size = 2**f_0.ncols()
+    else:
+        raise Exception("unsupported function-like type in `compose`: {}".format(type(o)))
+    # composing functions
+    result = list(range(0, input_size))
+    for f in reversed(func_list):
+        result = [eval_object(x, f) for x in result]
+    return result
+
+
+def xor(cstte):
+    """Returns the function taking as in input `x` and returning `x
+    \oplus cstte`.
+
+    """
+    return lambda x : oplus(x, cstte)
+
+
 def random_function_of_degree(n, m, deg):
+
     """Returns a function picked randomly in the set of functions mapping
     n bits to m with algebraic degree at most deg.
 
