@@ -1,12 +1,12 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-04 15:31:19 lperrin>
+# Time-stamp: <2023-10-04 16:46:42 lperrin>
 
 from sage.all import *
 import itertools
 from collections import defaultdict
 
 from .sboxU_cython import *
-
+from .linear import *
 
 
 def preprocess_into_list(s):
@@ -29,65 +29,7 @@ def preprocess_into_list(s):
             return [int(x for x in s)]
         
 
-def inverse(s):
-    """Returns the functional inverse of the permutation s."""
-    result = [0 for i in range(0, len(s))]
-    for x in range(0, len(s)):
-        result[s[x]] = x
-    return result
-
-
-def eval_object(x, o):
-    """Allows querying LUTs and matrices on a given in a generic way."""
-    if not isinstance(x, (int, Integer)):
-        raise Exception("trying to evaluate a function on a non-integer input\nl={}\nx={}".format(o, x))
-    if isinstance(o, list):
-        return o[x]
-    elif "__call__" in dir(o):
-        return o(x)
-    elif isinstance(o, sage.matrix.matrix0.Matrix):
-        return apply_bin_mat(x, o)
-    else:
-        raise Exception("don't know how to evaluate o={}".format(o))
-
-    
-def compose(func_list):
-    """Implements the composition of functions. Takes as input a list
-    of function-like objects, and returns the lookup table of their
-    composition.
-
-    The function of highest index is applied first, then the second to
-    last, etc. The aim is to mimic the behaviour of the "o" operator,
-    i.e. compose([F, G]) returns the lookup table of `F \circle G`.
-
-    """
-    # determining function domain
-    f_0 = func_list[0]
-    if isinstance(f_0, list):
-        input_size = len(f_0)
-    elif isinstance(f_0, FastLinearMapping):
-        input_size = 2**f_0.inner_matrix.ncols()
-    elif isinstance(f_0, sage.matrix.matrix0.Matrix):
-        input_size = 2**f_0.ncols()
-    else:
-        raise Exception("unsupported function-like type in `compose`: {}".format(type(o)))
-    # composing functions
-    result = list(range(0, input_size))
-    for f in reversed(func_list):
-        result = [eval_object(x, f) for x in result]
-    return result
-
-
-def xor(cstte):
-    """Returns the function taking as in input `x` and returning `x
-    \oplus cstte`.
-
-    """
-    return lambda x : oplus(x, cstte)
-
-
 def random_function_of_degree(n, m, deg):
-
     """Returns a function picked randomly in the set of functions mapping
     n bits to m with algebraic degree at most deg.
 
@@ -147,3 +89,91 @@ def covered_set(mask):
 
 def lg2(x):
     return float(log(x, 2))
+
+
+
+# !SECTION! Convenient function manipulation
+# ------------------------------------------
+
+def inverse(s):
+    """Returns the functional inverse of the permutation s."""
+    result = [0 for i in range(0, len(s))]
+    for x in range(0, len(s)):
+        result[s[x]] = x
+    return result
+
+
+def eval_function_like(x, o):
+    """Allows querying function-like objects such as lists (LUTs),
+    matrices, etc. on a given input in a generic way.
+
+    """
+    if not isinstance(x, (int, Integer)):
+        raise Exception("trying to evaluate a function on a non-integer input\nl={}\nx={}".format(o, x))
+    if isinstance(o, list):
+        return o[x]
+    elif isinstance(o, sage.matrix.matrix0.Matrix):
+        return apply_bin_mat(x, o)
+    # !TODO! Polynomial case 
+    # elif isinstance(o, sage.rings.polynomial.polynomial_element.Polynomial):
+    elif "__call__" in dir(o):
+        return o(x)
+    else:
+        raise Exception("don't know how to evaluate o={}".format(o))
+
+
+def get_lut(o, domain_size=None):
+    """Returns the lookup table (as a `list`) of the function-like
+    object given in the input.
+
+    """
+    if isinstance(o, list):
+        return o
+    elif isinstance(o, sage.matrix.matrix0.Matrix):
+        return [apply_bin_mat(x, o) for x in range(0, 2**o.ncols())]
+    elif isinstance(o, FastLinearMapping):
+        return [o(x) for x in range(0, 2**o.inner_matrix.ncols())]
+    elif "__call__" in dir(o):
+        if domain_size == None:
+            raise Exception("for such ojects ({}), `domain_size` must be specified".format(type(o)))
+        else:
+            return [o(x) for x in range(0, domain_size)]
+    else:
+        return Exception("unsupported object type ({})".format(type(o)))
+    
+    
+def comp(func_list, domain_size=None):
+    """Implements the composition of functions. Takes as input a list
+    of function-like objects, and returns the lookup table of their
+    composition.
+
+    The function of highest index is applied first, then the second to
+    last, etc. The aim is to mimic the behaviour of the "o" operator,
+    i.e. compose([F, G]) returns the lookup table of `F \\circle G`.
+
+    """
+    # determining function domain
+    f_0 = func_list[0]
+    if isinstance(f_0, list):
+        input_size = len(f_0)
+    elif isinstance(f_0, FastLinearMapping):
+        input_size = 2**f_0.inner_matrix.ncols()
+    elif isinstance(f_0, sage.matrix.matrix0.Matrix):
+        input_size = 2**f_0.ncols()
+    elif domain_size == None:
+        raise Exception("for functions of type {}, `domain_size` must be specified".format(type(f_0)))
+    else:
+        input_size = domain_size
+    # composing functions
+    result = list(range(0, input_size))
+    for f in reversed(func_list):
+        result = [eval_function_like(x, f) for x in result]
+    return result
+
+
+def F2_trans(cstte):
+    """Returns the function taking as in input `x` and returning `x
+    \\oplus cstte`, i.e. the translation by `cstte`.
+
+    """
+    return lambda x : oplus(x, cstte)
