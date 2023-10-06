@@ -183,19 +183,38 @@ class CycleAnomaly:
     def __init__(self, s):
         self.name = "cycle decomposition"
         self.cycles = cycle_decomposition(s)
-        self.cycle_type = [len(c) for c in self.cycles]
-        self.cycle_type.sort(reverse=True)
         self.spectrum = defaultdict(int)
-        for c in self.cycle_type:
-            self.spectrum[c] += 1
+        for c in self.cycles:
+            self.spectrum[len(c)] += 1
         # !TODO! evaluate the anomaly of all cycle types 
         self.positive_anomaly = 0
         self.negative_anomaly = 0
 
     def summary(self):
-        result = ["Cycle type : {}".format(self.cycle_type)]
+        result = ["Cycle type : {}".format(pretty_spectrum(self.spectrum))]
+        cycles_by_length = defaultdict(list)
         for c in self.cycles:
-            result.append("- [len={:3d}]  {}".format(len(c), c))
+            cycles_by_length[len(c)].append(c)
+        # cycles of a specific length (1 or 2)
+        if len(cycles_by_length[1]) > 1:
+            fixed_points_str = "fixed points   (#={:d}) : [".format(len(cycles_by_length[1]))
+            for c in cycles_by_length[1]:
+                fixed_points_str += "{}, ".format(c[0])
+            result.append(fixed_points_str[:-2] + "]")
+        else:
+            result.append("fixed points   (#=0) : []")
+        if len(cycles_by_length[2]) > 0:
+            transpositions_str = "transpositions (#={:d}) : [".format(len(cycles_by_length[2]))
+            for c in cycles_by_length[2]:
+                transpositions_str += "{}, ".format(c)
+            result.append(transpositions_str[:-2] + "]")
+        else:
+            result.append("transpositions (#=0) : []")
+        # generic cycles
+        for l in sorted(cycles_by_length.keys()):
+            if l > 2:
+                for c in cycles_by_length[l]:
+                    result.append("- [len={:3d}]  {}".format(len(c), c))
         return result
 
     def __str__(self):
@@ -206,10 +225,19 @@ class CycleAnomaly:
     
 
 class CCZAnomaly:
-    def __init__(self, s):
+    def __init__(self, s, threshold=40):
         self.name = "CCZ"
         N = int(log(len(s), 2))
-        self.spaces = get_lat_zeroes_spaces(s)
+        self.spaces = []
+        self.spaces_all_found = True
+        # doing the thickness spectrum by hand so that this does not
+        # take up too much time a priori
+        self.lat_zeroes = lat_zeroes(s)
+        for space in vector_spaces_bases_iterator(self.lat_zeroes, N, 2*N):
+            self.spaces.append(space)
+            if len(self.spaces) == threshold:
+                self.spaces_all_found = False
+                break
         self.spectrum = thickness_spectrum(s, spaces=self.spaces)
         self.negative_anomaly = 0
         self.positive_anomaly = 0
@@ -225,12 +253,20 @@ class CCZAnomaly:
 
 
     def summary(self):
-        return [
+        result = []
+        if not self.spaces_all_found:
+            result += [
+                "/!\\ WARNING: not all spaces found!",
+                "    Rerun with a higher threshold to have them all."
+            ]
+        result += [
             "|Walsh zero spaces| = {}".format(len(self.spaces)),
             "thickness spectrum = {}".format(pretty_spectrum(self.spectrum)),
             "positive A: {:10.4f}".format(self.positive_anomaly),
             "negative A: {:10.4f}".format(self.negative_anomaly),
         ]
+        return result
+    
 
     def __str__(self):
         result = ""
@@ -296,7 +332,12 @@ class Analysis:
         self.N = int(lg2(len(s)))
         self.name = name
         self.deep = deep
-        self.lut = s
+        if isinstance(s, sage.crypto.sbox.SBox):
+            self.lut = list(s)
+        elif isinstance(s, list):
+            self.lut = s
+        else:
+            raise Exception("s must be a list (or an SBox instance)")
         # setting up parameters of the analysis
         if cps == None:
             cps = True
@@ -338,7 +379,10 @@ class Analysis:
             self.anomalies["DEG"] = DegreeAnomaly(s)
             self.spectra["DEG"] = self.anomalies["DEG"].spectrum
         if cps:
-            self.anomalies["CPS"] = CPSAnomaly(s)
+            if deep:
+                self.anomalies["CPS"] = CPSAnomaly(s, threshold=Infinity)
+            else:
+                self.anomalies["CPS"] = CPSAnomaly(s)
             self.spectra["CPS"] = self.anomalies["CPS"].spectrum
         if ccz:
             self.anomalies["CCZ"] = CCZAnomaly(s)
