@@ -6,6 +6,7 @@ from .diff_lin import *
 from .ccz import *
 from .display import *
 from .linear import *
+from .cycles import *
 from .analysis import *
 from .known_functions import *
 
