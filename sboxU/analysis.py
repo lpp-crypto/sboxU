@@ -10,6 +10,7 @@ from .utils import *
 from .display import *
 from .diff_lin import *
 from .ccz import *
+from .cycles import *
 
 
 # !SECTION! Statistical anomalies 
@@ -176,6 +177,31 @@ class CPSAnomaly:
         result = ""
         for line in self.summary():
             result += line + "\n"
+
+            
+class CycleAnomaly:
+    def __init__(self, s):
+        self.name = "cycle decomposition"
+        self.cycles = cycle_decomposition(s)
+        self.cycle_type = [len(c) for c in self.cycles]
+        self.cycle_type.sort(reverse=True)
+        self.spectrum = defaultdict(int)
+        for c in self.cycle_type:
+            self.spectrum[c] += 1
+        # !TODO! evaluate the anomaly of all cycle types 
+        self.positive_anomaly = 0
+        self.negative_anomaly = 0
+
+    def summary(self):
+        result = ["Cycle type : {}".format(self.cycle_type)]
+        for c in self.cycles:
+            result.append("- [len={:3d}]  {}".format(len(c), c))
+        return result
+
+    def __str__(self):
+        result = ""
+        for line in self.summary():
+            result += line + "\n"
     
     
 
@@ -262,6 +288,7 @@ class Analysis:
                  boomerang=None,
                  degree=None,
                  cps=None,
+                 cycles=None,
                  ccz=None,
                  store_tables=None,
                  deep=False,
@@ -273,6 +300,8 @@ class Analysis:
         # setting up parameters of the analysis
         if cps == None:
             cps = True
+        if cycles == None:
+            cycles = True
         if differential == None:
             differential = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
         if linear == None:
@@ -314,6 +343,8 @@ class Analysis:
         if ccz:
             self.anomalies["CCZ"] = CCZAnomaly(s)
             self.spectra["CCZ"] = self.anomalies["CCZ"].spectrum
+        if cycles:
+            self.anomalies["CYC"] = CycleAnomaly(s)       
         self.advanced = {}
         if deep:
             for table_name in sorted(self.tables.keys()):
@@ -373,13 +404,13 @@ class Analysis:
             elif a.negative_anomaly >= noteworthy_threshold:
                 to_print = to_print + " "*(60-len(to_print)-len(noteworthy_mark)) + noteworthy_mark
                 bad_properties.append(a.name)
-            print(to_print)
+            print("\n# {}\n".format(to_print))
             for line in a.summary():
-                print(indent + " - " + line)
+                print(indent + line)
         if len(good_properties) > 0:
-            print(indent + "Noteworthy qualities: " + str(good_properties)[1:-1])
+            print("\n" + indent + "# Noteworthy qualities: " + str(good_properties)[1:-1])
         if len(bad_properties) > 0:
-            print(indent + "Noteworthy flaws    : " + str(bad_properties)[1:-1])
+            print("\n" + indent + "# Noteworthy flaws    : " + str(bad_properties)[1:-1])
         if (len(good_properties) == 0) and (len(bad_properties) == 0):
             print(indent + "The function is dull")
         if len(self.advanced.keys()) > 0:
