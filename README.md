@@ -68,13 +68,17 @@ sage from the folder containing it.
   most recent one to compile `sboxU`, but then use an older one in
   your scripts.
 
-## Authors
+## Authors (in alphabetic order)
+
+[Jules Baudrin](https://who.paris.inria.fr/Jules.Baudrin/)
+
+[Aurélien Boeuf](https://who.paris.inria.fr/Aurelien.Boeuf/)
+
+[Alain Couvreur](http://www.lix.polytechnique.fr/Labo/Alain.Couvreur/)
 
 [Mathias Joly](https://github.com/MathiasJoly)
 
 [Léo Perrin](https://who.paris.inria.fr/Leo.Perrin/)
-
-[Aurélien Boeuf](https://who.paris.inria.fr/Aurelien.Boeuf/)
 
 ## Acknowledgements
 
