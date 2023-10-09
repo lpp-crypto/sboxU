@@ -4,6 +4,7 @@ from sage.all import Matrix, GF, vector, log, randint
 
 from collections import defaultdict
 from PIL import Image, ImageDraw, ImageFont
+import platform
 
 from .sboxU_cython import *
 from .utils import *
@@ -196,7 +197,7 @@ class LinearStructAnomaly:
         ]
         for c in sorted(self.struct.keys()):
             result.append(" - {:2x} : 0:{}".format(c, pretty_vector(self.struct[c][0])))
-            result.append("         1:{}".format(pretty_vector(self.struct[c][1])))
+            result.append("        1:{}".format(pretty_vector(self.struct[c][1])))
         return result
     
 
@@ -602,9 +603,13 @@ class Analysis:
                     cursor_2 += images[i].width
             # writing stuff
             title = ImageDraw.Draw(image_summary)
+            if platform.system() == "Darwin":
+                pretty_font = ImageFont.truetype("Keyboard.ttf", 80)
+            else:
+                pretty_font = ImageFont.truetype("arial.ttf", 80)
             title.text((20, 20),
                        "{}: {} analysis".format(name, table_name),
-                       font=ImageFont.truetype("arial.ttf", 80),
+                       font=pretty_font,
                        fill=(0,0,0))
             image_summary.save("summary-{}-{}.png".format(name, table_name))
             if show:
