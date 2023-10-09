@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-09 14:02:19 lperrin>
+# Time-stamp: <2023-10-09 15:46:32 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -79,11 +79,11 @@ def linear_structures(f):
 
     f(x+a) + f(x) = e,
 
-    for all x (where `+` corresponds to a XOR). Obviously, 0 is always
-    in `l_0`.
+    for all x (where `+` corresponds to a XOR). 0 does not appear
+    in `l_0` as it would always be present.
 
     """
-    result = [[0], []]
+    result = [[], []]
     for a in range(1, len(f)):
         offset = oplus(f[a], f[0])
         valid = True

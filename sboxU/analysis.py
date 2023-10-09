@@ -178,6 +178,33 @@ class CPSAnomaly:
         for line in self.summary():
             result += line + "\n"
 
+
+class LinearStructAnomaly:
+    def __init__(self, s):
+        self.name = "linear structures"
+        self.struct = linear_structures_vectorial(s)
+        self.spectrum = defaultdict(int)
+        for c in self.struct.keys():
+            self.spectrum[len(self.struct[c][0]) + len(self.struct[c][1])] += 1
+        self.positive_anomaly = 0
+        self.negative_anomaly = 0
+
+        
+    def summary(self):
+        result = [
+            "Linear Structures : {}".format(pretty_spectrum(self.spectrum)),
+        ]
+        for c in sorted(self.struct.keys()):
+            result.append(" - {:2x} : 0:{}".format(c, pretty_vector(self.struct[c][0])))
+            result.append("         1:{}".format(pretty_vector(self.struct[c][1])))
+        return result
+    
+
+    def __str__(self):
+        result = ""
+        for line in self.summary():
+            result += line + "\n"
+
             
 class CycleAnomaly:
     def __init__(self, s):
@@ -319,17 +346,26 @@ class Analysis:
     def __init__(self,
                  s,
                  name="sbox",
+                 # which analyses to perform
                  differential=None,
                  linear=None,
                  boomerang=None,
                  degree=None,
                  cps=None,
                  cycles=None,
+                 linear_struct=None,
                  ccz=None,
+                 # how to perform the analysis
                  store_tables=None,
                  deep=False,
             ):
-        self.N = int(lg2(len(s)))
+        if isinstance(s, sage.crypto.sbox.SBox):
+            self.N = s.n
+            s = list(s)
+        elif isinstance(s, list):
+            self.N = int(lg2(len(s)))
+        else:
+            raise Exception("unsupported input type: {}".format(type(s)))
         self.name = name
         self.deep = deep
         if isinstance(s, sage.crypto.sbox.SBox):
@@ -351,6 +387,8 @@ class Analysis:
             boomerang = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
         if degree == None:
             degree = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
+        if linear_struct == None:
+            linear_struct = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
         if ccz == None:
             ccz = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
         if store_tables == None:
@@ -379,13 +417,16 @@ class Analysis:
             self.anomalies["DEG"] = DegreeAnomaly(s)
             self.spectra["DEG"] = self.anomalies["DEG"].spectrum
         if cps:
-            if deep:
-                self.anomalies["CPS"] = CPSAnomaly(s, threshold=Infinity)
-            else:
-                self.anomalies["CPS"] = CPSAnomaly(s)
+            self.anomalies["CPS"] = CPSAnomaly(s)
             self.spectra["CPS"] = self.anomalies["CPS"].spectrum
+        if linear_struct:
+            self.anomalies["LST"] = LinearStructAnomaly(s)
+            self.spectra["LST"] = self.anomalies["LST"].spectrum
         if ccz:
-            self.anomalies["CCZ"] = CCZAnomaly(s)
+            if deep:
+                self.anomalies["CCZ"] = CCZAnomaly(s, threshold=Infinity)
+            else:
+                self.anomalies["CCZ"] = CCZAnomaly(s)
             self.spectra["CCZ"] = self.anomalies["CCZ"].spectrum
         if cycles:
             self.anomalies["CYC"] = CycleAnomaly(s)       
