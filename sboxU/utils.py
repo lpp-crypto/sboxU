@@ -1,7 +1,8 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-04 16:46:42 lperrin>
+# Time-stamp: <2023-10-09 10:35:03 lperrin>
 
 from sage.all import *
+from sage.crypto.sbox import SBox
 import itertools
 from collections import defaultdict
 
@@ -110,7 +111,7 @@ def eval_function_like(x, o):
     """
     if not isinstance(x, (int, Integer)):
         raise Exception("trying to evaluate a function on a non-integer input\nl={}\nx={}".format(o, x))
-    if isinstance(o, list):
+    if isinstance(o, (list, sage.crypto.sbox.SBox)):
         return o[x]
     elif isinstance(o, sage.matrix.matrix0.Matrix):
         return apply_bin_mat(x, o)
@@ -142,7 +143,7 @@ def get_lut(o, domain_size=None):
         return Exception("unsupported object type ({})".format(type(o)))
     
     
-def comp(func_list, domain_size=None):
+def comp(func_list, input_size=None):
     """Implements the composition of functions. Takes as input a list
     of function-like objects, and returns the lookup table of their
     composition.
@@ -156,20 +157,46 @@ def comp(func_list, domain_size=None):
     f_0 = func_list[0]
     if isinstance(f_0, list):
         input_size = len(f_0)
+    elif isinstance(f_0, sage.crypto.sbox.SBox):
+        input_size = len(list(f_0))
     elif isinstance(f_0, FastLinearMapping):
         input_size = 2**f_0.inner_matrix.ncols()
     elif isinstance(f_0, sage.matrix.matrix0.Matrix):
         input_size = 2**f_0.ncols()
-    elif domain_size == None:
-        raise Exception("for functions of type {}, `domain_size` must be specified".format(type(f_0)))
-    else:
-        input_size = domain_size
+    elif input_size == None:
+        raise Exception("for functions of type {}, `input_size` must be specified".format(type(f_0)))
     # composing functions
     result = list(range(0, input_size))
     for f in reversed(func_list):
         result = [eval_function_like(x, f) for x in result]
     return result
 
+
+def xor_lut(func_list, input_size=None):
+    """Implements an F_2 sum (XOR) of functions. Takes as input a list
+    of function-like objects, and returns the lookup table of their
+    sum.
+
+    """
+    # determining function domain
+    f_0 = func_list[0]
+    if isinstance(f_0, list):
+        input_size = len(f_0)
+    elif isinstance(f_0, sage.crypto.sbox.SBox):
+        input_size = len(list(f_0))
+    elif isinstance(f_0, FastLinearMapping):
+        input_size = 2**f_0.inner_matrix.ncols()
+    elif isinstance(f_0, sage.matrix.matrix0.Matrix):
+        input_size = 2**f_0.ncols()
+    elif input_size == None:
+        raise Exception("for functions of type {}, `input_size` must be specified".format(type(f_0)))
+    # composing functions
+    result = [0 for x in range(0, input_size)]
+    for f in func_list:
+        result = [oplus(result[x], eval_function_like(x, f))
+                  for x in range(0, input_size)]
+    return result
+    
 
 def F2_trans(cstte):
     """Returns the function taking as in input `x` and returning `x
