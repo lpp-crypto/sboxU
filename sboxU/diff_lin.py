@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-02 16:14:30 lperrin>
+# Time-stamp: <2023-10-09 14:02:19 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -69,13 +69,64 @@ def c_differential_uniformity_spectrum(s, F, l_table=None, e_table=None):
         uniformity = max(c_spectra[c].keys())
         result[uniformity].append(c)
     return result
+
+
+# !SECTION! Linear structures
+
+def linear_structures(f):
+    """Assuming that `f` is the LUT of a Boolean function, returns a pair of
+    lists `[l_0, l_1]` such that, for all `a` in l_e (with e in [0,1]),
+
+    f(x+a) + f(x) = e,
+
+    for all x (where `+` corresponds to a XOR). Obviously, 0 is always
+    in `l_0`.
+
+    """
+    result = [[0], []]
+    for a in range(1, len(f)):
+        offset = oplus(f[a], f[0])
+        valid = True
+        for x in range(1, len(f)):
+            if oplus(f[oplus(x, a)], f[x]) != offset:
+                valid = False
+                break
+        if valid:
+            result[offset].append(a)    
+    return result
+
+
+def linear_structures_vectorial(s):
+    """Assuming that `s` is the LUT of a vectorial Boolean function,
+    returns a dictionnary `d`, where `d[c]` is pair of lists `[l_0,
+    l_1]` such that, for all `a` in l_e (with e in [0,1]),
+
+    c. (s(x+a) + s(x)) = e,
+
+    for all x (where `+` corresponds to a XOR), where `.` is the
+    scalar product.
+
+    The dictionnary only contains keys where `l_0` or `l_1` are
+    non-trivial, i.e. where `l_0` contains more than just 0 and/or
+    where `l_1` is non-empty.
+
+    """
+    result = {}
+    for c in range(1, len(s)):
+        f = component(c, s)
+        l = linear_structures(f)
+        if len(l[0]) > 1 or len(l[1]) > 0:
+            result[c] = l
+    return result
     
 
+        
 # !SECTION! Properties of functions and permutations
 
 # !SUBSECTION! Probability distributions
 
 def lat_coeff_probability_permutation(m, n, c, precision=DEFAULT_HIGH_PRECISION):
+
     """Returns the probability that a coefficient of the Walsh spectrum of
     a random bijective permutation mapping m bits to n is equal, in
     absolute value, to c.

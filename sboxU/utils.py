@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-09 10:52:53 lperrin>
+# Time-stamp: <2023-10-09 14:51:28 lperrin>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -142,6 +142,35 @@ def get_lut(o, domain_size=None):
     else:
         return Exception("unsupported object type ({})".format(type(o)))
     
+
+def get_input_size(func_list):
+    """For a list of "function-like" object, returns the size of the
+    set of its inputs (or an exception if a contradiction is found,
+    i.e. functions with mismatched input sizes).
+
+    For instance, returns the `len` of a list corresponding to a
+    lookup table.
+
+    """
+    input_size = None
+    # determining function domain
+    for f in func_list:
+        local_input_size = None
+        if isinstance(f, list):
+            local_input_size = len(f)
+        elif isinstance(f, sage.crypto.sbox.SBox):
+            local_input_size = len(list(f))
+        elif isinstance(f, FastLinearMapping):
+            local_input_size = 2**f.inner_matrix.ncols()
+        elif isinstance(f, sage.matrix.matrix0.Matrix):
+            local_input_size = 2**f.ncols()
+        if local_input_size != None:
+            if input_size != None and input_size != local_input_size:
+                raise Exception("trying to compose functions with mismatched input sizes")
+            else:
+                input_size = local_input_size
+    return input_size
+
     
 def comp(func_list, input_size=None):
     """Implements the composition of functions. Takes as input a list
@@ -154,17 +183,10 @@ def comp(func_list, input_size=None):
 
     """
     # determining function domain
-    f_0 = func_list[0]
-    if isinstance(f_0, list):
-        input_size = len(f_0)
-    elif isinstance(f_0, sage.crypto.sbox.SBox):
-        input_size = len(list(f_0))
-    elif isinstance(f_0, FastLinearMapping):
-        input_size = 2**f_0.inner_matrix.ncols()
-    elif isinstance(f_0, sage.matrix.matrix0.Matrix):
-        input_size = 2**f_0.ncols()
-    elif input_size == None:
-        raise Exception("for functions of type {}, `input_size` must be specified".format(type(f_0)))
+    if input_size == None:
+        input_size = get_input_size(func_list)
+        if input_size == None:
+            raise Exception("could not determine input size, `input_size` must be specified")
     # composing functions
     result = list(range(0, input_size))
     for f in reversed(func_list):
@@ -179,17 +201,10 @@ def xor_functions(func_list, input_size=None):
 
     """
     # determining function domain
-    f_0 = func_list[0]
-    if isinstance(f_0, list):
-        input_size = len(f_0)
-    elif isinstance(f_0, sage.crypto.sbox.SBox):
-        input_size = len(list(f_0))
-    elif isinstance(f_0, FastLinearMapping):
-        input_size = 2**f_0.inner_matrix.ncols()
-    elif isinstance(f_0, sage.matrix.matrix0.Matrix):
-        input_size = 2**f_0.ncols()
-    elif input_size == None:
-        raise Exception("for functions of type {}, `input_size` must be specified".format(type(f_0)))
+    if input_size == None:
+        input_size = get_input_size(func_list)
+        if input_size == None:
+            raise Exception("could not determine input size, `input_size` must be specified")
     # composing functions
     result = [0 for x in range(0, input_size)]
     for f in func_list:
@@ -199,8 +214,36 @@ def xor_functions(func_list, input_size=None):
     
 
 def F2_trans(cstte):
-    """Returns the function taking as in input `x` and returning `x
+    """Returns the function taking as input `x` and returning `x
     \\oplus cstte`, i.e. the translation by `cstte`.
 
     """
     return lambda x : oplus(x, cstte)
+
+
+def F_mult(gf, cstte):
+    """Returns the function taking as in input `x` and returning `x
+    \\otimes cstte`, where the multiplication is done in the finite
+    field `gf`.
+
+    If `cstte` is a fraction of the form 1/c, then the multiplication
+    is by the inverse *in the finite field* of the element
+    corresponding to `c`.
+
+    """
+    if isinstance(cstte, (int, Integer)):
+        elmt = gf.fetch_int(cstte)
+        return lambda x : (gf.fetch_int(x) * elmt).integer_representation()
+    elif isinstance(cstte, sage.rings.rational.Rational):
+        if cstte.numerator() != 1:
+            raise Exception("input must be either an integer or a fraction of the form 1/c")
+        else:
+            elmt = gf.fetch_int(cstte.denominator())**-1
+            return lambda x : (gf.fetch_int(x) * elmt).integer_representation()
+    elif isinstance(cstte, float):
+        rational_form_numerator = int(round((1.0 / cstte)))
+        return F_mult(gf, sage.rings.rational.Rational((1, rational_form_numerator)))
+    else:
+        raise Exception("invalid input type: {}".format(type(cstte)))
+        
+    
