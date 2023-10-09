@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-09 10:35:03 lperrin>
+# Time-stamp: <2023-10-09 10:52:53 lperrin>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -172,7 +172,7 @@ def comp(func_list, input_size=None):
     return result
 
 
-def xor_lut(func_list, input_size=None):
+def xor_functions(func_list, input_size=None):
     """Implements an F_2 sum (XOR) of functions. Takes as input a list
     of function-like objects, and returns the lookup table of their
     sum.
