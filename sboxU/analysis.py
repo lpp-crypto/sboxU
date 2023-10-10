@@ -210,15 +210,21 @@ class LinearStructAnomaly:
 class CycleAnomaly:
     def __init__(self, s):
         self.name = "cycle decomposition"
-        self.cycles = cycle_decomposition(s)
-        self.spectrum = defaultdict(int)
-        for c in self.cycles:
-            self.spectrum[len(c)] += 1
+        self.perm = is_permutation(s)
+        if self.perm:
+            self.cycles = cycle_decomposition(s)
+            self.spectrum = defaultdict(int)
+            for c in self.cycles:
+                self.spectrum[len(c)] += 1
+        else:
+            self.spectrum = {}
         # !TODO! evaluate the anomaly of all cycle types 
         self.positive_anomaly = 0
         self.negative_anomaly = 0
 
     def summary(self):
+        if not self.perm:
+            return ["Not a permutation"]
         result = ["Cycle type : {}".format(pretty_spectrum(self.spectrum))]
         cycles_by_length = defaultdict(list)
         for c in self.cycles:
@@ -433,37 +439,33 @@ class Analysis:
             self.anomalies["CYC"] = CycleAnomaly(s)       
         self.advanced = {}
         if deep:
+            self.advanced["textures"] = {}
+            self.advanced["common spectra"] = {table_name : defaultdict(list)
+                                               for table_name in self.tables.keys()}
             for table_name in sorted(self.tables.keys()):
                 t = self.tables[table_name]
-                threshold = 4 if table_name == "DDT" else 2
+                threshold = 8 if table_name == "DDT" else 2
                 row_spectra = sort_table_rows(t, threshold=threshold)
                 col_spectra = sort_table_rows([[t[a][b] for a in range(0, 2**self.N)]
                                                for b in range(0, 2**self.N)],
                                               threshold=threshold)
                 if len(row_spectra.keys()) > 0:
-                    self.advanced["{} rows common spectra".format(table_name)] = row_spectra
+                    self.advanced["common spectra"][table_name]["rows"] = row_spectra
                 if len(col_spectra.keys()) > 0:
-                    self.advanced["{} cols common spectra".format(table_name)] = col_spectra
-                    
+                    self.advanced["common spectra"][table_name]["cols"] = col_spectra
+                self.advanced["textures"][table_name] = {
+                    "ADD" : add_texture(self.tables[table_name]),
+                    "XOR" : xor_texture(self.tables[table_name])
+                }
+
             # more sophisticated analysis
             # !TODO! advanced analysis
 
             
-            
     def expected_distribution(self, table_name):
-        if table_name == "DDT":
-            return ddt_coeff_probability
-        elif table_name == "LAT":
-            if is_permutation(self.lut):
-                return lat_coeff_probability_permutation
-            else:
-                return lat_coeff_probability_function
-        elif table_name == "BCT":
-                return bct_coeff_probability
-        else:
-            raise Exception("unknown table name: " + table_name)
+        return get_proba_func(self.lut, table_name)
 
-
+    
     def show(self,
              indent="",    
              noteworthy_threshold=10,
@@ -483,27 +485,39 @@ class Analysis:
         bad_properties  = []
         for anomaly_name in sorted(self.anomalies.keys()):
             a = self.anomalies[anomaly_name]        
-            to_print = indent + a.name
+            to_print = a.name
             if a.positive_anomaly >= noteworthy_threshold:
                 to_print = to_print + " "*(60-len(to_print)-len(noteworthy_mark)) + noteworthy_mark
                 good_properties.append(a.name)
             elif a.negative_anomaly >= noteworthy_threshold:
                 to_print = to_print + " "*(60-len(to_print)-len(noteworthy_mark)) + noteworthy_mark
                 bad_properties.append(a.name)
-            print("\n# {}\n".format(to_print))
+            print("\n{}# {}\n".format(indent, to_print))
             for line in a.summary():
                 print(indent + line)
+        print("\n{}# {}\n".format(indent, "Preliminary Results:"))
         if len(good_properties) > 0:
-            print("\n" + indent + "# Noteworthy qualities: " + str(good_properties)[1:-1])
+            print(indent + "- Noteworthy qualities: " + str(good_properties)[1:-1])
         if len(bad_properties) > 0:
-            print("\n" + indent + "# Noteworthy flaws    : " + str(bad_properties)[1:-1])
+            print(indent + "- Noteworthy flaws    : " + str(bad_properties)[1:-1])
         if (len(good_properties) == 0) and (len(bad_properties) == 0):
-            print(indent + "The function is dull")
+            print(indent + "- The function is dull")
         if len(self.advanced.keys()) > 0:
-            print(indent + "Advanced properties:")
-            for name in self.advanced.keys():
-                print(indent + " - " + name)
-                print(indent + "   " + str(self.advanced[name]))
+            print("\n" + indent + "# Advanced properties")
+            print("\n" + indent + "## Common spectra")
+            for table_name in self.advanced["common spectra"]:
+                if len(self.advanced["common spectra"][table_name]["rows"]) > 0:
+                    print("{}- {} rows : {}".format(
+                        indent,
+                        table_name,
+                        self.advanced["common spectra"][table_name]["rows"]
+                    ))
+                if len(self.advanced["common spectra"][table_name]["cols"]) > 0:
+                    print("{}- {} cols : {}".format(
+                        indent,
+                        table_name,
+                        self.advanced["common spectra"][table_name]["cols"]
+                    ))
 
 
     def save_pollock(self, 
@@ -511,7 +525,8 @@ class Analysis:
                      vmins=[None, None], 
                      vmaxs=[None, None], 
                      color_schemes=["CMRmap_r", "seismic"],
-                     show=True):
+                     show=False,
+                     cleanup=True):
         # pre-processing arguments
         if len(vmaxs) != len(color_schemes):
             raise Exception("Mismatched length in between `vmaxes` and `color_schemes`")
@@ -524,7 +539,7 @@ class Analysis:
                 x = [x]
         # looping over all known properties
         for table_name in self.tables.keys():
-            images = []
+            images_path = []
             spec = self.spectra[table_name]
             # Pollock representation(s)
             for i in range(0, len(vmaxs)):
@@ -542,20 +557,41 @@ class Analysis:
                     name=file_name,
                     vmin=vmin,
                     vmax=vmax,
+                    colorbar=True,
                     color_scheme=color_schemes[i],
+                    title="Jackson Pollock Representation ({})".format(table_name),
                 )
-                images.append(Image.open(file_name+".png"))
+                images_path.append(file_name+".png")
+            # textures
+            if self.deep:
+                file_name = "{}-xorTexture-{}".format(name, table_name)
+                m = self.advanced["textures"][table_name]["XOR"]
+                max_texture = max([max(row) for row in m])
+                save_pollock(
+                    m,
+                    name=file_name,
+                    vmin=0,
+                    vmax=max_texture,
+                    colorbar=True,
+                    color_scheme="CMRmap_r",
+                    title="XOR texture".format(table_name),
+                )
+                images_path.append(file_name+".png")
+                file_name = "{}-addTexture-{}".format(name, table_name)
+                m = self.advanced["textures"][table_name]["ADD"]
+                max_texture = max([max(row) for row in m])
+                save_pollock(
+                    m,
+                    name=file_name,
+                    vmin=0,
+                    vmax=max_texture,
+                    colorbar=True,
+                    color_scheme="CMRmap_r",
+                    title="ADD texture".format(table_name),
+                )
+                images_path.append(file_name+".png")
             # comparison with expected distribution
-            expected_distrib = None
-            if table_name == "DDT":
-                expected_distrib = ddt_coeff_probability
-            elif table_name == "LAT":
-                if is_permutation(self.lut):
-                    expected_distrib = lat_coeff_probability_permutation
-                else:
-                    expected_distrib = lat_coeff_probability_function
-            elif table_name == "BCT":
-                expected_distrib = bct_coeff_probability
+            expected_distrib = self.expected_distribution(table_name)
             file_name = "distrib-{}-{}".format(name, table_name)
             plot_statistical(
                 spec,
@@ -563,11 +599,11 @@ class Analysis:
                 expected_distrib=expected_distrib,
                 file_name=file_name
             )
-            images.append(Image.open(file_name+".png"))
+            images_path.append(file_name+".png")
             # patterns in the variance
             file_name = "{}-var-{}".format(name, table_name)
             plot_table_variances(self.tables[table_name], file_name=file_name)
-            images.append(Image.open(file_name+".png"))
+            images_path.append(file_name+".png")
             # patterns by row and columns
             file_name = "distrib-by-row-{}-{}".format(name, table_name)
             plot_statistical_by_rows(
@@ -576,17 +612,18 @@ class Analysis:
                 expected_distrib=self.expected_distribution(table_name),
                 file_name=file_name
             )
-            images.append(Image.open(file_name+".png"))
+            images_path.append(file_name+".png")
             file_name = "distrib-by-col-{}-{}".format(name, table_name)
             plot_statistical_by_rows(
                 [[self.tables[table_name][a][b] for a in range(0, 2**self.N)]
                  for b in range(0, 2**self.N)],
                 n=self.N,
-                expected_distrib=self.expected_distribution(table_name),
+                expected_distrib=self.expected_distribution(table_name) if table_name != "LAT" else lat_coeff_probability_permutation, # Léo: open problem: why is this necessary?
                 file_name=file_name
             )
-            images.append(Image.open(file_name+".png"))
+            images_path.append(file_name+".png")
             # assembling summary picture
+            images = [Image.open(img_path) for img_path in images_path]
             width = max(sum(images[i].width for i in range(0, len(images), 2)),
                         sum(images[i].width for i in range(1, len(images), 2)))
             height_1 = max(images[i].height for i in range(0, len(images), 2))
@@ -614,7 +651,11 @@ class Analysis:
             image_summary.save("summary-{}-{}.png".format(name, table_name))
             if show:
                 image_summary.show()
-
+            # cleaning up
+            if cleanup:
+                for img_path in images_path:
+                    os.remove(img_path)
+                
 
     def ccz_identifier(self):
         result = ""

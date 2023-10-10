@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-04 10:38:31 lperrin>
+# Time-stamp: <2023-10-10 17:47:06 lperrin>
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -236,9 +236,9 @@ def plot_differential(dict_s,
     p.set_xlabel('DDT coefficients')
     p.set_ylabel('Number of occurrences')
     if x_log_scale:
-        p.set_xscale("log", nonposx="clip")
+        p.set_xscale("log", base=2, nonposx="clip")
     if y_log_scale:
-        p.set_yscale("log", nonposy="clip")
+        p.set_yscale("log", base=2, nonposy="clip")
     color_index = 0
     for w in spectra.keys():
         ordenna = []
@@ -318,9 +318,9 @@ def plot_linear(dict_s,
         legend = p.legend(loc='upper right', shadow=True)
     p.set_xlim([l_min, l_max])
     if x_log_scale:
-        p.set_xscale("log", nonposx="clip")
+        p.set_xscale("log", base=2, nonposx="clip")
     if y_log_scale:
-        p.set_yscale("log", nonposy="clip")
+        p.set_yscale("log", base=2, nonposy="clip")
     fig.savefig("{}.png".format(file_name))
     plt.close()
 
@@ -388,9 +388,9 @@ def plot_statistical(spec,
     p.tick_params(labelsize=12)
     p.grid(color="0.8")
     if x_log_scale:
-        p.set_xscale("log", nonpositive="clip")
+        p.set_xscale("log", base=2, nonpositive="clip")
     if y_log_scale:
-        p.set_yscale("log", nonpositive="clip")
+        p.set_yscale("log", base=2, nonpositive="clip")
     fig.savefig("{}.png".format(file_name))
     plt.close()
 
@@ -411,9 +411,9 @@ def plot_statistical_by_rows(t,
         n = int(round(log(len(t), 2)))
     min_c = 2**n
     max_c = 0
-    for a in range(1, len(t)):
+    for a in range(1, 2**n):
         spectra[a] = defaultdict(int)
-        for b in range(1, len(t[a])):
+        for b in range(1, 2**n):
             c = abs(t[a][b])
             spectra[a][c] += 1
             max_c = max(c, max_c)
@@ -437,7 +437,7 @@ def plot_statistical_by_rows(t,
     p.set_ylabel("# {b, |T[a,b]| = c}")
     color_index = 0
     local_color_sequence = matplotlib.cm.rainbow(range(0, 2**n+1))
-    for w in sorted(spectra.keys()):
+    for w in reversed(sorted(spectra.keys())):
         abscissa = []
         ordenna = []
         for c in sorted(spectra[w].keys()):
@@ -468,9 +468,9 @@ def plot_statistical_by_rows(t,
     p.tick_params(labelsize=12)
     p.grid(color="0.8")
     if x_log_scale:
-        p.set_xscale("log", nonpositive="clip")
+        p.set_xscale("log", base=2, nonpositive="clip")
     if y_log_scale:
-        p.set_yscale("log", nonpositive="clip")
+        p.set_yscale("log", base=2, nonpositive="clip")
     fig.savefig("{}.png".format(file_name))
     plt.close()
 
@@ -479,6 +479,52 @@ def plot_statistical_by_rows(t,
 
 # !SECTION! Jackson Pollock
 
+
+def xor_texture(mat):
+    """Returns a list of lists `t` such that
+
+    t[i][j] = # { (x,y) | mat[x+i][y+j] = mat[x][y] } ,
+
+    where "+" denotes the bitwise XOR.
+    """
+    coeff_coords = defaultdict(list)
+    for a in range(0, len(mat)):
+        for b in range(0, len(mat[a])):
+            coeff_coords[abs(mat[a][b])].append([a, b])
+    result = [[0 for x in range(0, len(mat[0]))]
+              for y in range(0, len(mat))]
+    for c in coeff_coords.keys():
+        for coord0, coord1 in itertools.combinations(coeff_coords[c], r=2):
+            i = oplus(coord0[0], coord1[0])
+            j = oplus(coord0[1], coord1[1])
+            result[i][j] += 2
+    return result
+
+
+def add_texture(mat):
+    """Returns a list of lists `t` such that
+
+    t[i][j] = # { (x,y) | mat[x+i][y+j] = mat[x][y] } ,
+
+    where "+" denotes the addition modulo the number of lines/rows.
+
+    """
+    coeff_coords = defaultdict(list)
+    for a in range(0, len(mat)):
+        for b in range(0, len(mat[a])):
+            coeff_coords[abs(mat[a][b])].append([a, b])
+    result = [[0 for x in range(0, len(mat[0]))]
+              for y in range(0, len(mat))]
+    for c in coeff_coords.keys():
+        for coord0, coord1 in itertools.product(coeff_coords[c], repeat=2):
+            if coord0 != coord1:
+                i = (coord0[0] - coord1[0]) % len(mat)
+                j = (coord0[1] - coord1[1]) % len(mat)
+                result[i][j] += 1
+                result[(- i) % len(mat)][(-j) % len(mat)] += 1
+    return result
+
+    
 def save_pollock(mat,
                  color_scheme="CMRmap_r",
                  name="pollock",
@@ -490,7 +536,8 @@ def save_pollock(mat,
                  colorbar=False,
                  file_type="png",
                  modifier_func=abs,
-                 figsize=DEFAULT_FIG_X):
+                 figsize=DEFAULT_FIG_X,
+                 title=None):
     fig, p = plt.subplots(figsize=(figsize,figsize))
     abs_mat = [[modifier_func(mat[i][j]) for j in range(0, len(mat[0]))]
                for i in range(0, len(mat))]
@@ -506,11 +553,18 @@ def save_pollock(mat,
     p.get_yaxis().set_visible(visible_axes)
     p.patch.set_alpha(0)
     p.set_frame_on(frame)
+    if title != None:
+        plt.title(title, fontsize=20)
     if colorbar:
-        fig.colorbar(axes, orientation='vertical')
+        cax = fig.add_axes([p.get_position().x1+0.01, 
+                            p.get_position().y0,
+                            0.02, 
+                            p.get_position().height])
+        plt.colorbar(axes, cax=cax)
     if folder == None:
         name_base = "{}."+file_type
     else:
         name_base = folder + "/{}." + file_type
     fig.savefig(name_base.format(name))
     plt.close()
+

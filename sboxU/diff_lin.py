@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-09 15:46:32 lperrin>
+# Time-stamp: <2023-10-10 14:29:13 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -157,13 +157,13 @@ def lat_coeff_probability_function(m, n, c, precision=DEFAULT_HIGH_PRECISION):
     big_precision = RealField(precision)
     if m != n:
         raise "m (={}) should be equal to n (={})!".format(m, n)
-    if c % 4 != 0:
+    if c % 2 != 0:
         return 0
     if c == 0:
-        return 2 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)))
+        return big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)))
     else:
         c = c/2
-        return 4 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
+        return 2 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
 
 
 def ddt_coeff_probability(m, n, c, precision=DEFAULT_HIGH_PRECISION):
@@ -301,26 +301,38 @@ def anomaly_ddt(n, v_max, occ):
         proba_enough_zeroes_in_row    += RealNumber(binomial(2**n-1, i)) * p_0**i * p_non_zero**(2**n-1-i)
         proba_bound_and_enough_zeroes += RealNumber(binomial(2**n-1, i)) * p_0**i * p_inf**(2**n-1-i)
     return -(2**n-1)*float(log(proba_bound_and_enough_zeroes, 2) - log(proba_enough_zeroes_in_row, 2))
+
+
+def get_proba_func(s, table):
+    n = int(log(len(s), 2))
+    if table == "DDT":
+        return ddt_coeff_probability
+    elif table == "LAT":
+        if is_permutation(s):
+            return lat_coeff_probability_permutation
+        else:
+            return lat_coeff_probability_function
+    elif table == "BCT":
+        return bct_coeff_probability
+    else:
+        raise Exception("unknown table name: " + table_name)
     
 
 def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
     else:
-        proba_func = None
+        proba_func = get_proba_func(s, table)
         n = int(log(len(s), 2))
         if table == "DDT":
             if spec == None:
                 spec = differential_spectrum(s)
-            proba_func = ddt_coeff_probability
         elif table == "LAT":
             if spec == None:
                 spec = walsh_spectrum(s)
-            proba_func = lat_coeff_probability_permutation
         else:
             if spec == None:
                 spec = boomerang_spectrum(s)
-            proba_func = bct_coeff_probability
         v_max = 0
         occurrences = 0
         for k in spec.keys():
@@ -338,20 +350,17 @@ def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based negative anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
     else:
-        proba_func = None
+        proba_func = get_proba_func(s, table)
         n = int(log(len(s), 2))
         if table == "DDT":
             if spec == None:
                 spec = differential_spectrum(s)
-            proba_func = ddt_coeff_probability
         elif table == "LAT":
             if spec == None:
                 spec = walsh_spectrum(s)
-            proba_func = lat_coeff_probability_permutation
         else:
             if spec == None:
                 spec = boomerang_spectrum(s)
-            proba_func = bct_coeff_probability
         v_max = 0
         occurrences = 0
         for k in spec.keys():
