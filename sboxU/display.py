@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-10 17:47:06 lperrin>
+# Time-stamp: <2023-10-12 17:09:16 lperrin>
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -340,18 +340,25 @@ def plot_statistical(spec,
     for k in spec.keys():
         spectra["F"][abs(k)] += spec[k]
     if l_min == None:
-        l_min = max(0, min(spectra["F"].keys())-2)
-    if l_max == None:
-        l_max = max(spectra["F"].keys())+2
+        l_min = 0
     if expected_distrib != None:
         if n == None:
             raise Exception("in plot_statistical: `n` must be specified!")
         spectra["Expected"] = {}
-        for c in range(l_min, l_max+1):
+        finished = False
+        c = l_min
+        while not finished:
             p = expected_distrib(n, n, c)
             expected_card = p*2**n*(2**n-1)
             if expected_card > 2**-4:
                 spectra["Expected"][c] = expected_card
+            elif p != 0:
+                finished = True
+            c += 2
+        l_max = max(c, max(spectra["F"].keys()) + 2)
+    else:
+        l_max = max(spectra["F"].keys())+2
+
     # plotting
     fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
     p.set_xlabel("c")
@@ -419,18 +426,24 @@ def plot_statistical_by_rows(t,
             max_c = max(c, max_c)
             min_c = min(c, min_c)
     if l_min == None:
-        l_min = max(0, min_c)
-    if l_max == None:
-        l_max = max_c + 2
+        l_min = 0
     if expected_distrib != None:
         if n == None:
             raise Exception("in plot_statistical: `n` must be specified!")
         spectra[-1] = {}
-        for c in range(l_min, l_max+1):
+        finished = False
+        c = l_min
+        while not finished:
             p = expected_distrib(n, n, c)
             expected_card = p*2**n
             if expected_card > 0.8:
                 spectra[-1][c] = expected_card
+            elif p > 0:
+                finished = True
+            c += 2
+        if l_max == None:
+            l_max = max(c, max_c+2)
+
     # plotting
     fig, p = plt.subplots(figsize=(DEFAULT_FIG_X, DEFAULT_FIG_Y))
     p.set_xlabel("c")
@@ -486,6 +499,7 @@ def xor_texture(mat):
     t[i][j] = # { (x,y) | mat[x+i][y+j] = mat[x][y] } ,
 
     where "+" denotes the bitwise XOR.
+
     """
     coeff_coords = defaultdict(list)
     for a in range(0, len(mat)):
