@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-12 17:09:16 lperrin>
+# Time-stamp: <2023-10-13 15:50:30 lperrin>
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -449,7 +449,8 @@ def plot_statistical_by_rows(t,
     p.set_xlabel("c")
     p.set_ylabel("# {b, |T[a,b]| = c}")
     color_index = 0
-    local_color_sequence = matplotlib.cm.rainbow(range(0, 2**n+1))
+    local_color_sequence = matplotlib.cm.rainbow([float(i) / (len(spectra.keys())+1)
+                                                  for i in range(0, len(spectra.keys())+1)])
     for w in reversed(sorted(spectra.keys())):
         abscissa = []
         ordenna = []

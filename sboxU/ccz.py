@@ -170,6 +170,98 @@ def tu_projection(s, t):
     return T, U
 
 
+# !CONTINUE!  
+class TUdecomposition:
+    """Stores the TU_t decomposition of a function."""
+    def __init__(self, _A, _B, _T, _U):
+        self.n = _A.nrows()
+        self.t = int(log(len(_T[0]), 2))
+        self.mask_r = sum(int(1 << i) for i in xrange(0, self.n-self.t))
+        self.A = _A
+        self.B = _B
+        self.T = _T
+        self.U = _U
+
+    def __str__(self):
+        result = ""
+        result += self.A.str()
+        result += "\nT=[\n"
+        for row in self.T:
+            result += "  " + str(row) + "\n"
+        result += "]\nU=[\n"
+        for row in self.U:
+            result += "  " + str(row) + "\n"
+        result +=  "]\n"
+        result += self.B.str()
+        return result
+
+    def get_lut(self):
+        """Returnis the lookup table of the permutation whose TU-decomposition
+        is stored.
+
+        """
+        result = []
+        for x in xrange(0, 2**self.n):
+            y = apply_bin_mat(x, self.A)
+            x1, x2 = y & self.mask_r, y >> (self.n-self.t)
+            y2 = self.T[x2][x1]
+            y1 = self.U[y2][x2]
+            y = (y1 << (self.n-self.t)) | y2
+            y = apply_bin_mat(y, self.B)
+            result.append(y)
+        return result
+
+    
+def tu_decomposition_from_space_basis(s, basis, verbose=False):
+    """Using the knowledge that v is a subspace of Z_s of dimension n, a
+    TU-decomposition (as defined in [Perrin17]) of s is performed and
+    the corresponding TUdecomposition instance is returned.
+
+    """
+    N = int(log(len(s), 2))
+    MASK_N = sum(int(1 << i) for i in xrange(0, N))
+    # recovering linear layers
+    basis_A = get_basis([b >> N for b in basis], N)
+    basis_B = get_basis([b & MASK_N for b in basis], N)
+    if len(basis_A) == 0 or len(basis_B) == 0:
+        return None
+    A = Matrix(GF(2), N, N, [
+        [(a >> (N-i-1)) & 1 for i in xrange(0, N)]
+        for a in complete_basis(basis_A, N)
+    ]).inverse()
+    B = Matrix(GF(2), N, N, [
+        [(b >> (N-i-1)) & 1 for i in xrange(0, N)]
+        for b in reversed(complete_basis(basis_B, N))
+    ])
+    # recovering T and U
+    t = len(basis_A)
+    s_prime = [apply_bin_mat(s[apply_bin_mat(x, A)], B)
+               for x in xrange(0, 2**N)]
+    mask_nt = sum(int(1 << i) for i in xrange(0, N-t))
+    T = [[0 for l in xrange(0, 2**t)] for r in xrange(0, 2**(N-t))]
+    U = [[0 for r in xrange(0, 2**(N-t))] for l in xrange(0, 2**t)]
+    for x1 in xrange(0, 2**(N-t)):
+        for x2 in xrange(0, 2**t):
+            x = (x2 << (N-t)) | x1
+            y2, y1 = s_prime[x] & mask_nt, s_prime[x] >> (N-t)
+            T[x2][x1] = y2
+            U[y2][x2] = y1
+    # return the result
+    return TUdecomposition(A.inverse(), B.inverse(), T, U)
+
+    
+def get_tu_decompositions(s, walsh_zeroes=None):
+    if walsh_zeroes == None:
+        walsh_zeroes = get_lat_zeroes_spaces(s)
+    result = []
+    for w in walsh_zeroes:
+        d = tu_decomposition_from_space_basis(s, w)
+        if d != None:
+            result.append(d)
+    return result
+        
+    
+
 # !SECTION! Linear/Affine Equivalence 
 
 

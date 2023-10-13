@@ -259,19 +259,22 @@ class CycleAnomaly:
     
 
 class CCZAnomaly:
-    def __init__(self, s, threshold=40):
+    def __init__(self, s, threshold=40, spaces=None):
         self.name = "CCZ"
         N = int(log(len(s), 2))
-        self.spaces = []
-        self.spaces_all_found = True
-        # doing the thickness spectrum by hand so that this does not
-        # take up too much time a priori
         self.lat_zeroes = lat_zeroes(s)
-        for space in vector_spaces_bases_iterator(self.lat_zeroes, N, 2*N):
-            self.spaces.append(space)
-            if len(self.spaces) == threshold:
-                self.spaces_all_found = False
-                break
+        self.spaces_all_found = True
+        if spaces == None:
+            self.spaces = []
+            # doing the thickness spectrum by hand so that this does not
+            # take up too much time a priori
+            for space in vector_spaces_bases_iterator(self.lat_zeroes, N, 2*N):
+                self.spaces.append(space)
+                if len(self.spaces) == threshold:
+                    self.spaces_all_found = False
+                    break
+        else:
+            self.spaces = spaces
         self.spectrum = thickness_spectrum(s, spaces=self.spaces)
         self.negative_anomaly = 0
         self.positive_anomaly = 0
@@ -320,7 +323,7 @@ def affine_equivalence_monomial(s, d):
     first_row_count = defaultdict(int)
     for b in d[1]:
         first_row_count[b] += 1
-    for a in range(2, len(s)):
+    for a in range(2, len(d)):
         ath_row_count = defaultdict(int)
         for b in d[a]:
             ath_row_count[b] += 1
@@ -365,6 +368,7 @@ class Analysis:
                  # how to perform the analysis
                  store_tables=None,
                  deep=False,
+                 textures=False,
             ):
         if isinstance(s, sage.crypto.sbox.SBox):
             self.N = s.n
@@ -400,7 +404,8 @@ class Analysis:
             ccz = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
         if store_tables == None:
             store_tables = (self.N <= ALWAYS_ANALYSED_SIZE) or deep
-                
+        self.textures = textures
+        self.ccz = ccz
         # handling basic properties
         self.anomalies = {}
         self.tables = {}
@@ -439,28 +444,45 @@ class Analysis:
             self.anomalies["CYC"] = CycleAnomaly(s)       
         self.advanced = {}
         if deep:
+            self.advanced_analysis()
+
+
+    def advanced_analysis(self):
+        # more sophisticated analysis
+        # !TODO! advanced analysis
+        # Looking again at the tables: identical lines/rows and textures
+        if self.textures:
             self.advanced["textures"] = {}
-            self.advanced["common spectra"] = {table_name : defaultdict(list)
-                                               for table_name in self.tables.keys()}
-            for table_name in sorted(self.tables.keys()):
-                t = self.tables[table_name]
-                threshold = 8 if table_name == "DDT" else 2
-                row_spectra = sort_table_rows(t, threshold=threshold)
-                col_spectra = sort_table_rows([[t[a][b] for a in range(0, 2**self.N)]
-                                               for b in range(0, 2**self.N)],
-                                              threshold=threshold)
-                if len(row_spectra.keys()) > 0:
-                    self.advanced["common spectra"][table_name]["rows"] = row_spectra
-                if len(col_spectra.keys()) > 0:
-                    self.advanced["common spectra"][table_name]["cols"] = col_spectra
+        self.advanced["common spectra"] = {table_name : defaultdict(list)
+                                           for table_name in self.tables.keys()}
+        for table_name in sorted(self.tables.keys()):
+            t = self.tables[table_name]
+            threshold = 8 if table_name == "DDT" else 2
+            row_spectra = sort_table_rows(t, threshold=threshold)
+            col_spectra = sort_table_rows([[t[a][b] for a in range(0, 2**self.N)]
+                                           for b in range(0, 2**self.N)],
+                                          threshold=threshold)
+            if len(row_spectra.keys()) > 0:
+                self.advanced["common spectra"][table_name]["rows"] = row_spectra
+            if len(col_spectra.keys()) > 0:
+                self.advanced["common spectra"][table_name]["cols"] = col_spectra
+            if self.textures:
                 self.advanced["textures"][table_name] = {
                     "ADD" : add_texture(self.tables[table_name]),
                     "XOR" : xor_texture(self.tables[table_name])
                 }
-
-            # more sophisticated analysis
-            # !TODO! advanced analysis
-
+        # CCZ properties: TU-decompositions, etc.
+        if not self.ccz:
+            # if ccz was not set then we need to look for all the
+            # vector spaces of zeroes
+            self.anomalies["CCZ"] = CCZAnomaly(s, threshold=Infinity, spaces=get_lat_zeroes(self.lut))
+            self.spectra["CCZ"] = self.anomalies["CCZ"].spectrum
+        if self.anomalies["CCZ"].spectrum[self.N] > 0:
+            self.advanced["EA permutations"] = ea_equivalent_permutation_mappings(
+                self.lut, 
+                self.anomalies["CCZ"].spaces
+            )
+          
             
     def expected_distribution(self, table_name):
         return get_proba_func(self.lut, table_name)
@@ -503,21 +525,36 @@ class Analysis:
         if (len(good_properties) == 0) and (len(bad_properties) == 0):
             print(indent + "- The function is dull")
         if len(self.advanced.keys()) > 0:
-            print("\n" + indent + "# Advanced properties")
-            print("\n" + indent + "## Common spectra")
-            for table_name in self.advanced["common spectra"]:
-                if len(self.advanced["common spectra"][table_name]["rows"]) > 0:
-                    print("{}- {} rows : {}".format(
-                        indent,
-                        table_name,
-                        self.advanced["common spectra"][table_name]["rows"]
-                    ))
-                if len(self.advanced["common spectra"][table_name]["cols"]) > 0:
-                    print("{}- {} cols : {}".format(
-                        indent,
-                        table_name,
-                        self.advanced["common spectra"][table_name]["cols"]
-                    ))
+            self.show_advanced(indent=indent)
+
+            
+    def show_advanced(self, indent=""):
+        print("\n" + indent + "# Advanced properties")
+        print("\n" + indent + "## Common spectra")
+        # advanced table stuff
+        for table_name in self.advanced["common spectra"]:
+            if len(self.advanced["common spectra"][table_name]["rows"]) > 0:
+                print("{}- {} rows : {}".format(
+                    indent,
+                    table_name,
+                    self.advanced["common spectra"][table_name]["rows"]
+                ))
+            if len(self.advanced["common spectra"][table_name]["cols"]) > 0:
+                print("{}- {} cols : {}".format(
+                    indent,
+                    table_name,
+                    self.advanced["common spectra"][table_name]["cols"]
+                ))
+        # advanced CCZ
+        if "EA permutations" in self.advanced.keys():
+            print("\n" + indent + "## EA-equivalent permutations")
+            for index, L in enumerate(self.advanced["EA permutations"]):
+                print("\n- mapping number {:d}".format(index))
+                for line in str(L).split("\n"):
+                    print(indent + line)
+                
+            
+        
 
 
     def save_pollock(self, 
@@ -563,14 +600,19 @@ class Analysis:
                 )
                 images_path.append(file_name+".png")
             # textures
-            if self.deep:
+            if self.textures:
                 file_name = "{}-xorTexture-{}".format(name, table_name)
                 m = self.advanced["textures"][table_name]["XOR"]
-                max_texture = max([max(row) for row in m])
+                max_texture = max([m[i][j]
+                                   for i, j in itertools.product(range(0, len(m)), range(0, len(m)))
+                                   if (i,j) != (0, 0)])
+                min_texture = min([m[i][j]
+                                   for i, j in itertools.product(range(0, len(m)), range(0, len(m)))
+                                   if (i,j) != (0, 0)])
                 save_pollock(
                     m,
                     name=file_name,
-                    vmin=0,
+                    vmin=min_texture,
                     vmax=max_texture,
                     colorbar=True,
                     color_scheme="CMRmap_r",
@@ -579,11 +621,16 @@ class Analysis:
                 images_path.append(file_name+".png")
                 file_name = "{}-addTexture-{}".format(name, table_name)
                 m = self.advanced["textures"][table_name]["ADD"]
-                max_texture = max([max(row) for row in m])
+                max_texture = max([m[i][j]
+                                   for i, j in itertools.product(range(0, len(m)), range(0, len(m)))
+                                   if (i,j) != (0, 0)])
+                min_texture = min([m[i][j]
+                                   for i, j in itertools.product(range(0, len(m)), range(0, len(m)))
+                                   if (i,j) != (0, 0)])
                 save_pollock(
                     m,
                     name=file_name,
-                    vmin=0,
+                    vmin=min_texture,
                     vmax=max_texture,
                     colorbar=True,
                     color_scheme="CMRmap_r",
