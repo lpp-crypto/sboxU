@@ -170,20 +170,21 @@ def tu_projection(s, t):
     return T, U
 
 
-# !CONTINUE!  
+
 class TUdecomposition:
     """Stores the TU_t decomposition of a function."""
-    def __init__(self, _A, _B, _T, _U):
+    def __init__(self, _A, _B, _C, _T, _U):
         self.n = _A.nrows()
         self.t = int(log(len(_T[0]), 2))
-        self.mask_r = sum(int(1 << i) for i in xrange(0, self.n-self.t))
+        self.mask_r = sum(int(1 << i) for i in range(0, self.t))
         self.A = _A
         self.B = _B
+        self.C = _C
         self.T = _T
         self.U = _U
 
     def __str__(self):
-        result = ""
+        result = "t = {:d}\n".format(self.t)
         result += self.A.str()
         result += "\nT=[\n"
         for row in self.T:
@@ -193,22 +194,24 @@ class TUdecomposition:
             result += "  " + str(row) + "\n"
         result +=  "]\n"
         result += self.B.str()
+        result += "\nFF = \n"
+        result += self.C.str()
         return result
-
+    
     def get_lut(self):
         """Returnis the lookup table of the permutation whose TU-decomposition
         is stored.
 
         """
         result = []
-        for x in xrange(0, 2**self.n):
+        for x in range(0, 2**self.n):
             y = apply_bin_mat(x, self.A)
-            x1, x2 = y & self.mask_r, y >> (self.n-self.t)
+            x1, x2 = y & self.mask_r, y >> self.t
             y2 = self.T[x2][x1]
             y1 = self.U[y2][x2]
-            y = (y1 << (self.n-self.t)) | y2
+            y = (y1 << self.t) | y2
             y = apply_bin_mat(y, self.B)
-            result.append(y)
+            result.append(oplus(y, apply_bin_mat(x, self.C)))
         return result
 
     
@@ -219,35 +222,68 @@ def tu_decomposition_from_space_basis(s, basis, verbose=False):
 
     """
     N = int(log(len(s), 2))
-    MASK_N = sum(int(1 << i) for i in xrange(0, N))
+    MASK_N = sum(int(1 << i) for i in range(0, N))
+    t = thickness(basis, N)
+    # reordering the basis of the space
+    reordered_basis = []
+    reordered_projected_basis = []
+    old_rank = 0
+    for b in basis:
+        new_reordered_projected_basis = reordered_projected_basis + [b & MASK_N]
+        new_rank = rank_of_vector_set(new_reordered_projected_basis)
+        if new_rank > old_rank:
+            reordered_basis.append(b)
+            reordered_projected_basis = new_reordered_projected_basis[:]
+            old_rank = new_rank
+    for b in basis:
+        if b not in reordered_basis:
+            reordered_basis.append(b)
+
     # recovering linear layers
-    basis_A = get_basis([b >> N for b in basis], N)
-    basis_B = get_basis([b & MASK_N for b in basis], N)
+    L = Matrix(GF(2), N, 2*N, [tobin(b, 2*N) for b in reordered_basis]).transpose()
+    ## computing A
+    L_top    = L[list(range(0, N)), list(range(0, N))]
+    L_bottom = L[list(range(N, 2*N)), list(range(0, N))]
+    basis_A = [apply_bin_mat(int(1 << i), L_top) for i in range(0, N-t)]
+    basis_B = [apply_bin_mat(int(1 << i), L_bottom) for i in range(N-t, N)]
+    basis_C = [apply_bin_mat(int(1 << i), L_bottom) for i in range(0, N-t)] + [0]*t
+
+    # recovering linear layers
+    # basis_A = extract_basis([b >> N for b in basis], N)
+    # basis_B = extract_basis([b & MASK_N for b in basis], N)
+
     if len(basis_A) == 0 or len(basis_B) == 0:
         return None
     A = Matrix(GF(2), N, N, [
-        [(a >> (N-i-1)) & 1 for i in xrange(0, N)]
+        [(a >> (N-i-1)) & 1 for i in range(0, N)]
         for a in complete_basis(basis_A, N)
     ]).inverse()
     B = Matrix(GF(2), N, N, [
-        [(b >> (N-i-1)) & 1 for i in xrange(0, N)]
+        [(b >> (N-i-1)) & 1 for i in range(0, N)]
         for b in reversed(complete_basis(basis_B, N))
     ])
-    # recovering T and U
-    t = len(basis_A)
-    s_prime = [apply_bin_mat(s[apply_bin_mat(x, A)], B)
-               for x in xrange(0, 2**N)]
-    mask_nt = sum(int(1 << i) for i in xrange(0, N-t))
-    T = [[0 for l in xrange(0, 2**t)] for r in xrange(0, 2**(N-t))]
-    U = [[0 for r in xrange(0, 2**(N-t))] for l in xrange(0, 2**t)]
-    for x1 in xrange(0, 2**(N-t)):
-        for x2 in xrange(0, 2**t):
-            x = (x2 << (N-t)) | x1
-            y2, y1 = s_prime[x] & mask_nt, s_prime[x] >> (N-t)
+    C = Matrix(GF(2), N, N, [
+        [(b >> (N-i-1)) & 1 for i in range(0, N)]
+        for b in basis_C
+    ])
+    ## recovering T and U
+    C_prime = B * C
+    print("C_prime")
+    print(C_prime)
+    s_prime = [oplus(apply_bin_mat(x, C_prime), apply_bin_mat(s[apply_bin_mat(x, A)], B))
+               #apply_bin_mat(s[apply_bin_mat(x, A)], B)
+               for x in range(0, 2**N)]
+    mask_t = sum(int(1 << i) for i in range(0, t))
+    T = [[0 for l in range(0, 2**t)] for r in range(0, 2**(N-t))]
+    U = [[0 for r in range(0, 2**(N-t))] for l in range(0, 2**t)]
+    for x1 in range(0, 2**t):
+        for x2 in range(0, 2**(N-t)):
+            x = (x2 << t) | x1
+            y2, y1 = s_prime[x] & mask_t, s_prime[x] >> t
             T[x2][x1] = y2
             U[y2][x2] = y1
     # return the result
-    return TUdecomposition(A.inverse(), B.inverse(), T, U)
+    return TUdecomposition(A.inverse(), B.inverse(), C, T, U)
 
     
 def get_tu_decompositions(s, walsh_zeroes=None):
