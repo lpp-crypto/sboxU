@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2022-10-31 10:04:44 lperrin>
+# Time-stamp: <2023-12-04 17:30:49 lperrin>
 
 import os
 from libcpp cimport bool
@@ -346,10 +346,10 @@ def fourier_transform(l):
 def invert_lat_fast(t,n):
     return invert_lat_cpp(t, n)
 
-def lat_zeroes_fast(l, n, n_threads=None):
+def lat_zeroes_fast(l, n, n_threads=1):
     return lat_zeroes_cpp(l,n,n_threads)
 
-def proj_lat_zeroes(l, n_threads=None):
+def proj_lat_zeroes(l, n_threads=1):
     if n_threads == None:
         if len(l) > BIG_SBOX_THRESHOLD:
             n_threads = DEFAULT_N_THREADS
