@@ -13,7 +13,7 @@ from .linear import *
 from .display import *
 from .diff_lin import *
 
-
+BIG_SBOX_THRESHOLD = 256
 DEFAULT_N_THREADS  = 16
 
 
@@ -114,11 +114,16 @@ def thickness_spectrum(s, spaces=None):
         result[thickness(V, N)] += 1
     return dict(result)
 
-def get_lat_zeroes_spaces(s, n_threads=DEFAULT_N_THREADS):
+def get_lat_zeroes_spaces(s, n_threads=None):
     """Returns a list containing the basis of each vector space of
     dimension n contained in the LAT zeroes of `s`.
 
     """
+    if n_threads == None:
+        if len(s) >= BIG_SBOX_THRESHOLD:
+            n_threads = DEFAULT_N_THREADS
+        else:
+            n_threads = 1
     return get_lat_zeroes_spaces_fast(s,
                                       int(log(len(s), 2)),
                                       int(n_threads))

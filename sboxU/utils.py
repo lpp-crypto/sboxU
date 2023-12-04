@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-09 14:51:28 lperrin>
+# Time-stamp: <2023-11-30 11:31:06 lperrin>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -115,8 +115,12 @@ def eval_function_like(x, o):
         return o[x]
     elif isinstance(o, sage.matrix.matrix0.Matrix):
         return apply_bin_mat(x, o)
-    # !TODO! Polynomial case 
-    # elif isinstance(o, sage.rings.polynomial.polynomial_element.Polynomial):
+    elif "base_ring" in dir(o):
+        gf = o.base_ring()
+        if x > len(gf):
+            raise Exception("input ({:d}) is too large to be cast to an element of {}".format(x, gf))
+        else:
+            return o(gf.fetch_int(x)).integer_representation()
     elif "__call__" in dir(o):
         return o(x)
     else:
@@ -134,6 +138,9 @@ def get_lut(o, domain_size=None):
         return [apply_bin_mat(x, o) for x in range(0, 2**o.ncols())]
     elif isinstance(o, FastLinearMapping):
         return [o(x) for x in range(0, 2**o.inner_matrix.ncols())]
+    elif "base_ring" in dir(o):
+        gf = o.base_ring()
+        return [o(gf.fetch_int(x)).integer_representation() for x in range(0, len(gf))]
     elif "__call__" in dir(o):
         if domain_size == None:
             raise Exception("for such ojects ({}), `domain_size` must be specified".format(type(o)))

@@ -315,6 +315,8 @@ def extract_bases(z,
       ignored.
 
     """
+    if len(z) < n_threads or 2**word_length < n_threads or 2**dimension < n_threads:
+        n_threads = 1
     if number not in [b"all dimensions", b"fixed dimension", b"just one"]:
         raise Exception(b"Unknown value for parameter `number` in extract_bases:" + number)
     result = extract_bases_fast(z,
