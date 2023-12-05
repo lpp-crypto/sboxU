@@ -31,8 +31,8 @@ class StatisticalAnomaly:
     def summary(self):
         return [
             "spectrum:   {}".format(pretty_spectrum(self.spectrum)),
-            "positive A: {:10.4f}".format(self.positive_anomaly),
-            "negative A: {:10.4f}".format(self.negative_anomaly),
+            "positive A: {:10.4f}".format(float(self.positive_anomaly)),
+            "negative A: {:10.4f}".format(float(self.negative_anomaly)),
         ]
 
     def __str__(self):
