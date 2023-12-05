@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2023-12-04 17:42:08 lperrin>
+# Time-stamp: <2023-12-05 10:36:16 leo>
 
 import os
 from sboxu_cpp_no_fp_lat cimport *
@@ -22,7 +22,7 @@ def extract_affine_bases_fast(l, dimension, word_length, n_threads, end_conditio
     return extract_affine_bases_cpp(l, int(dimension), int(word_length), int(n_threads), end_condition)
 
 
-def get_lat_zeroes_spaces_fast(l, n):
+def get_lat_zeroes_spaces_fast(l, n, n_threads):
     zeroes = lat_zeroes_cpp(l, n, n_threads)
     return extract_bases_cpp(zeroes, n, 2*n, n_threads, 'fixed dimension'.encode('ascii'))
 
