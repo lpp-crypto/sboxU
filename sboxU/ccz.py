@@ -194,16 +194,49 @@ def tu_projection(s, t):
 
 class TUdecomposition:
     """Stores the TU_t decomposition of a function."""
-    def __init__(self, _A, _B, _C, _T, _U):
-        self.n = _A.nrows()
-        self.t = int(log(len(_T[0]), 2))
+    def __init__(self, A, B, C, T, U=None, U_prime=None):
+        self.n = A.nrows()
+        self.t = int(log(len(T[0]), 2))
         self.mask_t = sum(int(1 << i) for i in range(0, self.t))
-        self.A = _A
-        self.B = _B
-        self.C = _C
-        self.T = _T
-        self.U = _U
+        self.A = A
+        self.B = B
+        self.C = C
+        self.T = T
+        self.T_inv = []
+        for T_k in self.T:
+            if not is_permutation(T_k):
+                raise Exception("ill formed TU-decomposition: T must be a key permutation!")
+                break
+            else:
+                self.T_inv.append(inverse(T_k))
+        if U != None:
+            self.U = U
+            self.U_prime = [[-1 for x in range(0, 2**(self.n - self.t))]
+                            for k in range(0, 2**self.t)]
+            for k in range(0, 2**self.t):
+                for x in range(0, 2**(self.n - self.t)):
+                    self.U_prime[self.T[x][k]][x] = self.U[k][x]
+        elif U_prime != None:
+            self.U_prime = U_prime
+            self.U = [[-1 for x in range(0, 2**(self.n - self.t))]
+                      for k in range(0, 2**self.t)]
+            for k in range(0, 2**self.t):
+                for x in range(0, 2**(self.n - self.t)):
+                    self.U[k][x] = self.U_prime[self.T[x][k]][x]
+        else:
+            raise Exception("at least U or U' must be specified")
 
+
+    def twist(self):
+        return TUdecomposition(
+            identity_matrix(self.n),
+            identity_matrix(self.n),
+            zero_matrix(self.n, self.n),
+            self.T_inv,
+            _U = self.U_prime
+        )
+    
+        
     def __str__(self):
         result = "t = {:d}\n".format(self.t)
         result += self.A.str()
@@ -214,10 +247,15 @@ class TUdecomposition:
         for row in self.U:
             result += "  " + str(row) + "\n"
         result +=  "]\n"
+        result += "]\nU prime=[\n"
+        for row in self.U_prime:
+            result += "  " + str(row) + "\n"
+        result +=  "]\n"
         result += self.B.str()
         result += "\nFF = \n"
         result += self.C.str()
         return result
+    
     
     def get_lut(self):
         """Returnis the lookup table of the permutation whose TU-decomposition
@@ -226,15 +264,23 @@ class TUdecomposition:
         """
         result = []
         for x in range(0, 2**self.n):
+            # y = apply_bin_mat(x, self.A)
+            # x2, x1 = y >> self.t, y & self.mask_t
+            # y1 = self.T[x2][x1]
+            # y2 = self.U[x1][x2]
+            # y = (y2 << self.t) | y1
+            # y = apply_bin_mat(y, self.B)
+            # result.append(oplus(y, apply_bin_mat(x, self.C)))
             y = apply_bin_mat(x, self.A)
             x2, x1 = y >> self.t, y & self.mask_t
-            y1 = self.T[x2][x1]
-            y2 = self.U[x1][x2]
-            y = (y2 << self.t) | y1
+            y2 = self.T[x2][x1]
+            y1 = self.U[x1][x2]
+            y = oplus((y2 << (self.n - self.t)) | y1, apply_bin_mat(y, self.C))
             y = apply_bin_mat(y, self.B)
-            result.append(oplus(y, apply_bin_mat(x, self.C)))
+            result.append(y)
         return result
 
+    
 def tu_decomposition_from_space_basis(s, basis, verbose=False):
     """Using the knowledge that v is a subspace of Z_s of dimension n, a
     TU-decomposition (as defined in [Perrin17]) of s is performed and
@@ -242,14 +288,18 @@ def tu_decomposition_from_space_basis(s, basis, verbose=False):
 
     """
     N = int(log(len(s), 2))
-    MASK_N = sum(int(1 << i) for i in range(0, N))
     t = thickness(basis, N)
+    if t == 0:
+        raise Exception("cannot do a TU decomposition when t=0")
+    mask_n  = sum(int(1 << i) for i in range(0,   N))
+    mask_t  = sum(int(1 << i) for i in range(0,   t))
+    mask_nt = sum(int(1 << i) for i in range(0, N-t))
     # reordering the basis of the space to have a basis of the thickness space
     reordered_basis = []
     reordered_projected_basis = []
     old_rank = 0
     for b in basis:
-        new_reordered_projected_basis = reordered_projected_basis + [b & MASK_N]
+        new_reordered_projected_basis = reordered_projected_basis + [b & mask_n]
         new_rank = rank_of_vector_set(new_reordered_projected_basis)
         if new_rank > old_rank:
             reordered_basis.append(b)
@@ -267,44 +317,33 @@ def tu_decomposition_from_space_basis(s, basis, verbose=False):
                 for i in range(0, t):
                     if ((coeff >> i) & 1) == 1:
                         b_prime = oplus(b_prime, reordered_basis[i])
-                if (b_prime & MASK_N) == 0:
+                if (b_prime & mask_n) == 0:
                     sanitized_basis.append(b_prime)
                     coeffs.append(coeff)
                     break
     # deducing the linear mappings
     basis_A = [b >> N     for b in sanitized_basis[t:N]]
     basis_C = [b >> N     for b in sanitized_basis[0:t]]
-    basis_B = [b & MASK_N for b in sanitized_basis[0:t]]
-    if len(basis_B) == 0:
-        return None
-    complete_A = complete_basis(basis_A, N)
-    complete_B = complete_basis(basis_B, N)
-    complete_B = complete_B[t:N] + complete_B[0:t]
-    complete_C = basis_C + [0]*(N-t)
-    A = Matrix(GF(2), N, N, [tobin(a, N) for a in complete_A])
-    B = Matrix(GF(2), N, N, [tobin(b, N) for b in complete_B])
-    C = Matrix(GF(2), N, N, [tobin(b, N) for b in complete_C])
-    C_prime = B.inverse() * C * A
+    basis_B = [b & mask_n for b in sanitized_basis[0:t]]
+    A = get_generating_matrix(basis_A, N).transpose()
+    B = get_generating_matrix(basis_B, N).transpose()
+    C = matrix_from_masks(basis_C, N).transpose() * A.inverse()
     # recovering T and U
     s_prime = []
     for x in range(0, 2**N):
         y = apply_bin_mat(x, A.inverse())
-        y = oplus(apply_bin_mat(y, C_prime), s[y])
+        y = s[y]
         y = apply_bin_mat(y, B)
-        s_prime.append(y)
-    mask_t  = sum(int(1 << i) for i in range(0,   t))
-    mask_nt = sum(int(1 << i) for i in range(0, N-t))
+        s_prime.append(oplus(y, apply_bin_mat(x, C)))
     T = [[0 for l in range(0, 2**t)] for r in range(0, 2**(N-t))]
     U = [[0 for r in range(0, 2**(N-t))] for l in range(0, 2**t)]
     for x1 in range(0, 2**t):
         for x2 in range(0, 2**(N-t)):
             x = (x2 << t) | x1
-            y2, y1 = s_prime[x] >> t, s_prime[x] & mask_t
+            y1, y2 = s_prime[x] >> (N-t), s_prime[x] & mask_nt
             T[x2][x1] = y1
             U[x1][x2] = y2
-    # returning the result
-    return TUdecomposition(A, B.inverse(), C_prime, T, U)
-
+    return TUdecomposition(A, B.inverse(), C, T, U=U)
 
 
     
@@ -312,11 +351,12 @@ def get_tu_decompositions(s, walsh_zeroes=None):
     if walsh_zeroes == None:
         walsh_zeroes = get_lat_zeroes_spaces(s)
     result = []
+    N = int(log(len(s), 2))
     for w in walsh_zeroes:
-        d = tu_decomposition_from_space_basis(s, w)
-        if d != None:
-            result.append(d)
-    return result
+        t = thickness(w, N)
+        if t > 0:
+            d = tu_decomposition_from_space_basis(s, w)
+            yield d
         
     
 
