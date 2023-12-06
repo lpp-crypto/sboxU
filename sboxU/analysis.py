@@ -365,6 +365,7 @@ class Analysis:
                  cycles=None,
                  linear_struct=None,
                  ccz=None,
+                 tu=None,
                  # how to perform the analysis
                  store_tables=None,
                  deep=False,
@@ -441,7 +442,10 @@ class Analysis:
                 self.anomalies["CCZ"] = CCZAnomaly(s)
             self.spectra["CCZ"] = self.anomalies["CCZ"].spectrum
         if cycles:
-            self.anomalies["CYC"] = CycleAnomaly(s)       
+            self.anomalies["CYC"] = CycleAnomaly(s)
+        if tu:
+            # !CONTINUE!  Finish automated TU analysis
+            print("Unsupported yet")
         self.advanced = {}
         if deep:
             self.advanced_analysis()
@@ -494,15 +498,22 @@ class Analysis:
              noteworthy_mark="  # Noteworty"):
         print(indent + "LUT:")
         print(indent + "      {}".format(
-            pretty_vector(list(range(0, 16)), template="{:02x} ")[1:-1]
+            pretty_vector(list(range(0, min(2**self.N, 16))), template="{:02x} ")[1:-1]
         ))
         print(indent + "-"*54)
-        for i in range(0, 2**(self.N-4)):
-            print(indent + "{:2x}0 | {}".format(
-                i, pretty_vector(self.lut[i*16:i*16+16],
-                                 template="{:02x} "
-                                 )[1:-1]
-            ))
+        if self.N >= 4:
+            for i in range(0, 2**(self.N-4)):
+                print(indent + "{:2x}0 | {}".format(
+                    i, pretty_vector(self.lut[i*16:i*16+16],
+                                     template="{:02x} "
+                                     )[1:-1]
+                ))
+            else:
+                print(indent + " | {}".format(
+                    pretty_vector(self.lut[i*16:i*16+16],
+                                  template="{:02x} "
+                                  )[1:-1]
+                ))
         good_properties = []
         bad_properties  = []
         for anomaly_name in sorted(self.anomalies.keys()):
@@ -552,9 +563,6 @@ class Analysis:
                 print("\n- mapping number {:d}".format(index))
                 for line in str(L).split("\n"):
                     print(indent + line)
-                
-            
-        
 
 
     def save_pollock(self, 
