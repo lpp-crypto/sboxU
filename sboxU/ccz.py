@@ -205,7 +205,7 @@ class TUdecomposition:
         self.T_inv = []
         for T_k in self.T:
             if not is_permutation(T_k):
-                raise Exception("ill formed TU-decomposition: T must be a key permutation!")
+                raise Exception("ill formed TU-decomposition: T must be a keyed permutation!")
                 break
             else:
                 self.T_inv.append(inverse(T_k))
@@ -233,7 +233,7 @@ class TUdecomposition:
             identity_matrix(self.n),
             zero_matrix(self.n, self.n),
             self.T_inv,
-            _U = self.U_prime
+            U = self.U_prime
         )
     
         
@@ -309,7 +309,6 @@ def tu_decomposition_from_space_basis(s, basis, verbose=False):
         raise Exception("invalid basis")
     sanitized_basis = reordered_basis[0:t]
     # ensuring that their is no other non-zero vector in the thickness part
-    coeffs = []
     for b in basis:
         if b not in reordered_basis:
             for coeff in range(0, 2**t):
@@ -319,7 +318,6 @@ def tu_decomposition_from_space_basis(s, basis, verbose=False):
                         b_prime = oplus(b_prime, reordered_basis[i])
                 if (b_prime & mask_n) == 0:
                     sanitized_basis.append(b_prime)
-                    coeffs.append(coeff)
                     break
     # deducing the linear mappings
     basis_A = [b >> N     for b in sanitized_basis[t:N]]
