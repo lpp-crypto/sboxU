@@ -97,7 +97,7 @@ def thickness(basis, N):
     return rank_of_vector_set(proj)
 
 
-def thickness_spectrum(s, spaces=None):
+def thickness_spectrum(s, spaces=None, threshold=None):
     """Returns a dictionary containing the thickness spectra of the
     function whose LUT is the list `s`.
 
@@ -107,12 +107,26 @@ def thickness_spectrum(s, spaces=None):
 
     """
     N = int(log(len(s), 2))
-    if spaces == None:
-        spaces = get_lat_zeroes_spaces(s)
     result = defaultdict(int)
+    # case of the failsafe
+    if threshold != None:
+        if not isinstance(threshold, (int, Integer)):
+            raise Exception("threshold must be an integer")
+        spaces_counter = 0
+        for V in vector_spaces_bases_iterator(lat_zeroes(s), N, 2*N):
+            result[thickness(V, N)] += 1
+            if spaces_counter > threshold:
+                break
+            else:
+                spaces_counter += 1
+        return dict(result)
+    # need for speed
+    elif spaces == None:
+        spaces = get_lat_zeroes_spaces(s)
     for V in spaces:
         result[thickness(V, N)] += 1
     return dict(result)
+
 
 def get_lat_zeroes_spaces(s, n_threads=None):
     """Returns a list containing the basis of each vector space of
@@ -350,11 +364,23 @@ def get_tu_decompositions(s, walsh_zeroes=None):
         walsh_zeroes = get_lat_zeroes_spaces(s)
     result = []
     N = int(log(len(s), 2))
+    result = []
     for w in walsh_zeroes:
         t = thickness(w, N)
         if t > 0:
             d = tu_decomposition_from_space_basis(s, w)
-            yield d
+            result.append(d)
+    return result
+
+
+def tu_decompositions_iterator(s):
+    N = int(log(len(s), 2))
+    result = []
+    for w in vector_spaces_bases_iterator(lat_zeroes(s), N, 2*N):
+        t = thickness(w, N)
+        if t > 0:
+            yield tu_decomposition_from_space_basis(s, w)
+    
         
     
 
