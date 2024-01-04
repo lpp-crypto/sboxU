@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-11-30 11:31:06 lperrin>
+# Time-stamp: <2024-01-04 14:20:38 lperrin>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -36,22 +36,30 @@ def random_function_of_degree(n, m, deg):
 
     """
     result = [0 for x in range(0, 2**n)]
-    r = PolynomialRing(GF(2**n, name="a"), 'x', n)
-    x_is = r.gens()
     for output_bit in range(0, m):
-        pol = r.zero()
-        if randint(0, 1) == 1:
-            pol = r.one()
-        for d in range(1, deg+1):
-            for monomial_x_is in itertools.combinations(x_is, d):
-                if randint(0, 1) == 1:
-                    monomial = r.one()
-                    for x_i in monomial_x_is:
-                        monomial = x_i*monomial
-                    pol += monomial
-        for y in range(0, 2**n):
-            f_y_bit = pol([(y >> j) & 1 for j in range(0, n)])
-            result[y] = result[y] | (int(f_y_bit) << output_bit)
+        e_i = int(1 << output_bit)
+        for monomial_mask in range(1, 2**n):
+            if (hamming_weight(monomial_mask) <= deg) and randint(0, 1) == 1:
+                for x in range(0, 2**n):
+                    if (x & monomial_mask) == monomial_mask:
+                        result[x] = oplus(result[x], e_i)
+    # r = PolynomialRing(GF(2**n, name="a"), 'x', n)
+    # x_is = r.gens()
+    # for output_bit in range(0, m):
+    #     pol = r.zero()
+    #     if randint(0, 1) == 1:
+    #         pol = r.one()
+    #     for d in range(1, deg+1):
+    #         for monomial_x_is in itertools.combinations(x_is, d):
+    #             if randint(0, 1) == 1:
+    #                 monomial = r.one()
+    #                 for x_i in monomial_x_is:
+    #                     monomial = x_i*monomial
+    #                 pol += monomial
+    #     for y in range(0, 2**n):
+    #         f_y_bit = pol([(y >> j) & 1 for j in range(0, n)])
+    #         result[y] = result[y] | (int(f_y_bit) << output_bit)
+    # del(r)
     return result
 
         
