@@ -7,6 +7,7 @@ from .ccz import *
 from .display import *
 from .linear import *
 from .cycles import *
+from .quadratic import *
 from .analysis import *
 from .known_functions import *
 
