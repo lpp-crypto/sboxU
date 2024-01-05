@@ -208,13 +208,27 @@ def tu_projection(s, t):
 
 class TUdecomposition:
     """Stores the TU_t decomposition of a function."""
-    def __init__(self, A, B, C, T, U=None, U_prime=None):
-        self.n = A.nrows()
+    def __init__(self, A=None, B=None, C=None, T=None, U=None, U_prime=None):
+        if T == None or (U == None and U_prime == None):
+            raise Exception("Insufficient information to build a TUdecomposition")
+        # setting integer parameters
         self.t = int(log(len(T[0]), 2))
+        self.n = self.t + int(log(len(T), 2))
         self.mask_t = sum(int(1 << i) for i in range(0, self.t))
-        self.A = A
-        self.B = B
-        self.C = C
+        # setting linear components
+        if A != None:
+            self.A = A
+        else:
+            self.A = identity_matrix(GF(2), self.n)
+        if B != None:
+            self.B = B
+        else:
+            self.B = identity_matrix(GF(2), self.n)
+        if C != None:
+            self.C = C
+        else:
+            self.C = zero_matrix(GF(2), self.n)
+        # setting mini-block ciphers
         self.T = T
         self.T_inv = []
         for T_k in self.T:
@@ -241,16 +255,112 @@ class TUdecomposition:
             raise Exception("at least U or U' must be specified")
 
 
+    def core(self):
+        return TUdecomposition(
+            A=identity_matrix(self.n),
+            B=identity_matrix(self.n),
+            C=zero_matrix(self.n, self.n),
+            T=self.T,
+            U=self.U
+        )
+
+    
     def twist(self):
         return TUdecomposition(
-            identity_matrix(self.n),
-            identity_matrix(self.n),
-            zero_matrix(self.n, self.n),
-            self.T_inv,
-            U = self.U_prime
+            A=identity_matrix(self.n),
+            B=identity_matrix(self.n),
+            C=zero_matrix(self.n, self.n),
+            T=self.T_inv,
+            U=self.U_prime
+        )
+
+
+    def insert_before_T(self, alpha):
+        """Returns a new TUdecomposition that is functionally
+        equivalent, but where the linear permutation `alpha` is
+        applied on the t-bit branch on which the T block is a
+        permutation *before* it is called.
+
+        """
+        new_A = block_diagonal_matrix([identity_matrix(self.n-self.t), alpha.inverse()]) * self.A
+        alpha_fast = FastLinearMapping(alpha)
+        new_T = [[row[alpha_fast(x)] for x in range(0, 2**self.t)]
+                 for row in self.T]
+        new_U = [self.U[alpha_fast(y)] for y in range(0, 2**self.t)]
+        return TUdecomposition(
+            A=new_A,
+            B=self.B,
+            C=self.C,
+            T=new_T,
+            U=new_U
         )
     
         
+    def insert_after_T(self, alpha):
+        """Returns a new TUdecomposition that is functionally
+        equivalent, but where the linear permutation `alpha` is
+        applied on the t-bit branch on which the T block is a
+        permutation *after* it is called.
+
+        """
+        new_B = self.B * block_diagonal_matrix([alpha.inverse(), identity_matrix(self.n-self.t)])
+        alpha_fast = FastLinearMapping(alpha)
+        new_T = [[alpha_fast(row[x]) for x in range(0, 2**self.t)]
+                 for row in self.T]
+        return TUdecomposition(
+            A=self.A,
+            B=new_B,
+            C=self.C,
+            T=new_T,
+            U=self.U
+        )
+    
+
+
+    def insert_before_U(self, alpha):
+        """Returns a new TUdecomposition that is functionally
+        equivalent, but where the linear permutation `alpha` is
+        applied on the (n-t)-bit branch on which the U block is a
+        applied, *before* it is called.
+
+        """
+        new_A = block_diagonal_matrix([alpha.inverse(), identity_matrix(self.t)]) * self.A
+        alpha_fast = FastLinearMapping(alpha)
+        new_T = [self.T[alpha_fast(y)] for y in range(0, 2**(self.n - self.t))]
+        new_U = [[self.U[x][alpha_fast(y)] for y in range(0, 2**(self.n-self.t))]
+                 for x in range(0, 2**self.t)]
+        return TUdecomposition(
+            A=new_A,
+            B=self.B,
+            C=self.C,
+            T=new_T,
+            U=new_U
+        )
+    
+        
+    def insert_after_U(self, alpha):
+        """Returns a new TUdecomposition that is functionally
+        equivalent, but where the linear permutation `alpha` is
+        applied on the (n-t)-bit branch on which the U block is
+        applied, *after* it is called.
+
+        """
+        new_B = self.B * block_diagonal_matrix([identity_matrix(self.t), alpha.inverse()])
+        alpha_fast = FastLinearMapping(alpha)
+        new_U = [[alpha_fast(row[x]) for x in range(0, 2**self.t)]
+                 for row in self.U]
+        return TUdecomposition(
+            A=self.A,
+            B=new_B,
+            C=self.C,
+            T=self.T,
+            U=new_U
+        )
+    
+        
+
+        
+    
     def __str__(self):
         result = "t = {:d}\n".format(self.t)
         result += self.A.str()
@@ -278,13 +388,6 @@ class TUdecomposition:
         """
         result = []
         for x in range(0, 2**self.n):
-            # y = apply_bin_mat(x, self.A)
-            # x2, x1 = y >> self.t, y & self.mask_t
-            # y1 = self.T[x2][x1]
-            # y2 = self.U[x1][x2]
-            # y = (y2 << self.t) | y1
-            # y = apply_bin_mat(y, self.B)
-            # result.append(oplus(y, apply_bin_mat(x, self.C)))
             y = apply_bin_mat(x, self.A)
             x2, x1 = y >> self.t, y & self.mask_t
             y2 = self.T[x2][x1]
@@ -355,7 +458,7 @@ def tu_decomposition_from_space_basis(s, basis, verbose=False):
             y1, y2 = s_prime[x] >> (N-t), s_prime[x] & mask_nt
             T[x2][x1] = y1
             U[x1][x2] = y2
-    return TUdecomposition(A, B.inverse(), C, T, U=U)
+    return TUdecomposition(A=A, B=B.inverse(), C=C, T=T, U=U)
 
 
     

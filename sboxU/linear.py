@@ -490,6 +490,8 @@ def complete_basis(basis, N):
     contains the list of integers `basis`. Assumes that the elements
     of `basis` are linearly independent.
 
+    The output *starts* with `basis`.
+
     """
     if rank_of_vector_set(basis) != len(basis):
         raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
@@ -503,6 +505,29 @@ def complete_basis(basis, N):
             r = new_r
         e_i += 1
     return basis
+
+
+def complete_basis_reversed(basis, N):
+    """Returns a list of length N spanning the space 0..2^N-1 which
+    contains the list of integers `basis`. Assumes that the elements
+    of `basis` are linearly independent.
+
+    The output *ends* with `basis`.
+    """
+    if rank_of_vector_set(basis) != len(basis):
+        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
+    r = len(basis)
+    e_i = 1
+    while r < N:
+        new_basis = [e_i] + basis
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r:
+            basis = new_basis[:]
+            r = new_r
+        e_i += 1
+    return basis
+
+
 
 def matrix_from_masks(basis, N):
     """Returns an NxN binary matrix M such that M*(1 << i) = basis[i] for
