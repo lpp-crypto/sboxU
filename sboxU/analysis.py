@@ -508,12 +508,12 @@ class Analysis:
                                      template="{:02x} "
                                      )[1:-1]
                 ))
-            else:
-                print(indent + " | {}".format(
-                    pretty_vector(self.lut[i*16:i*16+16],
-                                  template="{:02x} "
-                                  )[1:-1]
-                ))
+        else:
+            print(indent + " | {}".format(
+                pretty_vector(self.lut[i*16:i*16+16],
+                              template="{:02x} "
+                              )[1:-1]
+            ))
         good_properties = []
         bad_properties  = []
         for anomaly_name in sorted(self.anomalies.keys()):
