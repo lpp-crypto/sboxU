@@ -315,6 +315,8 @@ def extract_bases(z,
       ignored.
 
     """
+    if dimension == 1:
+        return [[x] for x in z]
     if len(z) < n_threads or 2**word_length < n_threads or 2**dimension < n_threads:
         n_threads = 1
     if number not in [b"all dimensions", b"fixed dimension", b"just one"]:
@@ -432,12 +434,14 @@ def vector_spaces_bases_iterator(z,
 
     """
     for v_0 in z:
-        new_z = extract_vector(z, v_0)
-        for rest_of_the_basis in extract_bases(new_z,
-                                               dimension-1,
-                                               word_length,
-                                               n_threads=n_threads):
-            yield [v_0] + rest_of_the_basis
+        if v_0 > 0:
+            new_z = extract_vector(z, v_0)
+            for rest_of_the_basis in extract_bases(new_z,
+                                                   dimension-1,
+                                                   word_length,
+                                                   n_threads=n_threads):
+                yield [v_0] + rest_of_the_basis
+
 
             
 
