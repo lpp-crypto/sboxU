@@ -1,4 +1,4 @@
-/* Time-stamp: <2024-03-14 11:32:03 lperrin>
+/* Time-stamp: <2024-03-19 11:33:52 lperrin>
  *
  * LICENCE
  */
@@ -23,14 +23,15 @@ std::vector<BinWord> extract_vector_cpp(
     // building indicator function
     std::map<BinWord, bool> indicator;
     for(auto & x : z)
-      indicator[x] = true;
+        indicator[x] = true;
     std::vector<BinWord> result;
     for(auto & x : z)
-    {
-	BinWord y = x ^ a;
-	if ((x < y) and (indicator.find(y) != indicator.end()))
-	  result.push_back(x);
-    }
+        if (x > a)
+	{
+	    BinWord y = x ^ a;
+	    if ((x < y) and (indicator.find(y) != indicator.end()))
+	        result.push_back(x);
+	}
     return result;
 }
 

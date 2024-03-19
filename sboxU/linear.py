@@ -433,6 +433,8 @@ def vector_spaces_bases_iterator(z,
     The words in `z` are assumed to be of length `word_length`.
 
     """
+    if dimension == 1:
+        return [[x] for x in z if x != 0]
     for v_0 in z:
         if v_0 > 0:
             new_z = extract_vector(z, v_0)
