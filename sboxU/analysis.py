@@ -698,7 +698,13 @@ class Analysis:
             if platform.system() == "Darwin":
                 pretty_font = ImageFont.truetype("Keyboard.ttf", 80)
             else:
-                pretty_font = ImageFont.truetype("arial.ttf", 80)
+                try:
+                    pretty_font = ImageFont.truetype("arial.ttf", 80)
+                except:
+                    try:
+                        pretty_font = ImageFont.load_default(size=80)
+                    except:
+                        pretty_font = ImageFont.load_default()
             title.text((20, 20),
                        "{}: {} analysis".format(name, table_name),
                        font=pretty_font,

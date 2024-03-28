@@ -1,11 +1,13 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-13 15:50:30 lperrin>
+# Time-stamp: <2024-03-28 14:42:37 leo>
 
 import matplotlib
 import matplotlib.pyplot as plt
 from .diff_lin import *
 from math import log
 from collections import defaultdict
+
+from sage.misc.banner import require_version
 
 # source for color sequence: https://matplotlib.org/users/dflt_style_changes.html
 
@@ -395,9 +397,15 @@ def plot_statistical(spec,
     p.tick_params(labelsize=12)
     p.grid(color="0.8")
     if x_log_scale:
-        p.set_xscale("log", base=2, nonpositive="clip")
+        if require_version(9):
+            p.set_xscale("log", basex=2, nonposx="clip")
+        else:
+            p.set_xscale("log", base=2, nonpositive="clip")
     if y_log_scale:
-        p.set_yscale("log", base=2, nonpositive="clip")
+        if require_version(9):
+            p.set_yscale("log", basey=2, nonposy="clip")
+        else:
+            p.set_yscale("log", base=2, nonpositive="clip")
     fig.savefig("{}.png".format(file_name))
     plt.close()
 
@@ -482,9 +490,15 @@ def plot_statistical_by_rows(t,
     p.tick_params(labelsize=12)
     p.grid(color="0.8")
     if x_log_scale:
-        p.set_xscale("log", base=2, nonpositive="clip")
+        if require_version(9):
+            p.set_xscale("log", basex=2, nonposx="clip")
+        else:
+            p.set_xscale("log", base=2, nonpositive="clip")
     if y_log_scale:
-        p.set_yscale("log", base=2, nonpositive="clip")
+        if require_version(9):
+            p.set_yscale("log", basey=2, nonposy="clip")
+        else:
+            p.set_yscale("log", base=2, nonpositive="clip")
     fig.savefig("{}.png".format(file_name))
     plt.close()
 
