@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2023-12-04 17:30:49 lperrin>
+# Time-stamp: <2024-04-26 10:26:57 leo>
 
 import os
 from libcpp cimport bool
@@ -162,6 +162,16 @@ def ortho_derivative(s):
 
     """
     return ortho_derivative_fast(s)
+    
+
+def is_ddt_row_max_smaller_than(s, a, u):
+    """Returns true if and only if the maximum coefficient of row `a`
+    of the DDT of the S-box `s` (i.e. the maximum value of DDT[a, b]
+    for the given `a`) is at most equal to `u`.
+
+    """
+    return is_ddt_row_max_smaller_than_cpp(s, a, u)
+
     
 
 def is_differential_uniformity_smaller_than(s, u):

@@ -1,4 +1,4 @@
-/* Time-stamp: <2022-10-31 10:33:01 lperrin>
+/* Time-stamp: <2024-04-26 10:21:16 leo>
  *
  * LICENSE
  */ 
@@ -33,20 +33,6 @@ void ddt_rows_count(
             result[v] ++;
     }
 }
-
-bool is_ddt_row_max_smaller_than(const Sbox s, const BinWord a, const Integer u)
-{
-    std::vector<Integer> row(s.size(), 0);
-    for (unsigned int x=0; x<s.size(); x++)
-    {
-        BinWord d_out = s[x^a] ^ s[x];
-        row[d_out] ++ ;
-        if (row[d_out] > u)
-            return false;
-    }
-    return true;
-}
-
 
 // !SUBSECTION! Python-facing functions 
 
@@ -106,10 +92,25 @@ bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
 {
     check_length_cpp(s);
     for (unsigned int a=1; a<s.size(); a++)
-        if (is_ddt_row_max_smaller_than(s, a, u) == false)
+        if (is_ddt_row_max_smaller_than_cpp(s, a, u) == false)
             return false;
     return true;
 }
+
+
+bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Integer u)
+{
+    std::vector<Integer> row(s.size(), 0);
+    for (unsigned int x=0; x<s.size(); x++)
+    {
+        BinWord d_out = s[x^a] ^ s[x];
+        row[d_out] ++ ;
+        if (row[d_out] > u)
+            return false;
+    }
+    return true;
+}
+
 
 
 std::vector<std::map<Integer, Integer> > c_differential_spectra_cpp(
