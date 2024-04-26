@@ -60,21 +60,17 @@ std::map<Integer,Integer> differential_spectrum_fast(const Sbox  s, const unsign
     {
         std::vector<std::thread> threads;
         std::vector<std::map<Integer,Integer> > local_counts(n_threads);
-        unsigned int slice_size = s.size()/n_threads;
+        BinWord lower_bound = 1;
         for (unsigned int i=0; i<n_threads; i++)
         {
-            unsigned int
-                lower_bound = i*slice_size,
-                upper_bound = (i+1)*slice_size;
-            if (lower_bound == 0)
-                lower_bound = 1;
-            if (upper_bound > s.size())
-                upper_bound = s.size();
+            // Will break on 32-bit arch is nthreads*s.size >= 1 << 32
+            BinWord upper_bound = ((i+1)*s.size())/n_threads;
             threads.push_back(std::thread(ddt_rows_count,
                                           std::ref(local_counts[i]),
                                           s,
                                           lower_bound,
                                           upper_bound));
+            lower_bound = upper_bound;
 
         }
         for (unsigned int i=0; i<n_threads; i++)
