@@ -132,7 +132,6 @@ bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Intege
 
 bool is_differential_uniformity_smaller_than_2(const Sbox s)
 {
-    check_length_cpp(s);
     for (unsigned int a=1; a<s.size(); a++)
         if (is_ddt_row_max_smaller_than_2(s, a) == false)
             return false;
@@ -141,7 +140,6 @@ bool is_differential_uniformity_smaller_than_2(const Sbox s)
 
 bool is_differential_uniformity_smaller_than_u(const Sbox s, const Integer u)
 {
-    check_length_cpp(s);
     for (unsigned int a=1; a<s.size(); a++)
         if (is_ddt_row_max_smaller_than_u(s, a, u) == false)
             return false;
@@ -150,6 +148,7 @@ bool is_differential_uniformity_smaller_than_u(const Sbox s, const Integer u)
 
 bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
 {
+    check_length_cpp(s);
     if(u == 2)
         return is_differential_uniformity_smaller_than_2(s);
     else
