@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2023-10-10 14:29:13 lperrin>
+# Time-stamp: <2024-01-10 14:32:59 lperrin>
 
 
 # from sage.all import RealNumber, RDF, Infinity, exp, log, binomial, factorial,
@@ -17,7 +17,7 @@ from .utils import *
 # Some constants
 BIG_SBOX_THRESHOLD = 128
 DEFAULT_N_THREADS  = 2
-DEFAULT_HIGH_PRECISION = 40
+DEFAULT_HIGH_PRECISION = 80
 
 
 def lat_zeroes(s, n_threads=None):
@@ -271,6 +271,8 @@ def probability_of_max_and_occurrences(m, n, v_max, occurrences, proba_func, pre
         for occ in reversed(range(0, occurrences+1)):
             added = big_precision(binomial(n_trials, occ)) * (p_strictly_smaller)**((n_trials - occ)) * p_equal**(occ)
             result += added
+        if imag_part(result) != 0: # can happen sometimes, I (Léo) have no idea why
+            raise Exception("somehow, an imaginary number returned")
         return result
     except:
         print("failure in sum: occ={}, result={}, added={}".format(occ, result, added))

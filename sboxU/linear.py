@@ -421,29 +421,102 @@ def extract_affine_bases(z,
         return result
 
 
+def vector_spaces_bases_iterator(z, dimension, length):
+    z.sort()
+    sorted_z = []
+    mask = 1
+    current_msb_list = []
+    for x in z:
+        new_mask = False
+        while (x & mask) != x:
+            mask = (mask << 1) | 1
+            new_mask = True
+        if new_mask:
+            if len(current_msb_list) > 0:
+                sorted_z.append(current_msb_list[:])
+            current_msb_list = []
+        current_msb_list.append(x)
+    if len(current_msb_list) > 0:
+        sorted_z.append(current_msb_list)
+    return vector_spaces_bases_iterator_rec(sorted_z, dimension, length)
+        
+    
+def vector_spaces_bases_iterator_rec(sorted_z,
+                                     dimension,
+                                     word_length):
+    if dimension == 1:
+        result = []
+        for z in sorted_z:
+            for x in z:
+                yield [x]
+    elif len(sorted_z) >= dimension:
+        tot_left = sum(len(z) for z in sorted_z)
+        size_threshold = 2**(dimension-1) - 1
+        for msb_index in range(0, len(sorted_z)-dimension+1):
+            tot_left -= len(sorted_z[msb_index])
+            if tot_left >= size_threshold:
+                for v in sorted_z[msb_index]:
+                    new_z = []
+                    next_tot = 0
+                    for i in range(msb_index+1, len(sorted_z)):
+                        extracted = extract_vector(sorted_z[i], v)
+                        if len(extracted) > 0:
+                            new_z.append(extracted)
+                            next_tot += len(extracted)
+                    if next_tot >= size_threshold and len(new_z) >= dimension-1:
+                        for rest_of_the_basis in vector_spaces_bases_iterator_rec(
+                                new_z,
+                                dimension-1,
+                                word_length):
+                            yield [v] + rest_of_the_basis
+    
+    
 
 
-def vector_spaces_bases_iterator(z,
+def vector_spaces_bases_iterator_old(z,
                                 dimension,
-                                word_length,
-                                n_threads=DEFAULT_N_THREADS):
+                                word_length):
     """Returns an iterator going through the bases of all the vector
     spaces of dimension `dimension` that are included in `z`.
 
-    The words in `z` are assumed to be of length `word_length`.
+    The words in `z` are assumed to be of length `word_length`, and to
+    be sorted in increasing order.
 
     """
     if dimension == 1:
+        print("bleeeeh", z)
         return [[x] for x in z if x != 0]
-    for v_0 in z:
-        if v_0 > 0:
-            new_z = extract_vector(z, v_0)
-            for rest_of_the_basis in extract_bases(new_z,
-                                                   dimension-1,
-                                                   word_length,
-                                                   n_threads=n_threads):
-                yield [v_0] + rest_of_the_basis
-
+    # sorting elements of z by their MSB
+    z_by_msb = []
+    current_msb_list = []
+    mask = 1
+    for x in z:
+        new_msb = False
+        while (x & mask) != x:
+            new_msb = True
+            mask = (mask << 1) | 1
+        if new_msb:
+            if len(current_msb_list) > 0:
+                z_by_msb.append(current_msb_list)
+            current_msb_list = [x]
+        else:
+            current_msb_list.append(x)
+    if len(current_msb_list) > 0:
+        z_by_msb.append(current_msb_list)
+    if len(z_by_msb) >= dimension:
+        # iterating the extraction
+        for msb_index in range(0, len(z_by_msb)):
+            for v_0 in z_by_msb[msb_index]:
+                new_z = []
+                for i in range(msb_index+1, len(z_by_msb)):
+                    new_z += extract_vector(z_by_msb[i], v_0)
+                if len(new_z) >= 2**(dimension-1) - 1:
+                    for rest_of_the_basis in vector_spaces_bases_iterator(
+                            new_z,
+                            dimension-1,
+                            word_length):
+                        yield [v_0] + rest_of_the_basis
+    
 
             
 

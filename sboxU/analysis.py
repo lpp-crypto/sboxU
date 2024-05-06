@@ -259,7 +259,7 @@ class CycleAnomaly:
     
 
 class CCZAnomaly:
-    def __init__(self, s, threshold=40, spaces=None):
+    def __init__(self, s, threshold=20, spaces=None):
         self.name = "CCZ"
         N = int(log(len(s), 2))
         self.lat_zeroes = lat_zeroes(s)
