@@ -1,4 +1,4 @@
-/* Time-stamp: <2021-09-21 11:09:03 lperrin>
+/* Time-stamp: <2024-04-26 10:25:13 leo>
  *
  * LICENSE
  */ 
@@ -32,6 +32,12 @@ std::vector< std::vector<Integer> > ddt_cpp(const Sbox s);
  * Throws an error if the length of s is not a power of 2. Not yet
  */ 
 std::map<Integer,Integer> differential_spectrum_fast(const Sbox s, const unsigned int n_threads);
+
+
+/* @return true if and only if the differential uniformity of s is at
+ * most equal to u.
+ */ 
+bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Integer u);
 
 
 /* @return true if and only if the differential uniformity of s is at

@@ -1,4 +1,4 @@
-/* Time-stamp: <2022-10-31 10:33:01 lperrin>
+/* Time-stamp: <2024-04-26 10:21:16 leo>
  *
  * LICENSE
  */ 
@@ -34,20 +34,6 @@ void ddt_rows_count(
     }
 }
 
-bool is_ddt_row_max_smaller_than(const Sbox s, const BinWord a, const Integer u)
-{
-    std::vector<Integer> row(s.size(), 0);
-    for (unsigned int x=0; x<s.size(); x++)
-    {
-        BinWord d_out = s[x^a] ^ s[x];
-        row[d_out] ++ ;
-        if (row[d_out] > u)
-            return false;
-    }
-    return true;
-}
-
-
 // !SUBSECTION! Python-facing functions 
 
 std::vector< std::vector<Integer> > ddt_cpp(const Sbox s)
@@ -74,21 +60,17 @@ std::map<Integer,Integer> differential_spectrum_fast(const Sbox  s, const unsign
     {
         std::vector<std::thread> threads;
         std::vector<std::map<Integer,Integer> > local_counts(n_threads);
-        unsigned int slice_size = s.size()/n_threads;
+        BinWord lower_bound = 1;
         for (unsigned int i=0; i<n_threads; i++)
         {
-            unsigned int
-                lower_bound = i*slice_size,
-                upper_bound = (i+1)*slice_size;
-            if (lower_bound == 0)
-                lower_bound = 1;
-            if (upper_bound > s.size())
-                upper_bound = s.size();
+            // Will break on 32-bit arch is nthreads*s.size >= 1 << 32
+            BinWord upper_bound = ((i+1)*s.size())/n_threads;
             threads.push_back(std::thread(ddt_rows_count,
                                           std::ref(local_counts[i]),
                                           s,
                                           lower_bound,
                                           upper_bound));
+            lower_bound = upper_bound;
 
         }
         for (unsigned int i=0; i<n_threads; i++)
@@ -106,10 +88,25 @@ bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
 {
     check_length_cpp(s);
     for (unsigned int a=1; a<s.size(); a++)
-        if (is_ddt_row_max_smaller_than(s, a, u) == false)
+        if (is_ddt_row_max_smaller_than_cpp(s, a, u) == false)
             return false;
     return true;
 }
+
+
+bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Integer u)
+{
+    std::vector<Integer> row(s.size(), 0);
+    for (unsigned int x=0; x<s.size(); x++)
+    {
+        BinWord d_out = s[x^a] ^ s[x];
+        row[d_out] ++ ;
+        if (row[d_out] > u)
+            return false;
+    }
+    return true;
+}
+
 
 
 std::vector<std::map<Integer, Integer> > c_differential_spectra_cpp(

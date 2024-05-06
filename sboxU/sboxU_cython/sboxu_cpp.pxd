@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2023-01-04 15:57:23 lperrin>
+# Time-stamp: <2024-04-26 10:26:12 leo>
 
 from libcpp cimport bool
 from libcpp.vector cimport vector
@@ -30,6 +30,7 @@ cdef extern from "sboxu_cpp_diff_lin.hpp" :
     cdef map[int64_t, int64_t] differential_spectrum_fast (const vector[uint64_t] s, const unsigned int n)
     cdef vector[ vector[int64_t] ] ddt_cpp(const vector[uint64_t] s)
     cdef vector[int64_t] ddt_row_cpp(const vector[uint64_t] f, const unsigned int a)
+    cdef bool is_ddt_row_max_smaller_than_cpp(const vector[uint64_t] s, const int64_t a, const unsigned int u)
     cdef bool is_differential_uniformity_smaller_than_cpp(const vector[uint64_t] s, const int64_t u)
     cdef vector[map[int64_t, int64_t]] c_differential_spectra_cpp(const vector[uint64_t] s, const vector[uint64_t] l_table, const vector[uint64_t] e_table)
     cdef vector[uint64_t] invert_lat_cpp(const vector[vector[int64_t]] l, const unsigned int n)
