@@ -16,6 +16,7 @@ std::vector<Integer> ddt_row_cpp(const Sbox s, const BinWord a)
     std::vector<Integer> result(s.size(), 0);
     for (unsigned int x=0; x< s.size(); x++)
         result[s[x^a] ^ s[x]] ++ ;
+
     return result;
 };
 
@@ -83,18 +84,26 @@ std::map<Integer,Integer> differential_spectrum_fast(const Sbox  s, const unsign
     return count;
 }
 
-
-bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
+bool is_ddt_row_max_smaller_than_2(const Sbox s, const BinWord a)
 {
-    check_length_cpp(s);
-    for (unsigned int a=1; a<s.size(); a++)
-        if (is_ddt_row_max_smaller_than_cpp(s, a, u) == false)
+    std::vector<uint64_t> row(s.size() >> 6,0);
+    for (unsigned int x=0; x<s.size(); x++)
+    {
+        BinWord y = x^a;
+        if (y < x)
+            continue;
+        BinWord d_out = s[y] ^ s[x];
+        // Assumes BinWord unsigned
+        size_t index = d_out >> 6;
+        uint64_t field = ((uint64_t) 1) << (d_out & 0x3F);
+        if (row[index] & field)
             return false;
+        row[index] ^= field;
+    }
     return true;
 }
 
-
-bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Integer u)
+bool is_ddt_row_max_smaller_than_u(const Sbox s, const BinWord a, const Integer u)
 {
     std::vector<Integer> row(s.size(), 0);
     for (unsigned int x=0; x<s.size(); x++)
@@ -107,7 +116,44 @@ bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Intege
     return true;
 }
 
+bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Integer u)
+{
+    check_length_cpp(s);
+    if (a == 0)
+        return s.size() <= u;
+    else if (a >= s.size())
+        // Should probably throw
+        return true;
+    else if (u == 2)
+        return is_ddt_row_max_smaller_than_2(s,a);
+    else
+        return is_ddt_row_max_smaller_than_u(s,a,u);
+}
 
+bool is_differential_uniformity_smaller_than_2(const Sbox s)
+{
+    for (unsigned int a=1; a<s.size(); a++)
+        if (is_ddt_row_max_smaller_than_2(s, a) == false)
+            return false;
+    return true;
+}
+
+bool is_differential_uniformity_smaller_than_u(const Sbox s, const Integer u)
+{
+    for (unsigned int a=1; a<s.size(); a++)
+        if (is_ddt_row_max_smaller_than_u(s, a, u) == false)
+            return false;
+    return true;
+}
+
+bool is_differential_uniformity_smaller_than_cpp(const Sbox s, const Integer u)
+{
+    check_length_cpp(s);
+    if(u == 2)
+        return is_differential_uniformity_smaller_than_2(s);
+    else
+        return is_differential_uniformity_smaller_than_u(s,u);
+}
 
 std::vector<std::map<Integer, Integer> > c_differential_spectra_cpp(
     const Sbox s,

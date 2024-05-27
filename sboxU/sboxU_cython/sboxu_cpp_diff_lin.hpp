@@ -34,8 +34,8 @@ std::vector< std::vector<Integer> > ddt_cpp(const Sbox s);
 std::map<Integer,Integer> differential_spectrum_fast(const Sbox s, const unsigned int n_threads);
 
 
-/* @return true if and only if the differential uniformity of s is at
- * most equal to u.
+/* @return true if and only if for all b, the number of solutions
+ * of s[x] ^ s[x^a] = b is at most equal to u.
  */ 
 bool is_ddt_row_max_smaller_than_cpp(const Sbox s, const BinWord a, const Integer u);
 

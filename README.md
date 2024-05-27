@@ -74,6 +74,8 @@ sage from the folder containing it.
 
 [Aurélien Boeuf](https://who.paris.inria.fr/Aurelien.Boeuf/)
 
+[Xavier Bonnetain](https://bonneta.in/)
+
 [Alain Couvreur](http://www.lix.polytechnique.fr/Labo/Alain.Couvreur/)
 
 [Mathias Joly](https://github.com/MathiasJoly)
