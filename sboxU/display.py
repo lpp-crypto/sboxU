@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2024-03-28 14:42:37 leo>
+# Time-stamp: <2024-07-12 11:15:36 lperrin>
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -64,13 +64,20 @@ def pretty_vector(v, template="{:2x},"):
     
 def pretty_lagrange(s, G):
     poly_ring = PolynomialRing(G, "y")
-    p = poly_ring.lagrange_polynomial([(G.fetch_int(i), G.fetch_int(s[i])) for i in range(0, len(s))])
+    if G.characteristic == 2:
+        points = [(G.fetch_int(i), G.fetch_int(s[i])) for i in range(0, len(s))]
+    else:
+        points = [(G(i), G(s[i])) for i in range(0, len(s))]
+    p = poly_ring.lagrange_polynomial(points)
     result = ""
     for i, k in enumerate(p):
         if k == 1:
             result += "X^{:d} + ".format(i)
         elif k != 0:
-            result += "{:x}*X^{:d} + ".format(k.integer_representation(), i)
+            if G.characteristic == 2:
+                result += "{:x}*X^{:d} + ".format(k.integer_representation(), i)
+            else:
+                result += "{:x}*X^{:d} + ".format(Integer(k), i)
     return result[:-2]
 
 
