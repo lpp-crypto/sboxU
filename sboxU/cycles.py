@@ -1,13 +1,12 @@
 #!/usr/bin/sage
 
-from sage.all import Matrix, GF, vector, log, randint, Permutation
+from sage.all import Matrix, GF, vector, log, randint, Permutation, product, factorial
 
 from .utils import oplus
 
 from itertools import product as cartesian_prod
 from itertools import permutations
 from collections import Counter, deque, defaultdict
-
 
 
 # !SECTION! Interface between LUTs and `permutations`
@@ -22,7 +21,6 @@ def lut_to_permutation(lut):
 
 def permutation_to_lut(perm):
     return [x - 1 for x in perm]
-
 
 
 # !SECTION! Cycle decomposition
@@ -45,7 +43,6 @@ def cycle_type(s):
     result = list(lut_to_permutation(s).cycle_type())
     result.sort(reverse=True)
     return result
-    
 
 
 # !SECTION! Conjugation
@@ -73,10 +70,19 @@ def nb_conjugacy_relations(lut):
     the permutation `s`, and any other permutation conjugated with it.
 
     """
-    sbox_cycle_type = lut_to_perm(lut).cycle_type()
-    return product([(cycle_size ** nb_cycles) * factorial(nb_cycles) 
+    sbox_cycle_type = lut_to_permutation(lut).cycle_type()
+    return product([(cycle_size ** nb_cycles) * factorial(nb_cycles)
                     for (cycle_size, nb_cycles) in Counter(sbox_cycle_type).items()])
 
+
+def nb_conjugacy_relations_log2(lut):
+    """Return the log2 of the number of conjugacy relations there exists between
+    the permutation `s`, and any other permutation conjugated with it.
+
+    """
+    sbox_cycle_type = lut_to_permutation(lut).cycle_type()
+    return int(sum([log(cycle_size, base=2) * nb_cycles + log(factorial(nb_cycles), base=2)
+                    for (cycle_size, nb_cycles) in Counter(sbox_cycle_type).items()]))
 
 
 def conjugacy_relations(a, b):
