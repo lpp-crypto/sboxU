@@ -54,8 +54,13 @@ class DifferentialAnomaly(StatisticalAnomaly):
     """
     def __init__(self, s):
         StatisticalAnomaly.__init__(self, s, "differential", differential_spectrum(s))
-        self.positive_anomaly = table_anomaly(s, "DDT", spec=self.spectrum)
-        self.negative_anomaly = table_negative_anomaly(s, "DDT", spec=self.spectrum)
+        if max(self.spectrum.keys()) == 2:
+            # APN-ness basically doesn't happen
+            self.positive_anomaly = -infinity
+            self.negative_anomaly = +infinity
+        else:
+            self.positive_anomaly = table_anomaly(s, "DDT", spec=self.spectrum)
+            self.negative_anomaly = table_negative_anomaly(s, "DDT", spec=self.spectrum)
         
     
 class LinearAnomaly(StatisticalAnomaly):

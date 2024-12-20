@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2024-01-04 14:20:38 lperrin>
+# Time-stamp: <2024-08-02 14:18:41 lperrin>
 
 from sage.all import *
 from sage.crypto.sbox import SBox

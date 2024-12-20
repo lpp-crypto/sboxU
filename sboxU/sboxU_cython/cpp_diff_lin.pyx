@@ -1,5 +1,5 @@
 # -*-python-*- 
-# Time-stamp: <2024-04-26 10:26:57 leo>
+# Time-stamp: <2024-12-20 10:55:28>
 
 import os
 from libcpp cimport bool
@@ -161,7 +161,11 @@ def ortho_derivative(s):
     If `s` is not a quadratic APN function, returns an empty list.
 
     """
-    return ortho_derivative_fast(s)
+    result = ortho_derivative_fast(s)
+    if len(result) < 2:
+        raise Exception("Not quadratic")
+    else:
+        return result
     
 
 def is_ddt_row_max_smaller_than(s, a, u):

@@ -24,13 +24,13 @@ else:
 
 
 module_diff_lin = Extension("cpp_diff_lin",
-						sources=["cpp_diff_lin.pyx"],
-								libraries=[],
-						include_dirs=['.'], 
-						language='c++',
-				extra_link_args=extra_link_args,
-				extra_compile_args=extra_compile_args)
-				
+			    sources=["cpp_diff_lin.pyx"],
+			    libraries=[],
+			    include_dirs=['.'], 
+			    language='c++',
+			    extra_link_args=extra_link_args,
+			    extra_compile_args=extra_compile_args)
+
 
 module_utils = Extension("cpp_utils",
 		         sources=["cpp_utils.pyx"], 
@@ -47,11 +47,11 @@ module_equiv = Extension("cpp_equiv",
                          extra_compile_args=extra_compile_args)
 
 module_equiv_approx = Extension("cpp_equiv_approx",
-		         sources=["cpp_equiv_approx.pyx"], 
-		         include_dirs=['.'], 
-		         language='c++',
-			 extra_link_args=extra_link_args,
-                         extra_compile_args=extra_compile_args)
+		                sources=["cpp_equiv_approx.pyx"], 
+		                include_dirs=['.'], 
+		                language='c++',
+			        extra_link_args=extra_link_args,
+                                extra_compile_args=extra_compile_args)
 
 module_ccz = Extension("cpp_ccz",
 		       sources=["cpp_ccz.pyx"], 
