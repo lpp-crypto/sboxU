@@ -97,7 +97,7 @@ def thickness(basis, N):
     return rank_of_vector_set(proj)
 
 
-def thickness_spectrum(s, spaces=None, threshold=None):
+def thickness_spectrum(s, spaces=None, threshold=None, N=None):
     """Returns a dictionary containing the thickness spectra of the
     function whose LUT is the list `s`.
 
@@ -106,7 +106,11 @@ def thickness_spectrum(s, spaces=None, threshold=None):
     the `spaces` input of this function.
 
     """
-    N = int(log(len(s), 2))
+    if s == None and N == None:
+        raise Exception("at least N or an S-box need to be specified!")
+    elif N == None:
+        N = int(log(len(s), 2))
+        
     result = defaultdict(int)
     # case of the failsafe
     if threshold != None:
