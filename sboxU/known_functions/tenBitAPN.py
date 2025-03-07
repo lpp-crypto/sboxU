@@ -23,3 +23,11 @@ def all_quadratics():
         poly_to_lut(X**3),
         poly_to_lut(X**9),
     ]
+
+
+def all_non_quadratics():
+    return []
+
+
+def all():
+    return all_quadratics() + all_non_quadratics()

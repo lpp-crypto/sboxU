@@ -536,3 +536,8 @@ def all_non_quadratics():
         poly_to_lut(X**57),
         poly_to_lut(X**(2**N-2)),
     ]
+
+
+def all():
+    return all_quadratics() + all_non_quadratics()
+    

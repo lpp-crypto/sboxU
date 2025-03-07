@@ -26,8 +26,8 @@ def all_quadratic_polynomials():
     return [
         poly_to_lut(X**3),
         poly_to_lut(X**9),
-        poly_to_lut(X**3 + sum(X**(9*2**i) for i in xrange(0, N))),
-        poly_to_lut(X**9 + sum(X**(3*2**i) for i in xrange(0, N))),
+        poly_to_lut(X**3 + sum(X**(9*2**i) for i in range(0, N))),
+        poly_to_lut(X**9 + sum(X**(3*2**i) for i in range(0, N))),
         poly_to_lut(X**3 + g**245*X**33 + g**183*X**66 + g**21*X**144),
         poly_to_lut(X**3 + g**65*X**18 + g**120*X**66 + g**135*X**144),
 
@@ -110,3 +110,7 @@ def all_non_quadratics():
     return [
         poly_to_lut(X**57),
     ]
+
+
+def all():
+    return all_quadratics() + all_non_quadratics()
