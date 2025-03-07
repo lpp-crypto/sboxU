@@ -580,7 +580,7 @@ def save_pollock(mat,
     axes = p.imshow(
         abs_mat,
         interpolation="None",
-        cmap=plt.cm.get_cmap(color_scheme, 100),
+        cmap=plt.colormaps[color_scheme],
         vmin=vmin,
         vmax=vmax
     )

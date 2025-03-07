@@ -68,7 +68,7 @@ sage from the folder containing it.
   most recent one to compile `sboxU`, but then use an older one in
   your scripts.
 
-## Authors (in alphabetic order)
+## Authors (in alphabetical order)
 
 [Jules Baudrin](https://who.paris.inria.fr/Jules.Baudrin/)
 
