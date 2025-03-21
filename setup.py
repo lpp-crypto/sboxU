@@ -1,10 +1,11 @@
-from setuptools import setup
-from distutils.core import Extension
-from Cython.Build import cythonize
 import os
-from sys import platform
+import sys
 
-if platform == 'darwin':	#macOs
+from distutils.core import Extension
+from setuptools import find_packages, setup
+from Cython.Build import cythonize
+
+if sys.platform == 'darwin':	#macOs
 	os.environ["CC"] = "clang"
 	os.environ["CXX"] = "clang"
 else:
@@ -13,7 +14,7 @@ else:
 extra_compile_args = ["-O3", "-march=native", "-std=c++17", "-pthread", "-Wno-narrowing"]	#narrowing warnings in fp_lat when calling shape_t{p}
 extra_link_args=[]
 
-if platform == 'darwin':
+if sys.platform == 'darwin':
 	extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include']
 	extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include']
 else:
@@ -24,7 +25,7 @@ setup(
     name = "sboxU",
     version = "1.3.0",
     description = "SAGE/Python functions useful for studying S-boxes and Boolean functions such as computing the DDT, computing the Walsh spectrum, affine equivalence testing...",
-    packages = ['sboxU', 'sboxU.known_functions', 'sboxU.sboxU_cython'],
+    packages = find_packages(),
     ext_modules=cythonize(
         [
             Extension(
