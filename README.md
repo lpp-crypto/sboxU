@@ -24,40 +24,38 @@ or, on macOS:
     brew install libomp
 
 
-## Usage
+## Install
 
-To retrieve this module, use the following command:
+### Direct Installation via SAGE
 
-    git clone https://github.com/lpp-crypto/sboxU/
+To use this module, use the following command:
 
-Then, you need to compile the content of the `sboxU/sboxU_cython` folder.
-This process only relies on SAGE To compile it:
+    sage --pip install git+https://github.com/lpp-crypto/sboxU
 
-    cd sboxU/sboxU_cython
-    sage setup.py build_ext --inplace
+This compiles the C++ part of `sboxU` and installs the full `sboxU` module
+in your SAGE's python environment. You can then import `sboxU` like
+any other python module.
 
-This compiles the C++ part of `sboxU` and allows it to be called from
-a SAGE script. To use it in your project, simply move the `sboxU`
-folder to your project's directory. You can then import `sboxU` like
-any other python module.  As an example of the functions provided by
-`sboxU`, the SAGE script `example.py` stored alongside the folder
-`sboxU` generates random permutations and tests their affine
+### Installation via `nix`
+
+To create a development shell that contains SAGE with `sboxU` installed, use the following command:
+
+    nix develop github:lpp-crypto/sboxU#devShell.x86_64-linux
+
+## Example Usage
+
+As an example of the functions provided by `sboxU`, you can download and run the SAGE script [`example.py`](https://raw.githubusercontent.com/lpp-crypto/sboxU/refs/heads/master/example.py).
+There `sboxU` generates random permutations and tests their affine
 equivalence.
-    
-Then, in order to use the functions provided by sboxU, simply
-paste/make a link to the folder sboxU from the directory in which you
-are working. For example, if you have a script called `test.py` in
-which you want to call the functions in sboxU then your directory
-should look like this:
 
-    $ ls
-    test.py
-    README.md
-    sboxu/
-    
-and the file `test.py` should contain `from sboxU import *`. You can
-also import sboxU in a sage notebook session provided that you started
-sage from the folder containing it.
+On a unix based system (e.g. Linux or macOS), use the following commands:
+
+    wget https://raw.githubusercontent.com/lpp-crypto/sboxU/refs/heads/master/example.py
+    sage example.py
+
+
+To write your own script using `sboxU`, this file should contain `from sboxU import *`.
+You can also import sboxU in a sage notebook session.
 
 
 ## Troubleshooting

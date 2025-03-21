@@ -9,7 +9,7 @@
     system = "x86_64-linux";
     pkgs = import nixpkgs { inherit system; };
     packageName = "sboxU";
-    packageVersion = "1.0.0";
+    packageVersion = "1.3.0";
   in {
 
     packages."${system}" = {

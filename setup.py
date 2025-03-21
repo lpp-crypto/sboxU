@@ -22,7 +22,7 @@ else:
 
 setup(
     name = "sboxU",
-    version = "1.0.0",
+    version = "1.3.0",
     description = "SAGE/Python functions useful for studying S-boxes and Boolean functions such as computing the DDT, computing the Walsh spectrum, affine equivalence testing...",
     packages = ['sboxU', 'sboxU.known_functions', 'sboxU.sboxU_cython'],
     ext_modules=cythonize(
