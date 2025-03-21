@@ -2,7 +2,7 @@
 # Time-stamp: <2023-12-05 10:36:16 leo>
 
 import os
-from sboxu_cpp_no_fp_lat cimport *
+from sboxU.sboxU_cython.sboxu_cpp_no_fp_lat cimport *
 from math import log
 
 
