@@ -40,7 +40,9 @@ any other python module.
 
 To create a development shell that contains SAGE with `sboxU` installed, use the following command:
 
-    nix develop github:lpp-crypto/sboxU#devShell.x86_64-linux
+    nix develop github:lpp-crypto/sboxU
+
+The nix package and development shell are currently only implemented for `x86_64-linux` systems.
 
 ## Example Usage
 
