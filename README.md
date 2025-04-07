@@ -1,4 +1,4 @@
-# SboxU v1.3
+# SboxU v1.3.1
 
 ## Description
 
@@ -6,6 +6,8 @@ SAGE/Python functions useful for studying S-boxes and Boolean
 functions such as computing the DDT, computing the Walsh spectrum,
 affine equivalence testing... Some of them are implemented in C++
 and/or in parallel to improve their performances.
+
+**WARNING** there are some issues with the latest versions of SAGE pertaining to finite fields arithmetic (methods changed names). We are working on it, bear with us for a bit!
 
 
 ## Dependencies
