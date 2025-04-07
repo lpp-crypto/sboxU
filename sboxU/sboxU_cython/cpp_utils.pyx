@@ -2,7 +2,7 @@
 # Time-stamp: <2021-08-11 16:41:42 lperrin>
 
 import os
-from sboxu_cpp_no_fp_lat cimport *
+from sboxU.sboxU_cython.sboxu_cpp_no_fp_lat cimport *
 
 def oplus(x, y):
     """Ensures that the XOR is computed correctly in a lighter way than

@@ -5,7 +5,7 @@ import os
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libc.stdint cimport int64_t, uint64_t
-from sboxu_cpp cimport *
+from sboxU.sboxU_cython.sboxu_cpp cimport *
 import os
 from sage.all import Integer
 
