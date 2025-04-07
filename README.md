@@ -70,6 +70,8 @@ You can also import sboxU in a sage notebook session.
 
 ## Authors (in alphabetical order)
 
+[Jens Alich](https://informatik.rub.de/ac-personen/alich/)
+
 [Jules Baudrin](https://who.paris.inria.fr/Jules.Baudrin/)
 
 [Aurélien Boeuf](https://who.paris.inria.fr/Aurelien.Boeuf/)
