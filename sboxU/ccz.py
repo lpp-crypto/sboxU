@@ -953,6 +953,213 @@ def ea_classes_in_the_ccz_class_of(f, include_start=False):
                 yield g
     
 
+# !SECTION! generating automorphisms 
+
+
+def fixed_table_sets(l):
+    by_val = defaultdict(list)
+    for a in range(0, len(l)):
+        for b in range(0, len(l)):
+            by_val[l[a][b]].append([a, b])
+    unsorted_result = []
+    for c in by_val.keys():
+        unsorted_result.append([len(by_val[c]), by_val[c]])
+    unsorted_result.sort()
+    return [entry[1] for entry in unsorted_result]
+
+
+
+class TableRowColumnAutomorphismGuess:
+    """Iteratively builds a guess for two linear permutations A and B
+    such that
+
+    table[A(x), B(y)] = table[x, y]
+
+    """
+    def __init__(self,
+                 A,
+                 B,
+                 table,
+                 main_basis,
+                 potential_images):
+        self.table = table
+        self.main_basis = main_basis
+        self.potential_images = potential_images
+        self.A = {c : A[c] for c in A.keys()}
+        self.B = {c : B[c] for c in B.keys()}
+        self.automorphisms = []
+        
+        
+    def attempt_update(self, image_pair):
+        input_pair = self.main_basis[0]
+        # processing A
+        new_A = {c : self.A[c] for c in self.A.keys()}
+        for c in self.A.keys():
+            x = oplus(c, input_pair[0])
+            y = oplus(self.A[c], image_pair[0])
+            if x in new_A.keys() or y == 0:
+                return None
+            else:
+                new_A[x] = y
+        # processing B
+        new_B = {c : self.B[c] for c in self.B.keys()}
+        for c in self.B.keys():
+            x = oplus(c, input_pair[1])
+            y = oplus(self.B[c], image_pair[1])
+            if x in new_B.keys() or y == 0:
+                return None
+            else:
+                new_B[x] = y
+        # checking
+        for x_A in new_A.keys():
+            for x_B in new_B.keys():
+                if self.table[x_A][x_B] != self.table[new_A[x_A]][new_B[x_B]]:
+                    return None                
+        # we update A and B only if we reach the end, i.e. if no
+        # exception was raised
+        return TableRowColumnAutomorphismGuess(
+            new_A,
+            new_B,
+            self.table,
+            self.main_basis[1:],
+            self.potential_images[1:]
+        )
+
+    
+    def get_luts(self):
+        return [
+            [self.A[x] for x in range(0, len(self.table))],
+            [self.B[x] for x in range(0, len(self.table))]
+        ]
+
+    def finished(self):
+        return (len(self.main_basis) == 0)
+        # return (len(self.A.keys()) == len(self.table))
+
+
+    
+def _table_linear_automorphisms_recursive(guess):
+    if guess.finished(): # guess is finished
+        return [guess.get_luts()]
+    else:
+        result = []
+        for img_point in guess.potential_images[0]:
+            next_guess = guess.attempt_update(img_point)
+            if next_guess != None:
+                result += _table_linear_automorphisms_recursive(next_guess)
+        return result
+            
+    
+
+def table_linear_automorphisms(table):
+    """Returns the list of all pairs [A, B] where A and B correspond
+    to the lookup tables of linear permutations such that, for all x
+    and y,
+
+    table[x][y] = table[A[x], A[y]].
+
+    Despite its complicated implementation, it is a pretty
+    straightforward algorithm: we group the coordinates of identical
+    values together, and then ensure that they are mapped to one
+    another.
+
+    Will have horrendous performance for the DDT of an APN function,
+    should work great for a random function.
+
+    """
+    main_basis = []
+    potential_images = []
+    for v in fixed_table_sets(table):
+        for x in v:
+            r_A = rank_of_vector_set([x[0]] + [y[0] for y in main_basis])
+            r_B = rank_of_vector_set([x[1]] + [y[1] for y in main_basis])
+            if r_A > len(main_basis) and r_B > len(main_basis):
+                main_basis.append(x)
+                potential_images.append(v)
+            if 2**len(main_basis) == len(table):
+                break
+        if 2**len(main_basis) == len(table):
+            break
+    return _table_linear_automorphisms_recursive(
+        TableRowColumnAutomorphismGuess(
+            {0:0},
+            {0:0},
+            table,
+            main_basis,
+            potential_images
+        ))        
+
+
+def linear_automorphisms_from_ortho_derivative(s, with_derivatives=False):
+    o = ortho_derivative(s)
+    result = []
+    l = lat(o)
+    unsigned_l = [
+        [abs(l[a][b]) for b in range(0, len(l[a]))]
+        for a in range(0, len(l))
+    ]
+    for AB in table_linear_automorphisms(unsigned_l):
+        L_A = FastLinearMapping(
+            linear_function_lut_to_matrix(AB[0]).transpose().inverse()
+        )
+        L_B =  FastLinearMapping(
+            linear_function_lut_to_matrix(AB[1]).transpose()
+        )
+        good = True
+        for x in range(0, len(o)):
+            if L_B(o[L_A(x)]) != o[x]:
+                good = False
+                break
+        if not good:
+            raise Exception("somehow, the LAT automorphisms didn't match ortho-derivative ortho-derivatives")
+        L_A = L_A.inverse()
+        L_B = L_B.transpose()
+        # figuring input constant additions
+        for delta in range(0, len(s) if with_derivatives else 1):
+            C = []            
+            for x in range(0, len(s)):
+                C.append(oplus(s[oplus(x, delta)], L_B(s[L_A(x)])))
+            # we are happy only if C is affine
+            spec = differential_spectrum(C)
+            if len(s) in spec.keys():
+                if spec[len(s)] == len(s)-1:
+                    result.append([
+                        [L_A(x) for x in range(0, len(s))],
+                        [L_B(x) for x in range(0, len(s))],
+                        C,
+                    ])
+    return result
+
+
+def graph_automorphisms_of_apn_quadratic(s):
+    """Given the lookup table s of a quadratic APN function, returns a
+    list of matrices corresponding to the linear parts of all the
+    automorphisms of the graph of s.
+
+    It works by first identifying the mappings L_A and L_B such that
+
+    L_B o pi_s o L_A = pi_s
+
+    where pi_s is the ortho-derivative of s. Then, the graph
+    automorphisms are deduced.
+
+    """
+    result = []
+    for abc in linear_automorphisms_from_ortho_derivative(
+            s,
+            with_derivatives=True):
+        A = linear_function_lut_to_matrix(abc[0])
+        B = linear_function_lut_to_matrix(abc[1])
+        C = linear_function_lut_to_matrix(abc[2])
+        L = block_matrix(
+            2, 2,
+            [A.inverse(), zero_matrix(N, N),
+             C * A.inverse(), B]
+        )
+        if L not in automs:
+            result.append(L)
+    return result
+
 
 # !SECTION! Tests
 
