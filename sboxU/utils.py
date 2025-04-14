@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2024-08-02 14:18:41 lperrin>
+# Time-stamp: <2025-04-14 15:12:30>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -176,7 +176,7 @@ def get_input_size(func_list):
         elif isinstance(f, sage.crypto.sbox.SBox):
             local_input_size = len(list(f))
         elif isinstance(f, FastLinearMapping):
-            local_input_size = 2**f.inner_matrix.ncols()
+            local_input_size = 2**input_size
         elif isinstance(f, sage.matrix.matrix0.Matrix):
             local_input_size = 2**f.ncols()
         if local_input_size != None:
