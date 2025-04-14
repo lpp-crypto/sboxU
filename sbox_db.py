@@ -1,5 +1,5 @@
 #!/usr/bin/env sage
-# Time-stamp: <2025-02-24 14:27:39>
+# Time-stamp: <2025-04-14 17:43:16>
 
 
 # /!\ You are not really supposed to look at this file: highly
@@ -17,7 +17,7 @@ import base64
 import hashlib
 import sqlite3
 
-# simply download the `py` at
+# simply download the `py` folder at
 #
 # https://github.com/lpp-crypto/levain/tree/master
 #
@@ -623,9 +623,52 @@ def is_identity(M):
                 return False
     return True
 
+# !SECTION! better  finite field functions; prototype
+
+VERSION = tuple([int(x) for x in sage.version.version.split(".")])
+
+if VERSION < (9, 8):
+    def ffe_from_int(gf, x):
+        if gf.characteristic() > 2:
+            return gf(x)
+        else:
+            return gf.fetch_int(x)
+
+    def ffe_to_int(x):
+        return x.integer_representation()
+        
+else:
+    def ffe_from_int(gf, x):
+        return gf.from_integer(x)
+
+    def ffe_to_int(x):
+        return x.to_integer()
+    
 
 
 if __name__ == "__main__":
     # test_LiteratureSBoxes()
     
-    test_APNFunctions()
+    # test_APNFunctions()
+    
+    with LogBook("testing full automorphism reduction"):
+        N = 6
+        gf = GF(2**N)
+        g = gf.gen()
+        s = []
+        for x_i in range(0, 2**N):
+            x = ffe_from_int(gf, x_i)
+            y = x**3 + g*x**24 + x**10
+            s.append(ffe_to_int(y))
+        w = WalshZeroesSpaces(lut=s)
+        print(w)
+        automs = graph_automorphisms_of_apn_quadratic(s)
+        print("# automs = ", len(automs))
+        w.reduce(automs)
+        
+        print(len(w.Ls))
+        for L in w.Ls:
+            g = apply_mapping_to_graph(s, L)
+            print(pretty_spectrum(degree_spectrum(g)) +
+                  pretty_spectrum(thickness_spectrum(g)))
+

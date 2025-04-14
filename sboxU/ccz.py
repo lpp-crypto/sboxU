@@ -1145,6 +1145,7 @@ def graph_automorphisms_of_apn_quadratic(s):
 
     """
     result = []
+    N = int(log(len(s), 2))
     for abc in linear_automorphisms_from_ortho_derivative(
             s,
             with_derivatives=True):
@@ -1156,7 +1157,7 @@ def graph_automorphisms_of_apn_quadratic(s):
             [A.inverse(), zero_matrix(N, N),
              C * A.inverse(), B]
         )
-        if L not in automs:
+        if L not in result:
             result.append(L)
     return result
 
