@@ -1,5 +1,5 @@
 #!/usr/bin/env sage
-# Time-stamp: <2025-04-14 17:43:16>
+# Time-stamp: <2025-04-18 16:28:25>
 
 
 # /!\ You are not really supposed to look at this file: highly
@@ -28,119 +28,55 @@ from sage.crypto.sboxes import sboxes
 from sboxU.known_functions import *
 
 
-HASH_ALGORITHM = hashlib.sha256
-ID_BITLENGTH   = 128
-
-
-# !SECTION! S-box encoding as bytes
-# =================================
-
-
-def get_block_lengths(s):
-    """Return the number of bits `n` in the input and `m` in the
-    output of `s`
-
-    """
-    # finding n
-    n = 1
-    while (1 << n) < len(s):
-        n += 1
-    if 2**n != len(s):
-        raise Exception("wrong S-box length")
-    else:
-        # finding m
-        mask = 1
-        m = 1
-        for x in s:
-            while (x != (x & mask)):
-                mask = (mask << 1) | 1
-                m += 1
-        return n, m
-
-
-def pack_to_bytes(s, m):
-    """Packs the content of s into a sequence of 8-bit blocks, i.e. a
-    `bytearray`. Assumes that all elements of `s` are strictly smaller
-    than 2**m.
-
-    """
-    if m <= 4:
-        result = [0]*floor(len(s) / 2)
-        for i in range(0, len(s), 2):
-            result[i >> 1] = (s[i] << 4) | s[i+1]
-        if (len(s) % 2) == 1: # handling the case of an odd length
-            result.append(s[-1])
-        return bytearray(result)
-    elif m <= 8:
-        return bytearray(s)
-    else:
-        byte_length = ceil(m / 8)
-        result = [0] * len(s) * byte_length
-        for i in range(0, len(s)):
-            x = s[i]
-            for j in range(0, byte_length):
-                result[i * byte_length + j] = x & 0xFF
-                x = x >> 8
-        return bytearray(result)
-
-    
-def encode_lut(s, m):
-    """Returns an array of bytes encoding the full lookup table `s`.
-
-    Since tinySQL doesn't support arrays, we instead store them as
-    BLOBs.
-
-    """
-    return  bytes([m]) + pack_to_bytes(s, m)
-    
-
-def decode_lut(l):
-    """Returns a list of integers corresponding to the lut encoded by
-    the bytearray l.
-
-    """
-    m = l[0]
-    b = [int(x) for x in l[1:]]
-    if m <= 4:
-        result = [0] * len(b)
-        for x in range(0, len(result), 2):
-            y = b[(x >> 1)]
-            result[x]   = y >> 4
-            result[x+1] = y & 0xF
-    else:
-        block = ceil(m / 8)
-        result = [0] * int(len(b) / block)
-        for x in range(0, len(result)):
-            result[x] = sum(Integer(b[x*block + j]) << (8*j) for j in range(0, block))
-    return result
-    
-
 
 # !SECTION! S-box identifiers
 # ===========================
 
 
-def hash_as_integer(b):
-    digest = HASH_ALGORITHM(b).digest()
-    result = 0
-    for x in digest[0:ceil(ID_BITLENGTH/8)]:
-        result = 256*result + x
-    return result
 
+def mugshot(s,
+            degree_spec=None,
+            walsh_spec=None,
+            differential_spec=None,
+            thickness_spec=None):
+    """Returns a string such that, if this string is different for two
+    functions, then they cannot be EA-equivalent.
 
-def apn_identifier(lut):
-    try:
-        o = ortho_derivative(lut)
-        spectras = "{} || {}".format(
-            pretty_spectrum(differential_spectrum(o)),
-            pretty_spectrum(walsh_spectrum(o), absolute=True)
+    It can be seen as a "sketch" of the function: if two functions
+    have the same mugshot, then they might be EA-equivalent. If not,
+    they definitely aren't. There are mutliple ways to achieve this
+    depending on the specifics of the function:
+    
+    - for a quadratic APN function, we use the differential and Walsh
+      spectra of their ortho-derivative
+
+    - otherwise, we use the concatenation of the differential,
+      absolute Walsh, thickness, and degree spectra.
+
+    """
+    if degree_spec == None:
+        degree_spec = degree_spectrum(s)
+    if differential_spec == None:
+        differential_spec = differential_spectrum(s)
+    if max(degree_spec.keys()) == 2 and max(differential_spec.keys()) == 2:
+        # case of a quadratic APN
+        o = ortho_derivative(s)
+        return "Quad APN; w{} d{}".format(
+            pretty_spectrum(walsh_spectrum(o)), # note that we don't take absolute values
+            pretty_spectrum(differential_spectrum(o))
         )
-        return hash_as_integer(spectras.encode("UTF-8"))
-    except:
-        n, m = get_block_lengths(lut)
-        return hash_as_integer(pack_to_bytes(lut, m))
-
-
+    else:
+        if walsh_spec == None:
+            walsh_spec = walsh_spectrum(s)
+        if thickness_spec == None:
+            thickness_spec = thickness_spectrum(s)
+        return "w{} d{} deg{} thk{}".format(
+            pretty_spectrum(walsh_spec, absolute=True),
+            pretty_spectrum(differential_spec),
+            pretty_spectrum(degree_spec),
+            pretty_spectrum(thickness_spec),
+        )
+    
 
 
 
@@ -219,11 +155,10 @@ def db_sboxes_setup():
     
 
 
-# !SECTION! Wrappers
-# ==================
+# !SECTION! Main Data base
+# ========================
                  
 
-            
 class FunctionDB:
     """This idea of this class is to factor away the interaction with
     any database of S-boxes (i.e. with both the database of S-boxes
@@ -240,6 +175,7 @@ class FunctionDB:
     def __init__(self, db_file, row_structure):
         self.db_file = db_file
         self.row_structure = row_structure
+        self.row_structure["id"] = "INTEGER"
         self.functions_table = "functions"
         self.bibliography_table = "bibliography"
         self.function_insertion_query = "INSERT INTO {} VALUES ({} ?)".format(
@@ -276,7 +212,7 @@ class FunctionDB:
                 content = query_description[constraint]
                 # case of an integer equality or difference
                 if isinstance(content, (int, Integer)):
-                    if content > 0:  # case of positive query on integer
+                    if content >= 0:  # case of positive query on integer
                         where_clause += " ({}=={:d}) AND".format(constraint, content)
                     else:
                         where_clause += " ({}!={:d}) AND".format(constraint, - content)
@@ -314,12 +250,19 @@ class FunctionDB:
     # handling insertions
 
     def insert_function(self, entry):
+        entry["id"] = len(self)
         inserted_list = [entry[k] for k in sorted(self.row_structure.keys())]
         try:
             self.cursor.execute(self.function_insertion_query, tuple(inserted_list))
+            return entry["id"]
         except:
             raise Exception("Insertion failed for \n {}\n".format(entry))
 
+
+    def __len__(self):
+        self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
+        return self.cursor.fetchall()[0][0]
+    
 
     # handling the `with` syntax
         
@@ -333,6 +276,8 @@ class FunctionDB:
         self.connection.close()
 
 
+# !SECTION! Wrappers
+# ==================
         
 # !SUBSECTION! S-boxes from the cryptography literature
 
@@ -428,75 +373,6 @@ def test_LiteratureSBoxes():
 
 # !SUBSECTION! APN vectorial Boolean functions
 
-class WalshZeroesSpaces:
-    def __init__(self, blob=None, lut=None):
-        if blob == None and lut == None:
-            raise Exception("need at least a blob representation or the lut of the original function!")
-        elif lut == None:
-            self.init_from_blob(blob)
-        else:
-            self.init_from_lut(lut)
-        self.thickness_spectrum = thickness_spectrum([], spaces=self.spaces, N=self.n)
-        self.Ls = [get_generating_matrix(V, 2*self.n).transpose()
-                   for V in self.spaces]
-    
-
-    def init_from_lut(self, lut):
-        self.n, self.m = get_block_lengths(lut)
-        self.spaces = get_lat_zeroes_spaces(lut)
-
-        
-    def init_from_blob(self, b):
-        self.n = int(b[0])
-        self.m = int(b[1])
-        b = b[2:]
-        block = ceil((self.m+self.n) / 8)
-        bases = [0] * int(len(b) / block)
-        for x in range(0, len(bases)):
-            bases[x] = sum(Integer(b[x*block + j]) << (8*j) for j in range(0, block))
-        self.spaces = [bases[i:i+self.n] for i in range(0, len(bases), self.n)]
-
-
-    def to_blob(self):
-        all_spaces = []
-        for v in self.spaces:
-            all_spaces += v
-        return bytes([self.n, self.m]) + pack_to_bytes(all_spaces, self.n + self.m)
-
-
-    def reduce(self, automorphisms):
-        relevant = [True] * len(self.Ls)
-        for a in ELEMENTS_OF(range(0, len(self.Ls)), "admissible mappings"):
-            La_inv = self.Ls[a].inverse()
-            for b in range(a+1, len(self.Ls)):
-                if relevant[b]:
-                    for u in automorphisms:
-                        if is_EA(self.Ls[b] * u * La_inv):
-                            relevant[b] = False
-                            break
-        self.spaces = [self.spaces[a]
-                       for a in range(0, len(self.spaces)) if relevant[a]]
-        self.Ls     = [self.Ls[a]
-                       for a in range(0, len(self.Ls)) if relevant[a]]
-
-
-    
-
-
-    # !TODO! an __rmult__ function to apply a FastLinearMapping to it
-    
-    def __str__(self):
-        return "Walsh spaces with thicknesses {}".format(pretty_spectrum(self.thickness_spectrum))
-    
-        
-    def __len__(self):
-        return len(self.spaces)
-
-
-    def __iter__(self):
-        for v in self.spaces:
-            yield v
-    
     
 
 class APNFunctions(FunctionDB):
@@ -521,12 +397,15 @@ class APNFunctions(FunctionDB):
                 "thickness" : "INTEGER",
                 "degree" : "INTEGER",
                 "bibliography" : "TEXT",
-                "walsh_spaces": "BLOB"
+                "walsh_spaces": "BLOB",
+                "mugshot" : "TEXT"
             }
         )
 
-        
-    def insert_function_from_lut(self, lut, bibliography):
+    def insert_function_from_lut(self, lut, bibliography, spaces=None):
+        differential_spec = differential_spectrum(lut)
+        if max(differential_spec.keys()) != 2:
+            raise Exception("Trying to add a non-APN function to the APN function database: {}".format(lut))
         n, m = get_block_lengths(lut)
         encoded = encode_lut(lut, n)
         # linear
@@ -535,9 +414,11 @@ class APNFunctions(FunctionDB):
         for k in walsh_spec.keys():
             lin = max(lin, abs(k))
         # degree
-        deg = max([a.degree() for a in algebraic_normal_form(lut)])
+        degree_spec = degree_spectrum(lut)
+        deg = max(degree_spec.keys())
         # thickness and spaces
-        spaces = WalshZeroesSpaces(lut=lut)
+        if spaces == None:
+            spaces = WalshZeroesSpaces(lut=lut)
         thk_spec = spaces.thickness_spectrum
         thk = max(thk_spec.keys())
         # building the query
@@ -549,9 +430,32 @@ class APNFunctions(FunctionDB):
             "linearity" : lin,
             "degree" : deg,
             "thickness" : thk,
-            "walsh_spaces" : spaces.to_blob()
+            "walsh_spaces" : spaces.to_blob(),
+            "mugshot" : mugshot(lut,
+                                walsh_spec=walsh_spec,
+                                degree_spec=degree_spec,
+                                differential_spec=differential_spec,
+                                thickness_spec=thk_spec)
         }
-        self.insert_function(to_insert)
+        return self.insert_function(to_insert)
+    
+
+    def insert_ccz_equivalent_function(self, index, L):
+        entry = self.query_functions({"id": index})[0]
+        s = entry["lut"]
+        if not isinstance(L, FastLinearMapping):
+            L = FastLinearMapping(L)
+        lut = apply_mapping_to_graph(s, L)
+        w = entry["walsh_spaces"]
+        L_T = L.transpose()
+        L_inv = L.inverse()
+        for i in range(0, len(w)):
+            w.Ls[i] = L * w.Ls[i]
+            img = [L_T(x) for x in linear_span(w.spaces[i])]
+            img.sort()
+            w.spaces[i] = extract_basis(img, entry["n"]+entry["m"])
+            
+        return self.insert_function_from_lut(lut, entry["bibliography"], spaces=w)
 
         
     def parse_function_from_row(self, row):
@@ -564,21 +468,60 @@ class APNFunctions(FunctionDB):
         return entry
 
     
+    def is_present(self,
+                   s,
+                   degree_spec=None,
+                   walsh_spec=None,
+                   differential_spec=None,
+                   thickness_spec=None):
+        """Returns one of three things:
         
+        - `["present", index]` if there is already a function
+          extended-affine equivalent to `s` in the data-base where
+          `index` is its `id`,
+        
+        - `["absent"]` if there isn't, and
+        
+        - [`"maybe"`, index]` if at least one function with a similar
+          mugshot is present, that function having an `id` equal to
+          `index`.
+        
+        """
+        n, m = get_block_lengths(s)
+        encoded = encode_lut(s, n)
+        mug = mugshot(s,
+                      degree_spec=degree_spec,
+                      walsh_spec=walsh_spec,
+                      differential_spec=differential_spec,
+                      thickness_spec=thickness_spec)
+        candidates = self.query_functions({"mugshot" : mug})
+        if len(candidates) == 0:
+            return ["absent"]
+        else:
+            for entry in candidates:
+                if entry["lut"] == encoded:
+                    return ["present", entry["id"]]
+            return ["maybe", candidates[0]["id"]]
+
+        
+    
+# !SECTION! Testing
+# =================
+    
+
+# !SUBSECTION! Testing APN function database
+
+
 def test_APNFunctions():
     with LogBook("Testing APNFunctions"):
 
-        
         SECTION("filling the database")
         with APNFunctions() as db:
             db.create()
             from sboxU.known_functions import sixBitAPN as reservoir_6
             from sboxU.known_functions import sevenBitAPN as reservoir_7
-            for s in ELEMENTS_OF(reservoir_6.all(), "6 bits"):
+            for s in ELEMENTS_OF(reservoir_6.all_quadratics()[4:], "6 bits"):
                 db.insert_function_from_lut(s, "Banff")
-            for s in ELEMENTS_OF(reservoir_7.all(), "7 bits"):
-                db.insert_function_from_lut(s, "Dunno")
-
     
         SECTION("retrieving content")
         with APNFunctions() as db:
@@ -599,76 +542,106 @@ def test_APNFunctions():
                     FAIL("mismatch between direct computation and decoding")
 
 
+def test_APNFunctions_CCZ_insert():
+    with LogBook("Testing APNFunctions CCZ insertion"):
+        SECTION("filling the database")
+        with APNFunctions() as db:
+            db.create()
+            from sboxU.known_functions import sixBitAPN as reservoir_6
+            for index, s in enumerate(reservoir_6.all_quadratics()):
+                SUBSECTION("function n°{}".format(index))
+                print("first {}".format(s))
+                first_id = db.insert_function_from_lut(s, "Banff")
+                w = WalshZeroesSpaces(lut=s)
+                db.insert_ccz_equivalent_function(first_id, w.Ls[3])
+                f = apply_mapping_to_graph(s, w.Ls[3])
+                db.insert_function_from_lut(f, "placeholder")
+                print("number of functions: {}".format(len(db)))
+        SECTION("retrieving content")
+        with APNFunctions() as db:
+            for entry in db.query_functions({"id": range(0, 100)}):
+                print(entry)
+                w = WalshZeroesSpaces(lut=entry["lut"])
+                print(w)
 
-    
-# !SECTION! Testing
-# =================
 
-def is_EA(M):
-    half_lines = int(M.nrows() / 2)
-    half_cols  = int(M.ncols() / 2)
-    for k, l in itertools.product(range(0, half_lines),
-                                  range(half_cols, M.ncols())):
-        if M[k][l] != 0:
-            return False
-    return True
+
+# !SECTION! Initializing the data-bases 
+
+
+def fill_6bit_APNFunctions():
+    with LogBook("Filling the APN database"):
+        with APNFunctions() as db:
+            SECTION("Initialization")
+            db.create()
+            from sboxU.known_functions import sixBitAPN as reservoir
+            for index, s in enumerate(reservoir.all_quadratics()):
+                SUBSECTION("function n°{}".format(index))
+                first_id = db.insert_function_from_lut(s, "Banff")
+                print("Inserted with 'id'={}".format(first_id))
+                w = WalshZeroesSpaces(lut=s)
+                autom = [FastLinearMapping(L)
+                         for L in graph_automorphisms_of_apn_quadratic(s)]
+                w.reduce(autom)
+                for k, L in enumerate(w.Ls):
+                    SUBSUBSECTION("CCZ-equivalent function n°{}".format(k))
+                    f = apply_mapping_to_graph(s, L)
+                    seen = db.is_present(f)
+                    if seen[0] != "absent":
+                        print("{} ; degree spectrum = {}".format(
+                            seen,
+                            pretty_spectrum(degree_spectrum(f))
+                        ))
+                    else:
+                        j = db.insert_ccz_equivalent_function(first_id, L)
+                        print("Inserted with 'id'={}".format(j))
                 
 
-def is_identity(M):
-    for i in range(0, M.nrows()):
-        for j in range(0, M.ncols()):
-            if (i == j) and (M[i][j] != 1):
-                return False
-            elif (i != j) and (M[i][j] != 0):
-                return False
-    return True
 
-# !SECTION! better  finite field functions; prototype
-
-VERSION = tuple([int(x) for x in sage.version.version.split(".")])
-
-if VERSION < (9, 8):
-    def ffe_from_int(gf, x):
-        if gf.characteristic() > 2:
-            return gf(x)
-        else:
-            return gf.fetch_int(x)
-
-    def ffe_to_int(x):
-        return x.integer_representation()
-        
-else:
-    def ffe_from_int(gf, x):
-        return gf.from_integer(x)
-
-    def ffe_to_int(x):
-        return x.to_integer()
-    
-
+# !SUBSECTION! Main function
 
 if __name__ == "__main__":
     # test_LiteratureSBoxes()
     
-    # test_APNFunctions()
-    
-    with LogBook("testing full automorphism reduction"):
-        N = 6
-        gf = GF(2**N)
-        g = gf.gen()
-        s = []
-        for x_i in range(0, 2**N):
-            x = ffe_from_int(gf, x_i)
-            y = x**3 + g*x**24 + x**10
-            s.append(ffe_to_int(y))
-        w = WalshZeroesSpaces(lut=s)
-        print(w)
-        automs = graph_automorphisms_of_apn_quadratic(s)
-        print("# automs = ", len(automs))
-        w.reduce(automs)
-        
-        print(len(w.Ls))
-        for L in w.Ls:
-            g = apply_mapping_to_graph(s, L)
-            print(pretty_spectrum(degree_spectrum(g)) +
-                  pretty_spectrum(thickness_spectrum(g)))
+    # test_APNFunctions_CCZ_insert()
 
+    fill_6bit_APNFunctions()
+
+    
+    # with LogBook("CCZ-class exploration 6-bit non-quadratic"):
+    #     SECTION("generating targets")
+    #     funcs = known_functions.sixBitAPN.all_non_quadratics()[:]
+    #     SECTION("Looping through {} functions".format(len(funcs)))
+    #     for index, s in enumerate(funcs):
+    #         SUBSECTION("Function n° {}".format(index))
+    #         print("lut: {}".format(s))
+    #         # o = ortho_derivative(s)
+    #         # print("o-dif: {}\no-lin: {}".format(
+    #         #     pretty_spectrum(differential_spectrum(o)),
+    #         #     pretty_spectrum(walsh_spectrum(o), absolute=True)
+    #         # ))
+    #         if algebraic_degree(s) == 2:
+    #             SUBSUBSECTION("generating automorphisms", timed=True)
+    #             autom = [FastLinearMapping(L)
+    #                      for L in graph_automorphisms_of_apn_quadratic(s)]
+    #             print("{} automorphisms found".format(len(autom)))
+    #         else:
+    #             autom = None
+    #         SUBSUBSECTION("Generating EA representatives", timed=True)
+            
+    #         reprs = enumerate_ea_classes(s, automorphisms=autom)
+    #         print("number of EA-classes: {}".format(len(reprs)))
+    #         SUBSUBSECTION("Listing representatives ({} found)".format(len(reprs)))
+    #         for index, f in enumerate(reprs):
+    #             # PARAGRAPH("EA-class {}".format(index))
+    #             d = pretty_spectrum(degree_spectrum(f))
+    #             # print("lut: {}\ndeg: {}\nthk: {}".format(
+    #             #     f,
+    #             #     d,
+    #             #     pretty_spectrum(thickness_spectrum(f))
+    #             # ))
+    #             if d == "{2: 63}":
+    #                 FAIL("CCZ-quadratic")
+    #                 break
+    #             elif index == len(reprs) - 1:
+    #                 SUCCESS("NOT CCZ-quadratic")

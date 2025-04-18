@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2025-04-15 13:58:39>
+# Time-stamp: <2025-04-17 17:45:26>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -284,4 +284,70 @@ def F_mult(gf, cstte):
     else:
         raise Exception("invalid input type: {}".format(type(cstte)))
         
+    
+
+
+
+# !SECTION! S-box encoding as bytes
+# =================================
+
+# The relevance of the following functions comes from interacting with a database
+
+
+
+def pack_to_bytes(s, m):
+    """Packs the content of s into a sequence of 8-bit blocks, i.e. a
+    `bytearray`. Assumes that all elements of `s` are strictly smaller
+    than 2**m.
+
+    """
+    if m <= 4:
+        result = [0]*floor(len(s) / 2)
+        for i in range(0, len(s), 2):
+            result[i >> 1] = (s[i] << 4) | s[i+1]
+        if (len(s) % 2) == 1: # handling the case of an odd length
+            result.append(s[-1])
+        return bytearray(result)
+    elif m <= 8:
+        return bytearray(s)
+    else:
+        byte_length = ceil(m / 8)
+        result = [0] * len(s) * byte_length
+        for i in range(0, len(s)):
+            x = s[i]
+            for j in range(0, byte_length):
+                result[i * byte_length + j] = x & 0xFF
+                x = x >> 8
+        return bytearray(result)
+
+    
+def encode_lut(s, m):
+    """Returns an array of bytes encoding the full lookup table `s`.
+
+    Since tinySQL doesn't support arrays, we instead store them as
+    BLOBs.
+
+    """
+    return  bytes([m]) + pack_to_bytes(s, m)
+    
+
+def decode_lut(l):
+    """Returns a list of integers corresponding to the lut encoded by
+    the bytearray l.
+
+    """
+    m = l[0]
+    b = [int(x) for x in l[1:]]
+    if m <= 4:
+        result = [0] * len(b)
+        for x in range(0, len(result), 2):
+            y = b[(x >> 1)]
+            result[x]   = y >> 4
+            result[x+1] = y & 0xF
+    else:
+        block = ceil(m / 8)
+        result = [0] * int(len(b) / block)
+        for x in range(0, len(result)):
+            result[x] = sum(Integer(b[x*block + j]) << (8*j) for j in range(0, block))
+    return result
     
