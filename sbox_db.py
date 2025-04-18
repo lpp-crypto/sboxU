@@ -1,5 +1,5 @@
 #!/usr/bin/env sage
-# Time-stamp: <2025-04-18 16:28:25>
+# Time-stamp: <2025-04-18 17:34:13>
 
 
 # /!\ You are not really supposed to look at this file: highly
@@ -575,26 +575,22 @@ def fill_6bit_APNFunctions():
             SECTION("Initialization")
             db.create()
             from sboxU.known_functions import sixBitAPN as reservoir
+            SECTION("Case of quadratic functions")
             for index, s in enumerate(reservoir.all_quadratics()):
                 SUBSECTION("function n°{}".format(index))
-                first_id = db.insert_function_from_lut(s, "Banff")
-                print("Inserted with 'id'={}".format(first_id))
                 w = WalshZeroesSpaces(lut=s)
                 autom = [FastLinearMapping(L)
                          for L in graph_automorphisms_of_apn_quadratic(s)]
+                first_id = db.insert_function_from_lut(s, "Banff", spaces=w)
                 w.reduce(autom)
                 for k, L in enumerate(w.Ls):
-                    SUBSUBSECTION("CCZ-equivalent function n°{}".format(k))
                     f = apply_mapping_to_graph(s, L)
-                    seen = db.is_present(f)
-                    if seen[0] != "absent":
-                        print("{} ; degree spectrum = {}".format(
-                            seen,
-                            pretty_spectrum(degree_spectrum(f))
-                        ))
+                    if max(degree_spectrum(f).keys()) == 2:
+                        print("ignoring: quadratic", desc="n")
                     else:
                         j = db.insert_ccz_equivalent_function(first_id, L)
-                        print("Inserted with 'id'={}".format(j))
+                        print("inserted at 'id'={}".format(j), desc="n")
+                            
                 
 
 
@@ -605,8 +601,57 @@ if __name__ == "__main__":
     
     # test_APNFunctions_CCZ_insert()
 
-    fill_6bit_APNFunctions()
+    # fill_6bit_APNFunctions()
 
+    unique_non_quadratic = [0, 0, 0, 8, 0, 26, 40, 58, 0, 33, 10, 35, 12, 55, 46, 29, 0, 11, 12, 15, 4, 21, 32, 57, 20, 62, 18, 48, 28, 44, 50, 10, 0, 6, 18, 28, 10, 22, 48, 36, 8, 47, 16, 63, 14, 51, 62, 11, 5, 24, 27, 14, 11, 12, 61, 50, 25, 37, 13, 57, 27, 61, 39, 9]
+
+    w = WalshZeroesSpaces(lut=unique_non_quadratic)
+    by_mug = defaultdict(list)
+    dif = differential_spectrum(unique_non_quadratic)
+    wal = walsh_spectrum(unique_non_quadratic)
+    for index, L in enumerate(w.Ls):
+        s = apply_mapping_to_graph(unique_non_quadratic, L)
+        L_T = L.transpose()
+        w_s = []
+        for i in range(0, len(w)):
+            img = [L_T(x) for x in linear_span(w.spaces[i])]
+            img.sort()
+            w_s.append(extract_basis(img, 12))
+        print("\n", index)
+        print(s)
+        deg = degree_spectrum(s)
+        thk = thickness_spectrum(s, spaces=w_s)
+        print("lut: {}\ndeg: {}\nthk: {}".format(
+            s,
+            pretty_spectrum(deg),
+            pretty_spectrum(thk),
+        ))
+        mug = mugshot(s,
+                      degree_spec      = deg,
+                      walsh_spec       = wal,
+                      differential_spec= dif,
+                      thickness_spec   = thk)
+        by_mug[mug].append(s)
+    for c in sorted(by_mug):
+        print("\nsize = {}\nmug  = {}".format(
+            len(by_mug[c]),
+            c
+        ))
+        if len(by_mug[c]) > 1:
+            fs = by_mug[c]
+            kept = [True for i in range(0, len(fs))]
+            for i in range(0, len(fs)-1):
+                if kept[i]:
+                    for j in range(i+1, len(fs)):
+                        if kept[j]:
+                            if are_ccz_equivalent(fs[i], fs[j]):
+                                kept[j] = False
+            reduced_fs = [fs[i] for i in range(0, len(fs)) if kept[i]]
+            print("started from {}, filtered into {}".format(len(fs), len(reduced_fs)))
+            for f in reduced_fs:
+                print(f)
+
+    # !CONTINUE! clean up the handling of the non-quadratic one and move it to the fill_6bit function 
     
     # with LogBook("CCZ-class exploration 6-bit non-quadratic"):
     #     SECTION("generating targets")
