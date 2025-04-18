@@ -7,7 +7,7 @@ import random
 from hashlib import sha256
 from collections import defaultdict
 
-from .utils import oplus
+from .utils import *
 from .sboxU_cython import *
 from .linear import *
 from .display import *
@@ -79,6 +79,15 @@ def delta_rank(f):
     mat_gf2 = Matrix(GF(2), dim, dim, mat_content)
     return mat_gf2.rank()
 
+
+def is_EA(M):
+    half_lines = int(M.nrows() / 2)
+    half_cols  = int(M.ncols() / 2)
+    for k, l in itertools.product(range(0, half_lines),
+                                  range(half_cols, M.ncols())):
+        if M[k][l] != 0:
+            return False
+    return True
 
 
 # !SUBSECTION! Thickness related 
@@ -163,6 +172,96 @@ def swap_matrix(t, N, M):
     return Matrix(GF(2), N+M, N+M, result)
 
     
+# !SUBSECTION! The WalshZeroesSpaces class
+
+
+class WalshZeroesSpaces:
+    def __init__(self, blob=None, lut=None):
+        if blob == None and lut == None:
+            raise Exception("need at least a blob representation or the lut of the original function!")
+        elif lut == None:
+            self.init_from_blob(blob)
+        else:
+            self.init_from_lut(lut)
+        self.thickness_spectrum = thickness_spectrum([], spaces=self.spaces, N=self.n)
+        self.Ls = [FastLinearMapping(get_generating_matrix(V, 2*self.n).transpose())
+                   for V in self.spaces]
+    
+
+    def init_from_lut(self, lut):
+        self.n, self.m = get_block_lengths(lut)
+        self.spaces = get_lat_zeroes_spaces(lut)
+
+        
+    def init_from_blob(self, b):
+        self.n = int(b[0])
+        self.m = int(b[1])
+        b = b[2:]
+        block = ceil((self.m+self.n) / 8)
+        bases = [0] * int(len(b) / block)
+        for x in range(0, len(bases)):
+            bases[x] = sum(Integer(b[x*block + j]) << (8*j) for j in range(0, block))
+        self.spaces = [bases[i:i+self.n] for i in range(0, len(bases), self.n)]
+
+
+    def to_blob(self):
+        all_spaces = []
+        for v in self.spaces:
+            all_spaces += v
+        return bytes([self.n, self.m]) + pack_to_bytes(all_spaces, self.n + self.m)
+
+
+    def reduce(self, automorphisms):
+        big_V = range(0, 2**self.n)
+        inv_mappings = []
+        img_inverse_mappings = []
+        img_indices = {}
+        # precomputation
+        for a in range(0, len(self.Ls)):
+            L_inv = self.Ls[a].inverse()
+            img = [L_inv(x) for x in big_V]
+            img.sort()
+            img_inverse_mappings.append(img)
+            img_indices[tuple(img)] = a
+            inv_mappings.append(L_inv)
+        # testing for equality
+        relevant = [True for x in range(0, len(self.Ls))]
+        for a in range(0, len(self.Ls)):
+            if relevant[a]:
+                L_inv = inv_mappings[a]
+                for u in automorphisms:
+                    img = [u(x) for x in img_inverse_mappings[a]]
+                    img.sort()
+                    img = tuple(img)
+                    if img in img_indices:
+                        index = img_indices[img]
+                        if index > a:
+                            relevant[index] = False
+                    if True not in relevant[a:]:
+                        break
+        self.spaces = [self.spaces[a]
+                       for a in range(0, len(self.spaces)) if relevant[a]]
+        self.Ls     = [self.Ls[a]
+                       for a in range(0, len(self.Ls)) if relevant[a]]
+            
+        
+
+        
+    # !TODO! an __rmult__ function to apply a FastLinearMapping to it
+    
+    def __str__(self):
+        return "Walsh spaces with thicknesses {}".format(pretty_spectrum(self.thickness_spectrum))
+    
+        
+    def __len__(self):
+        return len(self.spaces)
+
+
+    def __iter__(self):
+        for v in self.spaces:
+            yield v
+            
+
 # !SUBSECTION! Using the ortho-derivative
 
 def ortho_derivative_label(f):
@@ -859,8 +958,9 @@ def apply_mapping_to_graph(f, L):
     n = int(log(len(f), 2))
     mask = sum(int(1 << i) for i in range(0, n))
     graph_f = [(x << n) | f[x] for x in range(0, 2**n)]
-    L_map = FastLinearMapping(L)
-    graph_g = [L_map(word) for word in graph_f]
+    if not isinstance(L, FastLinearMapping):
+        L = FastLinearMapping(L)
+    graph_g = [L(word) for word in graph_f]
     g = [-1 for x in range(0, 2**n)]
     for word in graph_g:
         x, y = word >> n, word & mask
@@ -893,7 +993,7 @@ def ccz_equivalent_function(f, V):
     
     
 
-def enumerate_ea_classes(f):
+def enumerate_ea_classes(f, automorphisms=None):
     """Returns a list containing at least one function from each of the
     EA-classes constituting the CCZ-class of `f`.
 
@@ -905,11 +1005,12 @@ def enumerate_ea_classes(f):
     N = int(log(len(f), 2))
     mask = sum(int(1 << i) for i in range(0, N))
     graph_f = [(x << N) | f[x] for x in range(0, 2**N)]
-    bases = get_lat_zeroes_spaces(f)
+    W = WalshZeroesSpaces(lut=f)
+    if automorphisms != None:
+        W.reduce(automorphisms)
     result = []
-    for b in bases:
-        L_map = FastLinearMapping(get_generating_matrix(b, 2*N).transpose())
-        graph_g = [L_map(word) for word in graph_f]
+    for L in W.Ls:
+        graph_g = [L(word) for word in graph_f]
         g = [-1 for x in range(0, 2**N)]
         for word in graph_g:
             x, y = word >> N, word & mask
@@ -953,7 +1054,9 @@ def ea_classes_in_the_ccz_class_of(f, include_start=False):
                 yield g
     
 
-# !SECTION! generating automorphisms 
+
+# !SECTION! The particular case of quadratic APN functions
+# !SUBSECTION! generating automorphisms 
 
 
 def fixed_table_sets(l):
@@ -1160,6 +1263,23 @@ def graph_automorphisms_of_apn_quadratic(s):
         if L not in result:
             result.append(L)
     return result
+
+
+# !SUBSECTION! Looping through the CCZ-class of a quadratic APN function
+
+def enumerate_ea_classes_quadratic_APN(f):
+    """Returns a list containing exactly one function from each of the
+    EA-classes constituting the CCZ-class of `f`.
+
+    This is possible for quadratic APN functions since it is possible
+    to generate their automorphisms groups (using their
+    ortho-derivatives).
+
+    """
+    automorphisms = [FastLinearMapping(L)
+                     for L in graph_automorphisms_of_apn_quadratic(f)]
+    # !TODO! use only some automorphisms (generators of the group?) 
+    return enumerate_ea_classes(f, automorphisms=automorphisms)
 
 
 # !SECTION! Tests

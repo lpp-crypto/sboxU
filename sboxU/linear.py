@@ -111,136 +111,6 @@ def swap_halves(x, n):
     return (r << (n/2)) | l
 
 
-# !SUBSECTION! Fast linear mappings
-
-class FastLinearMapping:
-    """A convenient class to apply linear function on integers
-    (interpreting them as elements of F_2^n) in way that is time
-    efficient.
-
-    """
-
-    def __init__(self, L, lsb_first=False):
-        if isinstance(L, sage.matrix.matrix0.Matrix): # case of a matrix
-            self.inner_matrix = L
-            if not lsb_first:
-                self.masks = [
-                    sum(int(L[i,j]) << (L.nrows()-i-1) for i in range(0, L.nrows()))
-                    for j in reversed(range(0, L.ncols()))
-                ]
-            else:
-                self.masks = [
-                    sum(int(L[i,j]) << i for i in range(0, L.nrows()))
-                    for j in range(0, L.ncols())
-                ]
-            self.input_size  = L.ncols()
-            self.output_size = L.nrows()
-        else:
-            if "base_ring" in dir(L): # case of a polynomial
-                gf = L.base_ring()
-                self.masks = [L(gf.fetch_int(1 << shift)).integer_representation()
-                              for shift in range(0, gf.degree())]
-            if isinstance(L, list): # case of a list of masks
-                self.masks = L[:]
-        # setting input and output sizes
-        self.inner_matrix = None
-        self.input_size  = len(self.masks)
-        self.output_size = 1
-        masks_or = 0
-        for m in self.masks:
-            masks_or = masks_or | m
-        cover = 1
-        while (masks_or & cover) != masks_or:
-            cover = (cover << 1) | 1
-            self.output_size += 1
-
-            
-    def init_inner_matrix(self):
-        self.output_size = self.input_size # this only works for square matrices
-        mat = [[0 for j in range(0, self.input_size)]
-               for i in range(0, self.output_size)]
-        for j, m in enumerate(self.masks):
-            for i in range(0, self.output_size):
-                mat[i][self.input_size - j - 1] = (m >> (self.output_size - i - 1)) & 1
-        self.inner_matrix = Matrix(GF(2),
-                                   self.input_size,
-                                   self.output_size,
-                                   mat)
-
- 
-
-    def transpose(self):
-        if self.inner_matrix == None:
-            self.init_inner_matrix()
-        return FastLinearMapping(self.inner_matrix.transpose())
-    
-    def inverse(self):
-        if self.inner_matrix == None:
-            self.init_inner_matrix()
-        return FastLinearMapping(self.inner_matrix.inverse())
-
-
-    # !TODO! add __rmult__ and __lmult__ functions to allow the
-    # !composition of FastLinearMappings with other ones and with
-    # !binary matrices
-
-
-    def __call__(self, x):
-        """Returns the result of applying L to the integer x, intepreting it
-        as a binary vector.
-
-        """
-        result = 0
-        for i in range(0, len(self.masks)):
-            if (x >> i) & 1 == 1:
-                result = oplus(result, self.masks[i])
-        return result
-
-    def __str__(self):
-        return self.inner_matrix.str()
-        
-
-def block_FastLinearMapping(maps):
-    """Return a FastLinearMapping obtained by combining those in the
-    `maps` list of lists.
-
-    For example, if `maps` is [[A,B], [C,D]] (where A,B,C and D are
-    FastLinearMappings or objects that can be cast to one), then
-    returns the FastLinearMapping corresponding to the block matrix
-
-    [ A  B ]
-    [ C  D ]
-
-    meaning that it raises an Exception if the length of the lists
-    don't match.
-
-    Warning! only works when A, B, C and D are square matrices! This is
-    because of the line marked with "<-": the computation of the
-    output size of a FastLinearMapping is "wrong" if its image is
-    equal over a smaller number of bits, in which case the processing
-    of the blocks will give unexpected results.
-
-    """
-    # pre-processing
-    for i in range(0, len(maps)):
-        row = []
-        for j in range(0, len(maps[0])):
-            if not isinstance(maps[i][j], FastLinearMapping):
-                maps[i][j] = FastLinearMapping(maps[i][j])
-    # building all the masks
-    masks = []
-    for j in reversed(range(0, len(maps[0]))):
-        for k in range(0, len(maps[0][j].masks)):
-            v = 0
-            shift = 0
-            for i in reversed(range(0, len(maps))):
-                v = v | (maps[i][j].masks[k] << shift)
-                shift += maps[i][j].input_size # <---
-            masks.append(v)
-    return FastLinearMapping(masks)
-
-
-    
 # !SUBSECTION! Linear functions and their LUT
 
 
@@ -364,7 +234,147 @@ def orthogonal_basis(B, n):
     return result
 
 
-# !SUBSECTION! Vector/affine space extraction
+
+# !SECTION! Fast linear mappings
+
+class FastLinearMapping:
+    """A convenient class to apply linear function on integers
+    (interpreting them as elements of F_2^n) in way that is time
+    efficient.
+
+    """
+
+    def __init__(self, L, lsb_first=False):
+        if isinstance(L, sage.matrix.matrix0.Matrix): # case of a matrix
+            self.inner_matrix = L
+            if not lsb_first:
+                self.masks = [
+                    sum(int(L[i,j]) << (L.nrows()-i-1) for i in range(0, L.nrows()))
+                    for j in reversed(range(0, L.ncols()))
+                ]
+            else:
+                self.masks = [
+                    sum(int(L[i,j]) << i for i in range(0, L.nrows()))
+                    for j in range(0, L.ncols())
+                ]
+            self.input_size  = L.ncols()
+            self.output_size = L.nrows()
+        else:
+            if "base_ring" in dir(L): # case of a polynomial
+                gf = L.base_ring()
+                self.masks = [L(gf.fetch_int(1 << shift)).integer_representation()
+                              for shift in range(0, gf.degree())]
+            if isinstance(L, list): # case of a list of masks
+                self.masks = L[:]
+        # setting input and output sizes
+        self.inner_matrix = None
+        self.input_size  = len(self.masks)
+        self.output_size = 1
+        masks_or = 0
+        for m in self.masks:
+            masks_or = masks_or | m
+        cover = 1
+        while (masks_or & cover) != masks_or:
+            cover = (cover << 1) | 1
+            self.output_size += 1
+
+            
+    def init_inner_matrix(self):
+        self.output_size = self.input_size # this only works for square matrices
+        mat = [[0 for j in range(0, self.input_size)]
+               for i in range(0, self.output_size)]
+        for j, m in enumerate(self.masks):
+            for i in range(0, self.output_size):
+                mat[i][self.input_size - j - 1] = (m >> (self.output_size - i - 1)) & 1
+        self.inner_matrix = Matrix(GF(2),
+                                   self.input_size,
+                                   self.output_size,
+                                   mat)
+
+ 
+
+    def transpose(self):
+        if self.inner_matrix == None:
+            self.init_inner_matrix()
+        return FastLinearMapping(self.inner_matrix.transpose())
+    
+    def inverse(self):
+        if self.inner_matrix == None:
+            self.init_inner_matrix()
+        return FastLinearMapping(self.inner_matrix.inverse())
+
+
+    def __mul__(self, M):
+        if not isinstance(M, FastLinearMapping):
+            M = FastLinearMapping(M)
+        return FastLinearMapping([self(M(int(1 << i)))
+                                  for i in range(0, M.input_size)])
+
+    def __rmul__(self, M):
+        if not isinstance(M, FastLinearMapping):
+            M = FastLinearMapping(M)
+        return FastLinearMapping([M(self(int(1 << i)))
+                                  for i in range(0, self.input_size)])
+
+    
+    def __call__(self, x):
+        """Returns the result of applying L to the integer x, intepreting it
+        as a binary vector.
+
+        """
+        result = 0
+        for i in range(0, len(self.masks)):
+            if (x >> i) & 1 == 1:
+                result = oplus(result, self.masks[i])
+        return result
+
+    def __str__(self):
+        return self.inner_matrix.str()
+        
+
+def block_FastLinearMapping(maps):
+    """Return a FastLinearMapping obtained by combining those in the
+    `maps` list of lists.
+
+    For example, if `maps` is [[A,B], [C,D]] (where A,B,C and D are
+    FastLinearMappings or objects that can be cast to one), then
+    returns the FastLinearMapping corresponding to the block matrix
+
+    [ A  B ]
+    [ C  D ]
+
+    meaning that it raises an Exception if the length of the lists
+    don't match.
+
+    Warning! only works when A, B, C and D are square matrices! This is
+    because of the line marked with "<-": the computation of the
+    output size of a FastLinearMapping is "wrong" if its image is
+    equal over a smaller number of bits, in which case the processing
+    of the blocks will give unexpected results.
+
+    """
+    # pre-processing
+    for i in range(0, len(maps)):
+        row = []
+        for j in range(0, len(maps[0])):
+            if not isinstance(maps[i][j], FastLinearMapping):
+                maps[i][j] = FastLinearMapping(maps[i][j])
+    # building all the masks
+    masks = []
+    for j in reversed(range(0, len(maps[0]))):
+        for k in range(0, len(maps[0][j].masks)):
+            v = 0
+            shift = 0
+            for i in reversed(range(0, len(maps))):
+                v = v | (maps[i][j].masks[k] << shift)
+                shift += maps[i][j].input_size # <---
+            masks.append(v)
+    return FastLinearMapping(masks)
+
+
+    
+
+# !SECTION! Vector/affine space extraction
 
 
 def extract_bases(z,
@@ -740,7 +750,7 @@ def bin_mat_to_int(m):
     return result
 
 
-# !SUBSECTION! Easy interaction with finite fields
+# !SECTION! Easy interaction with finite fields
 
 def mult_ff(x, y, F):
     return (F.fetch_int(x) * F.fetch_int(y)).integer_representation()

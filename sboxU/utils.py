@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2025-04-14 15:12:30>
+# Time-stamp: <2025-04-15 13:58:39>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -8,6 +8,29 @@ from collections import defaultdict
 
 from .sboxU_cython import *
 from .linear import *
+
+
+
+def get_block_lengths(s):
+    """Return the number of bits `n` in the input and `m` in the
+    output of `s`
+
+    """
+    # finding n
+    n = 1
+    while (1 << n) < len(s):
+        n += 1
+    if 2**n != len(s):
+        raise Exception("wrong S-box length")
+    else:
+        # finding m
+        mask = 1
+        m = 1
+        for x in s:
+            while (x != (x & mask)):
+                mask = (mask << 1) | 1
+                m += 1
+        return n, m
 
 
 def preprocess_into_list(s):
