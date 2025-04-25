@@ -1,5 +1,5 @@
 #!/usr/bin/env sage
-# Time-stamp: <2025-04-22 16:46:28>
+# Time-stamp: <2025-04-25 16:09:16>
 
 
 # /!\ You are not really supposed to look at this file: highly
@@ -12,6 +12,7 @@ from sage.all import *
 from collections import defaultdict
 
 from sboxU import *
+from switching import *
 
 import base64
 import hashlib
@@ -70,13 +71,15 @@ def mugshot(s,
             walsh_spec = walsh_spectrum(s)
         if thickness_spec == None:
             thickness_spec = thickness_spectrum(s)
-        return "w{} d{} deg{} thk{}".format(
+        result = "w{} d{} deg{} thk{}".format(
             pretty_spectrum(walsh_spec, absolute=True),
             pretty_spectrum(differential_spec),
             pretty_spectrum(degree_spec),
             pretty_spectrum(thickness_spec),
         )
-    
+        if max(differential_spec.keys()) == 2:
+            result += "sig{}".format(pretty_spectrum(sigma_multiplicities(s, 4)))
+        return result
 
 
 
@@ -200,7 +203,7 @@ class FunctionDB:
         raise Exception("virtual method that shouldn't be called")
 
     
-    def query_functions(self, query_description):
+    def query_functions(self, query_description, max_entries=-1):
         where_clause = ""
         for constraint in query_description.keys():
             if constraint not in self.row_structure.keys():
@@ -243,9 +246,13 @@ class FunctionDB:
             self.functions_table,
             where_clause
         ))
-        return [self.parse_function_from_row(row) 
-                for row in self.cursor.fetchall()]
-
+        result = []
+        for row in self.cursor.fetchall():
+            result.append(self.parse_function_from_row(row))
+            if max_entries > 0 and len(result) == max_entries:
+                return result
+        return result
+        
     
     # handling insertions
 
@@ -441,6 +448,9 @@ class APNFunctions(FunctionDB):
     
 
     def insert_ccz_equivalent_function(self, index, L):
+        
+        raise Exception("there is bug here, don't use it!")
+    
         entry = self.query_functions({"id": index})[0]
         s = entry["lut"]
         if not isinstance(L, FastLinearMapping):
@@ -448,7 +458,7 @@ class APNFunctions(FunctionDB):
         lut = apply_mapping_to_graph(s, L)
         w = entry["walsh_spaces"]
         L_T = L.transpose()
-        L_inv = L.inverse()
+        #L_inv = L.inverse()
         for i in range(0, len(w)):
             w.Ls[i] = L * w.Ls[i]
             img = [L_T(x) for x in linear_span(w.spaces[i])]
@@ -503,21 +513,21 @@ class APNFunctions(FunctionDB):
         candidates = self.query_functions({"mugshot" : mug})
         if len(candidates) == 0:
             return ["absent"]
-        else:
+        elif test_ccz:
             # checking all the functions with a similar mugshot
             for entry in candidates:
                 if entry["lut"] == encoded:
                     return ["present", entry["id"]]
-                elif are_ccz_equivalent(entry["lut"], s):
-                    print("manually testing CCZ equivalence")
-                    return ["present", entry["id"]]
+                else:
+                    #print("manually testing CCZ equivalence")
+                    if are_ccz_equivalent(entry["lut"], s):
+                        return ["present", entry["id"]]
             # if we checked for CCZ-equivalence and didn't find any
             # CCZ-equivalent function, then `s` is new...
-            if test_ccz:
-                return ["absent"]
+            return ["absent"]
+        else:
             # ... but if we didn't check, then we can't be sure.
-            else:
-                return ["maybe", candidates[0]["id"]]
+            return ["maybe", candidates[0]["id"]]
 
         
     
@@ -591,21 +601,22 @@ def fill_6bit_APNFunctions():
             SECTION("Initialization")
             db.create()
             from sboxU.known_functions import sixBitAPN as reservoir
-            # SECTION("Case of quadratic functions")
-            # for index, s in enumerate(reservoir.all_quadratics()):
-            #     SUBSECTION("function n°{}".format(index))
-            #     w = WalshZeroesSpaces(lut=s)
-            #     autom = [FastLinearMapping(L)
-            #              for L in graph_automorphisms_of_apn_quadratic(s)]
-            #     first_id = db.insert_function_from_lut(s, "Banff", spaces=w)
-            #     w.reduce(autom)
-            #     for k, L in enumerate(w.Ls):
-            #         f = apply_mapping_to_graph(s, L)
-            #         if max(degree_spectrum(f).keys()) == 2:
-            #             print("ignoring: quadratic", desc="n")
-            #         else:
-            #             j = db.insert_ccz_equivalent_function(first_id, L)
-            #             print("inserted at 'id'={}".format(j), desc="n")
+            SECTION("Case of quadratic functions")
+            for index, s in enumerate(reservoir.all_quadratics()):
+                SUBSECTION("function n°{}".format(index))
+                w = WalshZeroesSpaces(lut=s)
+                autom = [FastLinearMapping(L)
+                         for L in graph_automorphisms_of_apn_quadratic(s)]
+                first_id = db.insert_function_from_lut(s, "Banff", spaces=w)
+                w.reduce(autom)
+                for k, L in enumerate(w.Ls):
+                    f = apply_mapping_to_graph(s, L)
+                    if max(degree_spectrum(f).keys()) == 2:
+                        print("ignoring: quadratic", desc="n")
+                    else:
+                        #j = db.insert_ccz_equivalent_function(first_id, L)
+                        j = db.insert_function_from_lut(f, "CCZ")
+                        print("inserted at 'id'={}".format(j), desc="n")
             SECTION("Case of the non-CCZ quadratic function")
             unique_non_quadratic = [0, 0, 0, 8, 0, 26, 40, 58, 0, 33, 10, 35, 12, 55, 46, 29, 0, 11, 12, 15, 4, 21, 32, 57, 20, 62, 18, 48, 28, 44, 50, 10, 0, 6, 18, 28, 10, 22, 48, 36, 8, 47, 16, 63, 14, 51, 62, 11, 5, 24, 27, 14, 11, 12, 61, 50, 25, 37, 13, 57, 27, 61, 39, 9]
             db.insert_function_from_lut(unique_non_quadratic, "Non quad")
@@ -624,99 +635,82 @@ def fill_6bit_APNFunctions():
 
 # !SUBSECTION! Main function
 
+    
+# !IDEA! put a ccz-equivalence test in the APNFunctions.is_present() function
+
+# !IDEA! make another table in the database containing the WalshZeroesSpaces, and store alongside each function the identifier of the base WalshZeroesSpaces instance, and the matrix representation of the mapping to apply
+
+
+def print_func(s):
+    print("lut={}\ndeg={}\nthk={}\nsig={}".format(
+        s,
+        pretty_spectrum(degree_spectrum(s)),
+        pretty_spectrum(thickness_spectrum(s)),
+        pretty_spectrum(sigma_multiplicities(s, 4))
+    ))
+    
+
 if __name__ == "__main__":
     # test_LiteratureSBoxes()
     
     # test_APNFunctions_CCZ_insert()
 
-    fill_6bit_APNFunctions()
+    # fill_6bit_APNFunctions()
 
-    # w = WalshZeroesSpaces(lut=unique_non_quadratic)
-    # by_mug = defaultdict(list)
-    # dif = differential_spectrum(unique_non_quadratic)
-    # wal = walsh_spectrum(unique_non_quadratic)
-    # for index, L in enumerate(w.Ls):
-    #     s = apply_mapping_to_graph(unique_non_quadratic, L)
-    #     L_T = L.transpose()
-    #     w_s = []
-    #     for i in range(0, len(w)):
-    #         img = [L_T(x) for x in linear_span(w.spaces[i])]
-    #         img.sort()
-    #         w_s.append(extract_basis(img, 12))
-    #     print("\n", index)
-    #     print(s)
-    #     deg = degree_spectrum(s)
-    #     thk = thickness_spectrum(s, spaces=w_s)
-    #     print("lut: {}\ndeg: {}\nthk: {}".format(
-    #         s,
-    #         pretty_spectrum(deg),
-    #         pretty_spectrum(thk),
-    #     ))
-    #     mug = mugshot(s,
-    #                   degree_spec      = deg,
-    #                   walsh_spec       = wal,
-    #                   differential_spec= dif,
-    #                   thickness_spec   = thk)
-    #     by_mug[mug].append(s)
-    # for c in sorted(by_mug):
-    #     print("\nsize = {}\nmug  = {}".format(
-    #         len(by_mug[c]),
-    #         c
-    #     ))
-    #     if len(by_mug[c]) > 1:
-    #         fs = by_mug[c]
-    #         kept = [True for i in range(0, len(fs))]
-    #         for i in range(0, len(fs)-1):
-    #             if kept[i]:
-    #                 for j in range(i+1, len(fs)):
-    #                     if kept[j]:
-    #                         if are_ccz_equivalent(fs[i], fs[j]):
-    #                             kept[j] = False
-    #         reduced_fs = [fs[i] for i in range(0, len(fs)) if kept[i]]
-    #         print("started from {}, filtered into {}".format(len(fs), len(reduced_fs)))
-    #         for f in reduced_fs:
-    #             print(f)
-
-    # !CONTINUE! clean up the handling of the non-quadratic one and move it to the fill_6bit function
-
-    # !IDEA! put a ccz-equivalence test in the APNFunctions.is_present() function
-
-    # !IDEA! make another table in the database containing the WalshZeroesSpaces, and store alongside each function the identifier of the base WalshZeroesSpaces instance, and the matrix representation of the mapping to apply
+    # with LogBook("Inspecting new CCZ-class"):
+    #     with APNFunctions() as db:
+    #         SECTION("Grabbing new functions")
+    #         funcs = db.query_functions({"id" : range(780, 900)})
+    #         for entry in funcs:
+    #             s = entry["lut"]
+    #             SECTION("function with id={}".format(entry["id"]))
+    #             print("lut={}\ndeg={}\nthk={}".format(
+    #                 s,
+    #                 pretty_spectrum(degree_spectrum(s)),
+    #                 pretty_spectrum(thickness_spectrum(s))
+    #             ))
     
-    # with LogBook("CCZ-class exploration 6-bit non-quadratic"):
-    #     SECTION("generating targets")
-    #     funcs = known_functions.sixBitAPN.all_non_quadratics()[:]
-    #     SECTION("Looping through {} functions".format(len(funcs)))
-    #     for index, s in enumerate(funcs):
-    #         SUBSECTION("Function n° {}".format(index))
-    #         print("lut: {}".format(s))
-    #         # o = ortho_derivative(s)
-    #         # print("o-dif: {}\no-lin: {}".format(
-    #         #     pretty_spectrum(differential_spectrum(o)),
-    #         #     pretty_spectrum(walsh_spectrum(o), absolute=True)
-    #         # ))
-    #         if algebraic_degree(s) == 2:
-    #             SUBSUBSECTION("generating automorphisms", timed=True)
-    #             autom = [FastLinearMapping(L)
-    #                      for L in graph_automorphisms_of_apn_quadratic(s)]
-    #             print("{} automorphisms found".format(len(autom)))
-    #         else:
-    #             autom = None
-    #         SUBSUBSECTION("Generating EA representatives", timed=True)
-            
-    #         reprs = enumerate_ea_classes(s, automorphisms=autom)
-    #         print("number of EA-classes: {}".format(len(reprs)))
-    #         SUBSUBSECTION("Listing representatives ({} found)".format(len(reprs)))
-    #         for index, f in enumerate(reprs):
-    #             # PARAGRAPH("EA-class {}".format(index))
-    #             d = pretty_spectrum(degree_spectrum(f))
-    #             # print("lut: {}\ndeg: {}\nthk: {}".format(
-    #             #     f,
-    #             #     d,
-    #             #     pretty_spectrum(thickness_spectrum(f))
-    #             # ))
-    #             if d == "{2: 63}":
-    #                 FAIL("CCZ-quadratic")
-    #                 break
-    #             elif index == len(reprs) - 1:
-    #                 SUCCESS("NOT CCZ-quadratic")
+    with LogBook("CCZ-class exploration 6-bit"):
+        j = None
+        with APNFunctions() as db:
+            SECTION("Grabbing original APN functions")
+            funcs = db.query_functions({"n": 6, "degree": range(3, 8)})
+            shuffle(funcs)
+            for entry in funcs:
+                SECTION("APN function with id={}".format(entry["id"]), timed=True)
+                s = entry["lut"]
+                print_func(s)
+                SUBSECTION("computing switching neighbours", timed=True)
+                candidates = apn_non_affine_switching_class(s)
+                print("# candidates found: {}".format(len(candidates)))
+                index = 0
+                shuffle(candidates)
+                for swi in ELEMENTS_OF(candidates[:30], "switching neighbour"):
+                    is_known = db.is_present(swi, test_ccz=True)
+                    if is_known[0] == "absent":
+                        SUBSECTION("neighbour n°{}".format(index))
+                        swi_id = db.insert_function_from_lut(swi, "switching")
+                        SUCCESS("found!")
+                        print_func(swi)
+                        swi_entry = db.query_functions({"id": swi_id})[0]
+                        w = swi_entry["walsh_spaces"]
+                        for L in w.Ls:
+                            f = apply_mapping_to_graph(swi, L)
+                            if db.is_present(f, test_ccz=True)[0] == "absent":
+                                j = db.insert_function_from_lut(f)
+                                print("added new function with id={}".format(j))
+                                print_func(f)
+                            else:
+                                FAIL("somehow we got a known CCZ equivalence class from an unknown function")
+                    else:
+                        print("known ({})".format(is_known[1]), desc="n")
+                    index += 1
+
+
+    # with APNFunctions() as db:
+    #     entries = db.query_functions({"degree": 4})
+    #     for entry in entries:
+    #         print("deg={} ; thk={}".format(
+    #             pretty_spectrum(degree_spectrum(entry["lut"])),
+    #             pretty_spectrum(thickness_spectrum(entry["lut"]))
+    #         ))
