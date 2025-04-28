@@ -2,42 +2,29 @@
 
 from sage.all import *
 
+
 # global variables of the module
 N = 6
 F = GF(2**N, name="a")
 g = F.gen()
 POLY_RING = PolynomialRing(F, "X")
 X = POLY_RING.gen()
-
-# !SECTION! better  finite field functions; prototype
-
-VERSION = tuple([int(x) for x in sage.version.version.split(".")])
-
-if VERSION < (9, 8):
-    def ffe_from_int(gf, x):
-        if gf.characteristic() > 2:
-            return gf(x)
-        else:
-            return gf.fetch_int(x)
-
-    def ffe_to_int(x):
-        return x.integer_representation()
-        
-else:
-    def ffe_from_int(gf, x):
-        return gf.from_integer(x)
-
-    def ffe_to_int(x):
-        return x.to_integer()
     
+
+SAGE_VERSION = tuple([int(x) for x in sage.version.version.split(".")])
+
 
 
 def poly_to_lut(p):
     s = []
     for x_i in range(0, 2**N):
-        y = ffe_to_int(p(ffe_from_int(p.base_ring(), x_i)))
+        if SAGE_VERSION < (9, 8):
+            y = (p(F.fetch_int(x_i))).integer_representation()
+        else:
+            y = (p(F.from_integer(x_i))).to_integer()
         s.append(y)
     return s
+
 
 
 def kim_mapping():

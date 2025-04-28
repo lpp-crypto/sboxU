@@ -1,5 +1,5 @@
 #!/usr/bin/sage
-# Time-stamp: <2025-04-17 17:45:26>
+# Time-stamp: <2025-04-28 16:59:39>
 
 from sage.all import *
 from sage.crypto.sbox import SBox
@@ -124,8 +124,50 @@ def lg2(x):
 
 
 
+# !SECTION! Finite field arithmetic
+# =================================
+
+
+SAGE_VERSION = tuple([int(x) for x in sage.version.version.split(".")])
+
+if SAGE_VERSION < (9, 8):
+    def get_convertors(gf):
+        if gf.characteristic() == 2:
+            return gf.fetch_int, lambda x : x.integer_representation() 
+        else:
+            return gf.__call__, lambda x : Integer(x)
+    
+    def ffe_from_int(gf, x):
+        if gf.characteristic() > 2:
+            return gf(x)
+        else:
+            return gf.fetch_int(x)
+
+    def ffe_to_int(x):
+        if x == 0:         # necessary because of inconsistent casting
+            return x
+        elif x == 1:       # same...
+            return x
+        elif x.base_ring().characteristic() > 2:
+            return Integer(x)
+        else:
+            return x.integer_representation()
+        
+else:
+    def get_convertors(gf):
+        return gf.fom_integer, lambda x : x.to_integer
+
+
+    def ffe_from_int(gf, x):
+        return gf.from_integer(x)
+
+    def ffe_to_int(x):
+        return x.to_integer()
+
+
+
 # !SECTION! Convenient function manipulation
-# ------------------------------------------
+# ==========================================
 
 def inverse(s):
     """Returns the functional inverse of the permutation s."""
@@ -151,7 +193,7 @@ def eval_function_like(x, o):
         if x > len(gf):
             raise Exception("input ({:d}) is too large to be cast to an element of {}".format(x, gf))
         else:
-            return o(gf.fetch_int(x)).integer_representation()
+            return ffe_to_int(o(ffe_from_int(gf, x)))
     elif "__call__" in dir(o):
         return o(x)
     else:
@@ -171,7 +213,7 @@ def get_lut(o, domain_size=None):
         return [o(x) for x in range(0, 2**o.inner_matrix.ncols())]
     elif "base_ring" in dir(o):
         gf = o.base_ring()
-        return [o(gf.fetch_int(x)).integer_representation() for x in range(0, len(gf))]
+        return [ffe_to_int(o(ffe_from_int(gf, x))) for x in range(0, len(gf))]
     elif "__call__" in dir(o):
         if domain_size == None:
             raise Exception("for such ojects ({}), `domain_size` must be specified".format(type(o)))
@@ -346,8 +388,8 @@ def decode_lut(l):
             result[x+1] = y & 0xF
     else:
         block = ceil(m / 8)
-        result = [0] * int(len(b) / block)
+        result = [0 for x in range(0, int(len(b) / block))]
         for x in range(0, len(result)):
-            result[x] = sum(Integer(b[x*block + j]) << (8*j) for j in range(0, block))
+            result[x] = sum(int(b[x*block + j]) << (8*j) for j in range(0, block))
     return result
     

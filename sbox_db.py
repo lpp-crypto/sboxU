@@ -1,5 +1,5 @@
 #!/usr/bin/env sage
-# Time-stamp: <2025-04-25 16:09:16>
+# Time-stamp: <2025-04-28 17:25:53>
 
 
 # /!\ You are not really supposed to look at this file: highly
@@ -181,12 +181,14 @@ class FunctionDB:
         self.row_structure["id"] = "INTEGER"
         self.functions_table = "functions"
         self.bibliography_table = "bibliography"
+        # preparing queries
         self.function_insertion_query = "INSERT INTO {} VALUES ({} ?)".format(
             self.functions_table,
             "?, " * (len(row_structure) - 1) # the last question mark
                                              # is already in the
                                              # string above
         )
+
         
     def create(self):
         creation_query = "CREATE TABLE IF NOT EXISTS {} (".format(self.functions_table)
@@ -194,6 +196,7 @@ class FunctionDB:
             creation_query += "{} {},".format(column, self.row_structure[column])
         creation_query = creation_query[:-1] + ")"
         self.cursor.execute(creation_query)
+        self.number_of_functions = 0
         
         
     # handling searches
@@ -257,18 +260,18 @@ class FunctionDB:
     # handling insertions
 
     def insert_function(self, entry):
-        entry["id"] = len(self)
+        entry["id"] = self.number_of_functions
         inserted_list = [entry[k] for k in sorted(self.row_structure.keys())]
         try:
             self.cursor.execute(self.function_insertion_query, tuple(inserted_list))
+            self.number_of_functions += 1
             return entry["id"]
         except:
             raise Exception("Insertion failed for \n {}\n".format(entry))
 
 
     def __len__(self):
-        self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
-        return self.cursor.fetchall()[0][0]
+        return self.number_of_functions
     
 
     # handling the `with` syntax
@@ -276,6 +279,12 @@ class FunctionDB:
     def __enter__(self):
         self.connection = sqlite3.connect(self.db_file)
         self.cursor = self.connection.cursor()
+        # if the file exists, we initialize the length; otherwise we don't
+        try:
+            self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
+            self.number_of_functions = self.cursor.fetchall()[0][0]
+        except:
+            self.number_of_functions = 0
         return self
 
     def __exit__(self, *args):
@@ -387,8 +396,19 @@ class APNFunctions(FunctionDB):
     database file called "apn_functions.db", and allows an easy
     interaction with it.
 
-    It builds upon the `FunctionDB` class, and contains just a bit of
-    logic on top at this stage.
+    It builds upon the `FunctionDB` class, and contains additional
+    logic to handle the specifics of APN functions, and in particular
+    of their CCZ-equivalence class. Here, "functions" should be
+    thought of much more as "extended affine equivalence class
+    representative" rather than function.
+    
+    This class provides another table containing the bases of all the
+    spaces of dimension n contained with the Walsh zeroes of a
+    function. In order to both save space and store the structure of a
+    CCZ-equivalence, each APN function is stored along with the
+    identifier of the Walsh spaces of its CCZ-equivalence class, and
+    the FastLinearMapping that must be applied to it to obtain its own
+    Walsh Zeroes.
 
     """
     
@@ -397,19 +417,52 @@ class APNFunctions(FunctionDB):
         super().__init__(
             "apn_functions.db",
             {
-                "lut" : "BLOB",
+                "lut" : "BLOB", # the lookup table of the representative
                 "n" : "INTEGER",
                 "m" : "INTEGER",
                 "linearity" : "INTEGER",
                 "thickness" : "INTEGER",
                 "degree" : "INTEGER",
                 "bibliography" : "TEXT",
-                "walsh_spaces": "BLOB",
+                "ccz_id": "INTEGER",
+                "walsh_L": "BLOB",
                 "mugshot" : "TEXT"
             }
         )
+        self.spaces_table = "spaces"
+        self.spaces_insertion_query = "INSERT INTO {} VALUES (?, ?)".format(
+            self.spaces_table,
+        )
 
-    def insert_function_from_lut(self, lut, bibliography, spaces=None):
+    def __enter__(self):
+        super().__enter__()
+        try:
+            self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.spaces_table))
+            self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
+        except:
+            self.number_of_ccz_classes = 0
+        return self
+
+    def __str__(self):
+        return "APN function DB containing {} EA-classes from {} CCZ-classes".format(
+            self.number_of_functions,
+            self.number_of_ccz_classes
+        )
+
+            
+    def create(self):
+        # creating the functions table
+        super().create()
+        # spaces table name
+        spaces_creation_query  = "CREATE TABLE IF NOT EXISTS {}".format(self.spaces_table)
+        # spaces table format
+        spaces_creation_query +=  "(id INTEGER, bases BLOB)"
+        # creating the table
+        self.cursor.execute(spaces_creation_query)
+        self.number_of_ccz_classes = 0
+
+
+    def insert_function_from_lut(self, lut, bibliography):
         differential_spec = differential_spectrum(lut)
         if max(differential_spec.keys()) != 2:
             raise Exception("Trying to add a non-APN function to the APN function database: {}".format(lut))
@@ -424,11 +477,16 @@ class APNFunctions(FunctionDB):
         degree_spec = degree_spectrum(lut)
         deg = max(degree_spec.keys())
         # thickness and spaces
-        if spaces == None:
-            spaces = WalshZeroesSpaces(lut=lut)
-        thk_spec = spaces.thickness_spectrum
+        spaces = WalshZeroesSpaces(lut=lut)
+        thk_spec = spaces.thickness_spectrum()
         thk = max(thk_spec.keys())
-        # building the query
+        # inserting the spaces
+        self.cursor.execute(self.spaces_insertion_query, (
+            self.number_of_ccz_classes,
+            spaces.to_blob()
+        ))
+        self.number_of_ccz_classes += 1
+        # inserting the function 
         to_insert = {
             "lut" : encoded,
             "n" : n,
@@ -437,7 +495,8 @@ class APNFunctions(FunctionDB):
             "linearity" : lin,
             "degree" : deg,
             "thickness" : thk,
-            "walsh_spaces" : spaces.to_blob(),
+            "ccz_id" : self.number_of_ccz_classes,
+            "walsh_L" : encode_lut(list(range(0, n+m)), n+m), # the identity
             "mugshot" : mugshot(lut,
                                 walsh_spec=walsh_spec,
                                 degree_spec=degree_spec,
@@ -445,36 +504,93 @@ class APNFunctions(FunctionDB):
                                 thickness_spec=thk_spec)
         }
         return self.insert_function(to_insert)
-    
 
-    def insert_ccz_equivalent_function(self, index, L):
-        
-        raise Exception("there is bug here, don't use it!")
     
-        entry = self.query_functions({"id": index})[0]
-        s = entry["lut"]
-        if not isinstance(L, FastLinearMapping):
-            L = FastLinearMapping(L)
-        lut = apply_mapping_to_graph(s, L)
-        w = entry["walsh_spaces"]
-        L_T = L.transpose()
-        #L_inv = L.inverse()
-        for i in range(0, len(w)):
-            w.Ls[i] = L * w.Ls[i]
-            img = [L_T(x) for x in linear_span(w.spaces[i])]
-            img.sort()
-            w.spaces[i] = extract_basis(img, entry["n"]+entry["m"])
-            
-        return self.insert_function_from_lut(lut, entry["bibliography"], spaces=w)
+    def fetch_WalshZeroesSpaces(self, index):
+        self.cursor.execute("SELECT * FROM {} WHERE id={:d}".format(
+            self.spaces_table,
+            index
+        ))
+        for row in self.cursor.fetchall():
+            W = WalshZeroesSpaces(blob=row[1])
+            return W
+        raise Exception("no WalshZeroesSpaces with index={}".format(index))
+
+
+    def insert_full_ccz_equivalence_class(self, lut, bibliography):
+        differential_spec = differential_spectrum(lut)
+        if max(differential_spec.keys()) != 2:
+            raise Exception("Trying to add a non-APN function to the APN function database: {}".format(lut))
+        n, m = get_block_lengths(lut)
+        encoded = encode_lut(lut, n)
+        # linear
+        walsh_spec = walsh_spectrum(lut)
+        lin = 0
+        for k in walsh_spec.keys():
+            lin = max(lin, abs(k))
+        # finding WalshZeroesSpaces
+        spaces = WalshZeroesSpaces(lut=lut)
+        if algebraic_degree(lut) == 2: # if the function is quadratic,
+                                       # we compute automorphisms
+                                       # inserting the spaces
+            quadratic_case = True
+            autom = [FastLinearMapping(L)
+                     for L in graph_automorphisms_of_apn_quadratic(lut)]
+            Ls = spaces.reduced_linear_mappings(autom)
+        else:
+            quadratic_case = False
+            Ls = spaces.Ls
+        self.cursor.execute(self.spaces_insertion_query, (
+            self.number_of_ccz_classes,
+            spaces.to_blob()
+        ))
+        # inserting all the functions
+        for L in Ls:
+            new_lut = apply_mapping_to_graph(lut, L)
+            if quadratic:
+                worth_adding = True
+            else:
+                worth_adding = (self.is_present(new_lut, test_ccz=True)[0] == "absent")
+            if worth_adding:
+                L_inv_T = L.transpose().inverse()
+                new_spaces = L_inv_T * spaces
+                new_thk_spec = new_spaces.thickness_spectrum()
+                # t1 = pretty_spectrum(thickness_spectrum(new_lut))
+                # t2 = pretty_spectrum(new_thk_spec)
+                # if t1 != t2:
+                #     FAIL("well there's your problem: {} != {}".format(t1, t2))
+                new_degree_spec =degree_spectrum(new_lut)
+                to_insert = {
+                    "lut" : encode_lut(new_lut, n),
+                    "n" : n,
+                    "m" : m,
+                    "bibliography" : bibliography,
+                    "linearity" : lin,
+                    "degree" : max(new_degree_spec.keys()),
+                    "thickness" : max(new_thk_spec.keys()),
+                    "ccz_id" : self.number_of_ccz_classes,
+                    "walsh_L" : encode_lut(L_inv_T.masks, n+m),
+                    "mugshot" : mugshot(lut,
+                                        walsh_spec=walsh_spec,
+                                        degree_spec=new_degree_spec,
+                                        differential_spec=differential_spec,
+                                        thickness_spec=new_thk_spec)
+                }
+                self.insert_function(to_insert)
+        self.number_of_ccz_classes += 1
+        return self.number_of_ccz_classes
+    
 
         
     def parse_function_from_row(self, row):
         entry = {}
         for i, column in enumerate(sorted(self.row_structure.keys())):
             entry[column] = row[i]
-            # post-processing
+        # post-processing
         entry["lut"] = decode_lut(entry["lut"])
-        entry["walsh_spaces"] = WalshZeroesSpaces(blob=entry["walsh_spaces"])
+        W = self.fetch_WalshZeroesSpaces(entry["ccz_id"])
+        L = FastLinearMapping(decode_lut(entry["walsh_L"]))
+        entry["walsh_spaces"] = L * W
         return entry
 
     
@@ -556,10 +672,10 @@ def test_APNFunctions():
                 print(entry, desc="*l")
                 v = WalshZeroesSpaces(lut=entry["lut"])
             SUBSECTION("high thickness")
-            for entry in db.query_functions({"thickness": range(4, 20)}):
+            for entry in db.query_functions({"thickness": range(0, 2)}):
                 print(entry["walsh_spaces"], desc="l*")
-                print("Checking if blob encoding of Walsh zeroes works")
                 w = WalshZeroesSpaces(lut=entry["lut"])
+                print("Checking if Walsh zeroes storing works ({})".format(w))
                 b = w.to_blob()
                 w_prime = WalshZeroesSpaces(blob=b)
                 if (w.spaces == w_prime.spaces):
@@ -570,29 +686,44 @@ def test_APNFunctions():
 
 def test_APNFunctions_CCZ_insert():
     with LogBook("Testing APNFunctions CCZ insertion"):
+
         SECTION("filling the database")
         with APNFunctions() as db:
             db.create()
+            print(db)
             from sboxU.known_functions import sixBitAPN as reservoir_6
-            for index, s in enumerate(reservoir_6.all_quadratics()):
-                SUBSECTION("function n°{}".format(index))
-                print("first {}".format(s))
-                first_id = db.insert_function_from_lut(s, "Banff")
-                w = WalshZeroesSpaces(lut=s)
-                db.insert_ccz_equivalent_function(first_id, w.Ls[3])
-                f = apply_mapping_to_graph(s, w.Ls[3])
-                db.insert_function_from_lut(f, "placeholder")
-                print("number of functions: {}".format(len(db)))
+            for s in ELEMENTS_OF(reservoir_6.all_quadratics(), "6 bits"):
+                db.insert_full_ccz_equivalence_class(s, "CCZ")
+    
         SECTION("retrieving content")
         with APNFunctions() as db:
-            for entry in db.query_functions({"id": range(0, 100)}):
-                print(entry)
+            print(db)
+            SUBSECTION("high linearity")
+            for entry in db.query_functions({"linearity": range(16, 34)}):
+                print(entry["id"], desc="*l")
+            SUBSECTION("high thickness")
+            for entry in db.query_functions({"thickness": range(4, 6)}):
+                print(entry["ccz_id"], desc="l*")
+                u = entry["walsh_spaces"]
                 w = WalshZeroesSpaces(lut=entry["lut"])
-                print(w)
+                print("Checking if Walsh zeroes storing works ({})".format(u))
+                b = w.to_blob()
+                w_prime = WalshZeroesSpaces(blob=b)
+                if (w.spaces == w_prime.spaces):
+                    SUCCESS("encoding works")
+                else:
+                    FAIL("mismatch between direct computation and decoding")
+                if (w.spaces == u.spaces):
+                    SUCCESS("storing works")
+                else:
+                    FAIL("mismatch between direct computation and recovery from DB")
+                    print("{}  {}".format(pretty_spectrum(w.thickness_spectrum()),
+                                          pretty_spectrum(u.thickness_spectrum())))
 
 
 
-# !SECTION! Initializing the data-bases 
+# !SECTION! Initializing the data-bases
+# =====================================
 
 
 def fill_6bit_APNFunctions():
@@ -604,41 +735,13 @@ def fill_6bit_APNFunctions():
             SECTION("Case of quadratic functions")
             for index, s in enumerate(reservoir.all_quadratics()):
                 SUBSECTION("function n°{}".format(index))
-                w = WalshZeroesSpaces(lut=s)
-                autom = [FastLinearMapping(L)
-                         for L in graph_automorphisms_of_apn_quadratic(s)]
-                first_id = db.insert_function_from_lut(s, "Banff", spaces=w)
-                w.reduce(autom)
-                for k, L in enumerate(w.Ls):
-                    f = apply_mapping_to_graph(s, L)
-                    if max(degree_spectrum(f).keys()) == 2:
-                        print("ignoring: quadratic", desc="n")
-                    else:
-                        #j = db.insert_ccz_equivalent_function(first_id, L)
-                        j = db.insert_function_from_lut(f, "CCZ")
-                        print("inserted at 'id'={}".format(j), desc="n")
+                db.insert_full_ccz_equivalence_class(s, "Banff")
             SECTION("Case of the non-CCZ quadratic function")
             unique_non_quadratic = [0, 0, 0, 8, 0, 26, 40, 58, 0, 33, 10, 35, 12, 55, 46, 29, 0, 11, 12, 15, 4, 21, 32, 57, 20, 62, 18, 48, 28, 44, 50, 10, 0, 6, 18, 28, 10, 22, 48, 36, 8, 47, 16, 63, 14, 51, 62, 11, 5, 24, 27, 14, 11, 12, 61, 50, 25, 37, 13, 57, 27, 61, 39, 9]
-            db.insert_function_from_lut(unique_non_quadratic, "Non quad")
-            for index, s in enumerate(enumerate_ea_classes(unique_non_quadratic)):
-                if db.is_present(s)[0] != "present":
-                    SUBSECTION("inserting function {}".format(index))
-                    print("lut={}\nthk={}\ndeg={}".format(
-                        s,
-                        thickness_spectrum(s),
-                        degree_spectrum(s)
-                    ))
-                    db.insert_function_from_lut(s, "Non quad")
-                else:
-                    SUBSECTION("NOT inserting function {}".format(index))
+            db.insert_full_ccz_equivalence_class(unique_non_quadratic, "non-quadratic")
                     
 
 # !SUBSECTION! Main function
-
-    
-# !IDEA! put a ccz-equivalence test in the APNFunctions.is_present() function
-
-# !IDEA! make another table in the database containing the WalshZeroesSpaces, and store alongside each function the identifier of the base WalshZeroesSpaces instance, and the matrix representation of the mapping to apply
 
 
 def print_func(s):
@@ -652,6 +755,8 @@ def print_func(s):
 
 if __name__ == "__main__":
     # test_LiteratureSBoxes()
+    
+    # test_APNFunctions()
     
     # test_APNFunctions_CCZ_insert()
 
@@ -670,10 +775,11 @@ if __name__ == "__main__":
     #                 pretty_spectrum(thickness_spectrum(s))
     #             ))
     
-    with LogBook("CCZ-class exploration 6-bit"):
+    with LogBook("Exploration 6-bit"):
         j = None
         with APNFunctions() as db:
             SECTION("Grabbing original APN functions")
+            print(db)
             funcs = db.query_functions({"n": 6, "degree": range(3, 8)})
             shuffle(funcs)
             for entry in funcs:
@@ -685,7 +791,8 @@ if __name__ == "__main__":
                 print("# candidates found: {}".format(len(candidates)))
                 index = 0
                 shuffle(candidates)
-                for swi in ELEMENTS_OF(candidates[:30], "switching neighbour"):
+                seen = defaultdict(int)
+                for swi in ELEMENTS_OF(candidates[:50], "switching neighbours"):
                     is_known = db.is_present(swi, test_ccz=True)
                     if is_known[0] == "absent":
                         SUBSECTION("neighbour n°{}".format(index))
@@ -704,6 +811,9 @@ if __name__ == "__main__":
                                 FAIL("somehow we got a known CCZ equivalence class from an unknown function")
                     else:
                         print("known ({})".format(is_known[1]), desc="n")
+                        seen[is_known[1]] += 1
+                        if seen[is_known[1]] > 20:
+                            break
                     index += 1
 
 
