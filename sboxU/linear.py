@@ -264,8 +264,12 @@ class FastLinearMapping:
                 gf = L.base_ring()
                 self.masks = [L(gf.fetch_int(1 << shift)).integer_representation()
                               for shift in range(0, gf.degree())]
-            if isinstance(L, list): # case of a list of masks
+            elif isinstance(L, list): # case of a list of masks
                 self.masks = L[:]
+            else:
+                raise Exception("Trying to build FastLinearMapping from unknown type ({}".format(
+                    type(L)
+                ))
         # setting input and output sizes
         self.inner_matrix = None
         self.input_size  = len(self.masks)
@@ -306,13 +310,19 @@ class FastLinearMapping:
 
     def __mul__(self, M):
         if not isinstance(M, FastLinearMapping):
-            M = FastLinearMapping(M)
+            try:
+                M = FastLinearMapping(M)
+            except:
+                return M.__lmul__(self)
         return FastLinearMapping([self(M(int(1 << i)))
                                   for i in range(0, M.input_size)])
 
     def __rmul__(self, M):
         if not isinstance(M, FastLinearMapping):
-            M = FastLinearMapping(M)
+            try:
+                M = FastLinearMapping(M)
+            except:
+                return M.__lmul__(self)
         return FastLinearMapping([M(self(int(1 << i)))
                                   for i in range(0, self.input_size)])
 
@@ -329,6 +339,8 @@ class FastLinearMapping:
         return result
 
     def __str__(self):
+        if self.inner_matrix == None:
+            self.init_inner_matrix()
         return self.inner_matrix.str()
         
 

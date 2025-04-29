@@ -176,14 +176,19 @@ def swap_matrix(t, N, M):
 
 
 class WalshZeroesSpaces:
-    def __init__(self, blob=None, lut=None):
-        if blob == None and lut == None:
+    def __init__(self, blob=None, lut=None, spaces=None):
+        if blob == None and lut == None and spaces == None:
             raise Exception("need at least a blob representation or the lut of the original function!")
-        elif lut == None:
+        elif lut == None and spaces == None:
             self.init_from_blob(blob)
-        else:
+        elif spaces == None:
             self.init_from_lut(lut)
-        self.thickness_spectrum = thickness_spectrum([], spaces=self.spaces, N=self.n)
+        else:
+            self.spaces = spaces[:]
+            # ugly hack for now
+            self.n = len(spaces[0])
+            self.m = self.n
+        self.spaces.sort()
         self.Ls = [FastLinearMapping(get_generating_matrix(V, 2*self.n).transpose())
                    for V in self.spaces]
     
@@ -211,7 +216,7 @@ class WalshZeroesSpaces:
         return bytes([self.n, self.m]) + pack_to_bytes(all_spaces, self.n + self.m)
 
 
-    def reduce(self, automorphisms):
+    def reduced_linear_mappings(self, automorphisms):
         big_V = range(0, 2**self.n)
         inv_mappings = []
         img_inverse_mappings = []
@@ -239,18 +244,32 @@ class WalshZeroesSpaces:
                             relevant[index] = False
                     if True not in relevant[a:]:
                         break
-        self.spaces = [self.spaces[a]
-                       for a in range(0, len(self.spaces)) if relevant[a]]
-        self.Ls     = [self.Ls[a]
-                       for a in range(0, len(self.Ls)) if relevant[a]]
+        return [self.Ls[a]
+                for a in range(0, len(self.Ls)) if relevant[a]]
             
         
+    def thickness_spectrum(self):
+        return thickness_spectrum([], spaces=self.spaces, N=self.n)
 
+
+    def __mul__(self, L):
+        return self.__lmul__(L)
+    
+    
+    def __lmul__(self, L):
+        if not isinstance(L, FastLinearMapping):
+            return NotImplemented
+        else:
+            new_spaces = []
+            for basis in self.spaces:
+                V = linear_span([L(x) for x in basis])
+                V.sort()
+                new_spaces.append(extract_basis(V, self.n + self.m))
+            return WalshZeroesSpaces(spaces=new_spaces)
         
-    # !TODO! an __rmult__ function to apply a FastLinearMapping to it
     
     def __str__(self):
-        return "Walsh spaces with thicknesses {}".format(pretty_spectrum(self.thickness_spectrum))
+        return "Walsh spaces with thicknesses {}".format(pretty_spectrum(self.thickness_spectrum()))
     
         
     def __len__(self):
