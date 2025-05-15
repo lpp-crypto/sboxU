@@ -217,33 +217,56 @@ class WalshZeroesSpaces:
 
 
     def reduced_linear_mappings(self, automorphisms):
-        big_V = range(0, 2**self.n)
-        inv_mappings = []
-        img_inverse_mappings = []
-        img_indices = {}
+        # !IMPROVE! there is probably a more clever strategy based on
+        # !lazily generating the automorphisms in a better order
+        # big_V = range(0, 2**self.n)
+        # inv_mappings = []
+        # img_inverse_mappings = []
+        # img_indices = {}
+        # # precomputation
+        # for a in range(0, len(self.Ls)):
+        #     L_inv = self.Ls[a].inverse()
+        #     img = [L_inv(x) for x in big_V]
+        #     img.sort()
+        #     img_inverse_mappings.append(img)
+        #     img_indices[tuple(img)] = a
+        #     inv_mappings.append(L_inv)
+        # # testing for equality
+        # relevant = [True for x in range(0, len(self.Ls))]
+        # for a in range(0, len(self.Ls)):
+        #     if relevant[a]:
+        #         L_inv = inv_mappings[a]
+        #         for u in automorphisms:
+        #             img = [u(x) for x in img_inverse_mappings[a]]
+        #             img.sort()
+        #             img = tuple(img)
+        #             if img in img_indices:
+        #                 index = img_indices[img]
+        #                 if index > a:
+        #                     relevant[index] = False
+        #             if True not in relevant[a:]:
+        #                 break
+
         # precomputation
-        for a in range(0, len(self.Ls)):
-            L_inv = self.Ls[a].inverse()
-            img = [L_inv(x) for x in big_V]
+        full_spaces = []
+        pre_images = {}
+        for a in range(0, len(self.spaces)):
+            img = linear_span(self.spaces[a])
             img.sort()
-            img_inverse_mappings.append(img)
-            img_indices[tuple(img)] = a
-            inv_mappings.append(L_inv)
-        # testing for equality
+            full_spaces.append(img)
+            pre_images[tuple(img)] = a
+        # removing redundant spaces
         relevant = [True for x in range(0, len(self.Ls))]
-        for a in range(0, len(self.Ls)):
-            if relevant[a]:
-                L_inv = inv_mappings[a]
-                for u in automorphisms:
-                    img = [u(x) for x in img_inverse_mappings[a]]
+        for u in automorphisms:
+            for a in range(0, len(self.spaces)):
+                if relevant[a]:
+                    img = [u(x) for x in full_spaces[a]]
                     img.sort()
                     img = tuple(img)
-                    if img in img_indices:
-                        index = img_indices[img]
+                    if img in pre_images:
+                        index = pre_images[img]
                         if index > a:
                             relevant[index] = False
-                    if True not in relevant[a:]:
-                        break
         return [self.Ls[a]
                 for a in range(0, len(self.Ls)) if relevant[a]]
             
@@ -1026,7 +1049,7 @@ def enumerate_ea_classes(f, automorphisms=None):
     graph_f = [(x << N) | f[x] for x in range(0, 2**N)]
     W = WalshZeroesSpaces(lut=f)
     if automorphisms != None:
-        W.reduce(automorphisms)
+        W = W.reduced_linear_mappings(automorphisms)
     result = []
     for L in W.Ls:
         graph_g = [L(word) for word in graph_f]
@@ -1212,15 +1235,11 @@ def table_linear_automorphisms(table):
         ))        
 
 
-def linear_automorphisms_from_ortho_derivative(s, with_derivatives=False):
-    o = ortho_derivative(s)
+def linear_automorphisms_from_ortho_derivative(s, with_derivatives=True):
     result = []
+    o = ortho_derivative(s)
     l = lat(o)
-    unsigned_l = [
-        [abs(l[a][b]) for b in range(0, len(l[a]))]
-        for a in range(0, len(l))
-    ]
-    for AB in table_linear_automorphisms(unsigned_l):
+    for AB in table_linear_automorphisms(l):
         L_A = FastLinearMapping(
             linear_function_lut_to_matrix(AB[0]).transpose().inverse()
         )
@@ -1233,7 +1252,7 @@ def linear_automorphisms_from_ortho_derivative(s, with_derivatives=False):
                 good = False
                 break
         if not good:
-            raise Exception("somehow, the LAT automorphisms didn't match ortho-derivative ortho-derivatives")
+            raise Exception("somehow, the LAT automorphisms didn't match the ortho-derivative's")
         L_A = L_A.inverse()
         L_B = L_B.transpose()
         # figuring input constant additions
