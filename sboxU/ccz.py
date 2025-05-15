@@ -257,16 +257,18 @@ class WalshZeroesSpaces:
             pre_images[tuple(img)] = a
         # removing redundant spaces
         relevant = [True for x in range(0, len(self.Ls))]
-        for u in automorphisms:
-            for a in range(0, len(self.spaces)):
-                if relevant[a]:
+        for a in range(0, len(self.spaces)):
+            if relevant[a]:
+                for u in automorphisms:
                     img = [u(x) for x in full_spaces[a]]
                     img.sort()
                     img = tuple(img)
                     if img in pre_images:
                         index = pre_images[img]
-                        if index > a:
+                        if index != a:
                             relevant[index] = False
+            if True not in relevant[a:]:
+                break
         return [self.Ls[a]
                 for a in range(0, len(self.Ls)) if relevant[a]]
             
