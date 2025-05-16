@@ -1271,7 +1271,7 @@ def linear_automorphisms_from_ortho_derivative(s, with_derivatives=True):
                     result.append([
                         [L_A(x) for x in range(0, len(s))],
                         [L_B(x) for x in range(0, len(s))],
-                        C,
+                        [oplus(C[x], C[0]) for x in range(0, len(s))],
                     ])
     return result
 
