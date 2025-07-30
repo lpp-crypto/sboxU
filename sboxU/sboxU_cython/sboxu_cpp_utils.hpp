@@ -29,6 +29,10 @@ BinWord scal_prod_cpp(BinWord x, BinWord y) ;
 /* @return the component $x \mapsto b . f(x)$. */ 
 std::vector<BinWord> component_cpp(BinWord a, std::vector<BinWord> f);
 
+/* @return the product of binary matrix and vector:
+ * M*v if matrix is a list of columns or v*M if matrix is a list of rows. */
+BinWord matrix_vector_multiplication(BinWord vect, const std::vector<BinWord> &matrix);
+
 
 // !SUBSECTION! Generating and testing permutations 
 

@@ -1,3 +1,5 @@
+// Modified on 2025-07-23 by baudrin-j.
+
 #include "sboxu_cpp_utils.hpp"
 
 BinWord oplus_cpp(BinWord x, BinWord y)
@@ -27,6 +29,19 @@ std::vector<BinWord> component_cpp(BinWord a, std::vector<BinWord> f)
     for (BinWord x=0; x<f.size(); x++)
         result[x] = scal_prod_cpp(a, f[x]);
     return result;
+}
+
+
+BinWord matrix_vector_multiplication(BinWord vect, const std::vector<BinWord> &matrix) {
+	BinWord eval = 0;
+	unsigned int i = 0;
+	while(vect) {
+		if(vect & ONE)
+			eval ^= matrix[i];
+		vect = vect >> 1;
+		i++;
+	}
+	return eval;
 }
 
 // !SECTION! Generating and studying permutations 
