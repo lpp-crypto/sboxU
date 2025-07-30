@@ -36,6 +36,8 @@ typedef int64_t Integer;
 typedef uint64_t BinWord;
 typedef std::vector<BinWord> Sbox;
 typedef std::pair<uint64_t, uint64_t> IOpair;
+#define EMPTY UINT64_MAX
+#define ONE ((BinWord) 1)
 
 
 // !SECTION! Including sub-modules
