@@ -1,3 +1,5 @@
+# Modified on 2025-07-07 by baudrin-j.
+
 import os
 import sys
 
@@ -36,7 +38,7 @@ setup(
                 extra_link_args = extra_link_args,
                 extra_compile_args = extra_compile_args,
             )
-                for name in [ "cpp_diff_lin", "cpp_utils", "cpp_equiv", "cpp_equiv_approx", "cpp_ccz" ]
+                for name in [ "cpp_diff_lin", "cpp_utils", "cpp_equiv", "cpp_equiv_approx", "cpp_ccz", "cpp_partition_preserving_linear_mapping"]
         ],
         language_level = "3",
     ),
