@@ -1,11 +1,13 @@
 # -*-python-*- 
 # Time-stamp: <2024-04-26 10:26:12 leo>
+# Modified on 2025-07-30 by baudrin-j
 
 from libcpp cimport bool
 from libcpp.vector cimport vector
 from libcpp.map cimport map
 from libcpp.string cimport string
 from libc.stdint cimport int64_t, uint64_t
+from libcpp.utility cimport pair
 
 cdef extern from "sboxu_cpp_utils.cpp":
     pass
@@ -92,3 +94,10 @@ cdef extern from "sboxu_cpp_fp_lat.hpp":
     cdef vector[ double ] fpt_lat_row(const vector[int] s, const int p, const int m, const int a)
     cdef double fpt_max_lat(const vector[int] s, const int p, const int m, const int num_threads)
     cdef map[double, int] fpt_walsh_spectrum(const vector[int] s, const int p, const int m, const double epsilon, const int num_threads)        
+
+cdef extern from "sboxu_cpp_partition_preserving_linear_mapping.cpp" :
+    pass
+
+cdef extern from "sboxu_cpp_partition_preserving_linear_mapping.hpp":
+    cdef pair[vector[uint64_t], vector[uint64_t]] cpp_is_linearly_self_equivalent_from_lat(const vector[vector[int64_t]] lat, const string algo, const unsigned int number_of_threads)
+    cdef vector[pair[vector[uint64_t], vector[uint64_t]]] cpp_linear_automorphisms_from_lat(const vector[vector[int64_t]] lat, const string algo, const unsigned int number_of_threads)
