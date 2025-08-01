@@ -1,3 +1,5 @@
+# Modified on 2025-07-07 by baudrin-j.
+
 import os
 import sys
 
@@ -15,8 +17,8 @@ extra_compile_args = ["-O3", "-march=native", "-std=c++17", "-pthread", "-Wno-na
 extra_link_args=[]
 
 if sys.platform == 'darwin':
-	extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include']
-	extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include']
+    extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include'] # ['-Xpreprocessor', '-fopenmp']
+    extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include'] # ['-lomp']
 else:
 	extra_compile_args += ['-fopenmp']
 	extra_link_args += ['-fopenmp']
@@ -36,7 +38,7 @@ setup(
                 extra_link_args = extra_link_args,
                 extra_compile_args = extra_compile_args,
             )
-                for name in [ "cpp_diff_lin", "cpp_utils", "cpp_equiv", "cpp_equiv_approx", "cpp_ccz" ]
+                for name in [ "cpp_diff_lin", "cpp_utils", "cpp_equiv", "cpp_equiv_approx", "cpp_ccz", "cpp_partition_preserving_linear_mapping"]
         ],
         language_level = "3",
     ),
