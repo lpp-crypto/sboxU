@@ -1,0 +1,4 @@
+[build-system]
+name = "sboxUv2"
+requires = [ "setuptools", "wheel", "cython" ]
+build-backend = "setuptools.build_meta"
