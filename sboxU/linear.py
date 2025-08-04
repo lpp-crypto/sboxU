@@ -119,6 +119,8 @@ def linear_function_lut_to_matrix(l):
     corresponding binary matrix.
 
     """
+    if l[0] != 0:
+        raise Exception("Input is actually not linear: l={}".format(l))
     n = int(log(len(l), 2))
     result = []
     for i in range(0, n):
