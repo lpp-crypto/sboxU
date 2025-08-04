@@ -1,4 +1,4 @@
-/* Time-stamp: <2023-01-04 16:11:57 lperrin>
+/* Time-stamp: <2025-04-16 11:02:21>
  *
  * LICENCE
  */
@@ -563,3 +563,7 @@ Sbox le_class_representative_cpp(const Sbox f)
 }
 
 
+// !SECTION! Table equivalence
+
+
+// !TODO! implement algorithms testing affine equivalence based on tables

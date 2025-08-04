@@ -1,5 +1,5 @@
 #!/usr/bin/env sage
-# Time-stamp: <2025-04-28 17:25:53>
+# Time-stamp: <2025-04-28 18:52:03>
 
 
 # /!\ You are not really supposed to look at this file: highly
@@ -71,14 +71,14 @@ def mugshot(s,
             walsh_spec = walsh_spectrum(s)
         if thickness_spec == None:
             thickness_spec = thickness_spectrum(s)
-        result = "w{} d{} deg{} thk{}".format(
+        result = "w{}df{}dg{}t{}".format(
             pretty_spectrum(walsh_spec, absolute=True),
             pretty_spectrum(differential_spec),
             pretty_spectrum(degree_spec),
             pretty_spectrum(thickness_spec),
         )
         if max(differential_spec.keys()) == 2:
-            result += "sig{}".format(pretty_spectrum(sigma_multiplicities(s, 4)))
+            result += "s{}".format(pretty_spectrum(sigma_multiplicities(s, 4)))
         return result
 
 
@@ -206,7 +206,7 @@ class FunctionDB:
         raise Exception("virtual method that shouldn't be called")
 
     
-    def query_functions(self, query_description, max_entries=-1):
+    def query_functions(self, query_description):
         where_clause = ""
         for constraint in query_description.keys():
             if constraint not in self.row_structure.keys():
@@ -249,13 +249,15 @@ class FunctionDB:
             self.functions_table,
             where_clause
         ))
-        result = []
-        for row in self.cursor.fetchall():
-            result.append(self.parse_function_from_row(row))
-            if max_entries > 0 and len(result) == max_entries:
-                return result
-        return result
-        
+        result = self.cursor.fetchall()
+        if len(result) == 0:
+            return []
+        else:
+            return (
+                self.parse_function_from_row(row)
+                for row in result
+            )
+    
     
     # handling insertions
 
@@ -555,10 +557,10 @@ class APNFunctions(FunctionDB):
                 L_inv_T = L.transpose().inverse()
                 new_spaces = L_inv_T * spaces
                 new_thk_spec = new_spaces.thickness_spectrum()
-                # t1 = pretty_spectrum(thickness_spectrum(new_lut))
-                # t2 = pretty_spectrum(new_thk_spec)
-                # if t1 != t2:
-                #     FAIL("well there's your problem: {} != {}".format(t1, t2))
+                t1 = pretty_spectrum(thickness_spectrum(new_lut))
+                t2 = pretty_spectrum(new_thk_spec)
+                if t1 != t2:
+                    FAIL("well there's your problem: {} != {}".format(t1, t2))
                 new_degree_spec =degree_spectrum(new_lut)
                 to_insert = {
                     "lut" : encode_lut(new_lut, n),
@@ -570,7 +572,7 @@ class APNFunctions(FunctionDB):
                     "thickness" : max(new_thk_spec.keys()),
                     "ccz_id" : self.number_of_ccz_classes,
                     "walsh_L" : encode_lut(L_inv_T.masks, n+m),
-                    "mugshot" : mugshot(lut,
+                    "mugshot" : mugshot(new_lut,
                                         walsh_spec=walsh_spec,
                                         degree_spec=new_degree_spec,
                                         differential_spec=differential_spec,
@@ -627,20 +629,20 @@ class APNFunctions(FunctionDB):
                       differential_spec=differential_spec,
                       thickness_spec=thickness_spec)
         candidates = self.query_functions({"mugshot" : mug})
-        if len(candidates) == 0:
-            return ["absent"]
+        if candidates == []:
+            return ["absent", 0]
         elif test_ccz:
             # checking all the functions with a similar mugshot
             for entry in candidates:
                 if entry["lut"] == encoded:
-                    return ["present", entry["id"]]
+                    return ["present", entry["id"], entry["ccz_id"]]
                 else:
                     #print("manually testing CCZ equivalence")
                     if are_ccz_equivalent(entry["lut"], s):
-                        return ["present", entry["id"]]
+                        return ["present", entry["id"], entry["ccz_id"]]
             # if we checked for CCZ-equivalence and didn't find any
             # CCZ-equivalent function, then `s` is new...
-            return ["absent"]
+            return ["absent", 1]
         else:
             # ... but if we didn't check, then we can't be sure.
             return ["maybe", candidates[0]["id"]]
@@ -739,14 +741,16 @@ def fill_6bit_APNFunctions():
             SECTION("Case of the non-CCZ quadratic function")
             unique_non_quadratic = [0, 0, 0, 8, 0, 26, 40, 58, 0, 33, 10, 35, 12, 55, 46, 29, 0, 11, 12, 15, 4, 21, 32, 57, 20, 62, 18, 48, 28, 44, 50, 10, 0, 6, 18, 28, 10, 22, 48, 36, 8, 47, 16, 63, 14, 51, 62, 11, 5, 24, 27, 14, 11, 12, 61, 50, 25, 37, 13, 57, 27, 61, 39, 9]
             db.insert_full_ccz_equivalence_class(unique_non_quadratic, "non-quadratic")
+            print(db)
                     
 
 # !SUBSECTION! Main function
 
 
 def print_func(s):
-    print("lut={}\ndeg={}\nthk={}\nsig={}".format(
+    print("lut={}\nwal={}\ndeg={}\nthk={}\nsig={}".format(
         s,
+        pretty_spectrum(walsh_spectrum(s), absolute=True),
         pretty_spectrum(degree_spectrum(s)),
         pretty_spectrum(thickness_spectrum(s)),
         pretty_spectrum(sigma_multiplicities(s, 4))
@@ -762,28 +766,30 @@ if __name__ == "__main__":
 
     # fill_6bit_APNFunctions()
 
-    # with LogBook("Inspecting new CCZ-class"):
+    # with LogBook("Inspecting CCZ-class"):
     #     with APNFunctions() as db:
-    #         SECTION("Grabbing new functions")
-    #         funcs = db.query_functions({"id" : range(780, 900)})
+    #         SECTION("Grabbing functions")
+    #         print(db)
+    #         funcs = db.query_functions({"thickness" : 3})
     #         for entry in funcs:
     #             s = entry["lut"]
-    #             SECTION("function with id={}".format(entry["id"]))
-    #             print("lut={}\ndeg={}\nthk={}".format(
-    #                 s,
+    #             print("id={}\ndeg={}\nthk={}".format(
+    #                 entry["id"],
     #                 pretty_spectrum(degree_spectrum(s)),
     #                 pretty_spectrum(thickness_spectrum(s))
-    #             ))
-    
+    #             ), desc="n*")
+
+        
     with LogBook("Exploration 6-bit"):
         j = None
         with APNFunctions() as db:
             SECTION("Grabbing original APN functions")
             print(db)
-            funcs = db.query_functions({"n": 6, "degree": range(3, 8)})
-            shuffle(funcs)
+            funcs = db.query_functions({"n": 6, "degree" : range(3, 7)})
             for entry in funcs:
-                SECTION("APN function with id={}".format(entry["id"]), timed=True)
+                SECTION("APN function with id={} (from CCZ-class {})".format(
+                    entry["id"],
+                    entry["ccz_id"]), timed=True)
                 s = entry["lut"]
                 print_func(s)
                 SUBSECTION("computing switching neighbours", timed=True)
@@ -792,25 +798,28 @@ if __name__ == "__main__":
                 index = 0
                 shuffle(candidates)
                 seen = defaultdict(int)
-                for swi in ELEMENTS_OF(candidates[:50], "switching neighbours"):
+                for swi in ELEMENTS_OF(candidates[:20], "switching neighbours"):
                     is_known = db.is_present(swi, test_ccz=True)
                     if is_known[0] == "absent":
-                        SUBSECTION("neighbour n°{}".format(index))
-                        swi_id = db.insert_function_from_lut(swi, "switching")
-                        SUCCESS("found!")
+                        print(is_known)
+                        SUCCESS(str(swi))
                         print_func(swi)
-                        swi_entry = db.query_functions({"id": swi_id})[0]
-                        w = swi_entry["walsh_spaces"]
-                        for L in w.Ls:
-                            f = apply_mapping_to_graph(swi, L)
-                            if db.is_present(f, test_ccz=True)[0] == "absent":
-                                j = db.insert_function_from_lut(f)
-                                print("added new function with id={}".format(j))
-                                print_func(f)
-                            else:
-                                FAIL("somehow we got a known CCZ equivalence class from an unknown function")
+                        # SUBSECTION("neighbour n°{}".format(index))
+                        # swi_id = db.insert_function_from_lut(swi, "switching")
+                        # SUCCESS("found!")
+                        # print_func(swi)
+                        # swi_entry = db.query_functions({"id": swi_id})[0]
+                        # w = swi_entry["walsh_spaces"]
+                        # for L in w.Ls:
+                        #     f = apply_mapping_to_graph(swi, L)
+                        #     if db.is_present(f, test_ccz=True)[0] == "absent":
+                        #         j = db.insert_function_from_lut(f)
+                        #         print("added new function with id={}".format(j))
+                        #         print_func(f)
+                        #     else:
+                        #         FAIL("somehow we got a known CCZ equivalence class from an unknown function")
                     else:
-                        print("known ({})".format(is_known[1]), desc="n")
+                        print("known (id={}, ccz_id={})".format(is_known[1], is_known[2]), desc="n")
                         seen[is_known[1]] += 1
                         if seen[is_known[1]] > 20:
                             break

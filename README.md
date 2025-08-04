@@ -38,6 +38,13 @@ This compiles the C++ part of `sboxU` and installs the full `sboxU` module
 in your SAGE's python environment. You can then import `sboxU` like
 any other python module.
 
+
+If you want to upgrade to the latest version of `sboxU`, the command above will not work since you already have it installed. Instead, use the following one:
+
+
+    sage --pip install git+https://github.com/lpp-crypto/sboxU --upgrade --force-reinstall
+
+
 ### Installation via `nix`
 
 To create a development shell that contains SAGE with `sboxU` installed, use the following command:
