@@ -11,14 +11,23 @@ from sage.crypto.sboxes import SBox as sage_SBox
 
 # !SUBSECTION! Functions
 
-cdef cpp_SBox pyx_add_sboxes(cpp_SBox s, cpp_SBox t):
+cdef cpp_S_box pyx_add_sboxes(cpp_S_box s, cpp_S_box t):
+    """A wrapper for the cpp_S_box overloaded operator +."""
     return s.add(t)
 
-cdef cpp_SBox pyx_mul_sboxes(cpp_SBox s, cpp_SBox t):
+cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t):
+    """A wrapper for the cpp_S_box overloaded operator *."""
     return s.mul(t)
 
 
 def new_sbox_name():
+    """Returns a unique name that can be given to an S-box.
+
+    It uses the module variable `sboxU_SBOXES_COUNTER` to achieve this goal by incrementing it each time it is used.
+
+    Returns:
+        A bytearray corresponding to the next unique S_box name.
+    """
     global sboxU_SBOXES_COUNTER
     result = bytes("S_{}".format(sboxU_SBOXES_COUNTER).encode("UTF-8"))
     sboxU_SBOXES_COUNTER += 1
@@ -32,12 +41,16 @@ def new_sbox_name():
 cdef uint64_t sboxU_SBOXES_COUNTER = 0
 
 
-# !SECTION! The SBox class
+# !SECTION! The S_box class
 
 
 
-cdef class SBox:
+cdef class S_box:
     # "cdef" attributes are declared in the .pxd file
+    """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
+
+    Objects of this class should be initialized using the :py:func:Sb function.
+    """
                                  
     
     # !SUBSECTION! Initialization
@@ -57,19 +70,27 @@ cdef class SBox:
         elif isinstance(name, str):
             self.cpp_name = name.encode("UTF-8")
         else:
-            raise NotImplemented("trying to give invalid name to SBox: {}".format(name))
+            raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
 
         
     # !SUBSECTION! Python built-in methods
     
-    def __add__(SBox self, _s):
+    def __add__(S_box self, _s):
+        """Addition in F_2 (i.e., XOR).
+
+        Args:
+            _s: the S_box to add to the current one. Must be an S_boxable type.
+        
+        Returns:
+            An `S_box` instance whose output is the XOR of `self` and `_s`. 
+        """
         s = Sb(_s)
         if len(s) != len(self):
-            raise Exception("Trying to add SBoxes of different lengths:\n{}\n{}".format(self, s))
-        # below, the [0] is used to follow the SBox.cpp_sb pointer
+            raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self, s))
+        # below, the [0] is used to follow the S_box.cpp_sb pointer
         name = self.cpp_name + b"+" + s.name()
-        result = SBox(name)
-        (<SBox>result).set_inner_sbox(pyx_add_sboxes(self.cpp_sb[0], (<SBox>s).cpp_sb[0]))
+        result = S_box(name)
+        (<S_box>result).set_inner_sbox(pyx_add_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
         
 
@@ -88,10 +109,21 @@ cdef class SBox:
 
         
     def __getitem__(self, uint64_t x):
+        """Querying the S-box on a specific input.
+        
+        Args:
+            x: an integer whose binary representation corresponds to the input on which to query the S-box.
+        
+        Returns:
+            The result of calling this S-box on the input of `x`.
+        """
         return self.cpp_sb.brackets(x)
 
 
     def __len__(self):
+        """Returns:
+            The number of entries in the lookup table of this S_box.
+        """
         return self.cpp_sb.size()
 
     
@@ -113,46 +145,63 @@ cdef class SBox:
         return hash(self.cpp_sb.content_string_repr())
 
 
-
     def __pow__(self, d, modulo):
+        """Composing the S_box with itself (or with its inverse).
+
+        Args:
+            d: the number of times that the function should be iterated.
+
+        Returns:
+            If `d` is equal to 0, returns the identity S_Box. If it is a positive integer, returns the S_box corresponding to d iterations of the current S_box. If it is negative, does the same but for its inverse (throws an exception if the S_box is not invertible).
+        
+        The `modulo` argument is needed by the python syntax for the __pow__ function. An error will be thrown if it is set.
+        """
         if modulo != None:
             raise NotImplemented("why are you using a modulo (second pow argument) here?")
         elif d == 0:
-            return identity_SBox(len(self))
+            return identity_S_box(len(self))
         elif d == 1:
             return self
         elif d == -1:
             return self.inverse()
         else:
-            result = SBox(name=self.name() + b"**" + str(d).encode("UTF-8"))
-            (<SBox>result).set_inner_sbox(cpp_SBox(<cpp_vector[uint64_t]> list(self.input_space())))
+            result = S_box(name=self.name() + b"**" + str(d).encode("UTF-8"))
+            (<S_box>result).set_inner_sbox(cpp_S_box(<cpp_vector[uint64_t]> list(self.input_space())))
             if d >= 0:
                 for i in range(0, d):
-                    (<SBox>result).cpp_sb[0] = pyx_mul_sboxes((<SBox>self).cpp_sb[0],
-                                                              (<SBox>result).cpp_sb[0])
+                    (<S_box>result).cpp_sb[0] = pyx_mul_sboxes((<S_box>self).cpp_sb[0],
+                                                              (<S_box>result).cpp_sb[0])
                 return result
             elif self.is_invertible():
                 inv = self.inverse()
                 for i in range(0, -d):
-                    (<SBox>result).cpp_sb[0] = pyx_mul_sboxes((<SBox>inv).cpp_sb[0],
-                                                              (<SBox>result).cpp_sb[0])
+                    (<S_box>result).cpp_sb[0] = pyx_mul_sboxes((<S_box>inv).cpp_sb[0],
+                                                              (<S_box>result).cpp_sb[0])
                 return result
             else:
                 raise Exception("Trying to compute the negative power of a non-bijective function")
 
 
     def __lmul__(self):
-        return NotImplemented("Only right composition is implemented for objects of class SBox")
+        return NotImplemented("Only right composition is implemented for objects of class S_box")
 
     
-    def __mul__(SBox self, _s):
+    def __mul__(S_box self, _s):
+        """The composition operator.
+
+        Args:
+            _s: an S_boxable object with which the current S_box must be right-composed.
+
+        Returns:
+            An S_box corresponding to the function "F o _s", where F is the current S-box, and _s is the input to the function.
+        """
         s = Sb(_s)
         if self.get_input_length() != s.get_output_length():
-            raise Exception("Trying to compose SBoxes of incompatible lengths:\n{}\n{}".format(self, s))
-        # below, the [0] is used to follow the SBox.cpp_sb pointer
+            raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
+        # below, the [0] is used to follow the S_box.cpp_sb pointer
         name = self.cpp_name + b"*" + s.name()
-        result = SBox(name)
-        (<SBox>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<SBox>s).cpp_sb[0]))
+        result = S_box(name)
+        (<S_box>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
             
         
@@ -189,10 +238,10 @@ cdef class SBox:
         return self.cpp_sb.get_lut()
 
 
-    cdef set_inner_sbox(SBox self, cpp_SBox s):
+    cdef set_inner_sbox(S_box self, cpp_S_box s):
         if self.cpp_sb:
             del self.cpp_sb
-        self.cpp_sb = new cpp_SBox()
+        self.cpp_sb = new cpp_S_box()
         self.cpp_sb[0] = s
 
 
@@ -203,74 +252,100 @@ cdef class SBox:
     # !SUBSECTION! Function composition
 
     def is_invertible(self):
+        """Returns:
+            True if the current S_box is a bijection, False otherwise.
+        """
         return self.cpp_sb.is_invertible()
 
     
     def inverse(self):
+        """Returns:
+            An S_box instance corresponding to the compositional inverse of the current S_box.
+
+        If the current S_box is not invertible, will probably crash.
+        """
         name = self.cpp_name + b"^-1"
-        result = SBox(name=name)
-        (<SBox>result).set_inner_sbox(<cpp_SBox>(self.cpp_sb.inverse()))
+        result = S_box(name=name)
+        (<S_box>result).set_inner_sbox(<cpp_S_box>(self.cpp_sb.inverse()))
         return result
 
 
 
-# !SECTION! Generating SBoxes
+# !SECTION! Generating S_boxes
 
 
 # !SUBSECTION! Main factory 
 
 def Sb(s, name=None):
-    """Turns its input into an object of the SBox class.
+    """Turns its input into an object of the S_box class.
 
-    If it is already an SBox instance, simply returns its
+    If it is already an S_box instance, simply returns its
     input. Otherwise, builds the lookup table, and then create the
-    corresponding SBox instance.
+    corresponding S_box instance.
 
     Args:
-        - s: an object of a class that can be turned into an SBox.
+        - s: an object of a class that can be turned into an S_box.
         - name: the name to give the object. If none is provided, one
           will be picked using `sboxU_SBOXES_COUNTER`.
 
     """
-    if isinstance(s, SBox):
+    if isinstance(s, S_box):
         return s
     else:
-        result = SBox(name=name)
+        result = S_box(name=name)
         if isinstance(s, list):
-            (<SBox>result).cpp_sb = new cpp_SBox(<cpp_vector[uint64_t]>s)
-        elif isinstance(s, sage_SBox):
-            (<SBox>result).cpp_sb = new cpp_SBox(<cpp_vector[uint64_t]>list(s))
+            (<S_box>result).cpp_sb = new cpp_S_box(<cpp_vector[uint64_t]>s)
+        elif isinstance(s, sage_S_box):
+            (<S_box>result).cpp_sb = new cpp_S_box(<cpp_vector[uint64_t]>list(s))
             # !TODO! add other possible initializations (from polynomials for ex) 
         else:
             try:
-                result = s.get_SBox()
+                result = s.get_S_box()
             except:
-                raise NotImplemented("can't turn object of type '{}' into an SBox".format(type(s)))
+                raise NotImplemented("can't turn object of type '{}' into an S_box".format(type(s)))
     return result
 
 
 # !SUBSECTION! Simple structures
 
-cdef SBox pyx_F2_trans(uint64_t k, alphabet):
-    """Returns a translation by k over a finite field of
-    characteristic, i.e. a function that XORs `k` into its input.
-
-    """
-    if isinstance(alphabet, (int, Integer)):
-        n = alphabet
-    elif "degree" in dir(alphabet): # case of a field
-        n = alphabet.degree()
-    else:
-        raise NotImplemented("'{}' is an unknown alphabet".format(type(alphabet)))
-    result = SBox(name="Add_{}".format(k))
-    result.cpp_sb = new cpp_SBox()
+cdef S_box pyx_F2_trans(uint64_t k, n):
+    """Wrapper for the `cpp_translation` function. """
+    result = S_box(name="Add_{}".format(k))
+    result.cpp_sb = new cpp_S_box()
     result.cpp_sb[0] = cpp_translation(k, n)
     return result
 
 
-def F2_trans(k, alphabet):
-    return pyx_F2_trans(k, alphabet)
+def F2_trans(additive_cstte, field=None, bit_length=None):
+    """Returns an S_box containing the lookup table of a simple XOR over a given field extension of F_2.
+
+    If additive_cstte is an integer, then either `field` or `bit_length` must be set. If it is a field element, both `field` and `bit_length` will be ignored.
+    
+    Args:
+        additive_cstte: the constant to add. Can be a field element or an integer. If an integer, then the field used must be specified.
+        field: the field in which the multiplication must be made if `additive_cstte` is an integer.
+        bit_length: the bit-length to use for both the input and output if `additive_cstte` is an integer.
+
+    Returns:
+        An S_box instance
+    """
+    if isinstance(additive_cstte, (int, Integer)):
+        k = additive_cstte
+        if isinstance(bit_length, (int, Integer)):
+            n = bit_length
+        elif "degree" in dir(field): # case of a field
+            n = field.degree()
+        else:
+            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be speficied!")
+    else: # case where the additive constant is a finite field element
+        k = ffe_to_int(additive_cstte)
+        n = additive_cstte.parent().degree()
+    return pyx_F2_trans(k, n)
 
 
-def identity_SBox(length):
+def identity_S_box(length):
+    """Returns an S_box instance corresponding to the identity
+    function, i.e. the one mapping x to itself.
+
+    """
     return Sb(list(range(0, length)))

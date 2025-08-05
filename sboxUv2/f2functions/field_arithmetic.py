@@ -27,7 +27,7 @@ if SAGE_VERSION < (9, 8):
             return gf.__call__, lambda x : Integer(x)
 
         
-    def ffe_from_int(gf, x):
+    def ffe_from_int(x, gf):
         if gf.characteristic() > 2:
             return gf(x)
         else:
@@ -46,19 +46,20 @@ if SAGE_VERSION < (9, 8):
         
 else:
     def i2f_and_f2i(gf):
-        """Returns the functions mapping field elements to integers
-        (f2i) and integers to field elements (i2f) as a pair.
+        """A Helper function to deal with finite field elements and their integer representations.
+
+        Returns:
+            A pair of functions, namely the functions mapping field elements to integers (f2i) and the one mapping integers to field elements (i2f).
 
 
         Args:
-            - gf: the finite field with which we want to interact.
-              Could have been obtained using e.g. GF(q)
+            gf: the finite field with which we want to interact. Could have been obtained using e.g. GF(q)
 
         """
-        return gf.from_integer, lambda x : x.to_integer
+        return gf.from_integer, lambda x : x.to_integer()
 
 
-    def ffe_from_int(gf, x):
+    def ffe_from_int(x, gf):
         return gf.from_integer(x)
 
     

@@ -30,7 +30,7 @@ typedef uint64_t BinWord;
 // !SECTION! Components
 
 #include "f2functions.hpp"
-#include "sbox.hpp"
+#include "s_box.hpp"
 // #include "table.hpp"
 
 #endif
