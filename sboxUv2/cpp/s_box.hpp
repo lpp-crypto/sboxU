@@ -5,7 +5,7 @@
 #include "sboxU.hpp"
 
 
-class cpp_SBox
+class cpp_S_box
 {
 private:
     std::vector<BinWord> lut;
@@ -13,19 +13,19 @@ private:
     Integer output_length;
 
 public:
-    inline cpp_SBox() : lut(0), input_length(0), output_length(0) {} ;
+    inline cpp_S_box() : lut(0), input_length(0), output_length(0) {} ;
     
-    cpp_SBox(std::vector<BinWord> _lut,
+    cpp_S_box(std::vector<BinWord> _lut,
             Integer _input_length,
             Integer _output_length) ;
 
-    cpp_SBox(std::vector<BinWord> _lut) ;
+    cpp_S_box(std::vector<BinWord> _lut) ;
 
     BinWord operator[] (const BinWord x) const;
 
-    cpp_SBox operator+ (const cpp_SBox &s) const;
+    cpp_S_box operator+ (const cpp_S_box &s) const;
 
-    cpp_SBox operator* (const cpp_SBox &s) const;
+    cpp_S_box operator* (const cpp_S_box &s) const;
 
     std::string content_string_repr() const;
 
@@ -44,7 +44,7 @@ public:
 
     bool is_invertible() const;
 
-    cpp_SBox inverse() const;
+    cpp_S_box inverse() const;
     
     // !TODO! implement:
     // ! - .derivative(a)
@@ -59,7 +59,7 @@ public:
 };
 
 
-cpp_SBox cpp_translation(const BinWord a, const Integer input_bit_length);
+cpp_S_box cpp_translation(const BinWord a, const Integer input_bit_length);
 
 
 #endif

@@ -5,8 +5,8 @@ from sage.crypto.sboxes import sboxes
 
 if __name__ == "__main__":
     u = Sb(list(range(0, 16)))
-    s = random_permutation_SBox(16)
-    t = random_function_SBox(16, 8, name="t")
+    s = random_permutation_S_box(4)
+    t = random_function_S_box(4, 2, name="t")
     s_prime = Sb(list(s), name="S'")
     print("u      |", u)
     print("t      |", t)
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     print("comp**-1", comp.inverse())
     print("(mul**-1 o s**-1)**-1", ((mul**-1) * (s**-1))**-1)
 
-    print("+4", F2_trans(0x3, 4))
+    print("+4", F2_trans(0x3, bit_length=4))
 
     g = GF(16)
     print("gf_inv", monomial(14, g))
