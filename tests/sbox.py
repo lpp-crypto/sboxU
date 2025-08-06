@@ -11,6 +11,10 @@ if __name__ == "__main__":
     print("u      |", u)
     print("t      |", t)
     print("s      |", s)
+    for i in range(0, s.get_input_length()):
+        print(s.coordinate(i))
+        print(s.component(1 << i))
+
     print("lut(s) |", s.lut())
     print("t == u |", t == u)
     print("t == s |", t == s)
@@ -57,3 +61,6 @@ if __name__ == "__main__":
     sb0 = Sb(sboxes["Midori_Sb0"], name="Midori_Sb0")
     print("Midori_Sb0", sb0)
     print("Midori_Sb0 ** 2", sb0 ** 2)
+    
+    for delta in sb0.input_space():
+        print(sb0.derivative(delta))

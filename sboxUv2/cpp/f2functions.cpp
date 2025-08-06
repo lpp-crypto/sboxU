@@ -29,7 +29,7 @@ BinWord cpp_hamming_weight (BinWord x)
 }
 
 
-BinWord cpp_scalar_prod (BinWord x, BinWord y)
+BinWord cpp_scal_prod (BinWord x, BinWord y)
 {
     return __builtin_popcountll(x & y);
 }

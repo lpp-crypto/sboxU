@@ -9,7 +9,7 @@ BinWord cpp_lsb (BinWord x);
 
 BinWord cpp_hamming_weight (BinWord x);
 
-BinWord cpp_scalar_prod (BinWord x, BinWord y);
+BinWord cpp_scal_prod (BinWord x, BinWord y);
 
 BinWord cpp_oplus (BinWord x, BinWord y);
 

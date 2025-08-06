@@ -11,8 +11,8 @@ def hamming_weight(uint64_t x):
     return cpp_hamming_weight(x)
 
 
-def scalar_prod(uint64_t x, uint64_t y):
-    return cpp_scalar_prod(x, y)
+def scal_prod(uint64_t x, uint64_t y):
+    return cpp_scal_prod(x, y)
 
 
 def msb(uint64_t x):

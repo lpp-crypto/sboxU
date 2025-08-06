@@ -1,9 +1,8 @@
 #include "sboxU.hpp"
 
 
-// !SECTION! The cpp_S_box class
 
-// !SUBSECTION! Constructors 
+// !SECTION! Constructors 
 
 
 
@@ -33,7 +32,7 @@ cpp_S_box::cpp_S_box(std::vector<BinWord> _lut) :
     input_length = cpp_msb(lut.size());
 }
 
-// !SUBSECTION! Operator overloading 
+// !SECTION! Operator overloading 
 
 BinWord cpp_S_box::operator[] (const BinWord x) const
 {
@@ -72,7 +71,7 @@ cpp_S_box cpp_S_box::operator* (const cpp_S_box &s) const
 }
 
 
-// !SUBSECTION! Basic access methods
+// !SECTION! Basic access methods
 
 
 std::vector<BinWord> cpp_S_box::get_lut() const
@@ -123,7 +122,10 @@ Integer cpp_S_box::output_space_size() const
 }
 
 
-// !SUBSECTION! More sophisticated methods
+// !SECTION! More sophisticated operations
+
+
+// !SUBSECTION! Inversion 
 
 
 bool cpp_S_box::is_invertible() const
@@ -159,6 +161,39 @@ cpp_S_box cpp_S_box::inverse() const
     }
 }
 
+
+// !SUBSECTION! Basic math operations
+
+
+cpp_S_box cpp_S_box::coordinate(BinWord i) const
+{
+    std::vector<uint64_t> result_lut(input_space_size(), 0);
+    for(unsigned int x=0; x<result_lut.size(); x++)
+        result_lut[x] = (lut[x] >> i) & 1;
+    return cpp_S_box(result_lut, input_length, 1);
+}
+
+
+cpp_S_box cpp_S_box::component(BinWord a) const
+{
+    std::vector<uint64_t> result_lut(input_space_size(), 0);
+    for(unsigned int x=0; x<result_lut.size(); x++)
+        result_lut[x] = cpp_scal_prod(lut[x], a);
+    return cpp_S_box(result_lut, input_length, 1);
+}
+
+
+cpp_S_box cpp_S_box::derivative(BinWord delta) const
+{
+    std::vector<uint64_t> result_lut(lut.begin(), lut.end());
+    for(unsigned int x=0; x<result_lut.size(); x++)
+        result_lut[x] ^= lut[x ^ delta];
+    return cpp_S_box(result_lut, input_length, output_length);
+}
+
+
+
+// !SECTION! Other generating functions
 
 cpp_S_box cpp_translation(const BinWord a, const Integer input_length)
 {

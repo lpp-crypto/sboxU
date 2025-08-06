@@ -247,6 +247,44 @@ cdef class S_box:
 
     def name(self):
         return self.cpp_name
+
+    # !SUBSUBSECTION! Components and coordinates
+    
+    def coordinate(S_box self, uint64_t i):
+        """Args:
+            i: the index of the coordinate, where 0 is the bit of lowest weight.
+        
+        Returns:
+            An S_box instance mapping n bits to 1 corresponding to the i-th coordinate of S.
+        
+        """
+        assert i < self.cpp_sb.get_output_length()
+        result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
+        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.coordinate(<uint64_t>i))
+        return result
+        
+    
+    def component(S_box self, uint64_t a):
+        """Returns:
+            An S_box instance mapping n bits to 1 corresponding to the component x \mapsto S(x) \cdot a, where \cdot is the standard scalar product.
+        
+        """
+        result = S_box(name=self.cpp_name + ("⋅{:x}".format(a)).encode("UTF-8"))
+        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.component(<uint64_t>a))
+        return result
+        
+
+    # !SUBSUBSECTION! Derivatives
+
+    def derivative(S_box self, uint64_t delta):
+        """Returns:
+            An S_box of the same dimension as S corresponding to its derivative in the direction delta, i.e. x \mapsto S(x+delta)+S(x).
+        
+        """
+        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8") + self.cpp_name)
+        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.derivative(<uint64_t>delta))
+        return result
+        
     
     
     # !SUBSECTION! Function composition
@@ -295,7 +333,7 @@ def Sb(s, name=None):
         result = S_box(name=name)
         if isinstance(s, list):
             (<S_box>result).cpp_sb = new cpp_S_box(<cpp_vector[uint64_t]>s)
-        elif isinstance(s, sage_S_box):
+        elif isinstance(s, sage_SBox):
             (<S_box>result).cpp_sb = new cpp_S_box(<cpp_vector[uint64_t]>list(s))
             # !TODO! add other possible initializations (from polynomials for ex) 
         else:

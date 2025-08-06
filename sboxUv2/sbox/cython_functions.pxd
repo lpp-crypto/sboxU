@@ -30,6 +30,10 @@ cdef extern from "../cpp/s_box.hpp":
         int64_t output_space_size()
         bool is_invertible()
         cpp_S_box inverse() except +
+        cpp_S_box component(uint64_t a)
+        cpp_S_box coordinate(uint64_t a)
+        cpp_S_box derivative(uint64_t delta)
+
         
     cpp_S_box cpp_translation(const uint64_t a, const int64_t input_bit_length)
 
@@ -43,6 +47,7 @@ cdef class S_box:
     cdef cpp_S_box * cpp_sb
     cdef string cpp_name
     cdef set_inner_sbox(S_box self, cpp_S_box s)
+
 
     
 

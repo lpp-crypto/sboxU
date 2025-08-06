@@ -45,13 +45,16 @@ public:
     bool is_invertible() const;
 
     cpp_S_box inverse() const;
+
+    cpp_S_box coordinate(BinWord i) const;
+    
+    cpp_S_box component(BinWord a) const;
+    
+    cpp_S_box derivative(BinWord delta) const;
+
     
     // !TODO! implement:
-    // ! - .derivative(a)
-    // ! - .component(a)
     // ! - ANF (but not in a BooleanFunction way)
-    // ! - Component, Component of ANF
-
 
     // !TODO! documentation:
     // ! - endianess
