@@ -9,8 +9,11 @@ This branch is used for the development of `sboxUv2`, the 2.0 version of `sboxU`
 To install it, you need to have the code of this branch somewhere in your file system. Then, simply run:
 
 ```
-sage setup.py build_ext --inplace
-sage -pip install .
+sage -pip install -e .
 ```
 
 Then, you will be able to `import sboxUv2` from other sage scripts!
+
+Some tests are provided in the `tests` folder. You must compile and install `sboxUv2` using the command above in order for them to work.
+
+See the `docs` folder for matters related to documentation.

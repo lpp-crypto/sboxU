@@ -27,7 +27,6 @@ else:
 # !SECTION! Building modules
 
 # core functions over F_2, used throughout the library
-f2functions_cpp = [ "sboxUv2/cpp/f2functions.cpp" ]
 f2functions_module = Extension(
         "sboxUv2.f2functions.cython_functions",
         sources = ["sboxUv2/f2functions/cython_functions.pyx" ], #  /!\ name of pyx file must match extension name
@@ -36,11 +35,20 @@ f2functions_module = Extension(
         extra_compile_args = extra_compile_args,
 )
 
-# core module (F2_SBox class and friends)
-sbox_cpp = [ "sboxUv2/sbox/cpp/sbox.cpp" ]
+# core module (S_box and friends)
 sbox_module = Extension(
         "sboxUv2.sbox.cython_functions",
         sources = ["sboxUv2/sbox/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
+        language = "c++",
+        extra_link_args = extra_link_args,
+        extra_compile_args = extra_compile_args,
+)
+
+
+# dealing with statistical properties
+statistics_module = Extension(
+        "sboxUv2.statistics.cython_functions",
+        sources = ["sboxUv2/statistics/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
         language = "c++",
         extra_link_args = extra_link_args,
         extra_compile_args = extra_compile_args,
@@ -58,7 +66,7 @@ setup(
         [
                 f2functions_module,
                 sbox_module,
-                # tables_module
+                statistics_module,
         ],
         language_level = "3",
     ),

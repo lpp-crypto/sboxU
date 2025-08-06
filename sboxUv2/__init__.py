@@ -6,9 +6,11 @@ A particular focus is put on efficiency: large parts of this library are written
 
 """
 
-from .f2functions import *
-from .sbox import *
-# from .tables import *
 
-if __name__ == "__main__":
-    print("v2")
+
+from .f2functions import *
+    
+from .sbox import *
+    
+from .statistics import *
+

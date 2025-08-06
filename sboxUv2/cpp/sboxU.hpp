@@ -17,6 +17,10 @@
 // Exceptions
 #include <exception>
 
+// Multi-threading
+#include <thread>
+
+
 // !SECTION! Special types 
 
 
@@ -31,6 +35,6 @@ typedef uint64_t BinWord;
 
 #include "f2functions.hpp"
 #include "s_box.hpp"
-// #include "table.hpp"
+#include "statistics/spectrum.hpp"
 
 #endif

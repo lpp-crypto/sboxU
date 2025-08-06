@@ -1,9 +1,12 @@
 # -*- python -*-
 
-from ..f2functions import *
-from ..f2functions.cython_functions cimport *
+
+
+from sboxUv2.f2functions import *
+from sboxUv2.f2functions.cython_functions cimport *
 
 from sage.crypto.sboxes import SBox as sage_SBox
+from sage.all import Integer
 
 
 # !SECTION! Helpers
@@ -199,7 +202,7 @@ cdef class S_box:
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
         # below, the [0] is used to follow the S_box.cpp_sb pointer
-        name = self.cpp_name + b"*" + s.name()
+        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
@@ -269,7 +272,7 @@ cdef class S_box:
             An S_box instance mapping n bits to 1 corresponding to the component x \mapsto S(x) \cdot a, where \cdot is the standard scalar product.
         
         """
-        result = S_box(name=self.cpp_name + ("⋅{:x}".format(a)).encode("UTF-8"))
+        result = S_box(name=self.cpp_name + ("•{:x}".format(a)).encode("UTF-8"))
         result.set_inner_sbox(<cpp_S_box>self.cpp_sb.component(<uint64_t>a))
         return result
         

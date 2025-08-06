@@ -4,5 +4,10 @@ generate S-boxes.
 The idea here is not yet to study S-boxes, only to generate them, and store them in a way that allows calling C++ functions without 
 """
 
+import sys
+
+
+
 from .cython_functions import *
+
 from .misc import *

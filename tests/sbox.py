@@ -2,6 +2,7 @@
 
 from sboxUv2 import *
 from sage.crypto.sboxes import sboxes
+from sage.all import GF, Integer
 
 if __name__ == "__main__":
     u = Sb(list(range(0, 16)))

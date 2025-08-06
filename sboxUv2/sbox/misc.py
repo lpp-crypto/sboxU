@@ -4,12 +4,12 @@ instances.
 """
 
 
-from .cython_functions import *
-from ..f2functions import *
+from .cython_functions import S_box, Sb
+from sboxUv2.f2functions import i2f_and_f2i
 
 from random import shuffle, randint
 
-from sage.all import GF
+from sage.all import GF, Integer
 
 # !SECTION! Random SBoxes
 
