@@ -47,6 +47,7 @@ cdef class Spectrum:
     def keys(self):
         return self.cpp_sp.keys()
 
+    
     def incr(self, x):
         self.cpp_sp.incr(x)
 
@@ -86,3 +87,7 @@ def differential_spectrum(_s):
     )
     return result
     
+def ddt(_s):
+    s = Sb(_s)
+    result = cpp_ddt((<S_box>s).cpp_sb[0])
+    return result

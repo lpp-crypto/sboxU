@@ -49,6 +49,7 @@ cdef extern from "../cpp/statistics/spectrum.hpp":
 
 cdef extern from "../cpp/statistics/differential.hpp":
     cpp_Spectrum cpp_differential_spectrum(const cpp_S_box s, const int64_t n_threads)
+    cpp_vector[cpp_vector[int64_t]] cpp_ddt(const cpp_S_box s)
 
 
 cdef extern from "../cpp/statistics/differential.cpp":

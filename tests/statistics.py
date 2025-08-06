@@ -9,7 +9,10 @@ for t in range(0, 10):
     print("\n", v)
     print(sp.maximum(), sp.keys(), [(k,sp[k]) for k in sp.keys()])
 
-    s = random_permutation_S_box(4)
+for t in range(0, 10):
+    s = random_function_S_box(randint(3, 4), randint(3, 4))
     print(s)
     dif = differential_spectrum(s)
     print(dif.maximum(), dif.keys(), dif)
+    for row in ddt(s):
+        print(row)

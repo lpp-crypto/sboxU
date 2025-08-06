@@ -5,9 +5,10 @@
 
 class cpp_Spectrum
 {
-public:
-
+private:
     std::map<Integer, Integer> content;
+    
+public:
     
     cpp_Spectrum() : content() {} ;
 
@@ -15,7 +16,15 @@ public:
 
     Integer size() const;
     
-    std::map<Integer, Integer>::iterator iterator() ;
+    inline std::map<Integer, Integer>::const_iterator cbegin() const
+    {
+        return content.cbegin();
+    };
+
+    inline std::map<Integer, Integer>::const_iterator cend() const
+    {
+        return content.cend();
+    };
     
     Integer operator[] (const Integer x) ;
     

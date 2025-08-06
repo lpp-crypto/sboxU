@@ -21,13 +21,7 @@ Integer cpp_Spectrum::size() const
     return content.size();
 }
 
-
-std::map<Integer, Integer>::iterator cpp_Spectrum::iterator() 
-{
-    return content.begin();
-}
-
-    
+   
 Integer cpp_Spectrum::operator[] (const Integer x) 
 {
     return content[x];
@@ -36,8 +30,8 @@ Integer cpp_Spectrum::operator[] (const Integer x)
     
 void cpp_Spectrum::operator+= (const cpp_Spectrum sp) 
 {
-    for(auto &row : sp.content)
-        incr_by_amount(row.first, row.second);
+    for(auto row=sp.cbegin(); row!=sp.cend(); row++)
+        incr_by_amount(row->first, row->second);
 }
 
 
