@@ -4,12 +4,18 @@
 #include "../sboxU.hpp"
 #include "../s_box.hpp"
 
+
 cpp_Spectrum cpp_differential_spectrum(
     const cpp_S_box s,
     const unsigned int n_threads
     );
 
 std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box s) ;
+
+bool cpp_is_differential_uniformity_smaller_than(
+    const cpp_S_box s,
+    const Integer u
+    ) ;
 
 
 #endif

@@ -105,6 +105,19 @@ def ddt(s):
     return result
 
 
+def differential_uniformity(s):
+    sb = Sb(s)
+    dif = differential_spectrum(s)
+    return dif.maximum()
+
+
+def is_differential_uniformity_smaller_than(s, u):
+    sb = Sb(s)
+    return cpp_is_differential_uniformity_smaller_than(
+        (<S_box>sb).cpp_sb[0],
+        u
+    )
+
 
 # !SUBSECTION! Linear properties
 
@@ -133,6 +146,12 @@ def lat(s):
     return result
 
 
+
+def linearity(s):
+    sb = Sb(s)
+    wal = walsh_spectrum(s)
+    return wal.maximum()
+
         
 
 # !SUBSECTION! Boomerang properties
@@ -152,3 +171,10 @@ def bct(s):
     sb = Sb(s)
     result = cpp_bct((<S_box>sb).cpp_sb[0])
     return result
+
+
+def boomerang_uniformity(s):
+    sb = Sb(s)
+    bom = boomerang_spectrum(s)
+    return bom.maximum()
+

@@ -34,4 +34,10 @@ for name in ["Kuznyechik", "Fantomas"]:
             table_anomaly(s, tab),
             table_negative_anomaly(sboxes[name], tab)
         )
+    print("u = ", differential_uniformity(s))
+    for u in range(6, 20, 2):
+        if is_differential_uniformity_smaller_than(s, u):
+            print("u <= ", u)
+        else:
+            print("u > ", u)
 
