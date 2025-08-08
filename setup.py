@@ -57,10 +57,7 @@ statistics_module = Extension(
     
 # !SECTION! Final setup 
     
-setup(
-    name = "sboxUv2",
-    version = "2.0",
-    description = "SAGE/Python functions useful for studying S-boxes and Boolean functions such as computing the DDT, the Walsh spectrum, investigating their (CCZ/affine/EA equivalence classes...",
+setup( # names and others are specified in the pyproject.toml file
     packages = find_packages(),
     ext_modules=cythonize(
         [
