@@ -83,7 +83,10 @@ def Spctr(x):
 
 
 
-# !SECTION! Differential properties
+
+# !SECTION! Basic tables and spectra
+
+# !SUBSECTION! Differential properties
 
 
 def differential_spectrum(s):
@@ -103,9 +106,17 @@ def ddt(s):
 
 
 
-# !SECTION! Linear properties
+# !SUBSECTION! Linear properties
 
 
+def walsh_transform(s):
+    sb = Sb(s)
+    if sb.get_output_length() != 1:
+        raise Exception("Walsh transform takes as input a boolean function")
+    else:
+        return cpp_walsh_transform((<S_box>sb).cpp_sb[0])
+
+    
 def walsh_spectrum(s):
     sb = Sb(s)
     result = Spectrum()
@@ -122,11 +133,22 @@ def lat(s):
     return result
 
 
-def walsh_transform(s):
-    sb = Sb(s)
-    if sb.get_output_length() != 1:
-        raise Exception("Walsh transform takes as input a boolean function")
-    else:
-        return cpp_walsh_transform((<S_box>sb).cpp_sb[0])
-
         
+
+# !SUBSECTION! Boomerang properties
+
+
+def boomerang_spectrum(s):
+    sb = Sb(s)
+    result = Spectrum()
+    result.set_inner_sp(
+        cpp_boomerang_spectrum((<S_box>sb).cpp_sb[0],
+                               N_THREADS)
+    )
+    return result
+
+
+def bct(s):
+    sb = Sb(s)
+    result = cpp_bct((<S_box>sb).cpp_sb[0])
+    return result

@@ -28,7 +28,7 @@ for t in range(0, 10):
 for name in ["Kuznyechik", "Fantomas"]:
     print("\n\n", name)
     s = Sb(sboxes[name])
-    for tab in ["DDT", "LAT"]:
+    for tab in ["DDT", "LAT", "BCT"]:
         print(
             tab,
             table_anomaly(s, tab),

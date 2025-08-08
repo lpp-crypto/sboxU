@@ -57,7 +57,7 @@ cdef extern from "../cpp/statistics/differential.cpp":
     pass
 
 
-# # !SUBSECTION! Linear properties
+# !SUBSECTION! Linear properties
 
 cdef extern from "../cpp/statistics/linear.hpp":
     cpp_vector[int64_t] cpp_walsh_transform(const cpp_S_box s)
@@ -67,6 +67,19 @@ cdef extern from "../cpp/statistics/linear.hpp":
 
 
 cdef extern from "../cpp/statistics/linear.cpp":
+    pass
+
+
+
+# !SUBSECTION! Boomerang properties
+
+cdef extern from "../cpp/statistics/boomerang.hpp":
+    cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box s,
+                                        const int64_t n_threads)
+    cpp_vector[cpp_vector[int64_t]] cpp_bct(const cpp_S_box s)
+
+
+cdef extern from "../cpp/statistics/boomerang.cpp":
     pass
 
 

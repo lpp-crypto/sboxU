@@ -5,7 +5,8 @@ This reasoning is based on the probabilities for the DDT and LAT given in    [JM
 
 """
 
-from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial
+from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial, Infinity
+import itertools
 
 from sboxUv2.sbox import *
 from .cython_functions import *
@@ -14,7 +15,7 @@ from sboxUv2.config import DEFAULT_HIGH_PRECISION
 
 
 
-# # !SECTION! Probability distributions
+# !SECTION! Probability distributions
 
 
 
@@ -137,36 +138,41 @@ def expected_max_lat_function(m, n):
 
 # !SUBSECTION! BCT
 
-# def bct_coeff_probability(m, n, c, precision=DEFAULT_HIGH_PRECISION):
-#     """Returns the probability that a coefficient of the BCT of an S-Box
-#     mapping m bits to n is equal to c.
+def bct_coeff_probability(
+        in_length,
+        out_length,
+        c,
+        precision=DEFAULT_HIGH_PRECISION):
+    """Returns the probability that a coefficient of the BCT of an S-Box
+    mapping m bits to n is equal to c.
 
-#     This probability is only defined for permutations. Thus, an error is raised if m != n.
+    This probability is only defined for permutations. Thus, an error is raised if m != n.
 
-#     """
-#     big_precision = RealField(precision)
-#     if m != n:
-#         raise "the BCT is only defined when m==n"
-#     if c % 2 == 1:
-#         return RealNumber(0.0)
-#     B = big_precision(2**(n-1))
-#     A = big_precision(2**(2*n-2)-2**(n-1))
-#     p = big_precision(1/(2**n-1))
-#     q = p**2
-#     d = int(c/2)
-#     result = big_precision(0.0)
-#     base = big_precision(2**n-1)**(B + 2*A)
-#     for j1, j2 in itertools.product(range(0, d+1), range(0, d+1)):
-#         if 2*j1 + 4*j2 == c:
-#             # added = Integer(binomial(B, j1)) * RealNumber(p**j1) * RealNumber((1-p)**(B-j1)) * Integer(binomial(A, j2)) * RealNumber(q**(j2) * (1-q)**(A-j2))
-#             added = big_precision(binomial(B, j1)) * big_precision((2**n-2)**(B-j1)) * big_precision(binomial(A, j2)) * big_precision((2**(2*n)-2**(n+1))**(A-j2))
-#             if added > 0 and added < Infinity:
-#                 result += added / base
-#     return result
+    """
+    m, n = in_length, out_length
+    big_precision = RealField(precision)
+    if m != n:
+        raise "the BCT is only defined when m==n"
+    if c % 2 == 1:
+        return RealNumber(0.0)
+    B = big_precision(2**(n-1))
+    A = big_precision(2**(2*n-2)-2**(n-1))
+    p = big_precision(1/(2**n-1))
+    q = p**2
+    d = int(c/2)
+    result = big_precision(0.0)
+    base = big_precision(2**n-1)**(B + 2*A)
+    for j1, j2 in itertools.product(range(0, d+1), range(0, d+1)):
+        if 2*j1 + 4*j2 == c:
+            added = big_precision(binomial(B, j1)) * big_precision((2**n-2)**(B-j1)) * big_precision(binomial(A, j2)) * big_precision((2**(2*n)-2**(n+1))**(A-j2))
+            result += added / base
+    return result
 
     
-# # !SUBSECTION! Aggregated information from the tables
+# !SECTION! Aggregated information from the tables
 
+
+# !SUBSECTION! Helper functions 
 
 def probability_of_max_and_occurrences(
         in_length,
@@ -215,6 +221,8 @@ def get_proba_func(s, table):
         raise Exception("unknown table name: " + table_name)
     
 
+# !SUBSECTION! Anomaly computations
+
 def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
     """Computes the positive anomaly (in the sense of [AC:BonPerTia19]) of the S_box `s` that corresponds to its DDT, LAT or BCT.
 
@@ -234,9 +242,9 @@ def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
         elif table == "LAT":
             if spec == None:
                 spec = walsh_spectrum(s)
-        # else:
-        #     if spec == None:
-        #         spec = boomerang_spectrum(s)
+        else:
+            if spec == None:
+                spec = boomerang_spectrum(s)
         v_max = 0
         occurrences = 0
         for k in spec.keys():
@@ -279,9 +287,9 @@ def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION
             if spec == None:
                 spec = walsh_spectrum(s)
                 print(spec)
-        # else:
-        #     if spec == None:
-        #         spec = boomerang_spectrum(s)
+        else:
+            if spec == None:
+                spec = boomerang_spectrum(s)
         v_max = 0
         occurrences = 0
         for k in spec.keys():
