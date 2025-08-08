@@ -131,12 +131,15 @@ cdef class S_box:
 
     
     def __str__(self):
-        return "({:2d},{:2d}) {} = {}".format(
-            self.get_input_length(),
-            self.get_output_length(),
-            self.cpp_name.decode("UTF-8"),
-            self.cpp_sb.content_string_repr().decode("UTF-8")
-        )
+        if self.get_input_length() == 0:
+            return "[ ∅ ]"
+        else:
+            return "({:2d},{:2d}) {} = {}".format(
+                self.get_input_length(),
+                self.get_output_length(),
+                self.cpp_name.decode("UTF-8"),
+                self.cpp_sb.content_string_repr().decode("UTF-8")
+            )
 
     
     def __iter__(self):

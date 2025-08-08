@@ -54,6 +54,16 @@ statistics_module = Extension(
         extra_compile_args = extra_compile_args,
 )
 
+
+# APN functions an friends
+apn_module = Extension(
+        "sboxUv2.apn.cython_functions",
+        sources = ["sboxUv2/apn/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
+        language = "c++",
+        extra_link_args = extra_link_args,
+        extra_compile_args = extra_compile_args,
+)
+
     
 # !SECTION! Final setup 
     
@@ -64,6 +74,7 @@ setup( # names and others are specified in the pyproject.toml file
                 f2functions_module,
                 sbox_module,
                 statistics_module,
+                apn_module,
         ],
         language_level = "3",
     ),

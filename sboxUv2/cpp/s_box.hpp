@@ -64,5 +64,6 @@ public:
 
 cpp_S_box cpp_translation(const BinWord a, const Integer input_bit_length);
 
+cpp_S_box cpp_empty_S_box();
 
 #endif

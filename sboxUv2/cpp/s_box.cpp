@@ -203,3 +203,8 @@ cpp_S_box cpp_translation(const BinWord a, const Integer input_length)
         lut[x] = x ^ a;
     return cpp_S_box(lut);
 }
+
+cpp_S_box cpp_empty_S_box()
+{
+    return cpp_S_box(std::vector<BinWord>(0), 0, 0);
+}

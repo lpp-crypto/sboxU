@@ -16,3 +16,4 @@ from .sbox import *
     
 from .statistics import *
 
+from .apn import *

@@ -98,7 +98,8 @@ def monomial(d, field):
     assert field.characteristic() == 2
     assert isinstance(d, (int, Integer))
     i2f, f2i = i2f_and_f2i(field)
-    return Sb([f2i(i2f(x)**d) for x in range(0, field.cardinality())])
+    return Sb([f2i(i2f(x)**d) for x in range(0, field.cardinality())],
+              name="X^{}".format(d))
 
 
 # !SECTION! Simple wrappers
