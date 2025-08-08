@@ -22,8 +22,13 @@ for t in range(0, 10):
     print("-- LAT")
     wal = walsh_spectrum(s)
     print(wal.maximum(), wal.keys(), wal)
-    for row in lat(s):
+    l = lat(s)
+    for row in l:
         print(row)
+    if s == invert_lat(l):
+        print("LAT inversion successfull")
+    else:
+        print("LAT inversion [FAILED]")
 
 for name in ["Kuznyechik", "Fantomas"]:
     print("\n\n", name)

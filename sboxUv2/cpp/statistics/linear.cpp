@@ -1,5 +1,5 @@
-#include "linear.hpp"
 #include "../f2functions.hpp"
+#include "linear.hpp"
 
 
 
@@ -96,7 +96,6 @@ cpp_Spectrum cpp_walsh_spectrum(
                                           lower_bound,
                                           upper_bound));
             lower_bound = upper_bound;
-
         }
         for (unsigned int i=0; i<n_threads; i++)
         {
@@ -108,31 +107,29 @@ cpp_Spectrum cpp_walsh_spectrum(
 }
 
 
-// cpp_S_box cpp_invert_lat(
-//     const std::vector< std::vector<Integer> > l,
-//     const Integer input_length,
-//     const Integer output_length)
-// {
-//     Sbox result(l.size(), 0);
-//     for (unsigned int i=0; i<n; i++)
-//     {
-//         Integer b = (1 << i), sum;
-//         for (unsigned int x=0; x<l.size(); x++)
-//         {
-//             sum = 0;
-//             for (unsigned int a=0; a<l.size(); a++)
-//             {
-//                 if (scal_prod_cpp(a, x) == 0)
-//                     sum += l[a][b];
-//                 else
-//                     sum -= l[a][b];
-//             }
-//             if (sum < 0)
-//                 result[x] |= (1 << i) ;
-//         }
-//     }
-//     return result;
-// }
+cpp_S_box cpp_invert_lat(const std::vector< std::vector<Integer> > l)
+{
+    std::vector<BinWord> result(l.size(), 0);
+    for (unsigned int i=0; l[0].size() > (1 << i); i++)
+    {
+        Integer b = (1 << i), sum;
+        for (unsigned int x=0; x<l.size(); x++)
+        {
+            sum = 0;
+            for (unsigned int a=0; a<l.size(); a++)
+            {
+                if (cpp_scal_prod(a, x) == 0)
+                    sum += l[a][b];
+                else
+                    sum -= l[a][b];
+            }
+            if (sum < 0)
+                result[x] |= (1 << i) ;
+        }
+    }
+    return cpp_S_box(result);
+}
+
 
 // // !SUBSECTION! Internal routines 
 

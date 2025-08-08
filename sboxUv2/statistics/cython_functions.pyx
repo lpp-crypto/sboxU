@@ -146,6 +146,11 @@ def lat(s):
     return result
 
 
+def invert_lat(l):
+    sb = S_box(name="LAT^-1")
+    (<S_box>sb).set_inner_sbox(<cpp_S_box>cpp_invert_lat(l))
+    return sb
+
 
 def linearity(s):
     sb = Sb(s)

@@ -87,6 +87,9 @@ cdef extern from "../cpp/statistics/linear.hpp":
     cpp_vector[cpp_vector[int64_t]] cpp_lat(
         const cpp_S_box s
     )
+    cpp_S_box cpp_invert_lat(
+        cpp_vector[cpp_vector[int64_t]] table
+    )
 
 
 cdef extern from "../cpp/statistics/linear.cpp":
