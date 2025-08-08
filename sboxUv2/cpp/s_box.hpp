@@ -1,8 +1,8 @@
-#ifndef _SBOX_
-#define _SBOX_
-
+#ifndef _S_BOX_
+#define _S_BOX_
 
 #include "sboxU.hpp"
+#include "f2functions.hpp"
 
 
 class cpp_S_box

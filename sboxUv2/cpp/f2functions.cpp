@@ -1,4 +1,4 @@
-#include "sboxU.hpp"
+#include "f2functions.hpp"
 
 
 /* The functions defined in this file rely a lot on g++ built-ins
@@ -31,7 +31,7 @@ BinWord cpp_hamming_weight (BinWord x)
 
 BinWord cpp_scal_prod (BinWord x, BinWord y)
 {
-    return __builtin_popcountll(x & y);
+    return __builtin_parity(x & y);
 }
 
 

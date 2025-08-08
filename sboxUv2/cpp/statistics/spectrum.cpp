@@ -1,4 +1,4 @@
-#include "../sboxU.hpp"
+#include "spectrum.hpp"
 
 
 Integer cpp_Spectrum::maximum() const
@@ -47,7 +47,7 @@ std::vector<Integer> cpp_Spectrum::keys() const
 
 void cpp_Spectrum::incr(const Integer entry)
 {
-    content[entry] ++;
+    content[entry] += 1;
 }
 
     

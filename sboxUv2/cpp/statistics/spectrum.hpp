@@ -1,7 +1,9 @@
-#ifndef _SPECTRUM_
-#define _SPECTRUM_
+#ifndef _STAT_SPECTRUM_
+#define _STAT_SPECTRUM_
 
 #include "../sboxU.hpp"
+#include "../s_box.hpp"
+
 
 class cpp_Spectrum
 {

@@ -1,4 +1,4 @@
-#include "sboxU.hpp"
+#include "s_box.hpp"
 
 
 
@@ -177,7 +177,7 @@ cpp_S_box cpp_S_box::coordinate(BinWord i) const
 cpp_S_box cpp_S_box::component(BinWord a) const
 {
     std::vector<uint64_t> result_lut(input_space_size(), 0);
-    for(unsigned int x=0; x<result_lut.size(); x++)
+    for(unsigned int x=0; x<input_space_size(); x++)
         result_lut[x] = cpp_scal_prod(lut[x], a);
     return cpp_S_box(result_lut, input_length, 1);
 }

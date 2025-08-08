@@ -99,3 +99,38 @@ def monomial(d, field):
     assert isinstance(d, (int, Integer))
     i2f, f2i = i2f_and_f2i(field)
     return Sb([f2i(i2f(x)**d) for x in range(0, field.cardinality())])
+
+
+# !SECTION! Simple wrappers
+
+def inverse(s):
+    """Compositional inversion.
+    
+    Args:
+        - s: an S_boxable object.
+
+    Returns:
+        An S_box object corresponding to the compositional inverse of s.
+    """
+    if isinstance(s, (S_box)):
+        return s.inverse()
+    else:        
+        sb = Sb(s)
+        return sb.inverse()
+
+
+def is_permutation(s):
+    """Returns True if and only if `s` is an S_boxable object corresponding to a bijective function.
+
+    Args:
+        - s: an S_boxable object
+
+    Returns:
+        True if and only if s corresponds to a bijection.
+    """
+    if isinstance(s, (S_box)):
+        return s.is_invertible()
+    else:        
+        sb = Sb(s)
+        return sb.is_invertible()
+    

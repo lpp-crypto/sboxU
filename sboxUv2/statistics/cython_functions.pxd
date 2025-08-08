@@ -29,7 +29,7 @@ from sboxUv2.sbox.cython_functions cimport *
 # !SUBSECTION! The cpp_Spectrum class
 
 
-cdef extern from "../cpp/statistics/spectrum.cpp":
+cdef extern from "../cpp/statistics/spectrum.hpp":
     cdef cppclass cpp_Spectrum:
         cpp_Spectrum()
         int64_t maximum() const
@@ -41,18 +41,32 @@ cdef extern from "../cpp/statistics/spectrum.cpp":
         int64_t size() const
 
     
-cdef extern from "../cpp/statistics/spectrum.hpp":
+cdef extern from "../cpp/statistics/spectrum.cpp":
     pass
 
 
-# # !SUBSECTION! Differential properties
+# !SUBSECTION! Differential properties
 
 cdef extern from "../cpp/statistics/differential.hpp":
-    cpp_Spectrum cpp_differential_spectrum(const cpp_S_box s, const int64_t n_threads)
+    cpp_Spectrum cpp_differential_spectrum(const cpp_S_box s,
+                                           const int64_t n_threads)
     cpp_vector[cpp_vector[int64_t]] cpp_ddt(const cpp_S_box s)
 
 
 cdef extern from "../cpp/statistics/differential.cpp":
+    pass
+
+
+# # !SUBSECTION! Linear properties
+
+cdef extern from "../cpp/statistics/linear.hpp":
+    cpp_vector[int64_t] cpp_walsh_transform(const cpp_S_box s)
+    cpp_Spectrum cpp_walsh_spectrum(const cpp_S_box s,
+                                    const int64_t n_threads)
+    cpp_vector[cpp_vector[int64_t]] cpp_lat(const cpp_S_box s)
+
+
+cdef extern from "../cpp/statistics/linear.cpp":
     pass
 
 

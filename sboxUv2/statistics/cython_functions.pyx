@@ -42,6 +42,12 @@ cdef class Spectrum:
             "b"
         )
         return result + "}"
+
+    
+    def __iter__(self):
+        for x in self.cpp_sp.keys():
+            yield x
+
     
     
     def keys(self):
@@ -66,8 +72,9 @@ cdef class Spectrum:
 
 # !SUBSECTION! A Spectrum factory
 
+
 def Spctr(x):
-    if isinstance(x, list):
+    if isinstance(x, (list)):
         result = Spectrum()
         result.incr_by_counting(x)
         return result
@@ -76,18 +83,50 @@ def Spctr(x):
 
 
 
-# !SECTION! Differential Properties
+# !SECTION! Differential properties
 
-def differential_spectrum(_s):
-    s = Sb(_s)
+
+def differential_spectrum(s):
+    sb = Sb(s)
     result = Spectrum()
     result.set_inner_sp(
-        cpp_differential_spectrum((<S_box>s).cpp_sb[0],
+        cpp_differential_spectrum((<S_box>sb).cpp_sb[0],
                                   N_THREADS)
     )
     return result
-    
-def ddt(_s):
-    s = Sb(_s)
-    result = cpp_ddt((<S_box>s).cpp_sb[0])
+
+
+def ddt(s):
+    sb = Sb(s)
+    result = cpp_ddt((<S_box>sb).cpp_sb[0])
     return result
+
+
+
+# !SECTION! Linear properties
+
+
+def walsh_spectrum(s):
+    sb = Sb(s)
+    result = Spectrum()
+    result.set_inner_sp(
+        cpp_walsh_spectrum((<S_box>sb).cpp_sb[0],
+                           N_THREADS)
+    )
+    return result
+
+
+def lat(s):
+    sb = Sb(s)
+    result = cpp_lat((<S_box>sb).cpp_sb[0])
+    return result
+
+
+def walsh_transform(s):
+    sb = Sb(s)
+    if sb.get_output_length() != 1:
+        raise Exception("Walsh transform takes as input a boolean function")
+    else:
+        return cpp_walsh_transform((<S_box>sb).cpp_sb[0])
+
+        

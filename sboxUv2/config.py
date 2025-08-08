@@ -1,7 +1,13 @@
-"""The maximum number of threads used in each function.
+"""The maximum number of threads used in each function. """
+N_THREADS = 8
+
+
+
+"""The number of bits of precision to use when performing high precision real arithmetic.
 
 """
-N_THREADS = 8
+DEFAULT_HIGH_PRECISION = 80
+
 
 
 BOLD_START = "\033[1m"

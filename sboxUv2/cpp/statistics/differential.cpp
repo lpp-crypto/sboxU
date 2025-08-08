@@ -1,6 +1,4 @@
-#include "../sboxU.hpp"
-
-
+#include "differential.hpp"
 
 
 std::vector<Integer> cpp_ddt_row(const cpp_S_box s, const BinWord delta)
@@ -54,7 +52,7 @@ cpp_Spectrum cpp_differential_spectrum(
         BinWord lower_bound = 1;
         for (unsigned int i=0; i<n_threads; i++)
         {
-            // Will break on 32-bit arch is nthreads*s.size >= 1 << 32
+            // Will break on 32-bit arch if nthreads*s.size >= 1 << 32
             BinWord upper_bound = ((i+1)*s.input_space_size())/n_threads;
             threads.push_back(std::thread(cpp_ddt_rows_count,
                                           std::ref(local_counts[i]),
