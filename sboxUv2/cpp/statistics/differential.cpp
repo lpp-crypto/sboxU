@@ -84,17 +84,20 @@ cpp_Spectrum cpp_differential_spectrum(
 // !SECTION! Testing differential uniformity
 
 
-
 bool cpp_is_ddt_row_max_smaller_than_2(
     const cpp_S_box & s,
     const BinWord a)
 {
     std::vector<uint64_t> row(s.input_space_size() >> 6,0);
-    for (unsigned int x=0; x<s.input_space_size(); x++)
+    BinWord max_bit = s.input_space_size()/2 ;
+    for (unsigned int i=0; i<max_bit; i++)
     {
+        BinWord x = i;
         BinWord y = x^a;
-        if (y < x)
-            continue;
+        if (y < x){
+            x+=max_bit;
+            y+=max_bit;
+        }
         BinWord d_out = s[y] ^ s[x];
         // Assumes BinWord unsigned
         size_t index = d_out >> 6;
@@ -113,10 +116,17 @@ bool cpp_is_ddt_row_max_smaller_than_u(
     const Integer u)
 {
     std::vector<Integer> row(s.input_space_size(), 0);
-    for (unsigned int x=0; x<s.input_space_size(); x++)
+    BinWord max_bit = s.input_space_size()/2 ;
+    for (unsigned int i=0; i<max_bit; i++)
     {
-        BinWord d_out = s[x^a] ^ s[x];
-        row[d_out] ++ ;
+        BinWord x = i;
+        BinWord y = x^a;
+        if (y < x){
+            x+=max_bit;
+            y+=max_bit;
+        }
+        BinWord d_out = s[y] ^ s[x];
+        row[d_out] += 2 ;
         if (row[d_out] > u)
             return false;
     }

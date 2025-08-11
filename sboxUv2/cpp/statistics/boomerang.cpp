@@ -10,20 +10,44 @@ std::vector<Integer> bct_row(
     const cpp_S_box & s_inv,
     const BinWord a)
 {
-    std::vector<Integer> result(s.input_space_size(), 0);
-    std::vector<std::vector<BinWord> > xor_list(
-        s.input_space_size(),
-        std::vector<BinWord>(0)
-        );
-    for (BinWord x=0; x<s.input_space_size(); x++)
+    if (a == 0)
+        return std::vector<Integer>(s.output_space_size(),s.input_space_size());
+
+    std::vector<Integer> result(s.size(), 0);
+    std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
+
+    result[0] = s.input_space_size();
+    BinWord max_bit = s.input_space_size()/2 ;
+    for (unsigned int i=0; i<max_bit; i++)
     {
-        BinWord y = x ^ s[s_inv[x] ^ a];
-        xor_list[y].push_back(x);
+        BinWord x = i;
+        BinWord y = x^a;
+        if (y < x){
+            x+=max_bit;
+            y+=max_bit;
+        }
+        BinWord z = s[x] ^ s[y];
+        xor_list[z].push_back(s[x]);
+        result[z] += 2;
     }
-    for (BinWord y=0; y<s.input_space_size(); y++)
-        for (BinWord &x1 : xor_list[y])
-            for (BinWord &x2 : xor_list[y])
-                result[x1 ^ x2] ++ ;
+
+
+    for (BinWord z=0; z<s.size(); z++)
+    {
+        auto collision_list = xor_list[z];
+        size_t len = collision_list.size();
+        for(size_t i = 0; i < len; i++)
+        {
+            BinWord z1 = collision_list[i];
+            for(size_t j = i+1; j < len; j++)
+            {
+                BinWord z2 = collision_list[j];
+                result[ z1 ^ z2 ] += 4;
+                if( z > 0 )
+                    result[ z1 ^ z2 ^ z ] += 4;
+            }
+        }
+    }
     return result;
 }
 
