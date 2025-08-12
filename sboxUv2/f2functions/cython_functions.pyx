@@ -70,6 +70,10 @@ cdef class Linear_basis:
         return self.cpp_lb[0].span()
     
 
+    def is_in_span(self, uint64_t x):
+        return self.cpp_lb[0].is_in_span(x)
+    
+        
 # !SECTION! Convenient XOR abstractions
 
 def xor(*args):

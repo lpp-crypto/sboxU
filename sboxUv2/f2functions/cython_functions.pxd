@@ -1,6 +1,7 @@
 # -*- python -*-
 
 from libc.stdint cimport uint64_t, int64_t
+from libcpp cimport bool
 from libcpp.vector cimport vector as cpp_vector
 
 
@@ -42,6 +43,9 @@ cdef extern from "../cpp/f2functions.hpp":
         void add_to_span(
             uint64_t x
         )
+        bool is_in_span(
+            uint64_t x
+        ) const
         cpp_vector[uint64_t] get_basis() const
         
         int64_t rank() const

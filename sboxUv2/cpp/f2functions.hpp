@@ -66,6 +66,8 @@ public:
 
     void add_to_span(BinWord x);
 
+    bool is_in_span(BinWord x) const ;
+
     std::vector<BinWord> get_basis() const;
 
     inline Integer rank() const

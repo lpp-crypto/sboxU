@@ -81,8 +81,6 @@ void cpp_Linear_basis::add_to_span(BinWord x)
             return;  // x was already in the span, we do nothing
         else if ((b.first <= m) and (y < x))
             x = y;   // if b is smaller than x, then we extract it from x
-        else if (b.first == m)  // in this case, no need to check that y < x
-            x = y;
         else if ((b.first > m))
             break;              // there is nothing left to extract from x
     }
@@ -98,6 +96,22 @@ void cpp_Linear_basis::add_to_span(BinWord x)
             if (y < b.second)
                 basis[b.first] = y;
         }
+}
+
+bool cpp_Linear_basis::is_in_span(BinWord x) const
+{
+    Integer m = cpp_msb(x);    
+    for(auto b : basis)
+    {
+        BinWord y = x ^ b.second;
+        if (y == 0)
+            return true; 
+        else if ((b.first <= m) and (y < x))
+            x = y;   // if b is smaller than x, then we extract it from x
+        else if ((b.first > m))
+            return false;
+    }
+    return (x == 0);
 }
 
 

@@ -40,11 +40,15 @@ if __name__ == "__main__":
             print(hex(x))
             l.add_to_span(x)
             span = l.span()
-            print("{:3d} {:3d} {} | {}".format(
+            y = randint(0, 2**n)
+            print("{:3d} {:3d} {} | {} | {:x} in span? {} {}".format(
                 l.rank(),
                 rank_of_vector_set(l),
                 x in span,
-                l
+                l,
+                y,
+                l.is_in_span(y),
+                y in span
             ))
             
             
