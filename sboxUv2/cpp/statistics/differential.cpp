@@ -1,7 +1,5 @@
 #include "differential.hpp"
 
-
-
 // !SECTION! The DDT itself 
 
 std::vector<Integer> cpp_ddt_row(const cpp_S_box & s, const BinWord delta)
@@ -89,16 +87,12 @@ bool cpp_is_ddt_row_max_smaller_than_2(
     const BinWord a)
 {
     std::vector<uint64_t> row(s.input_space_size() >> 6,0);
-    BinWord max_bit = s.input_space_size()/2 ;
-    for (unsigned int i=0; i<max_bit; i++)
+
+    for( DifferentialPairEnumerator h(s.input_space_size(), a);!h.ended();)
     {
-        BinWord x = i;
-        BinWord y = x^a;
-        if (y < x){
-            x+=max_bit;
-            y+=max_bit;
-        }
-        BinWord d_out = s[y] ^ s[x];
+        DifferentialPair n = h.next();
+
+        BinWord d_out = s[n.x] ^ s[n.y];
         // Assumes BinWord unsigned
         size_t index = d_out >> 6;
         uint64_t field = ((uint64_t) 1) << (d_out & 0x3F);
@@ -116,16 +110,11 @@ bool cpp_is_ddt_row_max_smaller_than_u(
     const Integer u)
 {
     std::vector<Integer> row(s.input_space_size(), 0);
-    BinWord max_bit = s.input_space_size()/2 ;
-    for (unsigned int i=0; i<max_bit; i++)
+
+    for( DifferentialPairEnumerator h(s.input_space_size(), a);!h.ended();)
     {
-        BinWord x = i;
-        BinWord y = x^a;
-        if (y < x){
-            x+=max_bit;
-            y+=max_bit;
-        }
-        BinWord d_out = s[y] ^ s[x];
+        DifferentialPair n = h.next();
+        BinWord d_out = s[n.y] ^ s[n.x];
         row[d_out] += 2 ;
         if (row[d_out] > u)
             return false;
