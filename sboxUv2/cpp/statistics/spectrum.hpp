@@ -16,7 +16,10 @@ public:
 
     Integer maximum() const;
 
-    Integer size() const;
+    inline Integer size() const
+    {
+        return content.size();
+    }
     
     inline std::map<Integer, Integer>::const_iterator cbegin() const
     {
@@ -28,17 +31,27 @@ public:
         return content.cend();
     };
     
-    Integer operator[] (const Integer x) ;
+    inline Integer operator[] (const Integer x)
+    {
+        return content[x];
+    };
+    
     
     void operator+= (const cpp_Spectrum sp) ;
 
     std::vector<Integer> keys() const ;
 
-    void incr(const Integer entry);
+    inline void incr(const Integer entry)
+    {
+        content[entry] ++;
+    }
     
-    void incr_by_amount(const Integer entry, const Integer amount);
+    inline void incr_by_amount(const Integer entry, const Integer amount)
+    {
+        content[entry] += amount;
+    }
 
-    void incr_by_counting(const std::vector<Integer> vector_to_count);
+    void incr_by_counting(const std::vector<Integer> & vector_to_count);
 };
 
 #endif

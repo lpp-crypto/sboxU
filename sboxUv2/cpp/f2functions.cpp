@@ -1,51 +1,11 @@
 #include "f2functions.hpp"
 
 
-// !SECTION! Bit-fiddling 
-
-/* The functions defined in this file rely a lot on g++ built-ins
- * intended for bit-fiddling. More info can be found online:
- *
- * https://gcc.gnu.org/onlinedocs/gcc/Bit-Operation-Builtins.html
- *
- */
-
-BinWord cpp_msb(BinWord x)
-{
-    if (x == 0)
-        return 0;
-    else
-        return 8*(sizeof(BinWord)) - __builtin_clzll(x) - 1;
-}
-
-
-BinWord cpp_lsb(BinWord x)
-{
-    return __builtin_ctzll(x);
-}
-
-
-BinWord cpp_hamming_weight (BinWord x)
-{
-    return __builtin_popcountll(x) ;
-}
-
-
-BinWord cpp_scal_prod (BinWord x, BinWord y)
-{
-    return __builtin_parity(x & y);
-}
-
-
-BinWord cpp_oplus (BinWord x, BinWord y)
-{
-    return x ^ y;
-}
 
 
 // !SECTION! Linear combinations and their ranks
 
-BinWord cpp_linear_combination (std::vector<BinWord> l, BinWord mask)
+BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask)
 {
     BinWord result = 0;
     for(auto &x : l)
@@ -78,7 +38,7 @@ Integer cpp_rank_of_vector_set(std::vector<BinWord> l)
 }
 
 
-cpp_Linear_basis::cpp_Linear_basis(std::vector<BinWord> l) :
+cpp_Linear_basis::cpp_Linear_basis(const std::vector<BinWord> & l) :
     basis()
 {
     for(auto &v : l)
@@ -148,12 +108,6 @@ std::vector<BinWord> cpp_Linear_basis::get_basis() const
     for (auto b : basis)
         result.push_back(b.second);
     return result;
-}
-
-
-Integer cpp_Linear_basis::rank() const
-{
-    return basis.size();
 }
 
 

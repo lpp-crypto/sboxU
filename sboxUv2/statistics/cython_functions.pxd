@@ -41,7 +41,7 @@ cdef extern from "../cpp/statistics/spectrum.hpp":
             const int64_t amount
         )
         void incr_by_counting(
-            const cpp_vector[int64_t] vector_to_count
+            const cpp_vector[int64_t] & vector_to_count
         )
         int64_t brackets "operator[]"(
             const int64_t key

@@ -14,19 +14,6 @@ Integer cpp_Spectrum::maximum() const
         return result;
     }
 }
-
-
-Integer cpp_Spectrum::size() const
-{
-    return content.size();
-}
-
-   
-Integer cpp_Spectrum::operator[] (const Integer x) 
-{
-    return content[x];
-}
-
     
 void cpp_Spectrum::operator+= (const cpp_Spectrum sp) 
 {
@@ -45,19 +32,7 @@ std::vector<Integer> cpp_Spectrum::keys() const
 }
 
 
-void cpp_Spectrum::incr(const Integer entry)
-{
-    content[entry] += 1;
-}
-
-    
-void cpp_Spectrum::incr_by_amount(const Integer entry, const Integer amount)
-{
-    content[entry] += amount;
-}
-
-
-void cpp_Spectrum::incr_by_counting(const std::vector<Integer> vector_to_count)
+void cpp_Spectrum::incr_by_counting(const std::vector<Integer> & vector_to_count)
 {
     for(auto &c : vector_to_count)
         incr(c);

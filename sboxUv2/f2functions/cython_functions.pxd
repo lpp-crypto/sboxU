@@ -8,24 +8,24 @@ from libcpp.vector cimport vector as cpp_vector
 
 cdef extern from "../cpp/f2functions.hpp":
     uint64_t cpp_msb (
-        uint64_t x
+        const uint64_t x
     )
     uint64_t cpp_lsb (
-        uint64_t x
+        const uint64_t x
     )
     uint64_t cpp_hamming_weight (
-        uint64_t x
+        const uint64_t x
     )
     uint64_t cpp_scal_prod (
-        uint64_t x,
-        uint64_t y
+        const uint64_t x,
+        const uint64_t y
     )
     uint64_t cpp_oplus (
-        uint64_t x,
-        uint64_t y
+        const uint64_t x,
+        const uint64_t y
     )
     uint64_t cpp_linear_combination (
-        cpp_vector[uint64_t] v,
+        const cpp_vector[uint64_t] & v,
         uint64_t mask
     )
     int64_t cpp_rank_of_vector_set(
@@ -37,10 +37,10 @@ cdef extern from "../cpp/f2functions.hpp":
     cppclass cpp_Linear_basis:
     
         cpp_Linear_basis(
-            cpp_vector[uint64_t] l
+            const cpp_vector[uint64_t] & l
         )
         void add_to_span(
-            const uint64_t x
+            uint64_t x
         )
         cpp_vector[uint64_t] get_basis() const
         
