@@ -45,20 +45,30 @@ sbox_module = Extension(
 )
 
 
-# # important low-level algorithms
-# algorithms_module = Extension(
-#         "sboxUv2.algorithms.cython_functions",
-#         sources = ["sboxUv2/algorithms/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
-#         language = "c++",
-#         extra_link_args = extra_link_args,
-#         extra_compile_args = extra_compile_args,
-# )
+# important low-level algorithms
+algorithms_module = Extension(
+        "sboxUv2.algorithms.cython_functions",
+        sources = ["sboxUv2/algorithms/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
+        language = "c++",
+        extra_link_args = extra_link_args,
+        extra_compile_args = extra_compile_args,
+)
 
 
 # dealing with statistical properties
 statistics_module = Extension(
         "sboxUv2.statistics.cython_functions",
         sources = ["sboxUv2/statistics/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
+        language = "c++",
+        extra_link_args = extra_link_args,
+        extra_compile_args = extra_compile_args,
+)
+
+
+# investigating CCZ-equivalence classes
+ccz_module = Extension(
+        "sboxUv2.ccz.cython_functions",
+        sources = ["sboxUv2/ccz/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
         language = "c++",
         extra_link_args = extra_link_args,
         extra_compile_args = extra_compile_args,
@@ -84,6 +94,8 @@ setup( # names and others are specified in the pyproject.toml file
                 f2functions_module,
                 sbox_module,
                 statistics_module,
+                algorithms_module,
+                ccz_module,
                 # apn_module,
         ],
         language_level = "3",

@@ -20,6 +20,8 @@
 // Multi-threading
 #include <thread>
 
+// Standard algorithms
+#include <algorithm>
 
 // !SECTION! Special types 
 
