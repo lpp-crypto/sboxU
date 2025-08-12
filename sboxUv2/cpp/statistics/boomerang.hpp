@@ -5,11 +5,11 @@
 #include "../s_box.hpp"
 
 cpp_Spectrum cpp_bct_spectrum(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const unsigned int n_threads
     );
 
-std::vector< std::vector<Integer> > cpp_bct(const cpp_S_box s) ;
+std::vector< std::vector<Integer> > cpp_bct(const cpp_S_box & s) ;
 
 
 #endif

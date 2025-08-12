@@ -6,8 +6,8 @@
 
 
 std::vector<Integer> bct_row(
-    const cpp_S_box s,
-    const cpp_S_box s_inv,
+    const cpp_S_box & s,
+    const cpp_S_box & s_inv,
     const BinWord a)
 {
     std::vector<Integer> result(s.input_space_size(), 0);
@@ -28,7 +28,7 @@ std::vector<Integer> bct_row(
 }
 
 
-std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box s)
+std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 {
 	std::vector< std::vector<Integer>> table_bct ;
         table_bct.reserve(s.input_space_size());
@@ -43,8 +43,8 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box s)
 
 void bct_rows_count(
     cpp_Spectrum &result,
-    const cpp_S_box s,
-    const cpp_S_box s_inv,
+    const cpp_S_box & s,
+    const cpp_S_box & s_inv,
     const BinWord a_min,
     const BinWord a_max)
 {
@@ -57,7 +57,7 @@ void bct_rows_count(
 }
 
 
-cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box s, const unsigned int n_threads)
+cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_threads)
 {
     cpp_S_box s_inv = s.inverse() ;
     cpp_Spectrum count;

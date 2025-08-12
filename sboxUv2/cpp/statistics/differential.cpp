@@ -4,7 +4,7 @@
 
 // !SECTION! The DDT itself 
 
-std::vector<Integer> cpp_ddt_row(const cpp_S_box s, const BinWord delta)
+std::vector<Integer> cpp_ddt_row(const cpp_S_box & s, const BinWord delta)
 {
     std::vector<Integer> result(s.output_space_size(), 0);
     for (unsigned int x=0; x<s.input_space_size(); x++)
@@ -14,7 +14,7 @@ std::vector<Integer> cpp_ddt_row(const cpp_S_box s, const BinWord delta)
 
 
 
-std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box s)
+std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box & s)
 {
     std::vector< std::vector<Integer> > table ;
     table.reserve(s.input_space_size());
@@ -29,8 +29,8 @@ std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box s)
 
 
 void cpp_ddt_rows_count(
-    cpp_Spectrum &result,
-    const cpp_S_box s,
+    cpp_Spectrum & result,
+    const cpp_S_box & s,
     const BinWord a_min,
     const BinWord a_max)
 {
@@ -41,7 +41,7 @@ void cpp_ddt_rows_count(
 
 
 cpp_Spectrum cpp_differential_spectrum(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const unsigned int n_threads)
 {
     cpp_Spectrum count;
@@ -86,7 +86,7 @@ cpp_Spectrum cpp_differential_spectrum(
 
 
 bool cpp_is_ddt_row_max_smaller_than_2(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const BinWord a)
 {
     std::vector<uint64_t> row(s.input_space_size() >> 6,0);
@@ -108,7 +108,7 @@ bool cpp_is_ddt_row_max_smaller_than_2(
 
 
 bool cpp_is_ddt_row_max_smaller_than_u(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const BinWord a,
     const Integer u)
 {
@@ -125,7 +125,7 @@ bool cpp_is_ddt_row_max_smaller_than_u(
 
 
 bool cpp_is_ddt_row_max_smaller_than(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const BinWord a,
     const Integer u)
 {
@@ -141,7 +141,7 @@ bool cpp_is_ddt_row_max_smaller_than(
 }
 
 
-bool cpp_is_differential_uniformity_smaller_than_2(const cpp_S_box s)
+bool cpp_is_differential_uniformity_smaller_than_2(const cpp_S_box & s)
 {
     for (unsigned int a=1; a<s.input_space_size(); a++)
         if (cpp_is_ddt_row_max_smaller_than_2(s, a) == false)
@@ -151,7 +151,7 @@ bool cpp_is_differential_uniformity_smaller_than_2(const cpp_S_box s)
 
 
 bool cpp_is_differential_uniformity_smaller_than_u(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const Integer u)
 {
     for (unsigned int a=1; a<s.input_space_size(); a++)
@@ -162,7 +162,7 @@ bool cpp_is_differential_uniformity_smaller_than_u(
 
 
 bool cpp_is_differential_uniformity_smaller_than(
-    const cpp_S_box s,
+    const cpp_S_box & s,
     const Integer u)
 {
     if(u == 2)
