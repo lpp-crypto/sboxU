@@ -123,6 +123,7 @@ cdef class S_box:
         return self.cpp_sb.brackets(x)
 
 
+
     def __len__(self):
         """Returns:
             The number of entries in the lookup table of this S_box.
@@ -250,6 +251,7 @@ cdef class S_box:
         self.cpp_sb = new cpp_S_box()
         self.cpp_sb[0] = s
 
+        
 
     def name(self):
         return self.cpp_name

@@ -21,7 +21,6 @@ public:
 
     cpp_S_box(std::vector<BinWord> _lut) ;
 
-    BinWord operator[] (const BinWord x) const;
 
     cpp_S_box operator+ (const cpp_S_box &s) const;
 
@@ -29,18 +28,42 @@ public:
 
     std::string content_string_repr() const;
 
-    std::vector<BinWord> get_lut() const;
+    inline BinWord operator[] (const BinWord x) const
+    {
+        return lut[x];
+    };
 
-    Integer size() const;
-
-    Integer get_input_length() const;
-
-    Integer input_space_size() const;
-
-    Integer get_output_length() const;
+    inline std::vector<BinWord> get_lut() const
+    {
+        return lut;
+    };
     
-    Integer output_space_size() const;
 
+    inline Integer size() const
+    {
+        return lut.size();
+    };
+
+    inline Integer get_input_length() const
+    {
+        return input_length;
+    };
+
+    inline Integer input_space_size() const
+    {
+        return (1 << input_length);
+    };
+
+    inline Integer get_output_length() const
+    {
+        return output_length;
+    };
+    
+    Integer output_space_size() const
+    {
+        return (1 << output_length);
+    };
+    
 
     bool is_invertible() const;
 

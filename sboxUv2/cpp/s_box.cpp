@@ -34,10 +34,6 @@ cpp_S_box::cpp_S_box(std::vector<BinWord> _lut) :
 
 // !SECTION! Operator overloading 
 
-BinWord cpp_S_box::operator[] (const BinWord x) const
-{
-    return lut[x];
-}
 
 
 cpp_S_box cpp_S_box::operator+ (const cpp_S_box &s) const
@@ -74,11 +70,6 @@ cpp_S_box cpp_S_box::operator* (const cpp_S_box &s) const
 // !SECTION! Basic access methods
 
 
-std::vector<BinWord> cpp_S_box::get_lut() const
-{
-    return lut;
-}
-
 
 std::string cpp_S_box::content_string_repr() const
 {
@@ -91,35 +82,6 @@ std::string cpp_S_box::content_string_repr() const
 }
 
 
-// !SUBSECTION! Sizes
-
-
-Integer cpp_S_box::size() const
-{
-    return lut.size();
-}
-
-Integer cpp_S_box::get_input_length() const
-{
-    return input_length;
-}
-
-
-Integer cpp_S_box::input_space_size() const
-{
-    return (1 << input_length);
-}
-
-Integer cpp_S_box::get_output_length() const
-{
-    return output_length;
-}
-
-
-Integer cpp_S_box::output_space_size() const
-{
-    return (1 << output_length);
-}
 
 
 // !SECTION! More sophisticated operations
