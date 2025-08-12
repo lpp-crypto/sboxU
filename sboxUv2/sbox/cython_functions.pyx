@@ -251,11 +251,11 @@ cdef class S_box:
         self.cpp_sb = new cpp_S_box()
         self.cpp_sb[0] = s
 
-        
-
+    
     def name(self):
         return self.cpp_name
 
+    
     # !SUBSUBSECTION! Components and coordinates
     
     def coordinate(S_box self, uint64_t i):
