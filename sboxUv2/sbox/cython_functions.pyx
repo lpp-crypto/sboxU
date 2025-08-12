@@ -2,8 +2,8 @@
 
 
 
-from sboxUv2.f2functions import *
 from sboxUv2.f2functions.cython_functions cimport *
+from sboxUv2.f2functions.field_arithmetic import *
 
 from sage.crypto.sboxes import SBox as sage_SBox
 from sage.all import Integer

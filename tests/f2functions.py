@@ -31,3 +31,20 @@ if __name__ == "__main__":
             entries.append(x)
     print(pretty_bin(xor(entries)) + " (tot)")
     print(pretty_bin(xor(entries, 0x3FF)) + " (not tot)")
+
+    for t in range(0, 20):
+        print("------------")
+        l = Linear_basis([])
+        for i in range(0, 15):
+            x = randint(0, 2**n)
+            print(hex(x))
+            l.add_to_span(x)
+            span = l.span()
+            print("{:3d} {:3d} {} | {}".format(
+                l.rank(),
+                rank_of_vector_set(l),
+                x in span,
+                l
+            ))
+            
+            

@@ -25,7 +25,7 @@ cdef extern from "../cpp/s_box.hpp":
 
     # !SUBSECTION! The cpp_S_box class
     
-    cdef cppclass cpp_S_box:
+    cppclass cpp_S_box:
         cpp_S_box()
         cpp_S_box(cpp_vector[uint64_t] lut)
         cpp_S_box(cpp_vector[uint64_t] lut, int64_t input_length, int64_t output_length)

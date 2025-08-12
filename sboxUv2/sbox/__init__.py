@@ -8,6 +8,6 @@ import sys
 
 
 
-from .cython_functions import *
+from .cython_functions import Sb, new_sbox_name, S_box, F2_trans, identity_S_box
 
 from .misc import *
