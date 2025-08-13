@@ -3,6 +3,8 @@
 from sboxUv2.config import N_THREADS
 
 
+# !SECTION! Extracting spaces contained in a set
+
 def extract_bases(
         z,
         dimension,
@@ -51,3 +53,43 @@ def extract_affine_bases(
     return cpp_extract_affine_bases(z, dimension, end_condition, n_threads)
 
 
+
+# !SECTION! The Linear_basis class
+
+
+cdef class Linear_basis:
+    def __init__(self, std_vector[BinWord] l):
+        self.cpp_lb = new cpp_Linear_basis(l)
+
+        
+    def __iter__(self):
+        for x in self.cpp_lb[0].get_basis():
+            yield x
+
+            
+    def __len__(self):
+        return self.cpp_lb[0].rank()
+
+
+    def __str__(self):
+        result = "("
+        for x in self.cpp_lb[0].get_basis():
+            result += "{:x}, ".format(x)
+        return result[:-2] + ")"
+        
+    
+    def rank(self):
+        return self.cpp_lb[0].rank()
+
+    
+    def add_to_span(self, BinWord x):
+        self.cpp_lb[0].add_to_span(x)
+        
+
+    def span(self):
+        return self.cpp_lb[0].span()
+    
+
+    def is_in_span(self, BinWord x):
+        return self.cpp_lb[0].is_in_span(x)
+    

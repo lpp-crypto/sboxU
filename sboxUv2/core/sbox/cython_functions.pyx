@@ -40,7 +40,7 @@ def new_sbox_name():
 # !SUBSECTION! Global variables 
 
 # global variable used to give unique names to S-boxes
-cdef uint64_t sboxU_SBOXES_COUNTER = 0
+cdef BinWord sboxU_SBOXES_COUNTER = 0
 
 
 # !SECTION! The S_box class
@@ -110,7 +110,7 @@ cdef class S_box:
         return not self.__equal__(s)
 
         
-    def __getitem__(self, uint64_t x):
+    def __getitem__(self, BinWord x):
         """Querying the S-box on a specific input.
         
         Args:
@@ -172,7 +172,7 @@ cdef class S_box:
             return self.inverse()
         else:
             result = S_box(name=self.name() + b"**" + str(d).encode("UTF-8"))
-            (<S_box>result).set_inner_sbox(cpp_S_box(<cpp_vector[uint64_t]> list(self.input_space())))
+            (<S_box>result).set_inner_sbox(cpp_S_box(<std_vector[BinWord]> list(self.input_space())))
             if d >= 0:
                 for i in range(0, d):
                     (<S_box>result).cpp_sb[0] = pyx_mul_sboxes((<S_box>self).cpp_sb[0],
@@ -257,7 +257,7 @@ cdef class S_box:
     
     # !SUBSUBSECTION! Components and coordinates
     
-    def coordinate(S_box self, uint64_t i):
+    def coordinate(S_box self, BinWord i):
         """Args:
             i: the index of the coordinate, where 0 is the bit of lowest weight.
         
@@ -267,29 +267,29 @@ cdef class S_box:
         """
         assert i < self.cpp_sb.get_output_length()
         result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
-        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.coordinate(<uint64_t>i))
+        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.coordinate(<BinWord>i))
         return result
         
     
-    def component(S_box self, uint64_t a):
+    def component(S_box self, BinWord a):
         """Returns:
             An S_box instance mapping n bits to 1 corresponding to the component x \mapsto S(x) \cdot a, where \cdot is the standard scalar product.
         
         """
         result = S_box(name=self.cpp_name + ("•{:x}".format(a)).encode("UTF-8"))
-        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.component(<uint64_t>a))
+        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.component(<BinWord>a))
         return result
         
 
     # !SUBSUBSECTION! Derivatives
 
-    def derivative(S_box self, uint64_t delta):
+    def derivative(S_box self, BinWord delta):
         """Returns:
             An S_box of the same dimension as S corresponding to its derivative in the direction delta, i.e. x \mapsto S(x+delta)+S(x).
         
         """
         result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8") + self.cpp_name)
-        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.derivative(<uint64_t>delta))
+        result.set_inner_sbox(<cpp_S_box>self.cpp_sb.derivative(<BinWord>delta))
         return result
         
     
@@ -338,9 +338,9 @@ def Sb(s, name=None):
     else:
         result = S_box(name=name)
         if isinstance(s, list):
-            (<S_box>result).cpp_sb = new cpp_S_box(<cpp_vector[uint64_t]>s)
+            (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
         elif isinstance(s, sage_SBox):
-            (<S_box>result).cpp_sb = new cpp_S_box(<cpp_vector[uint64_t]>list(s))
+            (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
             # !TODO! add other possible initializations (from polynomials for ex) 
         else:
             try:
@@ -360,7 +360,7 @@ def identity_S_box(length):
     return Sb(list(range(0, length)))
 
 
-cdef S_box pyx_F2_trans(uint64_t k, n):
+cdef S_box pyx_F2_trans(BinWord k, n):
     """Wrapper for the `cpp_translation` function. """
     result = S_box(name="Add_{}".format(k))
     result.cpp_sb = new cpp_S_box()

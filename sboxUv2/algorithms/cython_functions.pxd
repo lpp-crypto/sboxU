@@ -4,22 +4,26 @@ from sboxUv2.cython_types cimport *
 from sboxUv2.core cimport *
 
 
+# !SECTION! Declaring C++ code
+
+# !SUBSECTION! Subspace searches
+
 cdef extern from "../cpp/algorithms/spaceSearch.hpp":
 
-    cpp_vector[uint64_t] cpp_extract_vector(
-        const cpp_vector[uint64_t] & z,
-        const uint64_t a
+    std_vector[BinWord] cpp_extract_vector(
+        const std_vector[BinWord] & z,
+        const BinWord a
     )
 
-    cpp_vector[cpp_vector[uint64_t]] cpp_extract_bases(
-        cpp_vector[uint64_t] & z,
+    std_vector[std_vector[BinWord]] cpp_extract_bases(
+        std_vector[BinWord] & z,
         const int64_t dimension,
         int64_t n_threads,
         const string end_condition
     )
 
-    cpp_vector[cpp_vector[uint64_t]] cpp_extract_affine_bases(
-        cpp_vector[uint64_t] & z,
+    std_vector[std_vector[BinWord]] cpp_extract_affine_bases(
+        std_vector[BinWord] & z,
         const int64_t dimension,
         int64_t n_threads,
         const string end_condition
@@ -29,3 +33,35 @@ cdef extern from "../cpp/algorithms/spaceSearch.hpp":
 cdef extern from "../cpp/algorithms/spaceSearch.cpp":
     pass
 
+
+
+# !SUBSECTION! The cpp_Linear_basis class
+    
+cdef extern from "../cpp/algorithms/linearBasis.hpp":
+    cppclass cpp_Linear_basis:
+    
+        cpp_Linear_basis(
+            const std_vector[BinWord] & l
+        )
+        void add_to_span(
+            BinWord x
+        )
+        bool is_in_span(
+            BinWord x
+        ) const
+        std_vector[BinWord] get_basis() const
+        
+        int64_t rank() const
+
+        std_vector[BinWord] span() const
+
+
+        
+cdef extern from "../cpp/algorithms/linearBasis.cpp":
+    pass
+
+
+# !SECTION! Declaring cython code
+
+cdef class Linear_basis:
+    cdef cpp_Linear_basis * cpp_lb

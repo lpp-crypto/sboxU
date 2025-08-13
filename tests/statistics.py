@@ -51,7 +51,7 @@ for name in ["Kuznyechik", "Fantomas"]:
 
 targets = []
 for t in range(0, 8):
-    targets.append(monomial(2**t+1, GF(2**17)))
+    targets.append(monomial(2**t+1, GF(2**13)))
 
 c = Chronograph("cpp_differential_spectrum")
 for i, s in enumerate(targets):

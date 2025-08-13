@@ -11,13 +11,13 @@ cdef extern from "../../cpp/core/s_box.hpp":
     
     cppclass cpp_S_box:
         cpp_S_box()
-        cpp_S_box(cpp_vector[uint64_t] lut)
-        cpp_S_box(cpp_vector[uint64_t] lut, int64_t input_length, int64_t output_length)
-        uint64_t brackets "operator[]" (const uint64_t x) const
+        cpp_S_box(std_vector[BinWord] lut)
+        cpp_S_box(std_vector[BinWord] lut, int64_t input_length, int64_t output_length)
+        BinWord brackets "operator[]" (const BinWord x) const
         cpp_S_box add "operator+" (const cpp_S_box s) const
         cpp_S_box mul "operator*" (const cpp_S_box s) const
         string content_string_repr()
-        cpp_vector[uint64_t] get_lut()
+        std_vector[BinWord] get_lut()
         int64_t size()
         int64_t get_input_length()
         int64_t input_space_size()
@@ -25,13 +25,13 @@ cdef extern from "../../cpp/core/s_box.hpp":
         int64_t output_space_size()
         bool is_invertible()
         cpp_S_box inverse() except +
-        cpp_S_box component(uint64_t a)
-        cpp_S_box coordinate(uint64_t a)
-        cpp_S_box derivative(uint64_t delta)
+        cpp_S_box component(BinWord a)
+        cpp_S_box coordinate(BinWord a)
+        cpp_S_box derivative(BinWord delta)
 
     # !SUBSECTION!  S_box generating functions
     
-    cpp_S_box cpp_translation(const uint64_t a, const int64_t input_bit_length)
+    cpp_S_box cpp_translation(const BinWord a, const int64_t input_bit_length)
 
 
 # !SUBSECTION! Loading the cpp file 

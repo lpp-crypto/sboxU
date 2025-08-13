@@ -30,6 +30,7 @@ else:
 
 # !SECTION! Declaring cython extensions
 
+
 def declare_cython(full_module_name):
     src = re.sub(r"\.", r"/", full_module_name) + ".pyx"
     return Extension(
