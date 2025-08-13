@@ -17,7 +17,6 @@ BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask)
     return result;
 }
 
-
 Integer cpp_rank_of_vector_set(std::vector<BinWord> l)
 {
     Integer result = 0;

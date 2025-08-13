@@ -22,7 +22,6 @@ inline BinWord cpp_msb(const BinWord x)
         return 8*(sizeof(BinWord)) - __builtin_clzll(x) - 1;
 };
 
-
 inline BinWord cpp_lsb(const BinWord x)
 {
     return __builtin_ctzll(x);
@@ -77,5 +76,49 @@ public:
     
     std::vector<BinWord> span() const;
 };
-     
+
+struct DifferentialPair {
+ BinWord x;
+ BinWord y;
+};
+
+class DifferentialPairEnumerator
+{
+private:
+    BinWord a;
+    BinWord max_bit;
+    BinWord i;
+
+public:
+    DifferentialPairEnumerator(BinWord size, BinWord a);
+    DifferentialPair next();
+    bool ended();
+};
+
+inline DifferentialPairEnumerator::DifferentialPairEnumerator(BinWord size, BinWord _a)
+{
+    a = _a;
+    max_bit = size/2;
+    i = 0;
+}
+
+inline bool DifferentialPairEnumerator::ended()
+{
+    return i >= max_bit;
+}
+
+inline DifferentialPair DifferentialPairEnumerator::next()
+{
+    DifferentialPair n;
+    n.x = i;
+    n.y = i^a;
+    i++;
+    if (n.y < n.x)
+    {
+        n.x+=max_bit;
+        n.y+=max_bit;
+    }
+    return n;
+}
+
 #endif

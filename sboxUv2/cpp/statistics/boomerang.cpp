@@ -1,29 +1,33 @@
 #include "boomerang.hpp"
 
 
-
 // !SECTION! The BCT itself 
 
 
 std::vector<Integer> bct_row(
     const cpp_S_box & s,
-    const cpp_S_box & s_inv,
     const BinWord a)
 {
-    std::vector<Integer> result(s.input_space_size(), 0);
-    std::vector<std::vector<BinWord> > xor_list(
-        s.input_space_size(),
-        std::vector<BinWord>(0)
-        );
-    for (BinWord x=0; x<s.input_space_size(); x++)
+    if (a == 0)
+        return std::vector<Integer>(s.output_space_size(),s.input_space_size());
+
+    std::vector<Integer> result(s.size(), 0);
+    std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
+    result[0] = s.input_space_size();
+    for( DifferentialPairEnumerator h(s.input_space_size(), a);!h.ended();)
     {
-        BinWord y = x ^ s[s_inv[x] ^ a];
-        xor_list[y].push_back(x);
+        DifferentialPair n = h.next();
+        BinWord z1 = s[n.x];
+        BinWord z = z1 ^ s[n.y];
+
+        for(auto z2 : xor_list[z]){
+            result[ z1 ^ z2 ] += 4;
+            if (z > 0)
+                result[ z1 ^ z2 ^ z] += 4;
+        }
+        xor_list[z].push_back(z1);
+        result[z] += 2;
     }
-    for (BinWord y=0; y<s.input_space_size(); y++)
-        for (BinWord &x1 : xor_list[y])
-            for (BinWord &x2 : xor_list[y])
-                result[x1 ^ x2] ++ ;
     return result;
 }
 
@@ -32,9 +36,8 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 {
 	std::vector< std::vector<Integer>> table_bct ;
         table_bct.reserve(s.input_space_size());
-	cpp_S_box s_inv = s.inverse() ;
 	for(unsigned int a = 0; a < s.input_space_size(); a++)
-		table_bct.push_back(bct_row(s,s_inv,a)) ;
+		table_bct.push_back(bct_row(s,a)) ;
 	return table_bct ;
 }
 
@@ -44,13 +47,12 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 void bct_rows_count(
     cpp_Spectrum &result,
     const cpp_S_box & s,
-    const cpp_S_box & s_inv,
     const BinWord a_min,
     const BinWord a_max)
 {
     for (unsigned int a=a_min; a<a_max; a++)
     {
-        std::vector<Integer> row = bct_row(s, s_inv, a);
+        std::vector<Integer> row = bct_row(s, a);
         for (unsigned int i=1; i<row.size(); i++) // we start at 1, not 0
             result.incr(row[i]);
     }
@@ -59,11 +61,10 @@ void bct_rows_count(
 
 cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_threads)
 {
-    cpp_S_box s_inv = s.inverse() ;
     cpp_Spectrum count;
     if (n_threads == 1)         // single thread
     {
-        bct_rows_count(std::ref(count), s, s_inv, 1, s.size());
+        bct_rows_count(std::ref(count), s, 1, s.size());
     }
     else                        // multiple threads
     {
@@ -77,7 +78,6 @@ cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_th
             threads.push_back(std::thread(bct_rows_count,
                                           std::ref(local_counts[i]),
                                           s,
-                                          s_inv,
                                           lower_bound,
                                           upper_bound));
 

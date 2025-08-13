@@ -34,8 +34,6 @@ cpp_S_box::cpp_S_box(std::vector<BinWord> _lut) :
 
 // !SECTION! Operator overloading 
 
-
-
 cpp_S_box cpp_S_box::operator+ (const cpp_S_box &s) const
 {
     if (s.get_input_length() != input_length)
