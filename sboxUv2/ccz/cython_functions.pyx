@@ -22,11 +22,15 @@ def thickness_spectrum(s, spaces=None):
 
 def le_class_representative(s):
     sb = Sb(s)
-    result = S_box(name=b"LE(" + sb.name() + b")")
-    result.set_inner_sbox(
-        cpp_le_class_representative((<S_box>sb).cpp_sb[0])
-    )
-    return result
+    if sb.is_invertible():
+        result = S_box(name=b"LE(" + sb.name() + b")")
+        result.set_inner_sbox(
+            # we always try use the "fast" variant of cpp_le_class_representative
+            cpp_le_class_representative((<S_box>sb).cpp_sb[0], 1) 
+        )
+        return result
+    else:
+        raise NotImplemented("Linear representatives can only be computed for permutations")
     
 
 

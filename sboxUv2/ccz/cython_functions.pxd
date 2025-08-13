@@ -22,7 +22,8 @@ cdef extern from "../cpp/ccz/zeroes.cpp":
 
 cdef extern from "../cpp/ccz/linear_representative.hpp":
     cpp_S_box cpp_le_class_representative(
-        const cpp_S_box & f
+        const cpp_S_box & f,
+        const uint64_t fast
     )
 
 cdef extern from "../cpp/ccz/linear_representative.cpp":

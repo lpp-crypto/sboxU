@@ -1,10 +1,14 @@
 import os
 import sys
+import re
 
 
 from setuptools import find_packages, setup
 from setuptools.extension import Extension
 from Cython.Build import cythonize
+
+
+# !SECTION! Setting up the compilation of the C++ part
 
 if sys.platform == 'darwin':	#macOs
     os.environ["CC"] = "clang"
@@ -24,65 +28,26 @@ else:
 
 
 
-# !SECTION! Building modules
+# !SECTION! Declaring cython extensions
 
-# core functions over F_2, used throughout the library
-f2functions_module = Extension(
-        "sboxUv2.f2functions.cython_functions",
-        sources = ["sboxUv2/f2functions/cython_functions.pyx" ], #  /!\ name of pyx file must match extension name
+def declare_cython(full_module_name):
+    src = re.sub(r"\.", r"/", full_module_name) + ".pyx"
+    return Extension(
+        full_module_name,
+        sources = [ src ],
         language = "c++",
         extra_link_args = extra_link_args,
         extra_compile_args = extra_compile_args,
-)
-
-# core module (S_box and friends)
-sbox_module = Extension(
-        "sboxUv2.sbox.cython_functions",
-        sources = ["sboxUv2/sbox/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
-        language = "c++",
-        extra_link_args = extra_link_args,
-        extra_compile_args = extra_compile_args,
-)
+    )
 
 
-# important low-level algorithms
-algorithms_module = Extension(
-        "sboxUv2.algorithms.cython_functions",
-        sources = ["sboxUv2/algorithms/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
-        language = "c++",
-        extra_link_args = extra_link_args,
-        extra_compile_args = extra_compile_args,
-)
-
-
-# dealing with statistical properties
-statistics_module = Extension(
-        "sboxUv2.statistics.cython_functions",
-        sources = ["sboxUv2/statistics/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
-        language = "c++",
-        extra_link_args = extra_link_args,
-        extra_compile_args = extra_compile_args,
-)
-
-
-# investigating CCZ-equivalence classes
-ccz_module = Extension(
-        "sboxUv2.ccz.cython_functions",
-        sources = ["sboxUv2/ccz/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
-        language = "c++",
-        extra_link_args = extra_link_args,
-        extra_compile_args = extra_compile_args,
-)
-
-
-# # APN functions and friends
-# apn_module = Extension(
-#         "sboxUv2.apn.cython_functions",
-#         sources = ["sboxUv2/apn/cython_functions.pyx"], #  /!\ name of pyx file must match extension name
-#         language = "c++",
-#         extra_link_args = extra_link_args,
-#         extra_compile_args = extra_compile_args,
-# )
+all_cython_extensions = [ declare_cython(full_module_name) for full_module_name in [
+    "sboxUv2.f2functions.cython_functions",
+    # "sboxUv2.sbox.cython_functions",
+    # "sboxUv2.algorithms.cython_functions",
+    # "sboxUv2.statistics.cython_functions",
+    # "sboxUv2.ccz.cython_functions",
+]]
 
     
 # !SECTION! Final setup 
@@ -90,14 +55,7 @@ ccz_module = Extension(
 setup( # names and others are specified in the pyproject.toml file
     packages = find_packages(),
     ext_modules=cythonize(
-        [
-                f2functions_module,
-                sbox_module,
-                statistics_module,
-                algorithms_module,
-                ccz_module,
-                # apn_module,
-        ],
+        all_cython_extensions,
         language_level = "3",
     ),
 )

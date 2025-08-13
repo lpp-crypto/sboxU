@@ -12,7 +12,10 @@ typedef std::pair<uint64_t, uint64_t> IOpair;
 
 // std::vector<Sbox> cpp_linear_equivalence(const Sbox f, const Sbox g, bool all_mappings);
 
-cpp_S_box cpp_class_representative(const cpp_S_box & f);
+cpp_S_box cpp_class_representative(
+    const cpp_S_box & f,
+    const uint64_t fast
+    );
 
     
 // !SECTION! Exceptions needed to implement guess and determine 
@@ -112,6 +115,7 @@ public:
     void initialize();
     Lut lut();
 };
+
 
 
 
