@@ -25,6 +25,9 @@ def lsb(BinWord x):
     return cpp_lsb(x)
 
 
+
+# !SUBSECTION! Linear combinations and ranks 
+
  
 def linear_combination(std_vector[BinWord] v, BinWord mask):
     return cpp_linear_combination(v, mask)
