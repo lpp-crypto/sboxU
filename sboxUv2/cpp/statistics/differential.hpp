@@ -3,9 +3,15 @@
 
 #include "../sboxU.hpp"
 #include "../s_box.hpp"
+#include "../f2functions.hpp"
 
 
 cpp_Spectrum cpp_differential_spectrum(
+    const cpp_S_box & s,
+    const unsigned int n_threads
+    );
+
+cpp_Spectrum cpp_differential_spectrum_fast(
     const cpp_S_box & s,
     const unsigned int n_threads
     );

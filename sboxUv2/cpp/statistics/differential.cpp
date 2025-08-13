@@ -5,8 +5,11 @@
 std::vector<Integer> cpp_ddt_row(const cpp_S_box & s, const BinWord delta)
 {
     std::vector<Integer> result(s.output_space_size(), 0);
-    for (unsigned int x=0; x<s.input_space_size(); x++)
-        result[s[x^delta] ^ s[x]] ++ ;
+    for( DifferentialPairEnumerator h(s.input_space_size(), delta); !h.ended();)
+    {
+        DifferentialPair p = h.next();
+        result[s[p.x] ^ s[p.y]] += 2 ;
+    }
     return result;
 };
 
@@ -35,7 +38,6 @@ void cpp_ddt_rows_count(
     for (unsigned int a=a_min; a<a_max; a++)
         result.incr_by_counting(cpp_ddt_row(s, a));
 }
-
 
 
 cpp_Spectrum cpp_differential_spectrum(

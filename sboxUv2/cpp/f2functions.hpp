@@ -77,6 +77,9 @@ public:
     std::vector<BinWord> span() const;
 };
 
+
+// !SECTION! Efficiently enumerating elements in a hyperplane 
+
 struct DifferentialPair {
  BinWord x;
  BinWord y;
