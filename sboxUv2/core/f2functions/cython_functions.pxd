@@ -1,13 +1,11 @@
 # -*- python -*-
 
-from libc.stdint cimport uint64_t, int64_t
-from libcpp cimport bool
-from libcpp.vector cimport vector as cpp_vector
+from sboxUv2.cython_types cimport *
 
 
 # !SECTION! Declaring C++ code
 
-cdef extern from "../cpp/f2functions.hpp":
+cdef extern from "../../cpp/core/f2functions.hpp":
     uint64_t cpp_msb (
         const uint64_t x
     )
@@ -55,7 +53,7 @@ cdef extern from "../cpp/f2functions.hpp":
      
 
     
-cdef extern from "../cpp/f2functions.cpp":
+cdef extern from "../../cpp/core/f2functions.cpp":
     pass
 
 

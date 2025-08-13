@@ -8,13 +8,11 @@ A particular focus is put on efficiency: large parts of this library are written
 
 
 
-from .f2functions import *
+from .core import *
 
 from .algorithms import *
 
 from .biblio import *
-    
-from .sbox import *
     
 from .statistics import *
 

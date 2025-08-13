@@ -1,0 +1,6 @@
+#ifndef _CCZ_LINEAR_EQUIVALENCE_
+#define _CCZ_LINEAR_EQUIVALENCE_
+
+
+
+#endif

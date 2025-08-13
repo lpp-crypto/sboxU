@@ -2,8 +2,7 @@
 #define _CCZ_ZEROES_
 
 #include "../sboxU.hpp"
-#include "../s_box.hpp"
-#include "../f2functions.hpp"
+#include "../core/include.hpp"
 #include "../statistics/include.hpp"
 #include "../algorithms/spaceSearch.hpp"
 

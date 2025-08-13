@@ -1,11 +1,11 @@
 # -*- python -*-
 
 
-from ..config import N_THREADS
-from ..display import stylize
+from sboxUv2.config import N_THREADS
+from sboxUv2.display import stylize
 
-from sboxUv2.sbox import Sb # don't replace this with *: it is crucial to S_box not be imported in this import call
-from sboxUv2.sbox.cython_functions cimport *
+from sboxUv2.core import Sb
+from sboxUv2.core cimport *
 
 
 # !SECTION! Dealing with Spectra

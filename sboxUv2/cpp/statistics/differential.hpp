@@ -2,8 +2,7 @@
 #define _STAT_DIFFERENTIAL_
 
 #include "../sboxU.hpp"
-#include "../s_box.hpp"
-#include "../f2functions.hpp"
+#include "../core/include.hpp"
 
 
 cpp_Spectrum cpp_differential_spectrum(

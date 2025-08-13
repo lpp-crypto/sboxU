@@ -4,5 +4,7 @@
 
 """
 
-from .cython_functions import thickness_spectrum, le_class_representative
+from .cython_functions import \
+    thickness_spectrum, \
+    le_class_representative
 

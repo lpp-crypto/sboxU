@@ -1,27 +1,11 @@
 # -*- python -*-
 
-
-# This file contains the declarations of all the C++ function that we
-# want to expose in this module, and of all the cython functions that
-# are provided in ./cython_functions.pyx.
-
-
-# !SECTION! Imports
-
-from libcpp.vector cimport vector as cpp_vector # name change imposed by SAGE's own `vector` type
-from libcpp.string cimport string
-from libcpp cimport bool
-from libc.stdint cimport uint64_t, int64_t
-from libc.stdint cimport uint64_t, int64_t
-
-
-
-
+from sboxUv2.cython_types cimport *
 
 
 # !SECTION! Declaring the C++ Code
 
-cdef extern from "../cpp/s_box.hpp":
+cdef extern from "../../cpp/core/s_box.hpp":
 
     # !SUBSECTION! The cpp_S_box class
     
@@ -51,7 +35,7 @@ cdef extern from "../cpp/s_box.hpp":
 
 
 # !SUBSECTION! Loading the cpp file 
-cdef extern from "../cpp/s_box.cpp":
+cdef extern from "../../cpp/core/s_box.cpp":
     pass
 
 
@@ -68,10 +52,4 @@ cdef class S_box:
 # !SUBSECTION! Wrapper for the S_box class operators
 cdef cpp_S_box pyx_add_sboxes(cpp_S_box s, cpp_S_box t)
 cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t)
-
-
-# !SUBSECTION! Wrapper for S_box generators
-
-cdef S_box pyx_F2_trans(uint64_t k, alphabet)
-
 

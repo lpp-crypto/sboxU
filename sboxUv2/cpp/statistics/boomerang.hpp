@@ -2,7 +2,7 @@
 #define _STAT_BOOMERANG_
 
 #include "../sboxU.hpp"
-#include "../s_box.hpp"
+#include "../core/include.hpp"
 
 cpp_Spectrum cpp_bct_spectrum(
     const cpp_S_box & s,

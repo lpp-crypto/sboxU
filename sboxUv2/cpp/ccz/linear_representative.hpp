@@ -2,7 +2,7 @@
 #define _CCZ_LINEAR_EQUIV_
 
 #include "../sboxU.hpp"
-#include "../s_box.hpp"
+#include "../core/include.hpp"
 
 
 typedef std::pair<uint64_t, uint64_t> IOpair;

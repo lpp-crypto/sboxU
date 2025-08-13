@@ -285,9 +285,10 @@ LEguessIterator LEguessIterator::deeper_guess_gen()
 // }
 
 
-// !SECTION! Representative LE class
+// !SECTION! Finding the representative
 
 
+// !SUBSECTION! The  unoptimized approach
 
 LErepr::LErepr(const cpp_S_box _f) :
     f(_f),
@@ -552,7 +553,7 @@ void LErepr::initialize()
 
 
 
-// !SECTION! Lukas Stennes' fast linear representative 
+// !SUBSECTION! Lukas Stennes' fast linear representative 
 
 
 
@@ -1246,6 +1247,8 @@ std::vector<u8> compute_linear_representative(const std::vector<u8>& sbox)
     return R_S_best;
 }
 
+
+// !SUBSECTION! The main function
 
 cpp_S_box cpp_le_class_representative(const cpp_S_box f, const uint64_t fast)
 {

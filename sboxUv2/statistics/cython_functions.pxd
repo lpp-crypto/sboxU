@@ -8,20 +8,8 @@
 
 # !SECTION! Imports
 
-# !SUBSECTION! Types
-
-from libcpp.vector cimport vector as cpp_vector # name change imposed by SAGE's own `vector` type
-from libcpp.string cimport string
-from libcpp cimport bool
-from libc.stdint cimport uint64_t, int64_t
-from libc.stdint cimport uint64_t, int64_t
-
-# !SUBSECTION! Other submodules of sboxU
-
-from sboxUv2.f2functions.cython_functions cimport *
-from sboxUv2.sbox.cython_functions cimport *
-
-
+from sboxUv2.cython_types cimport *
+from sboxUv2.core cimport *
 
 
 # !SECTION! Declaring the C++ Code

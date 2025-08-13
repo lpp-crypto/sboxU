@@ -8,6 +8,16 @@ When possible the functions are multi-threaded. In particular, computing "spectr
 
 """
 
-from .cython_functions import *
+from .cython_functions import \
+    Spectrum, Spctr, \
+    differential_spectrum, ddt, differential_uniformity, is_differential_uniformity_smaller_than, \
+    walsh_transform, walsh_spectrum, lat, invert_lat, linearity, \
+    boomerang_spectrum, bct, boomerang_uniformity
 
-from .anomalies import *
+
+from .anomalies import \
+    ddt_coeff_probability, expected_max_ddt, \
+    lat_coeff_probability_permutation, lat_coeff_probability_function, expected_max_lat, expected_max_lat_function, \
+    bct_coeff_probability, \
+    probability_of_max_and_occurrences, get_proba_func, \
+    table_anomaly, table_negative_anomaly

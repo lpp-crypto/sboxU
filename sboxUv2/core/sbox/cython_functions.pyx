@@ -1,9 +1,8 @@
 # -*- python -*-
 
 
-
-from sboxUv2.f2functions.cython_functions cimport *
-from sboxUv2.f2functions.field_arithmetic import *
+from sboxUv2.core.f2functions import ffe_to_int
+from sboxUv2.core.f2functions cimport *
 
 from sage.crypto.sboxes import SBox as sage_SBox
 from sage.all import Integer
@@ -317,8 +316,7 @@ cdef class S_box:
 
 
 
-# !SECTION! Generating S_boxes
-
+# !SECTION! Generating S-boxes
 
 # !SUBSECTION! Main factory 
 
@@ -352,7 +350,15 @@ def Sb(s, name=None):
     return result
 
 
-# !SUBSECTION! Simple structures
+# !SUBSECTION! Other basic structures
+
+def identity_S_box(length):
+    """Returns an S_box instance corresponding to the identity
+    function, i.e. the one mapping x to itself.
+
+    """
+    return Sb(list(range(0, length)))
+
 
 cdef S_box pyx_F2_trans(uint64_t k, n):
     """Wrapper for the `cpp_translation` function. """
@@ -388,10 +394,3 @@ def F2_trans(additive_cstte, field=None, bit_length=None):
         n = additive_cstte.parent().degree()
     return pyx_F2_trans(k, n)
 
-
-def identity_S_box(length):
-    """Returns an S_box instance corresponding to the identity
-    function, i.e. the one mapping x to itself.
-
-    """
-    return Sb(list(range(0, length)))

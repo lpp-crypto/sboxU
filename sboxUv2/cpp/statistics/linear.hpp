@@ -3,7 +3,7 @@
 
 
 #include "../sboxU.hpp"
-#include "../s_box.hpp"
+#include "../core/include.hpp"
 
 
 std::vector<Integer> cpp_walsh_transform(const cpp_S_box & f);

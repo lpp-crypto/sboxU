@@ -1,10 +1,7 @@
 # -*- python -*-
 
-from libc.stdint cimport uint64_t
-from libcpp.vector cimport vector as cpp_vector
-
-from sboxUv2.sbox.cython_functions cimport *
-from sboxUv2.statistics.cython_functions cimport *
+from sboxUv2.cython_types cimport *
+from sboxUv2.core cimport *
 
 
 cdef extern from "../cpp/algorithms/spaceSearch.hpp":

@@ -1,15 +1,15 @@
 """It is possible to investigate to define and to compute the probability that a given S-box is "at least as good" or "at least as bad" as a random permutation or function, as explained in [AC:BonPerTia19].
 
-This reasoning is based on the probabilities for the DDT and LAT given in    [JMC:DaeRij07], while the probabilities from the BCT are from [AC:BonPerTia19].
-
+This reasoning is based on the probabilities for the DDT and LAT given in [JMC:DaeRij07], while the probabilities from the BCT are from [AC:BonPerTia19].
 
 """
 
-from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial, Infinity
+from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial, Infinity, Integer
 import itertools
 
-from sboxUv2.sbox import *
-from .cython_functions import *
+from sboxUv2.core import Sb, is_permutation
+from .cython_functions import differential_spectrum, walsh_spectrum, boomerang_spectrum
+
 
 from sboxUv2.config import DEFAULT_HIGH_PRECISION
 
