@@ -5,6 +5,26 @@
 
 // !SECTION! Linear combinations and their ranks
 
+std::vector<BinWord> cpp_transpose (const std::vector<BinWord> & l)
+{
+    BinWord biggest_msb = 0;
+    for (auto &v: l)
+    {
+        BinWord m = cpp_msb(v);
+        if (m > biggest_msb)
+            biggest_msb = m;
+    }
+    biggest_msb ++;             // position start at 0, not 1
+    std::vector<BinWord> result(biggest_msb, 0);
+    for (BinWord i=0; i<biggest_msb; i++)
+    {
+        for (BinWord j=0; j<l.size(); j++)
+            result[i] |= ((l[j] >> i) & 1) << j;
+    }
+    return result;
+}
+
+
 BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask)
 {
     BinWord result = 0;
@@ -16,6 +36,7 @@ BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask)
     }
     return result;
 }
+
 
 Integer cpp_rank_of_vector_set(std::vector<BinWord> l)
 {

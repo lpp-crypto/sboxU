@@ -14,7 +14,7 @@ public:
 
     cpp_Linear_basis(const std::vector<BinWord> & l) ;
 
-    void add_to_span(BinWord x);
+    bool add_to_span(BinWord x);
 
     bool is_in_span(BinWord x) const ;
 
@@ -27,6 +27,12 @@ public:
     
     std::vector<BinWord> span() const;
 };
+
+
+std::vector<BinWord> cpp_complete_basis(
+    const std::vector<BinWord> basis,
+    const unsigned int n
+    );
 
 
 #endif

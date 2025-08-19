@@ -1,6 +1,6 @@
 # -*- python -*-
 
-from sboxUv2.config import N_THREADS
+from sboxUv2.config import MAX_N_THREADS
 
 
 # !SECTION! Extracting spaces contained in a set
@@ -9,7 +9,7 @@ def extract_bases(
         z,
         dimension,
         end_condition="fixed dimension",
-        n_threads=N_THREADS):
+        n_threads=MAX_N_THREADS):
     """Returns a list containing precisely the GJB basis of each vector space of dimension `d` contained in the list `z`, interpreted like a set of binary vectors.
 
     The inner working of this algorithms are explained in [AC:BonPerTia19].
@@ -33,7 +33,7 @@ def extract_affine_bases(
         z,
         dimension,
         end_condition="fixed dimension",
-        n_threads=N_THREADS):
+        n_threads=MAX_N_THREADS):
     """Returns a list containing precisely the GJB basis of each affine space of dimension `d` contained in the list `z`, interpreted like a set of binary vectors. The GJB basis consists of an offset (the smallest element in the affine space), and the GJB basis of its linear part.
 
     The inner working of this algorithms are explained in [AC:BonPerTia19].
@@ -83,7 +83,7 @@ cdef class Linear_basis:
 
     
     def add_to_span(self, BinWord x):
-        self.cpp_lb[0].add_to_span(x)
+        return self.cpp_lb[0].add_to_span(x)
         
 
     def span(self):

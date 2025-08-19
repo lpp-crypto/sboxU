@@ -6,5 +6,7 @@
 
 from .cython_functions import \
     thickness_spectrum, \
-    le_class_representative
+    ccz_equivalent_function, \
+    enumerate_ea_classes
 
+from .affine_equivalence import *

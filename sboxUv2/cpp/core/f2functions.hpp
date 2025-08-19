@@ -49,6 +49,8 @@ inline BinWord cpp_oplus (const BinWord x, const BinWord y)
 
 // !SECTION! Linear combinations of vectors and their ranks 
 
+std::vector<BinWord> cpp_transpose (const std::vector<BinWord> & l);
+
 BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask);
 
 Integer cpp_rank_of_vector_set(std::vector<BinWord> l);

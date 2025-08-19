@@ -7,6 +7,7 @@ cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
 {
     // setting the machinery to parse BinWords into 2 vectors
     n = s.get_output_length();
+    total_size = s.get_input_length() + s.get_output_length();
     mask = 0;
     for(unsigned int i=0; i<s.get_output_length(); i++)
         mask = (mask << 1) | 1;
@@ -29,7 +30,19 @@ cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
 }
 
 
-cpp_Spectrum cpp_WalshZeroesSpaces::thickness_spectrum()
+void cpp_WalshZeroesSpaces::init_mappings()
+{
+    // building the mappings by transposing
+    for(auto &b : bases)
+    {
+        std::vector<BinWord> L = cpp_complete_basis(b, total_size);
+        std::reverse(L.begin(), L.end());
+        mappings.push_back(cpp_transpose(L));
+    }
+}
+
+
+cpp_Spectrum cpp_WalshZeroesSpaces::thickness_spectrum() const
 {
     cpp_Spectrum result;
     for(auto &b : bases)

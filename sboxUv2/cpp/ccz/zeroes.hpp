@@ -11,17 +11,23 @@
 class cpp_WalshZeroesSpaces
 {
 private:
-    std::vector<std::vector<BinWord> > bases;
     BinWord mask;
     BinWord n;
-
+    unsigned int total_size;
 public:
+    std::vector<std::vector<BinWord> > bases;
+    std::vector<std::vector<BinWord> > mappings;
+
     cpp_WalshZeroesSpaces(
         const cpp_S_box & s,
         const unsigned int n_threads
         );
-    cpp_Spectrum thickness_spectrum();
+
+    void init_mappings();
+    
+    cpp_Spectrum thickness_spectrum() const;
 };
+
 
 cpp_Spectrum cpp_thickness_spectrum(
     const cpp_S_box & s,

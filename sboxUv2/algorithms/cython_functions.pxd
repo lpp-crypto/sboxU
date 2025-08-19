@@ -43,7 +43,7 @@ cdef extern from "../cpp/algorithms/linearBasis.hpp":
         cpp_Linear_basis(
             const std_vector[BinWord] & l
         )
-        void add_to_span(
+        bool add_to_span(
             BinWord x
         )
         bool is_in_span(

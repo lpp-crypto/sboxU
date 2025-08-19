@@ -10,7 +10,7 @@ cpp_Linear_basis::cpp_Linear_basis(const std::vector<BinWord> & l) :
 }
 
 
-void cpp_Linear_basis::add_to_span(BinWord x)
+bool cpp_Linear_basis::add_to_span(BinWord x)
 /** The content of basis is corresponds to binary vectors indexed by
  * their MSBs. At every instant, these vectors satisfy the following
  * properties:
@@ -42,7 +42,7 @@ void cpp_Linear_basis::add_to_span(BinWord x)
     {
         BinWord y = x ^ b.second;
         if (y == 0)
-            return;  // x was already in the span, we do nothing
+            return false;  // x was already in the span, we do nothing
         else if ((b.first <= m) and (y < x))
             x = y;   // if b is smaller than x, then we extract it from x
         else if ((b.first > m))
@@ -60,6 +60,7 @@ void cpp_Linear_basis::add_to_span(BinWord x)
             if (y < b.second)
                 basis[b.first] = y;
         }
+    return true;
 }
 
 bool cpp_Linear_basis::is_in_span(BinWord x) const
@@ -98,4 +99,23 @@ std::vector<BinWord> cpp_Linear_basis::span() const
     for(BinWord mask=1; mask<total_size; mask++) // no need to modify the entry in 0
         result[mask] = cpp_linear_combination(vects, mask);
     return result;
+}
+
+
+std::vector<BinWord> cpp_complete_basis(
+    const std::vector<BinWord> basis,
+    const unsigned int n
+    )
+{
+    cpp_Linear_basis lb(basis);
+    std::vector<BinWord> result(basis.cbegin(), basis.cend());
+    result.reserve(n);
+    for(BinWord x=1; x<(1 << n); x++)
+    {
+        if (lb.add_to_span(x))
+            result.push_back(x);
+        if (lb.rank() == n)
+            return result;
+    }
+    return std::vector<BinWord>(0);
 }
