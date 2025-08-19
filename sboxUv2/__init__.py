@@ -10,6 +10,8 @@ A particular focus is put on efficiency: large parts of this library are written
 
 from .core import *
 
+from .display import *
+
 from .algorithms import *
 
 from .biblio import *

@@ -5,7 +5,7 @@ from sboxUv2.core.f2functions import ffe_to_int
 from sboxUv2.core.f2functions cimport *
 
 from sage.crypto.sboxes import SBox as sage_SBox
-from sage.all import Integer
+from sage.all import Integer, ceil, floor
 
 
 # !SECTION! Helpers
@@ -131,15 +131,48 @@ cdef class S_box:
 
     
     def __str__(self):
+        return self.cpp_sb.content_string_repr().decode("UTF-8")
+
+
+    def __rich_str__(self):
         if self.get_input_length() == 0:
-            return "[ ∅ ]"
+            return "[bold][[/] [red]∅[/] [bold]][/]"
         else:
-            return "({:2d},{:2d}) {} = {}".format(
+            result = "([bold blue]{:2d}[/],[bold bright_black]{:2d}[/]) [bright_black]{}[/]\n".format(
                 self.get_input_length(),
                 self.get_output_length(),
                 self.cpp_name.decode("UTF-8"),
-                self.cpp_sb.content_string_repr().decode("UTF-8")
             )
+            # first row
+            if self.get_input_length() <= 4:
+                n_cols = 2**self.get_input_length()
+                n_rows = 1
+            else:
+                n_cols = 16
+                n_rows = 2**(self.get_input_length() - 4)
+            word_size = int(ceil(self.get_output_length() / 4))
+            if word_size < 2:
+                word_format = "{:2x}"
+            else:
+                word_format = " {:" + str(word_size) + "x}"
+            result += "     [black]"
+            for x in range(0, n_cols):
+                result += " " * (word_size-2) + " •{:x}".format(x)
+            result += "[/]\n"
+            # actual rows
+            for i in range(0, n_rows):
+                result += "[{}]  {:2x}•".format(
+                    "black" if i % 2 == 0 else "blue",
+                    i
+                )
+                
+                for j in range(0, n_cols):
+                    result += word_format.format(
+                        self.cpp_sb.brackets(i*n_cols + j)
+                    )
+                result += "[/]\n"
+            return result
+            
 
     
     def __iter__(self):

@@ -11,7 +11,7 @@ When possible the functions are multi-threaded. In particular, computing "spectr
 from .cython_functions import \
     Spectrum, Spctr, \
     differential_spectrum, ddt, differential_uniformity, is_differential_uniformity_smaller_than, \
-    walsh_transform, walsh_spectrum, lat, invert_lat, linearity, \
+    walsh_transform, walsh_spectrum, absolute_walsh_spectrum, lat, invert_lat, linearity, \
     boomerang_spectrum, bct, boomerang_uniformity
 
 

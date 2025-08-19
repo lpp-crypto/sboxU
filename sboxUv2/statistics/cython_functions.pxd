@@ -106,6 +106,7 @@ cdef extern from "../cpp/statistics/boomerang.cpp":
 # !SUBSECTION! The Spectrum class
 
 cdef class Spectrum:
+    cdef string name 
     cdef cpp_Spectrum * cpp_sp
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp)
 
