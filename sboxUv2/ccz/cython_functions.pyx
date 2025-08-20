@@ -22,7 +22,7 @@ def thickness_spectrum(s, spaces=None):
 
     """
     sb = Sb(s)
-    result = Spectrum()
+    result = Spectrum(name=b"thickness")
     result.set_inner_sp(
         cpp_thickness_spectrum((<S_box>sb).cpp_sb[0], MAX_N_THREADS)
     )
