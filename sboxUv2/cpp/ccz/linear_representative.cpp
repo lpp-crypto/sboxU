@@ -1,4 +1,5 @@
 #include "./linear_representative.hpp"
+#include <array>
 
 
 // !SECTION! LEguess class
@@ -19,6 +20,7 @@ LEguess::~LEguess()
     partial_lut.clear();
     is_set.clear();
 }
+
 
 
 std::vector<IOpair> LEguess::add_entry(const IOpair e)
@@ -50,7 +52,7 @@ std::vector<IOpair> LEguess::add_entry(const IOpair e)
                         ((in_val != 0) and (out_val == 0))
                         )
                         throw ContradictionFound(in_val, out_val);
-                }                    
+                }
                 else
                 {
                     partial_lut[in_val] = out_val;
@@ -205,7 +207,7 @@ LEguessIterator LEguessIterator::deeper_guess_gen()
 //         LEguess
 //             a(f.size()),
 //             b = b_generators.back().get_prepared_guess();
-        
+
 //         std::vector<IOpair> just_added, to_treat, next_to_treat;
 //         for (unsigned int x=0; x<f.size(); x++)
 //             if (b.is_entry_set(x))
@@ -278,7 +280,7 @@ LEguessIterator LEguessIterator::deeper_guess_gen()
 //                 else
 //                     // inconclusive: we will guess one more entry
 //                     b_generators.push_back(b_generators.back().deeper_guess_gen());
-                    
+
 //             }
 //         }
 //     }
@@ -353,7 +355,7 @@ bool LErepr::current_is_greater_than_best()
 
 
 bool LErepr::update_state()
-{    
+{
     std::vector<IOpair> just_added;
     bool
         done_propagating = false,
@@ -440,7 +442,7 @@ unsigned int LErepr::min_u_b()
 void LErepr::initialize()
 {
     // IMPORTANT REMARK:
-    // 
+    //
     // We look for Rs which is linearly equivalent to f and the linear
     // permutations A and B such that Rs = B^{-1} o f o A. These
     // notations are those used in the paper of Biryukov et al but
@@ -553,8 +555,7 @@ void LErepr::initialize()
 
 
 
-// !SUBSECTION! Lukas Stennes' fast linear representative 
-
+// !SUBSECTION! Lukas Stennes' fast linear representative, templated and generalized
 
 
 typedef uint8_t u8;
@@ -563,24 +564,283 @@ typedef uint32_t u32;
 typedef uint64_t u64;
 typedef __uint128_t u128;
 
+
+template<typename set_t, typename int_type> struct tstate_t
+{
+        std::vector<int_type> A;
+        std::vector<int_type> B;
+        std::vector<int_type> R_S;
+        set_t D_A;
+        set_t D_B;
+        set_t C_A;
+        set_t C_B;
+        set_t N_A;
+        set_t N_B;
+        set_t U_A;
+        set_t U_B;
+};
+
+
+/*
+ * set_t is the bit container
+ * int_type is a type that can contain the sbox inputs
+ */
+template <typename set_t, typename int_type> class Set{
+public:
+
+    static void print(const std::string& name, const set_t& a);
+    static inline int_type least_element(const set_t&a);
+    static inline set_t intersect(const set_t&a, const set_t&b);
+    static inline set_t unite(const set_t&a, const set_t&b);
+    static inline u64 size(const set_t&a);
+    static inline bool is_empty(const set_t&a);
+
+    static set_t add_element(const set_t& a, const int_type elm);
+    static set_t shift(const set_t& b, const int_type shift);
+    static std::vector<int_type> get_elements(const set_t& a);
+
+    static inline set_t init_empty(const u32 length);
+    static inline set_t init_full(const u32 length);
+    static inline set_t invert(const set_t& a, const u32 length);
+
+    static bool elm_is_in_set(const int_type e, const set_t& a);
+
+    static set_t shift_union(const set_t& a, const int_type shift)
+    {
+        set_t b = shift(a, shift);
+        return unite(a, b);
+    };
+
+    static inline set_t setminus(const set_t& a, const set_t& b, const u32 length)
+    {
+        const set_t b_not = invert(b, length);
+        return intersect(a, b_not);
+    };
+};
+
+inline uint64_t permute_mask(uint64_t x, uint64_t mask, uint64_t len)
+{
+     return ((x & mask) << len) ^ ((x >> len) & mask);
+}
+
+template<typename int_type> class Set<std::vector<u64>, int_type>
+{
+    using set_t = std::vector<u64>;
+public:
+    static void print(const std::string& name, const set_t& a)
+    {
+        std::cout << name << ": 0b";
+        for (int i = a.size() -1; i >= 0; i--)
+        {
+            for (int j = 63; j >= 0; j--)
+            {
+                u32 bit = (a[i] >> j) & 1;
+                std::cout << bit;
+            }
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    static int_type least_element(const set_t& a)
+    {
+        for (u32 i = 0; i < a.size(); i++)
+        {
+            u64 current_chunk = a[i];
+            if (current_chunk != 0)
+            {
+                u64 idx = __builtin_ctzll(current_chunk) + i * 64;
+                return idx;
+            }
+        }
+
+        //set is empty -- caller's fault
+        std::cout << "CALLED LEAST ELEMENT ON EMPTY SET!" << std::endl;
+        return 0;
+    }
+
+    static inline set_t intersect(const set_t& a, const set_t& b)
+    {
+        set_t result;
+        result.reserve(a.size());
+        for(u32 i = 0; i < a.size(); i++)
+        {
+            result.push_back(a[i] & b[i]);
+        }
+        return result;
+    }
+
+    static inline set_t unite(const set_t& a, const set_t& b)
+    {
+        set_t result;
+        result.reserve(a.size());
+        for(u64 i = 0; i < a.size(); i++)
+        {
+            result.push_back(a[i] | b[i]);
+        }
+        return result;
+    }
+
+    static inline u64 size(const set_t& a)
+    {
+        u64 count = 0;
+        for(auto x : a)
+        {
+            count += __builtin_popcountll(x);
+        }
+        return count;
+    }
+
+    static inline bool is_empty(const set_t& a)
+    {
+        for(auto x : a)
+        {
+            if(x!=0)
+                return false;
+        }
+        return true;
+    }
+
+    static set_t add_element(const set_t& a, const u64 elm)
+    {
+        //compute union of a and {elm}
+        u64 index = elm / 64;
+        set_t result = a;
+        result[index] |= (1ul << (elm %64));
+        return result;
+    }
+
+    static set_t shift(const set_t& b, const u64 shift)
+    {
+        set_t a = b;
+
+        u64 high = shift >> 6;
+        u64 msb = 1ul << cpp_msb(high);
+
+        for( u64 bit = msb ; bit > 0; bit/=2){
+            if (bit & high)
+            {
+            for(u64 i = 0; i < b.size(); i++)
+                if( (i&bit) == 0)
+                    std::swap(a[i],a[i+bit]);
+            }
+        }
+        //compute a \oplus shift
+        if ((shift >> 5) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x00000000FFFFFFFF,32);
+        }
+        if ((shift >> 4) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x0000FFFF0000FFFF,16);
+        }
+        if ((shift >> 3) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0xFF00FF00FF00FF,8);
+        }
+        if ((shift >> 2) & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x0F0F0F0F0F0F0F0F,4);
+        }
+        if ((shift >> 1) & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x3333333333333333,2);
+        }
+        if (shift & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x5555555555555555,1);
+        }
+        return a;
+    }
+
+    static std::vector<int_type> get_elements(const set_t& a)
+    {
+
+        std::vector<u64> e;
+        for (u64 i = 0; i < a.size(); i++)
+        {
+            u64 current_chunk = a[i];
+            while (current_chunk != 0)
+            {
+                u64 idx = __builtin_ctzll(current_chunk) + i * 64;
+                e.push_back(idx);
+                current_chunk &= (current_chunk - 1);
+            }
+        }
+        return e;
+    }
+
+    static inline set_t init_empty(const u32 len)
+    {
+        return set_t(len >> 6,0);
+    }
+
+    static inline set_t init_full(const u32 len)
+    {
+        u64 mask = -1ul;
+        return set_t(len >> 6,mask);
+    }
+
+    static inline set_t invert(const set_t& a, const u32 len)
+    {
+        const set_t b = init_full(len);
+        set_t result;
+        result.reserve(a.size());
+        for(u64 i = 0; i < a.size(); i++)
+        {
+            result.push_back(a[i] ^ b[i]);
+        }
+        return result;
+    }
+
+    static bool elm_is_in_set(const u64 e, const set_t& a)
+    {
+        u64 index = e >> 6;
+        u64 field = 1ul << (e & 0x3F);
+        return (a[index] & field) != 0;
+    }
+
+    static set_t shift_union(const set_t& a, const int_type s)
+    {
+        set_t b = shift(a, s);
+        return unite(a, b);
+    };
+
+    static inline set_t setminus(const set_t& a, const set_t& b, const u32 length)
+    {
+        const set_t b_not = invert(b, length);
+        return intersect(a, b_not);
+    };
+
+
+};
+
+#if defined(__AVX2__) or defined(__ARM_NEON)
 #ifdef __AVX2__
 #include <immintrin.h>
 
-using smallset_t = __m256i;
-#elif defined(__ARM_NEON)
+using fastset_t = __m256i;
+#elif defined((__ARM_NEON))
 #include <arm_neon.h>
 
-using smallset_t = uint64x2x2_t;
+using fastset_t = uint64x2x2_t;
 #endif
 
-
-namespace
+template <typename int_type> class Set<fastset_t, int_type>
 {
-    void smallset_print(const std::string& name, const smallset_t& a)
+    using set_t = fastset_t;
+public:
+
+    static void print(const std::string& name, const set_t& a)
     {
         u64 elements[4];
 #ifdef __AVX2__
-
         elements[0] = _mm256_extract_epi64(a, 3);
         elements[1] = _mm256_extract_epi64(a, 2);
         elements[2] = _mm256_extract_epi64(a, 1);
@@ -602,9 +862,9 @@ namespace
             std::cout << " ";
         }
         std::cout << std::endl;
-    }
+    };
 
-    u8 smallset_least_element(const smallset_t& a)
+    static inline int_type least_element(const set_t&a)
     {
         u64 chunks[4];
 #ifdef __AVX2__
@@ -623,7 +883,7 @@ namespace
             u64 current_chunk = chunks[i];
             if (current_chunk != 0)
             {
-                u8 idx = __builtin_ctzll(current_chunk) + i * 64;
+                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
                 return idx;
             }
         }
@@ -631,28 +891,28 @@ namespace
         // set is empty -- caller's fault
         std::cout << "CALLED LEAST ELEMENT ON EMPTY SET!" << std::endl;
         return 0;
-    }
+    };
 
-    inline smallset_t smallset_intersect(const smallset_t& a, const smallset_t& b)
+    static inline set_t intersect(const set_t&a, const set_t&b)
     {
 #ifdef __AVX2__
         return _mm256_and_si256(a, b);
 #elif defined(__ARM_NEON)
         return {vandq_u64(a.val[0], b.val[0]), vandq_u64(a.val[1], b.val[1])};
 #endif
-    }
+    };
 
-    inline smallset_t smallset_union(const smallset_t& a, const smallset_t& b)
+    static inline set_t unite(const set_t&a, const set_t&b)
     {
 #ifdef __AVX2__
         return _mm256_or_si256(a, b);
 #elif defined(__ARM_NEON)
         return {vorrq_u64(a.val[0], b.val[0]), vorrq_u64(a.val[1], b.val[1])};
 #endif
-    }
+    };
 
-    inline u16 smallset_size(const smallset_t& a)
-    {
+    static inline u64 size(const set_t&a)
+     {
         u16 count = 0;
 #ifdef __AVX2__
         u64 chunk = _mm256_extract_epi64(a, 0);
@@ -670,9 +930,9 @@ namespace
         count += __builtin_popcountll(a.val[1][1]);
 #endif
         return count;
-    }
+    };
 
-    inline bool smallset_is_empty(const smallset_t& a)
+    static inline bool is_empty(const set_t&a)
     {
 #ifdef __AVX2__
         return _mm256_testz_si256(a, a);
@@ -680,10 +940,10 @@ namespace
         auto tmp = vandq_u64(vceqzq_u64(a.val[0]), vceqzq_u64(a.val[1]));
         return (tmp[0] & tmp[1]) & 1;
 #endif
-    }
+    };
 
-    smallset_t smallset_add_element(const smallset_t& a, const u8 elm)
-    {
+    static set_t add_element(const set_t& a, const int_type elm)
+     {
         // compute union of a and {elm}
         u32 index = elm / 64;
 #ifdef __AVX2__
@@ -704,11 +964,11 @@ namespace
             return {a.val[0], vorrq_u64(a.val[1], _mask)};
         }
 #endif
-    }
+    };
 
-    smallset_t smallset_shift(const smallset_t& b, const u8 shift)
+    static set_t shift(const set_t& b, const int_type shift)
     {
-        auto a = b;
+        set_t a = b;
         // compute a \oplus shift
         if ((shift >> 7) & 0x1)
         {
@@ -735,7 +995,6 @@ namespace
 #elif defined(__ARM_NEON)
             a.val[0] = vrev64q_u32(a.val[0]);
             a.val[1] = vrev64q_u32(a.val[1]);
-
 #endif
         }
         if ((shift >> 4) & 0x1)
@@ -826,17 +1085,10 @@ namespace
 #endif
         }
         return a;
-    }
-
-    smallset_t smallset_shift_union(const smallset_t& a, const u8 shift)
+    };
+    static std::vector<int_type> get_elements(const set_t& a)
     {
-        smallset_t b = smallset_shift(a, shift);
-        return smallset_union(a, b);
-    }
-
-    std::vector<u8> smallset_get_elements(const smallset_t& a)
-    {
-        std::vector<u8> e;
+        std::vector<int_type> e;
         u64 chunks[4];
 #ifdef __AVX2__
         chunks[0] = _mm256_extract_epi64(a, 0);
@@ -854,24 +1106,23 @@ namespace
             u64 current_chunk = chunks[i];
             while (current_chunk != 0)
             {
-                u8 idx = __builtin_ctzll(current_chunk) + i * 64;
+                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
                 e.push_back(idx);
                 current_chunk &= (current_chunk - 1);
             }
         }
         return e;
-    }
+    };
 
-    inline smallset_t smallset_init_empty()
+    static inline set_t init_empty(const u32 length)
     {
 #ifdef __AVX2__
         return _mm256_setzero_si256();
 #elif defined(__ARM_NEON)
         return {vdupq_n_u64(0), vdupq_n_u64(0)};
 #endif
-    }
-
-    inline smallset_t smallset_init_full(const u32 len)
+    };
+    static inline set_t init_full(const u32 len)
     {
         // N must be in {256, 128, 64, 32, 16, 8}
         if (len == 256)
@@ -934,315 +1185,512 @@ namespace
             return {vdupq_n_u64(0xFFFFFFFFFFFFFFFF), vdupq_n_u64(0xFFFFFFFFFFFFFFFF)};
 #endif
         }
-    }
+    };
 
-    inline smallset_t smallset_invert(const smallset_t& a, const u32 len)
+    static inline set_t invert(const set_t& a, const u32 len)
     {
-        const smallset_t b = smallset_init_full(len);
+        const set_t b = init_full(len);
 #ifdef __AVX2__
         return _mm256_xor_si256(a, b);
 #elif defined(__ARM_NEON)
         return {veorq_u64(a.val[0], b.val[0]), veorq_u64(a.val[1], b.val[1])};
 #endif
-    }
+    };
 
-    inline smallset_t smallset_setminus(const smallset_t& a, const smallset_t& b, const u32 len)
+    static bool elm_is_in_set(const int_type e, const set_t& a)
     {
-        const smallset_t b_not = smallset_invert(b, len);
-        return smallset_intersect(a, b_not);
-    }
+        set_t b = init_empty(256);
+        b            = add_element(b, e);
+        b            = intersect(a, b);
+        return !is_empty(b);
+    };
 
-    bool smallset_elm_is_in_set(const u8 e, const smallset_t& a)
+    static set_t shift_union(const set_t& a, const int_type shift)
     {
-        smallset_t b = smallset_init_empty();
-        b            = smallset_add_element(b, e);
-        b            = smallset_intersect(a, b);
-        return !smallset_is_empty(b);
-    }
-    // END OF SMALL SET //
+        set_t b = shift(a, shift);
+        return unite(a, b);
+    };
 
-    // state of the linear_representative algorithm
-    typedef struct
+    static inline set_t setminus(const set_t& a, const set_t& b, const u32 length)
     {
-        std::vector<u8> A;
-        std::vector<u8> B;
-        std::vector<u8> R_S;
-        smallset_t D_A;
-        smallset_t D_B;
-        smallset_t C_A;
-        smallset_t C_B;
-        smallset_t N_A;
-        smallset_t N_B;
-        smallset_t U_A;
-        smallset_t U_B;
-    } state_t;
+        const set_t b_not = invert(b, length);
+        return intersect(a, b_not);
+    };
+};
+#endif
 
-    // lexicographically compare R_S and R_S_best
-    bool is_greater(const std::vector<u8>& R_S, const std::vector<u8>& R_S_best, const u32 len)
+template <typename int_type, std::size_t s> class Set<std::array<u64, s>, int_type>{
+    using set_t = std::array<u64, s>;
+public:
+
+    static void print(const std::string& name, const set_t& a)
     {
-        if ((R_S_best[0] == 0) && (R_S_best[1] == 0))
-            return false;
-
-        for (u32 x = 0; x < len; x++)
+        std::cout << name << ": 0b";
+        for (int i = s-1; i >=0; i--)
         {
-            // special case: R_S[x] not defined (=> 0) and R_S_best[x] = 0
-            // works out with this
-            if (R_S[x] > R_S_best[x])
-                return true;
-            if (R_S[x] < R_S_best[x])
-                return false;
-        }
-        // can happen if there are self equivalences (?)
-        return false;
-    }
-
-    bool update_linear(std::vector<u8>& A, u8 new_x, const u32 len)
-    {
-        u8 new_y = A[new_x];
-        for (u32 i = 1; i < len; i++)
-        {
-            u8 e = A[i];
-            if (e == 0)
-                continue;
-            else if (A[new_x ^ i] == 0)
-                A[new_x ^ i] = e ^ new_y;
-            else if (A[new_x ^ i] != (e ^ new_y))
+            for (int j = 63; j >= 0; j--)
             {
-                return false;
+                u32 bit = (a[i] >> j) & 1;
+                std::cout << bit;
             }
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    static int_type least_element(const set_t& a)
+    {
+        for (u32 i = 0; i < s; i++)
+        {
+            u64 current_chunk = a[i];
+            if (current_chunk != 0)
+            {
+                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
+                return idx;
+            }
+        }
+
+        //set is empty -- caller's fault
+        std::cout << "CALLED LEAST ELEMENT ON EMPTY SET!" << std::endl;
+        return 0;
+    }
+
+    static inline set_t intersect(const set_t& a, const set_t& b)
+    {
+        set_t result;
+        for(u64 i = 0; i < s; i++)
+        {
+            result[i] = a[i] & b[i];
+        }
+        return result;
+    }
+
+    static inline set_t unite(const set_t& a, const set_t& b)
+    {
+        set_t result;
+        for(u64 i = 0; i < s; i++)
+        {
+            result[i] = (a[i] | b[i]);
+        }
+        return result;
+    }
+
+    static inline u64 size(const set_t& a)
+    {
+        u64 count = 0;
+        for(u64 i = 0; i < s; i++)
+        {
+            count += __builtin_popcountll(a[i]);
+        }
+        return count;
+    }
+
+    static inline bool is_empty(const set_t& a)
+    {
+        for(u64 i = 0; i < s; i++)
+        {
+            if(a[i]!=0)
+                return false;
         }
         return true;
     }
 
-    bool subroutine(const std::vector<u8>& S, const std::vector<u8>& S_inv, const state_t& state, std::vector<u8>& R_S_best, const u32 len)
+    static set_t add_element(const set_t& a, const u64 elm)
     {
-        std::vector<u8> A(state.A);
-        std::vector<u8> B(state.B);
-        std::vector<u8> R_S(state.R_S);
+        //compute union of a and {elm}
+        u64 index = elm / 64;
+        set_t result = a;
+        result[index] |= (1ul << (elm %64));
+        return result;
+    }
 
-        smallset_t D_A = (state.D_A);
-        smallset_t D_B = (state.D_B);
-        smallset_t C_A = (state.C_A);
-        smallset_t C_B = (state.C_B);
-        smallset_t N_A = (state.N_A);
-        smallset_t N_B = (state.N_B);
-        smallset_t U_A = (state.U_A);
-        smallset_t U_B = (state.U_B);
+    static set_t shift(const set_t& b, const int_type shift)
+    {
+        set_t a = b;
 
-        while (!smallset_is_empty(N_A))
+        if(s > 1)
         {
-            u8 x = smallset_least_element(N_A);
-            u8 y = smallset_least_element(U_B);
-            B[y] = S[A[x]];
-            if (!update_linear(B, y, len))
-                return false;
-            smallset_t D_B_new = smallset_shift(D_B, y);
-            D_B                = smallset_union(D_B, D_B_new);
-            U_B                = smallset_setminus(U_B, D_B_new, len);
-            smallset_t SoA_N_A = smallset_init_empty();
-            for (u8 x : smallset_get_elements(N_A))
-            {
-                SoA_N_A = smallset_add_element(SoA_N_A, S[A[x]]);
-            }
-            smallset_t B_D_B_new = smallset_init_empty();
-            for (u8 d : smallset_get_elements(D_B_new))
-            {
-                B_D_B_new = smallset_add_element(B_D_B_new, B[d]);
-                if (smallset_elm_is_in_set(B[d], SoA_N_A))
+            u64 high = shift >> 6;
+            u64 msb = 1ul << cpp_msb(high);
+
+            for( u64 bit = msb ; bit > 0; bit/=2){
+                if (bit & high)
                 {
-                    C_B = smallset_add_element(C_B, d);
+                for(u64 i = 0; i < b.size(); i++)
+                    if( (i&bit) == 0)
+                        std::swap(a[i],a[i+bit]);
+                }
+            }
+        }
+        //compute a \oplus shift
+        if ((shift >> 5) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x00000000FFFFFFFF,32);
+        }
+        if ((shift >> 4) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x0000FFFF0000FFFF,16);
+        }
+        if ((shift >> 3) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0xFF00FF00FF00FF,8);
+        }
+        if ((shift >> 2) & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x0F0F0F0F0F0F0F0F,4);
+        }
+        if ((shift >> 1) & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x3333333333333333,2);
+        }
+        if (shift & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x5555555555555555,1);
+        }
+        return a;
+    }
+
+    static std::vector<int_type> get_elements(const set_t& a)
+    {
+
+        std::vector<int_type> e;
+        for (u64 i = 0; i < s; i++)
+        {
+            u64 current_chunk = a[i];
+            while (current_chunk != 0)
+            {
+                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
+                e.push_back(idx);
+                current_chunk &= (current_chunk - 1);
+            }
+        }
+        return e;
+    }
+
+    static inline set_t init_empty(const u32 len)
+    {
+        return set_t{};
+    }
+
+    static inline set_t init_full(const u32 len)
+    {
+
+        u64 mask;
+        if(s == 1 && len < 64)
+            mask = (1ul << len) -1;
+        else
+            mask = -1ul;
+        set_t set;
+        for (auto &x : set)
+            x = mask;
+        return set;
+    }
+
+    static inline set_t invert(const set_t& a, const u32 len)
+    {
+        const set_t b = init_full(len);
+        set_t result;
+        for(u64 i = 0; i < s; i++)
+        {
+            result[i] = (a[i] ^ b[i]);
+        }
+        return result;
+    }
+
+    static bool elm_is_in_set(const u64 e, const set_t& a)
+    {
+        u64 index = e >> 6;
+        u64 field = 1ul << (e & 0x3F);
+        return (a[index] & field) != 0;
+    }
+
+    static set_t shift_union(const set_t& a, const int_type sh)
+    {
+        set_t b = shift(a, sh);
+        return unite(a, b);
+    };
+
+    static inline set_t setminus(const set_t& a, const set_t& b, const u32 length)
+    {
+        const set_t b_not = invert(b, length);
+        return intersect(a, b_not);
+    };
+
+};
+
+
+template<typename int_type> bool update_linear(std::vector<int_type>& A, int_type new_x, const u32 length)
+{
+    int_type new_y = A[new_x];
+    for (u32 i = 1; i < length; i++)
+    {
+        int_type e = A[i];
+        if (e == 0)
+            continue;
+        else if (A[new_x ^ i] == 0)
+            A[new_x ^ i] = e ^ new_y;
+        else if (A[new_x ^ i] != (e ^ new_y))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+    // lexicographically compare R_S and R_S_best
+template<typename int_type> bool is_greater(const std::vector<int_type>& R_S, const std::vector<int_type>& R_S_best, const u32 length)
+{
+    if ((R_S_best[0] == 0) && (R_S_best[1] == 0))
+        return false;
+
+    for (u32 x = 0; x < length; x++)
+    {
+        // special case: R_S[x] not defined (=> 0) and R_S_best[x] = 0
+        // works out with this
+        if (R_S[x] > R_S_best[x])
+            return true;
+        if (R_S[x] < R_S_best[x])
+            return false;
+    }
+    // can happen if there are self equivalences (?)
+    return false;
+}
+
+template<typename set_t, typename int_type> bool subroutine(const std::vector<int_type>& S, const std::vector<int_type>& S_inv, const tstate_t<set_t, int_type>& state, std::vector<int_type>& R_S_best, const u32 length)
+{
+    std::vector<int_type> A(state.A);
+    std::vector<int_type> B(state.B);
+    std::vector<int_type> R_S(state.R_S);
+
+    set_t D_A = (state.D_A);
+    set_t D_B = (state.D_B);
+    set_t C_A = (state.C_A);
+    set_t C_B = (state.C_B);
+    set_t N_A = (state.N_A);
+    set_t N_B = (state.N_B);
+    set_t U_A = (state.U_A);
+    set_t U_B = (state.U_B);
+
+    while (!Set<set_t, int_type>::is_empty(N_A))
+    {
+        int_type x = Set<set_t, int_type>::least_element(N_A);
+        int_type y = Set<set_t, int_type>::least_element(U_B);
+        B[y] = S[A[x]];
+        if (!update_linear<int_type>(B, y, length))
+            return false;
+        set_t D_B_new = Set<set_t, int_type>::shift(D_B, y);
+        D_B                = Set<set_t, int_type>::unite(D_B, D_B_new);
+        U_B                = Set<set_t, int_type>::setminus(U_B, D_B_new, length);
+        set_t SoA_N_A = Set<set_t, int_type>::init_empty(length);
+        for (int_type x : Set<set_t, int_type>::get_elements(N_A))
+        {
+            SoA_N_A = Set<set_t, int_type>::add_element(SoA_N_A, S[A[x]]);
+        }
+        set_t B_D_B_new = Set<set_t, int_type>::init_empty(length);
+        for (int_type d : Set<set_t, int_type>::get_elements(D_B_new))
+        {
+            B_D_B_new = Set<set_t, int_type>::add_element(B_D_B_new, B[d]);
+            if (Set<set_t, int_type>::elm_is_in_set(B[d], SoA_N_A))
+            {
+                C_B = Set<set_t, int_type>::add_element(C_B, d);
+            }
+            else
+            {
+                N_B = Set<set_t, int_type>::add_element(N_B, d);
+            }
+        }
+        set_t C_A_new = Set<set_t, int_type>::init_empty(length);
+        for (int_type x : Set<set_t, int_type>::get_elements(N_A))
+        {
+            if (Set<set_t, int_type>::elm_is_in_set(S[A[x]], B_D_B_new))
+            {
+                C_A_new = Set<set_t, int_type>::add_element(C_A_new, x);
+            }
+        }
+        C_A = Set<set_t, int_type>::unite(C_A, C_A_new);
+        N_A = Set<set_t, int_type>::setminus(N_A, C_A_new, length);
+        for (int_type x : Set<set_t, int_type>::get_elements(C_A_new))
+        {
+            int_type y = 0;
+            for (u32 i = 0; i < length; i++)
+            {
+                if (B[i] == S[A[x]])
+                {
+                    y = i;
+                    break;
+                }
+            }
+            R_S[x] = y;
+        }
+        if (is_greater<int_type>(R_S, R_S_best, length))
+            return false;
+        while (Set<set_t, int_type>::is_empty(N_A) && !Set<set_t, int_type>::is_empty(N_B))
+        {
+            int_type x = Set<set_t, int_type>::least_element(U_A);
+            int_type y = Set<set_t, int_type>::least_element(N_B);
+            A[x] = S_inv[B[y]];
+            if (!update_linear<int_type>(A, x, length))
+            {
+                return false;
+            }
+            set_t D_A_new    = Set<set_t, int_type>::shift(D_A, x);
+            D_A                   = Set<set_t, int_type>::unite(D_A, D_A_new);
+            U_A                   = Set<set_t, int_type>::setminus(U_A, D_A_new, length);
+            set_t SinvoB_N_B = Set<set_t, int_type>::init_empty(length);
+            for (int_type y : Set<set_t, int_type>::get_elements(N_B))
+            {
+                SinvoB_N_B = Set<set_t, int_type>::add_element(SinvoB_N_B, S_inv[B[y]]);
+            }
+            set_t A_D_A_new = Set<set_t, int_type>::init_empty(length);
+            for (int_type d : Set<set_t, int_type>::get_elements(D_A_new))
+            {
+                A_D_A_new = Set<set_t, int_type>::add_element(A_D_A_new, A[d]);
+                if (Set<set_t, int_type>::elm_is_in_set(A[d], SinvoB_N_B))
+                {
+                    C_A = Set<set_t, int_type>::add_element(C_A, d);
                 }
                 else
                 {
-                    N_B = smallset_add_element(N_B, d);
+                    N_A = Set<set_t, int_type>::add_element(N_A, d);
                 }
             }
-            smallset_t C_A_new = smallset_init_empty();
-            for (u8 x : smallset_get_elements(N_A))
+            set_t C_B_new = Set<set_t, int_type>::init_empty(length);
+            for (int_type y : Set<set_t, int_type>::get_elements(N_B))
             {
-                if (smallset_elm_is_in_set(S[A[x]], B_D_B_new))
+                if (Set<set_t, int_type>::elm_is_in_set(S_inv[B[y]], A_D_A_new))
                 {
-                    C_A_new = smallset_add_element(C_A_new, x);
+                    C_B_new = Set<set_t, int_type>::add_element(C_B_new, y);
                 }
             }
-            C_A = smallset_union(C_A, C_A_new);
-            N_A = smallset_setminus(N_A, C_A_new, len);
-            for (u8 x : smallset_get_elements(C_A_new))
+            C_B = Set<set_t, int_type>::unite(C_B, C_B_new);
+            N_B = Set<set_t, int_type>::setminus(N_B, C_B_new, length);
+            for (int_type y : Set<set_t, int_type>::get_elements(C_B_new))
             {
-                u8 y = 0;
-                for (u32 i = 0; i < len; i++)
+                int_type x = 0;
+                for (u32 i = 0; i < length; i++)
                 {
-                    if (B[i] == S[A[x]])
+                    if (A[i] == S_inv[B[y]])
                     {
-                        y = i;
+                        x = i;
                         break;
                     }
                 }
                 R_S[x] = y;
             }
-            if (is_greater(R_S, R_S_best, len))
+            if (is_greater<int_type>(R_S, R_S_best, length))
                 return false;
-            while (smallset_is_empty(N_A) && !smallset_is_empty(N_B))
-            {
-                u8 x = smallset_least_element(U_A);
-                u8 y = smallset_least_element(N_B);
-                A[x] = S_inv[B[y]];
-                if (!update_linear(A, x, len))
-                {
-                    return false;
-                }
-                smallset_t D_A_new    = smallset_shift(D_A, x);
-                D_A                   = smallset_union(D_A, D_A_new);
-                U_A                   = smallset_setminus(U_A, D_A_new, len);
-                smallset_t SinvoB_N_B = smallset_init_empty();
-                for (u8 y : smallset_get_elements(N_B))
-                {
-                    SinvoB_N_B = smallset_add_element(SinvoB_N_B, S_inv[B[y]]);
-                }
-                smallset_t A_D_A_new = smallset_init_empty();
-                for (u8 d : smallset_get_elements(D_A_new))
-                {
-                    A_D_A_new = smallset_add_element(A_D_A_new, A[d]);
-                    if (smallset_elm_is_in_set(A[d], SinvoB_N_B))
-                    {
-                        C_A = smallset_add_element(C_A, d);
-                    }
-                    else
-                    {
-                        N_A = smallset_add_element(N_A, d);
-                    }
-                }
-                smallset_t C_B_new = smallset_init_empty();
-                for (u8 y : smallset_get_elements(N_B))
-                {
-                    if (smallset_elm_is_in_set(S_inv[B[y]], A_D_A_new))
-                    {
-                        C_B_new = smallset_add_element(C_B_new, y);
-                    }
-                }
-                C_B = smallset_union(C_B, C_B_new);
-                N_B = smallset_setminus(N_B, C_B_new, len);
-                for (u8 y : smallset_get_elements(C_B_new))
-                {
-                    u8 x = 0;
-                    for (u32 i = 0; i < len; i++)
-                    {
-                        if (A[i] == S_inv[B[y]])
-                        {
-                            x = i;
-                            break;
-                        }
-                    }
-                    R_S[x] = y;
-                }
-                if (is_greater(R_S, R_S_best, len))
-                    return false;
-            }
-        }
-        if (smallset_is_empty(U_A) && smallset_is_empty(U_B))
-        {
-            for (u32 i = 0; i < len; i++)
-            {
-                // new best
-                R_S_best[i] = R_S[i];
-            }
-            return true;
-        }
-        else
-        {
-            u8 x               = smallset_least_element(U_A);
-            smallset_t D_A_new = smallset_shift(D_A, x);
-            U_A                = smallset_setminus(U_A, D_A_new, len);
-            D_A                = smallset_union(D_A, D_A_new);
-            N_A                = smallset_union(N_A, D_A_new);
-            bool flag          = false;
-            smallset_t Y       = smallset_init_full(len);
-            smallset_t A_set   = smallset_init_empty();
-            for (u32 i = 0; i < len; i++)
-            {
-                A_set = smallset_add_element(A_set, A[i]);
-            }
-            Y = smallset_setminus(Y, A_set, len);
-            for (u8 y : smallset_get_elements(Y))
-            {
-                std::vector<u8> A_next_guess(len);
-
-                for (u32 i = 0; i < len; i++)
-                {
-                    A_next_guess[i] = A[i];
-                }
-                A_next_guess[x] = y;
-                if (!update_linear(A_next_guess, x, len))
-                    continue;
-                state_t state_next;
-                state_next.A   = A_next_guess;
-                state_next.B   = B;
-                state_next.R_S = R_S;
-                state_next.D_A = D_A;
-                state_next.D_B = D_B;
-                state_next.C_A = C_A;
-                state_next.C_B = C_B;
-                state_next.N_A = N_A;
-                state_next.N_B = N_B;
-                state_next.U_A = U_A;
-                state_next.U_B = U_B;
-
-                if (subroutine(S, S_inv, state_next, R_S_best, len))
-                {
-                    flag = true;
-                }
-            }
-
-            return flag;
         }
     }
-}    // namespace
+    if (Set<set_t, int_type>::is_empty(U_A) && Set<set_t, int_type>::is_empty(U_B))
+    {
+        for (u32 i = 0; i < length; i++)
+        {
+            // new best
+            R_S_best[i] = R_S[i];
+        }
+        return true;
+    }
+    else
+    {
+        int_type x         = Set<set_t, int_type>::least_element(U_A);
+        set_t D_A_new      = Set<set_t, int_type>::shift(D_A, x);
+        U_A                = Set<set_t, int_type>::setminus(U_A, D_A_new, length);
+        D_A                = Set<set_t, int_type>::unite(D_A, D_A_new);
+        N_A                = Set<set_t, int_type>::unite(N_A, D_A_new);
+        bool flag          = false;
+        set_t Y            = Set<set_t, int_type>::init_full(length);
+        set_t A_set        = Set<set_t, int_type>::init_empty(length);
+        for (u32 i = 0; i < length; i++)
+        {
+            A_set = Set<set_t, int_type>::add_element(A_set, A[i]);
+        }
+        Y = Set<set_t, int_type>::setminus(Y, A_set, length);
+        for (int_type y : Set<set_t, int_type>::get_elements(Y))
+        {
+            std::vector<int_type> A_next_guess(length);
 
-std::vector<u8> compute_linear_representative(const std::vector<u8>& sbox)
+            for (u32 i = 0; i < length; i++)
+            {
+                A_next_guess[i] = A[i];
+            }
+            A_next_guess[x] = y;
+            if (!update_linear<int_type>(A_next_guess, x, length))
+                continue;
+            tstate_t<set_t, int_type> state_next;
+            state_next.A   = A_next_guess;
+            state_next.B   = B;
+            state_next.R_S = R_S;
+            state_next.D_A = D_A;
+            state_next.D_B = D_B;
+            state_next.C_A = C_A;
+            state_next.C_B = C_B;
+            state_next.N_A = N_A;
+            state_next.N_B = N_B;
+            state_next.U_A = U_A;
+            state_next.U_B = U_B;
+
+            if (subroutine<set_t, int_type>(S, S_inv, state_next, R_S_best, length))
+            {
+                flag = true;
+            }
+        }
+
+        return flag;
+    }
+}
+
+
+template<typename set_t, typename int_type> std::vector<int_type> compute_linear_representative(const std::vector<int_type>& sbox)
 {
-    u32 len = sbox.size();
+    u32 length = sbox.size();
 
     // variable for current best candidate
-    std::vector<u8> R_S_best(len, 0);
+    std::vector<int_type> R_S_best(length, 0);
 
     // invert sbox
-    std::vector<u8> S_inv(len, 0);
-    for (u32 x = 0; x < len; x++)
+    std::vector<int_type> S_inv(length, 0);
+    for (u32 x = 0; x < length; x++)
     {
-        u8 y     = sbox[x];
+        int_type y     = sbox[x];
         S_inv[y] = x;
     }
 
     // init the state of the algorithm
-    state_t state;
-    state.A   = std::vector<u8>(len, 0);
-    state.B   = std::vector<u8>(len, 0);
-    state.R_S = std::vector<u8>(len, 0);
+    tstate_t<set_t, int_type> state;
+    state.A   = std::vector<int_type>(length, 0);
+    state.B   = std::vector<int_type>(length, 0);
+    state.R_S = std::vector<int_type>(length, 0);
 
-    state.D_A = smallset_add_element(smallset_init_empty(), 0);
-    state.D_B = smallset_add_element(smallset_init_empty(), 0);
+    state.D_A = Set<set_t, int_type>::add_element(Set<set_t, int_type>::init_empty(length), 0);
+    state.D_B = Set<set_t, int_type>::add_element(Set<set_t, int_type>::init_empty(length), 0);
 
-    state.C_A = smallset_init_empty();
-    state.C_B = smallset_init_empty();
+    state.C_A = Set<set_t, int_type>::init_empty(length);
+    state.C_B = Set<set_t, int_type>::init_empty(length);
 
-    state.N_A = smallset_add_element(smallset_init_empty(), 0);
-    state.N_B = smallset_add_element(smallset_init_empty(), 0);
+    state.N_A = Set<set_t, int_type>::add_element(Set<set_t, int_type>::init_empty(length), 0);
+    state.N_B = Set<set_t, int_type>::add_element(Set<set_t, int_type>::init_empty(length), 0);
 
-    state.U_A = smallset_setminus(smallset_init_full(len), state.D_A, len);
-    state.U_B = smallset_setminus(smallset_init_full(len), state.D_A, len);
+    state.U_A = Set<set_t, int_type>::setminus(Set<set_t, int_type>::init_full(length), state.D_A, length);
+    state.U_B = Set<set_t, int_type>::setminus(Set<set_t, int_type>::init_full(length), state.D_A, length);
 
     // init in special case S[0] == 0
     if (sbox[0] == 0)
     {
-        state.C_A = smallset_add_element(smallset_init_empty(), 0);
-        state.C_B = smallset_add_element(smallset_init_empty(), 0);
+        state.C_A = Set<set_t, int_type>::add_element(Set<set_t, int_type>::init_empty(length), 0);
+        state.C_B = Set<set_t, int_type>::add_element(Set<set_t, int_type>::init_empty(length), 0);
 
-        state.N_A = smallset_init_empty();
-        state.N_B = smallset_init_empty();
+        state.N_A = Set<set_t, int_type>::init_empty(length);
+        state.N_B = Set<set_t, int_type>::init_empty(length);
     }
 
     // compute linear representative recursively
-    subroutine(sbox, S_inv, state, R_S_best, len);
+    subroutine<set_t, int_type>(sbox, S_inv, state, R_S_best, length);
 
     return R_S_best;
 }
@@ -1252,17 +1700,49 @@ std::vector<u8> compute_linear_representative(const std::vector<u8>& sbox)
 
 cpp_S_box cpp_le_class_representative(const cpp_S_box f, const uint64_t fast)
 {
-    if(f.size() <= 256 and fast){
-      std::vector<u8> ff;
-      for(unsigned int i = 0; i < f.size(); i++){
-        ff.push_back((u8) f[i]);
-      }
-      std::vector<u8> lr = compute_linear_representative(ff);
-      Lut linear_representative(f.size(), 0);
-      for(unsigned int i = 0; i < f.size(); i++){
-          linear_representative[i] = (BinWord)lr[i];
-      }
-      return linear_representative;
+    if(fast)
+    {
+        if(f.size() <= 256){
+            std::vector<u8> ff;
+            for(unsigned int i = 0; i < f.size(); i++){
+                ff.push_back((u8) f[i]);
+            }
+            std::vector<u8> lr;
+            if(f.size() <= 64)
+                lr = compute_linear_representative<std::array<u64,1>,u8>(ff);
+            else if(f.size() == 128)
+                    lr = compute_linear_representative<std::array<u64,2>,u8>(ff);
+            else
+            {
+#if defined(__AVX2__) or defined(__ARM_NEON)
+                lr = compute_linear_representative<fastset_t,u8>(ff);
+#else
+                lr = compute_linear_representative<std::array<u64,4>,u8>(ff);
+#endif
+            }
+            Lut linear_representative(f.size(), 0);
+            for(unsigned int i = 0; i < f.size(); i++){
+                linear_representative[i] = (BinWord)lr[i];
+            }
+            return linear_representative;
+        }
+        std::vector<u64> ff;
+        for(unsigned int i = 0; i < f.size(); i++){
+            ff.push_back(f[i]);
+        }
+        std::vector<u64> lr;
+        if(f.size() == 512)
+            lr = compute_linear_representative<std::array<u64,8>,u64>(ff);
+        else if(f.size() == 1024)
+            lr = compute_linear_representative<std::array<u64,16>,u64>(ff);
+        else if(f.size() == 2048)
+            lr = compute_linear_representative<std::array<u64,32>,u64>(ff);
+        else if(f.size() == 4096)
+            lr = compute_linear_representative<std::array<u64,64>,u64>(ff);
+        else
+            // Currently Set<std::vector<u64>, u64> does not support < 6 bit sboxes, due to simple init_full()
+            lr = compute_linear_representative<std::vector<u64>, u64>(ff);
+        return lr;
     }
     LErepr repr(f);
     repr.initialize();
