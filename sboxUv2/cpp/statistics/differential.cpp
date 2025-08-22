@@ -5,10 +5,9 @@
 std::vector<Integer> cpp_ddt_row(const cpp_S_box & s, const BinWord delta)
 {
     std::vector<Integer> result(s.output_space_size(), 0);
-    for( DifferentialPairEnumerator h(s.input_space_size(), delta); !h.ended();)
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,delta,s.input_space_size())
     {
-        DifferentialPair p = h.next();
-        result[s[p.x] ^ s[p.y]] += 2 ;
+        result[s[x] ^ s[x^delta]] += 2 ;
     }
     return result;
 };
@@ -90,11 +89,9 @@ bool cpp_is_ddt_row_max_smaller_than_2(
 {
     std::vector<uint64_t> row(s.input_space_size() >> 6,0);
 
-    for( DifferentialPairEnumerator h(s.input_space_size(), a);!h.ended();)
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
     {
-        DifferentialPair n = h.next();
-
-        BinWord d_out = s[n.x] ^ s[n.y];
+        BinWord d_out = s[x] ^ s[x^a];
         // Assumes BinWord unsigned
         size_t index = d_out >> 6;
         uint64_t field = ((uint64_t) 1) << (d_out & 0x3F);
@@ -113,10 +110,9 @@ bool cpp_is_ddt_row_max_smaller_than_u(
 {
     std::vector<Integer> row(s.input_space_size(), 0);
 
-    for( DifferentialPairEnumerator h(s.input_space_size(), a);!h.ended();)
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
     {
-        DifferentialPair n = h.next();
-        BinWord d_out = s[n.y] ^ s[n.x];
+        BinWord d_out = s[x] ^ s[x^a];
         row[d_out] += 2 ;
         if (row[d_out] > u)
             return false;

@@ -59,48 +59,14 @@ Integer cpp_rank_of_vector_set(std::vector<BinWord> l);
 
 // !SECTION! Efficiently enumerating elements in a hyperplane 
 
-struct DifferentialPair {
- BinWord x;
- BinWord y;
-};
-
-class DifferentialPairEnumerator
-{
-private:
-    BinWord a;
-    BinWord max_bit;
-    BinWord i;
-
-public:
-    DifferentialPairEnumerator(BinWord size, BinWord a);
-    DifferentialPair next();
-    bool ended();
-};
-
-inline DifferentialPairEnumerator::DifferentialPairEnumerator(BinWord size, BinWord _a)
-{
-    a = _a;
-    max_bit = size/2;
-    i = 0;
-}
-
-inline bool DifferentialPairEnumerator::ended()
-{
-    return i >= max_bit;
-}
-
-inline DifferentialPair DifferentialPairEnumerator::next()
-{
-    DifferentialPair n;
-    n.x = i;
-    n.y = i^a;
-    i++;
-    if (n.y < n.x)
-    {
-        n.x+=max_bit;
-        n.y+=max_bit;
-    }
-    return n;
-}
+/* x: iteration variable name
+ * a: difference (BinWord), can be 0, can be greater than size
+ * size: must be a power of 2
+ * Enumerate in order the x such that all (x,x^a) are distinct
+ * Guarantee x < size and x < x^a
+ * */
+#define FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,size) \
+    for(BinWord x = 0, _max = size, _msb = (a == 0 || a > _max) ? _max : 1l << cpp_msb(a); x < _max; x+=_msb)\
+        for(BinWord _ceil = x + _msb; x < _ceil; x++)
 
 #endif

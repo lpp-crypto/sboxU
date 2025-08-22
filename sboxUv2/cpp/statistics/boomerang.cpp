@@ -14,11 +14,11 @@ std::vector<Integer> bct_row(
     std::vector<Integer> result(s.size(), 0);
     std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
     result[0] = s.input_space_size();
-    for( DifferentialPairEnumerator h(s.input_space_size(), a);!h.ended();)
+
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
     {
-        DifferentialPair n = h.next();
-        BinWord z1 = s[n.x];
-        BinWord z = z1 ^ s[n.y];
+        BinWord z1 = s[x];
+        BinWord z = z1 ^ s[x^a];
 
         for(auto z2 : xor_list[z]){
             result[ z1 ^ z2 ] += 4;
