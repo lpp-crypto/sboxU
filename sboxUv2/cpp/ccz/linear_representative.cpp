@@ -562,8 +562,6 @@ typedef uint8_t u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 typedef uint64_t u64;
-typedef __uint128_t u128;
-
 
 template<typename set_t, typename int_type> struct tstate_t
 {
@@ -595,17 +593,17 @@ public:
     static inline u64 size(const set_t&a);
     static inline bool is_empty(const set_t&a);
 
-    static set_t add_element(const set_t& a, const int_type elm);
-    static set_t shift(const set_t& b, const int_type shift);
-    static std::vector<int_type> get_elements(const set_t& a);
+    static inline set_t add_element(const set_t& a, const int_type elm);
+    static inline set_t shift(const set_t& b, const int_type shift);
+    static inline std::vector<int_type> get_elements(const set_t& a);
 
     static inline set_t init_empty(const u32 length);
     static inline set_t init_full(const u32 length);
     static inline set_t invert(const set_t& a, const u32 length);
 
-    static bool elm_is_in_set(const int_type e, const set_t& a);
+    static inline bool elm_is_in_set(const int_type e, const set_t& a);
 
-    static set_t shift_union(const set_t& a, const int_type shift)
+    static inline set_t shift_union(const set_t& a, const int_type shift)
     {
         set_t b = shift(a, shift);
         return unite(a, b);
@@ -642,7 +640,7 @@ public:
         std::cout << std::endl;
     }
 
-    static int_type least_element(const set_t& a)
+    static inline int_type least_element(const set_t& a)
     {
         for (u32 i = 0; i < a.size(); i++)
         {
@@ -701,7 +699,7 @@ public:
         return true;
     }
 
-    static set_t add_element(const set_t& a, const u64 elm)
+    static inline set_t add_element(const set_t& a, const u64 elm)
     {
         //compute union of a and {elm}
         u64 index = elm / 64;
@@ -710,7 +708,7 @@ public:
         return result;
     }
 
-    static set_t shift(const set_t& b, const u64 shift)
+    static inline set_t shift(const set_t& b, const u64 shift)
     {
         set_t a = b;
 
@@ -739,7 +737,7 @@ public:
         if ((shift >> 3) & 0x1)
         {
             for(int i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0xFF00FF00FF00FF,8);
+                a[i] = permute_mask(a[i], 0x00FF00FF00FF00FF,8);
         }
         if ((shift >> 2) & 0x1)
         {
@@ -759,7 +757,7 @@ public:
         return a;
     }
 
-    static std::vector<int_type> get_elements(const set_t& a)
+    static inline std::vector<int_type> get_elements(const set_t& a)
     {
 
         std::vector<u64> e;
@@ -799,14 +797,14 @@ public:
         return result;
     }
 
-    static bool elm_is_in_set(const u64 e, const set_t& a)
+    static inline bool elm_is_in_set(const u64 e, const set_t& a)
     {
         u64 index = e >> 6;
         u64 field = 1ul << (e & 0x3F);
         return (a[index] & field) != 0;
     }
 
-    static set_t shift_union(const set_t& a, const int_type s)
+    static inline set_t shift_union(const set_t& a, const int_type s)
     {
         set_t b = shift(a, s);
         return unite(a, b);
@@ -821,12 +819,217 @@ public:
 
 };
 
+template <typename int_type, std::size_t s> class Set<std::array<u64, s>, int_type>{
+    using set_t = std::array<u64, s>;
+public:
+
+    static void print(const std::string& name, const set_t& a)
+    {
+        std::cout << name << ": 0b";
+        for (int i = s-1; i >=0; i--)
+        {
+            for (int j = 63; j >= 0; j--)
+            {
+                u32 bit = (a[i] >> j) & 1;
+                std::cout << bit;
+            }
+            std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    static inline int_type least_element(const set_t& a)
+    {
+        for (u32 i = 0; i < s; i++)
+        {
+            u64 current_chunk = a[i];
+            if (current_chunk != 0)
+            {
+                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
+                return idx;
+            }
+        }
+
+        //set is empty -- caller's fault
+        std::cout << "CALLED LEAST ELEMENT ON EMPTY SET!" << std::endl;
+        return 0;
+    }
+
+    static inline set_t intersect(const set_t& a, const set_t& b)
+    {
+        set_t result;
+        for(u64 i = 0; i < s; i++)
+        {
+            result[i] = a[i] & b[i];
+        }
+        return result;
+    }
+
+    static inline set_t unite(const set_t& a, const set_t& b)
+    {
+        set_t result;
+        for(u64 i = 0; i < s; i++)
+        {
+            result[i] = (a[i] | b[i]);
+        }
+        return result;
+    }
+
+    static inline u64 size(const set_t& a)
+    {
+        u64 count = 0;
+        for(u64 i = 0; i < s; i++)
+        {
+            count += __builtin_popcountll(a[i]);
+        }
+        return count;
+    }
+
+    static inline bool is_empty(const set_t& a)
+    {
+        for(u64 i = 0; i < s; i++)
+        {
+            if(a[i]!=0)
+                return false;
+        }
+        return true;
+    }
+
+    static inline set_t add_element(const set_t& a, const u64 elm)
+    {
+        //compute union of a and {elm}
+        u64 index = s > 1 ? elm / 64 : 0;
+        set_t result = a;
+        result[index] |= (1ul << (elm %64));
+        return result;
+    }
+
+    static inline set_t shift(const set_t& b, const int_type shift)
+    {
+        set_t a = b;
+
+        if(s > 1)
+        {
+            u64 high = shift >> 6;
+            u64 msb = 1ul << cpp_msb(high);
+
+            for( u64 bit = msb ; bit > 0; bit/=2){
+                if (bit & high)
+                {
+                for(u64 i = 0; i < b.size(); i++)
+                    if( (i&bit) == 0)
+                        std::swap(a[i],a[i+bit]);
+                }
+            }
+        }
+        //compute a \oplus shift
+        if ((shift >> 5) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x00000000FFFFFFFF,32);
+        }
+        if ((shift >> 4) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x0000FFFF0000FFFF,16);
+        }
+        if ((shift >> 3) & 0x1)
+        {
+            for(int i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x00FF00FF00FF00FF,8);
+        }
+        if ((shift >> 2) & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x0F0F0F0F0F0F0F0F,4);
+        }
+        if ((shift >> 1) & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x3333333333333333,2);
+        }
+        if (shift & 0x1)
+        {
+            for(u32 i = 0; i < b.size(); i++)
+                a[i] = permute_mask(a[i], 0x5555555555555555,1);
+        }
+        return a;
+    }
+
+    static inline std::vector<int_type> get_elements(const set_t& a)
+    {
+
+        std::vector<int_type> e;
+        for (u64 i = 0; i < s; i++)
+        {
+            u64 current_chunk = a[i];
+            while (current_chunk != 0)
+            {
+                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
+                e.push_back(idx);
+                current_chunk &= (current_chunk - 1);
+            }
+        }
+        return e;
+    }
+
+    static inline set_t init_empty(const u32 len)
+    {
+        return set_t{};
+    }
+
+    static inline set_t init_full(const u32 len)
+    {
+
+        u64 mask;
+        if(s == 1 && len < 64)
+            mask = (1ul << len) -1;
+        else
+            mask = -1ul;
+        set_t set;
+        for (auto &x : set)
+            x = mask;
+        return set;
+    }
+
+    static inline set_t invert(const set_t& a, const u32 len)
+    {
+        const set_t b = init_full(len);
+        set_t result;
+        for(u64 i = 0; i < s; i++)
+        {
+            result[i] = (a[i] ^ b[i]);
+        }
+        return result;
+    }
+
+    static inline bool elm_is_in_set(const u64 e, const set_t& a)
+    {
+        u64 index = s > 1 ? e >> 6 : 0;
+        u64 field = 1ul << (e & 0x3F);
+        return (a[index] & field) != 0;
+    }
+
+    static inline set_t shift_union(const set_t& a, const int_type sh)
+    {
+        set_t b = shift(a, sh);
+        return unite(a, b);
+    };
+
+    static inline set_t setminus(const set_t& a, const set_t& b, const u32 length)
+    {
+        const set_t b_not = invert(b, length);
+        return intersect(a, b_not);
+    };
+
+};
+
 #if defined(__AVX2__) or defined(__ARM_NEON)
 #ifdef __AVX2__
 #include <immintrin.h>
 
 using fastset_t = __m256i;
-#elif defined((__ARM_NEON))
+#elif defined(__ARM_NEON)
 #include <arm_neon.h>
 
 using fastset_t = uint64x2x2_t;
@@ -942,7 +1145,7 @@ public:
 #endif
     };
 
-    static set_t add_element(const set_t& a, const int_type elm)
+    static inline set_t add_element(const set_t& a, const int_type elm)
      {
         // compute union of a and {elm}
         u32 index = elm / 64;
@@ -966,7 +1169,7 @@ public:
 #endif
     };
 
-    static set_t shift(const set_t& b, const int_type shift)
+    static inline set_t shift(const set_t& b, const int_type shift)
     {
         set_t a = b;
         // compute a \oplus shift
@@ -1086,7 +1289,7 @@ public:
         }
         return a;
     };
-    static std::vector<int_type> get_elements(const set_t& a)
+    static inline std::vector<int_type> get_elements(const set_t& a)
     {
         std::vector<int_type> e;
         u64 chunks[4];
@@ -1197,7 +1400,7 @@ public:
 #endif
     };
 
-    static bool elm_is_in_set(const int_type e, const set_t& a)
+    static inline bool elm_is_in_set(const int_type e, const set_t& a)
     {
         set_t b = init_empty(256);
         b            = add_element(b, e);
@@ -1205,7 +1408,7 @@ public:
         return !is_empty(b);
     };
 
-    static set_t shift_union(const set_t& a, const int_type shift)
+    static inline set_t shift_union(const set_t& a, const int_type shift)
     {
         set_t b = shift(a, shift);
         return unite(a, b);
@@ -1218,212 +1421,6 @@ public:
     };
 };
 #endif
-
-template <typename int_type, std::size_t s> class Set<std::array<u64, s>, int_type>{
-    using set_t = std::array<u64, s>;
-public:
-
-    static void print(const std::string& name, const set_t& a)
-    {
-        std::cout << name << ": 0b";
-        for (int i = s-1; i >=0; i--)
-        {
-            for (int j = 63; j >= 0; j--)
-            {
-                u32 bit = (a[i] >> j) & 1;
-                std::cout << bit;
-            }
-            std::cout << " ";
-        }
-        std::cout << std::endl;
-    }
-
-    static int_type least_element(const set_t& a)
-    {
-        for (u32 i = 0; i < s; i++)
-        {
-            u64 current_chunk = a[i];
-            if (current_chunk != 0)
-            {
-                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
-                return idx;
-            }
-        }
-
-        //set is empty -- caller's fault
-        std::cout << "CALLED LEAST ELEMENT ON EMPTY SET!" << std::endl;
-        return 0;
-    }
-
-    static inline set_t intersect(const set_t& a, const set_t& b)
-    {
-        set_t result;
-        for(u64 i = 0; i < s; i++)
-        {
-            result[i] = a[i] & b[i];
-        }
-        return result;
-    }
-
-    static inline set_t unite(const set_t& a, const set_t& b)
-    {
-        set_t result;
-        for(u64 i = 0; i < s; i++)
-        {
-            result[i] = (a[i] | b[i]);
-        }
-        return result;
-    }
-
-    static inline u64 size(const set_t& a)
-    {
-        u64 count = 0;
-        for(u64 i = 0; i < s; i++)
-        {
-            count += __builtin_popcountll(a[i]);
-        }
-        return count;
-    }
-
-    static inline bool is_empty(const set_t& a)
-    {
-        for(u64 i = 0; i < s; i++)
-        {
-            if(a[i]!=0)
-                return false;
-        }
-        return true;
-    }
-
-    static set_t add_element(const set_t& a, const u64 elm)
-    {
-        //compute union of a and {elm}
-        u64 index = elm / 64;
-        set_t result = a;
-        result[index] |= (1ul << (elm %64));
-        return result;
-    }
-
-    static set_t shift(const set_t& b, const int_type shift)
-    {
-        set_t a = b;
-
-        if(s > 1)
-        {
-            u64 high = shift >> 6;
-            u64 msb = 1ul << cpp_msb(high);
-
-            for( u64 bit = msb ; bit > 0; bit/=2){
-                if (bit & high)
-                {
-                for(u64 i = 0; i < b.size(); i++)
-                    if( (i&bit) == 0)
-                        std::swap(a[i],a[i+bit]);
-                }
-            }
-        }
-        //compute a \oplus shift
-        if ((shift >> 5) & 0x1)
-        {
-            for(int i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0x00000000FFFFFFFF,32);
-        }
-        if ((shift >> 4) & 0x1)
-        {
-            for(int i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0x0000FFFF0000FFFF,16);
-        }
-        if ((shift >> 3) & 0x1)
-        {
-            for(int i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0xFF00FF00FF00FF,8);
-        }
-        if ((shift >> 2) & 0x1)
-        {
-            for(u32 i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0x0F0F0F0F0F0F0F0F,4);
-        }
-        if ((shift >> 1) & 0x1)
-        {
-            for(u32 i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0x3333333333333333,2);
-        }
-        if (shift & 0x1)
-        {
-            for(u32 i = 0; i < b.size(); i++)
-                a[i] = permute_mask(a[i], 0x5555555555555555,1);
-        }
-        return a;
-    }
-
-    static std::vector<int_type> get_elements(const set_t& a)
-    {
-
-        std::vector<int_type> e;
-        for (u64 i = 0; i < s; i++)
-        {
-            u64 current_chunk = a[i];
-            while (current_chunk != 0)
-            {
-                int_type idx = __builtin_ctzll(current_chunk) + i * 64;
-                e.push_back(idx);
-                current_chunk &= (current_chunk - 1);
-            }
-        }
-        return e;
-    }
-
-    static inline set_t init_empty(const u32 len)
-    {
-        return set_t{};
-    }
-
-    static inline set_t init_full(const u32 len)
-    {
-
-        u64 mask;
-        if(s == 1 && len < 64)
-            mask = (1ul << len) -1;
-        else
-            mask = -1ul;
-        set_t set;
-        for (auto &x : set)
-            x = mask;
-        return set;
-    }
-
-    static inline set_t invert(const set_t& a, const u32 len)
-    {
-        const set_t b = init_full(len);
-        set_t result;
-        for(u64 i = 0; i < s; i++)
-        {
-            result[i] = (a[i] ^ b[i]);
-        }
-        return result;
-    }
-
-    static bool elm_is_in_set(const u64 e, const set_t& a)
-    {
-        u64 index = e >> 6;
-        u64 field = 1ul << (e & 0x3F);
-        return (a[index] & field) != 0;
-    }
-
-    static set_t shift_union(const set_t& a, const int_type sh)
-    {
-        set_t b = shift(a, sh);
-        return unite(a, b);
-    };
-
-    static inline set_t setminus(const set_t& a, const set_t& b, const u32 length)
-    {
-        const set_t b_not = invert(b, length);
-        return intersect(a, b_not);
-    };
-
-};
-
 
 template<typename int_type> bool update_linear(std::vector<int_type>& A, int_type new_x, const u32 length)
 {
@@ -1485,8 +1482,8 @@ template<typename set_t, typename int_type> bool subroutine(const std::vector<in
         if (!update_linear<int_type>(B, y, length))
             return false;
         set_t D_B_new = Set<set_t, int_type>::shift(D_B, y);
-        D_B                = Set<set_t, int_type>::unite(D_B, D_B_new);
-        U_B                = Set<set_t, int_type>::setminus(U_B, D_B_new, length);
+        D_B           = Set<set_t, int_type>::unite(D_B, D_B_new);
+        U_B           = Set<set_t, int_type>::setminus(U_B, D_B_new, length);
         set_t SoA_N_A = Set<set_t, int_type>::init_empty(length);
         for (int_type x : Set<set_t, int_type>::get_elements(N_A))
         {
@@ -1540,8 +1537,8 @@ template<typename set_t, typename int_type> bool subroutine(const std::vector<in
                 return false;
             }
             set_t D_A_new    = Set<set_t, int_type>::shift(D_A, x);
-            D_A                   = Set<set_t, int_type>::unite(D_A, D_A_new);
-            U_A                   = Set<set_t, int_type>::setminus(U_A, D_A_new, length);
+            D_A              = Set<set_t, int_type>::unite(D_A, D_A_new);
+            U_A              = Set<set_t, int_type>::setminus(U_A, D_A_new, length);
             set_t SinvoB_N_B = Set<set_t, int_type>::init_empty(length);
             for (int_type y : Set<set_t, int_type>::get_elements(N_B))
             {
@@ -1698,6 +1695,15 @@ template<typename set_t, typename int_type> std::vector<int_type> compute_linear
 
 // !SUBSECTION! The main function
 
+
+/*
+ * Current templates allows to use the same algorithm using various bit containers:
+ * vectors, arrays, and 256-bit registers leveraging CPU vectorial CPU instructions
+ * We could have arrays of 256-bit registers, or even 512-bit registers or longer,
+ * but given the limited gains compared to arrays of u64 this is probably not worth
+ * the effort.
+ */
+
 cpp_S_box cpp_le_class_representative(const cpp_S_box f, const uint64_t fast)
 {
     if(fast)
@@ -1711,7 +1717,7 @@ cpp_S_box cpp_le_class_representative(const cpp_S_box f, const uint64_t fast)
             if(f.size() <= 64)
                 lr = compute_linear_representative<std::array<u64,1>,u8>(ff);
             else if(f.size() == 128)
-                    lr = compute_linear_representative<std::array<u64,2>,u8>(ff);
+                lr = compute_linear_representative<std::array<u64,2>,u8>(ff); // Could be faster with AVX/NEON/u128
             else
             {
 #if defined(__AVX2__) or defined(__ARM_NEON)
@@ -1732,7 +1738,7 @@ cpp_S_box cpp_le_class_representative(const cpp_S_box f, const uint64_t fast)
         }
         std::vector<u64> lr;
         if(f.size() == 512)
-            lr = compute_linear_representative<std::array<u64,8>,u64>(ff);
+            lr = compute_linear_representative<std::array<u64,8>,u64>(ff); // Could be faster with AVX512
         else if(f.size() == 1024)
             lr = compute_linear_representative<std::array<u64,16>,u64>(ff);
         else if(f.size() == 2048)
