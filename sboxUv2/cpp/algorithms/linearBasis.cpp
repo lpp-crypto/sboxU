@@ -101,7 +101,6 @@ std::vector<BinWord> cpp_Linear_basis::span() const
     return result;
 }
 
-
 std::vector<BinWord> cpp_complete_basis(
     const std::vector<BinWord> basis,
     const unsigned int n
@@ -110,12 +109,10 @@ std::vector<BinWord> cpp_complete_basis(
     cpp_Linear_basis lb(basis);
     std::vector<BinWord> result(basis.cbegin(), basis.cend());
     result.reserve(n);
-    for(BinWord x=1; x<(1 << n); x++)
+    for(BinWord x=1; result.size() < n; x*=2)
     {
         if (lb.add_to_span(x))
             result.push_back(x);
-        if (lb.rank() == n)
-            return result;
     }
-    return std::vector<BinWord>(0);
+    return result;
 }
