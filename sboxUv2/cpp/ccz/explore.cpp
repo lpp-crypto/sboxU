@@ -6,7 +6,6 @@ cpp_S_box cpp_ccz_equivalent_function(
     const std::vector<BinWord> mapping
     )
 {
-    std::cout << "r=" << cpp_rank_of_vector_set(mapping) << std::endl;
     return cpp_FunctionGraph(s).apply_basis_change(mapping);
 }
 

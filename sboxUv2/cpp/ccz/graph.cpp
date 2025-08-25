@@ -59,19 +59,12 @@ cpp_S_box cpp_FunctionGraph::apply_basis_change(
 {
     BinWord forbidden_value = (1 << n) + 1;
     std::vector<BinWord> lut(graph.size(), forbidden_value);
-
-    std::cout << "\nL = " ;
-    for (auto &x : L)
-        std::cout << std::hex << x << ", ";
-    std::cout << std::endl;
-    
     for (auto & entry : graph)
     {
         BinWord
             z = cpp_linear_combination(L, entry),
             x = z >> n,
             y = z & mask;
-        std::cout << "entry " << std::hex << entry << " -> " << z << " | " << x << ", " << y << std::endl;
         if (lut[x] != forbidden_value)
             // problem: this entry has already been set
             return cpp_empty_S_box();
