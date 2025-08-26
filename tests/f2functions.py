@@ -49,3 +49,14 @@ if __name__ == "__main__":
             tot_sum = L + tot_sum
     print("\ntot_prod", tot_prod)
     print("\ntot_sum", tot_sum)
+
+    ## Testing to_bin and from_bin
+    is_correct=True
+    for _ in range(10):
+        x=randint(0,2**64-1)
+        if from_bin(to_bin(x,64))!=x:
+            is_correct=False
+    if is_correct:
+        print("to_bin and from_bin seem to work")
+    else :
+        print("Error in to_bin or in from_bin")
