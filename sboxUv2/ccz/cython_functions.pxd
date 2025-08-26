@@ -7,6 +7,9 @@ from sboxUv2.statistics cimport *
 from sboxUv2.algorithms cimport *
 
 
+# !SECTION! Loading C++ code
+
+
 cdef extern from "../cpp/ccz/zeroes.hpp":
     cpp_Spectrum cpp_thickness_spectrum(
         const cpp_S_box & s,
@@ -27,7 +30,7 @@ cdef extern from "../cpp/ccz/graph.cpp":
 cdef extern from "../cpp/ccz/explore.hpp":
     cpp_S_box cpp_ccz_equivalent_function(
         const cpp_S_box & s,
-        const std_vector[BinWord] basis
+        const cpp_BinLinearMap & L
         )
 
     std_vector[cpp_S_box] cpp_enumerate_ea_classes(

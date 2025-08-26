@@ -16,7 +16,7 @@ private:
     unsigned int total_size;
 public:
     std::vector<std::vector<BinWord> > bases;
-    std::vector<std::vector<BinWord> > mappings;
+    std::vector<cpp_BinLinearMap> mappings;
 
     cpp_WalshZeroesSpaces(
         const cpp_S_box & s,

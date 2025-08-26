@@ -3,11 +3,10 @@
 
 cpp_S_box cpp_ccz_equivalent_function(
     const cpp_S_box & s,
-    const std::vector<BinWord> mapping
+    const cpp_BinLinearMap & mapping
     )
 {
-    std::cout << "r=" << cpp_rank_of_vector_set(mapping) << std::endl;
-    return cpp_FunctionGraph(s).apply_basis_change(mapping);
+    return cpp_FunctionGraph(s).get_ccz_equivalent_function(mapping);
 }
 
 
@@ -21,6 +20,6 @@ std::vector<cpp_S_box> cpp_enumerate_ea_classes(
     cpp_WalshZeroesSpaces ws(s, n_threads);
     ws.init_mappings();
     for(auto &L : ws.mappings)
-        result.push_back(g.apply_basis_change(L));
+        result.push_back(g.get_ccz_equivalent_function(L));
     return result;
 }
