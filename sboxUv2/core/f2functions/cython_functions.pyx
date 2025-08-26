@@ -77,7 +77,6 @@ def from_bin(std_vector[int] l):
 
 cdef class BinLinearMap:
 
-    # !TODO! implement the python class BinLinearMap
     
     def __init__(self):
         self.cpp_blm = new cpp_BinLinearMap(<std_vector[BinWord]>[ ])
@@ -123,6 +122,13 @@ cdef class BinLinearMap:
     def __str__(self):
         # !TODO! proper __str__ 
         return str(list(self.cpp_blm[0].get_image_vectors()))
+
+
+    def get_S_box(self):
+        result = S_box(name="L")
+        (<S_box>result).cpp_sb = new cpp_S_box()
+        (<S_box>result).cpp_sb[0] = self.cpp_blm[0].get_cpp_S_box()
+        return result
     
     # !TODO! __rich_repr__
 
@@ -145,6 +151,8 @@ def Blm(x):
         result = BinLinearMap()
         if isinstance(x, (list)):
             result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>x)
+        elif isinstance(x, (S_box)):
+            result.cpp_blm[0] = cpp_BinLinearMap((<S_box>x).cpp_sb[0])
         else:
             # !TODO! implement Blm processing of SAGE matrices 
             raise NotImplemented("Blm function cannot process input of type {}".format(type(x)))

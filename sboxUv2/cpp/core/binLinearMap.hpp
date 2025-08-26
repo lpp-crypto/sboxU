@@ -40,6 +40,9 @@ public:
     {};
 
     
+    cpp_BinLinearMap(const cpp_S_box & lut) ;
+
+    
     inline Integer get_input_length() const
     {
         return input_length;
@@ -82,7 +85,7 @@ public:
     };
     
     
-    inline cpp_S_box cpp_get_S_box() const
+    inline cpp_S_box get_cpp_S_box() const
     {
         std::vector<BinWord> lut(1 << input_length, 0);
         for(BinWord x=1; x<lut.size(); x++)

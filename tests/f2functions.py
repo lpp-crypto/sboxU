@@ -34,8 +34,8 @@ if __name__ == "__main__":
             
     tot_sum  = zero_BinLinearMap(n)
     tot_prod = identity_BinLinearMap(n)
-    for t in range(0, 10):
-        masks = [randint(1, 2**n-1) for i in range(0, randint(n-3, n+3))]
+    for t in range(0, 15):
+        masks = [randint(1, 2**n-1) for i in range(0, randint(n-1, n+1))]
         print(masks)
         L = Blm(masks)
         x = [randint(0, 2**n) for u in range(0, 15)]
@@ -43,6 +43,10 @@ if __name__ == "__main__":
         print(img)
         print([linear_combination(masks, x_i) for x_i in x])
         print(L.get_input_length(), rank_of_vector_set(img), L.rank())
+        s = Sb(L)
+        print(Blm(s))
+        print(L)
+        pprint(s)
         if L.get_input_length() == n and n == L.rank():
             tot_prod = L * tot_prod
             tot_sum = L + tot_sum

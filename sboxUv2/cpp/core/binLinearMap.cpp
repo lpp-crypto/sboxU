@@ -1,6 +1,24 @@
 #include "./binLinearMap.hpp"
 
 
+cpp_BinLinearMap::cpp_BinLinearMap(const cpp_S_box & lut) :
+    image_vectors(0),
+    input_length(0),
+    output_length(0) 
+{
+    for(unsigned int pos=1; pos<lut.size(); pos<<=1)
+    {
+        BinWord
+            y = lut[pos],
+            m = cpp_msb(y);
+        image_vectors.push_back(y);
+        input_length += 1;
+        if (m > output_length)
+            output_length = m;
+    }
+    output_length ++;
+}
+
 
 cpp_BinLinearMap cpp_BinLinearMap::operator*(const cpp_BinLinearMap l) const
 {
