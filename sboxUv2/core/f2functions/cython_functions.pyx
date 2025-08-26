@@ -35,9 +35,15 @@ def linear_combination(std_vector[BinWord] v, BinWord mask):
 
 def rank_of_vector_set(std_vector[BinWord] l):
     return cpp_rank_of_vector_set(l)
-    
 
-        
+# !SUBSECTION! tobin and frombin
+
+def to_bin(BinWord x, int n):
+    return cpp_to_bin(x,n)
+
+def from_bin(std_vector[int] l):
+    return cpp_from_bin(l)
+
 # !SECTION! Convenient XOR abstractions
 
 def xor(*args):
