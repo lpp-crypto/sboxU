@@ -43,6 +43,15 @@ void cpp_WalshZeroesSpaces::init_mappings()
 }
 
 
+void init_mappings(std::vector<cpp_BinLinearMap> automorphisms)
+{
+
+    // !TODO! implement init_mappings. It needs:
+    // ! - a method to apply a cpp_BinLinearMap to a cpp_LinearBasis
+    // ! - a comparison operator for cpp_LinearBasis so they can be used as std::map keys
+}
+
+
 
 cpp_Spectrum cpp_WalshZeroesSpaces::thickness_spectrum() const
 {
