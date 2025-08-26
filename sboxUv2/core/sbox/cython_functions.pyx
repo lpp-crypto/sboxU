@@ -150,11 +150,8 @@ cdef class S_box:
             else:
                 n_cols = 16
                 n_rows = 2**(self.get_input_length() - 4)
-            word_size = int(ceil(self.get_output_length() / 4))
-            if word_size < 2:
-                word_format = "{:2x}"
-            else:
-                word_format = " {:" + str(word_size) + "x}"
+            word_size = max(int(ceil(self.get_output_length() / 4)), 2)
+            word_format = " {:" + str(word_size) + "x}"
             result += "     [black]"
             for x in range(0, n_cols):
                 result += " " * (word_size-2) + " •{:x}".format(x)

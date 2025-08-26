@@ -34,6 +34,17 @@ cdef extern from "../../cpp/core/f2functions.hpp":
         std_vector[BinWord] l
     )
 
+    std_vector[int] cpp_to_bin ( 
+        const BinWord x, 
+        int n
+    )
+
+    BinWord cpp_from_bin (
+        const std_vector[int] & v)
+
+
+    
+
 
     
 cdef extern from "../../cpp/core/f2functions.cpp":
@@ -84,7 +95,6 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
     
 cdef extern from "../../cpp/core/binLinearMap.cpp":
     pass
-
 
 
 # !SECTION! Declaring cython code

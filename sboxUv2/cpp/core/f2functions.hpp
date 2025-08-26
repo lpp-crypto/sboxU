@@ -45,7 +45,10 @@ inline BinWord cpp_oplus (const BinWord x, const BinWord y)
     return x ^ y;
 };
 
+// !SUBSECTION! tobin and frombin
 
+std::vector<int> cpp_to_bin(const BinWord x, int n);
+BinWord cpp_from_bin(const std::vector<int>& v);
 
 // !SECTION! Linear combinations of vectors and their ranks 
 

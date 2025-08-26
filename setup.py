@@ -20,8 +20,8 @@ extra_compile_args = ["-O3", "-march=native", "-std=c++17", "-pthread", "-Wno-na
 extra_link_args=[]
 
 if sys.platform == 'darwin':
-    extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include']
-    extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include']
+    extra_compile_args += ['-lomp', '-I/opt/homerew/opt/libomp/include']
+    extra_link_args += ['-lomp', '-L/opt/homebrew/opt/libomp/lib']
 else:
     extra_compile_args += ['-fopenmp']
     extra_link_args += ['-fopenmp']
