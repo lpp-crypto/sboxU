@@ -35,11 +35,13 @@ void cpp_WalshZeroesSpaces::init_mappings()
     // building the mappings by transposing
     for(auto &b : bases)
     {
-        std::vector<BinWord> L = cpp_complete_basis(b, total_size);
-        std::reverse(L.begin(), L.end());
-        mappings.push_back(cpp_transpose(L));
+        std::vector<BinWord> img = cpp_complete_basis(b, total_size);
+        std::reverse(img.begin(), img.end());
+        cpp_BinLinearMap L(img);
+        mappings.push_back(L.transpose());
     }
 }
+
 
 
 cpp_Spectrum cpp_WalshZeroesSpaces::thickness_spectrum() const

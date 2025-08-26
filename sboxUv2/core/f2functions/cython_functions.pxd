@@ -1,9 +1,12 @@
 # -*- python -*-
 
 from sboxUv2.cython_types cimport *
+from ..sbox cimport *
 
 
 # !SECTION! Declaring C++ code
+
+# !SUBSECTION! Basic functions
 
 cdef extern from "../../cpp/core/f2functions.hpp":
     BinWord cpp_msb (
@@ -37,7 +40,57 @@ cdef extern from "../../cpp/core/f2functions.cpp":
     pass
 
 
+# !SUBSECTION! The cpp_BinLinearMap class
+
+cdef extern from "../../cpp/core/binLinearMap.hpp":
+    cppclass cpp_BinLinearMap:
+        cpp_BinLinearMap(
+            const std_vector[BinWord] & _image_vectors
+        )
+    
+        cpp_BinLinearMap(
+            const std_vector[BinWord] & _image_vectors,
+            const int64_t _input_length,
+            const int64_t _output_length
+        )
+    
+        int64_t get_input_length()
+    
+        int64_t get_output_length()
+    
+        BinWord call "operator()" (
+            const BinWord x
+        ) 
+    
+        cpp_BinLinearMap mul "operator*"(
+           const cpp_BinLinearMap l
+        ) 
+        
+        cpp_BinLinearMap add "operator+"(
+            const cpp_BinLinearMap l
+        ) 
+    
+        cpp_BinLinearMap inverse() 
+        
+        cpp_BinLinearMap transpose()
+    
+        BinWord rank() 
+        
+        cpp_S_box cpp_get_S_box() 
+
+        std_vector[BinWord] get_image_vectors()
+    
+
+    
+cdef extern from "../../cpp/core/binLinearMap.cpp":
+    pass
+
+
+
 # !SECTION! Declaring cython code
 
 
+cdef class BinLinearMap:
+    cdef cpp_BinLinearMap * cpp_blm
 
+    

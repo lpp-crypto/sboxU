@@ -53,8 +53,8 @@ cpp_S_box cpp_FunctionGraph::get_S_box() const
 }
 
 
-cpp_S_box cpp_FunctionGraph::apply_basis_change(
-    const std::vector<BinWord> &L
+cpp_S_box cpp_FunctionGraph::get_ccz_equivalent_function(
+    const cpp_BinLinearMap &L
     ) const
 {
     BinWord forbidden_value = (1 << n) + 1;
@@ -62,7 +62,7 @@ cpp_S_box cpp_FunctionGraph::apply_basis_change(
     for (auto & entry : graph)
     {
         BinWord
-            z = cpp_linear_combination(L, entry),
+            z = L(entry),
             x = z >> n,
             y = z & mask;
         if (lut[x] != forbidden_value)

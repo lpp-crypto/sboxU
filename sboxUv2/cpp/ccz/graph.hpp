@@ -23,7 +23,7 @@ public:
 
     cpp_S_box get_S_box() const;
 
-    cpp_S_box apply_basis_change(const std::vector<BinWord> &L) const;
+    cpp_S_box get_ccz_equivalent_function(const cpp_BinLinearMap &L) const;
 };
 
 #endif

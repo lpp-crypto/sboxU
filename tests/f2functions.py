@@ -20,8 +20,8 @@ def pretty_bin(x):
 if __name__ == "__main__":
     canonical = [1 << i for i in range(0, n)]
     entries = []
-    for t in range(0, 100):
-        mask = randint(0, 2**n)
+    for t in range(0, 10):
+        mask = randint(0, 2**n-1)
         if hamming_weight(mask) < 4:
             x = linear_combination(canonical, mask)
             print("{} {:3d} {:3d}".format(
@@ -32,4 +32,20 @@ if __name__ == "__main__":
     print(pretty_bin(xor(entries)) + " (tot)")
     print(pretty_bin(xor(entries, 0x3FF)) + " (not tot)")
             
-            
+    tot_sum  = zero_BinLinearMap(n)
+    tot_prod = identity_BinLinearMap(n)
+    for t in range(0, 10):
+        masks = [randint(1, 2**n-1) for i in range(0, randint(3, n+1))]
+        print(masks)
+        L = Blm(masks)
+        x = [randint(0, 2**n) for u in range(0, 15)]
+        img = [L(x_i) for x_i in x]
+        print(img)
+        print([linear_combination(masks, x_i) for x_i in x])
+        print(rank_of_vector_set(img), L.rank())
+        print("")
+        if L.get_input_length() == n:
+            tot_prod = L * tot_prod
+            tot_sum = L + tot_sum
+    print("\ntot_prod", tot_prod)
+    print("\ntot_sum", tot_sum)

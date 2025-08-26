@@ -1,7 +1,7 @@
 # -*- python -*-
 
 
-from sboxUv2.core import Sb
+from sboxUv2.core import Sb, Blm
 from sboxUv2.config import MAX_N_THREADS
 
 
@@ -34,11 +34,12 @@ def thickness_spectrum(s, spaces=None):
 
 def ccz_equivalent_function(s, basis):
     sb = Sb(s)
+    basis = Blm(basis)
     result = S_box(name=b"CCZ-" + sb.name())
     result.set_inner_sbox(
         cpp_ccz_equivalent_function(
             (<S_box>sb).cpp_sb[0],
-            basis
+            (<BinLinearMap>basis).cpp_blm[0]
             )
     )
     return result
