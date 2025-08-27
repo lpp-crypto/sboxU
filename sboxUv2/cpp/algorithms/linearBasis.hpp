@@ -26,6 +26,23 @@ public:
     }
     
     std::vector<BinWord> span() const;
+
+    cpp_Linear_basis image_by(const cpp_BinLinearMap & L) const;
+
+
+    inline std::map<Integer, BinWord>::const_iterator begin() const
+    {
+        return basis.cbegin();
+    }
+    
+    inline std::map<Integer, BinWord>::const_iterator end() const
+    {
+        return basis.cend();
+    }
+
+    bool operator==(const cpp_Linear_basis & other_basis) const;
+    
+    bool operator<(const cpp_Linear_basis & other_basis) const;
 };
 
 
