@@ -37,30 +37,35 @@ bool cpp_Linear_basis::add_to_span(BinWord x)
  * greater MSB.
  */
 {
-    Integer m = cpp_msb(x);    
-    for(auto b : basis)
+    if (x == 0)
+        return false;
+    else
     {
-        BinWord y = x ^ b.second;
-        if (y == 0)
-            return false;  // x was already in the span, we do nothing
-        else if ((b.first <= m) and (y < x))
-            x = y;   // if b is smaller than x, then we extract it from x
-        else if ((b.first > m))
-            break;              // there is nothing left to extract from x
-    }
-    // at this point, x has to be non-zero, not in the span of the
-    // basis, and with a new MSB: we keep it.
-    m = cpp_msb(x);
-    basis[m] = x;
-    // then, we extract it from all bigger vectors
-    for(auto b: basis)
-        if (b.first > m)  // equality is only possible for x, so we don't care
+        Integer m = cpp_msb(x);    
+        for(auto b : basis)
         {
             BinWord y = x ^ b.second;
-            if (y < b.second)
-                basis[b.first] = y;
+            if (y == 0)
+                return false;  // x was already in the span, we do nothing
+            else if ((b.first <= m) and (y < x))
+                x = y;   // if b is smaller than x, then we extract it from x
+            else if ((b.first > m))
+                break;              // there is nothing left to extract from x
         }
-    return true;
+        // at this point, x has to be non-zero, not in the span of the
+        // basis, and with a new MSB: we keep it.
+        m = cpp_msb(x);
+        basis[m] = x;
+        // then, we extract it from all bigger vectors
+        for(auto b: basis)
+            if (b.first > m)  // equality is only possible for x, so we don't care
+            {
+                BinWord y = x ^ b.second;
+                if (y < b.second)
+                    basis[b.first] = y;
+            }
+        return true;
+    }
 }
 
 bool cpp_Linear_basis::is_in_span(BinWord x) const
