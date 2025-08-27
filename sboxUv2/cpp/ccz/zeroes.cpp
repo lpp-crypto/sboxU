@@ -43,12 +43,43 @@ void cpp_WalshZeroesSpaces::init_mappings()
 }
 
 
-void init_mappings(std::vector<cpp_BinLinearMap> automorphisms)
+void cpp_WalshZeroesSpaces::init_mappings(
+    const std::vector<cpp_BinLinearMap> & automorphisms
+    )
 {
-
-    // !TODO! implement init_mappings. It needs:
-    // ! - a method to apply a cpp_BinLinearMap to a cpp_LinearBasis
-    // ! - a comparison operator for cpp_LinearBasis so they can be used as std::map keys
+    // computing the image of each basis
+    std::map<cpp_Linear_basis, unsigned int> preimages;
+    for (unsigned int i=0; i<bases.size(); i++)
+        preimages[cpp_Linear_basis(bases[i])] = i;
+    // initializing walsh zeroes automorphisms
+    std::vector<cpp_BinLinearMap> A;
+    A.reserve(automorphisms.size());
+    for(auto & a_i : automorphisms)
+        A.push_back(a_i.transpose());
+    // checking if an automorphism maps a space to another
+    std::vector<bool> relevant(preimages.size(), true);
+    for (auto & space : preimages)
+        if (relevant[space.second])
+            for (auto & Aj : A)
+            {
+                cpp_Linear_basis img = space.first.image_by(Aj);
+                if (preimages.contains(img))
+                {
+                    unsigned int index = preimages[img];
+                    if (index != space.second)
+                        relevant[index] = false;
+                }
+            }
+    // building the mappings by transposing
+    for(unsigned int i=0; i<bases.size(); i++)
+        if (relevant[i])
+        {
+            std::vector<BinWord> img = cpp_complete_basis(bases[i],
+                                                          total_size);
+            std::reverse(img.begin(), img.end());
+            cpp_BinLinearMap L(img);
+            mappings.push_back(L.transpose());
+        }
 }
 
 

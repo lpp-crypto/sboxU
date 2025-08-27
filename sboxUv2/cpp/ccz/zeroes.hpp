@@ -25,7 +25,7 @@ public:
 
     void init_mappings();
 
-    void init_mappings(std::vector<cpp_BinLinearMap> automorphisms);
+    void init_mappings(const std::vector<cpp_BinLinearMap> & automorphisms);
     
     cpp_Spectrum thickness_spectrum() const;
 };
