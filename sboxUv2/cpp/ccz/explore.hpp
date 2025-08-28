@@ -9,7 +9,7 @@
 
 cpp_S_box cpp_ccz_equivalent_function(
     const cpp_S_box & s,
-    const std::vector<BinWord> mapping
+    const cpp_BinLinearMap & L
     );
 
 

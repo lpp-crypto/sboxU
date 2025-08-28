@@ -57,4 +57,21 @@ Integer cpp_rank_of_vector_set(std::vector<BinWord> l)
     return result;
 }
 
+std::vector<int> cpp_to_bin(const BinWord x, int n) {
+    std::vector<int> bits;
+    bits.reserve(n);
+    for (int i = n - 1; i >= 0; --i) {
+        bits.push_back((x >> i) & 1);
+    }
+    return bits;
+}
+
+BinWord cpp_from_bin(const std::vector<int>& v) {
+    BinWord y = 0;
+    for (size_t i = 0; i < v.size(); i++) {
+        y = (y << 1) | (v[i] & 1);
+    }
+    return y;
+}
+
 

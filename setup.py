@@ -16,12 +16,12 @@ if sys.platform == 'darwin':	#macOs
 else:
     os.environ["CC"] = "g++"
     os.environ["CXX"] = "g++"
-extra_compile_args = ["-O3", "-march=native", "-std=c++17", "-pthread", "-Wno-narrowing"]	#narrowing warnings in fp_lat when calling shape_t{p}
+extra_compile_args = ["-O3", "-march=native", "-std=c++20", "-pthread", "-Wno-narrowing"]	#narrowing warnings in fp_lat when calling shape_t{p}
 extra_link_args=[]
 
 if sys.platform == 'darwin':
-    extra_compile_args += ['-lomp', '-I/usr/local/opt/libomp/include']
-    extra_link_args += ['-lomp', '-L/usr/local/opt/libomp/include']
+    extra_compile_args += ['-lomp', '-I/opt/homerew/opt/libomp/include']
+    extra_link_args += ['-lomp', '-L/opt/homebrew/opt/libomp/lib']
 else:
     extra_compile_args += ['-fopenmp']
     extra_link_args += ['-fopenmp']

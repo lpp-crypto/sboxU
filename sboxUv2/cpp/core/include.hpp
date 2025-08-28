@@ -3,5 +3,6 @@
 
 #include "./s_box.hpp"
 #include "./f2functions.hpp"
+#include "./binLinearMap.hpp"
 
 #endif

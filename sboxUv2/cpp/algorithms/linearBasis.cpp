@@ -37,31 +37,37 @@ bool cpp_Linear_basis::add_to_span(BinWord x)
  * greater MSB.
  */
 {
-    Integer m = cpp_msb(x);    
-    for(auto b : basis)
+    if (x == 0)
+        return false;
+    else
     {
-        BinWord y = x ^ b.second;
-        if (y == 0)
-            return false;  // x was already in the span, we do nothing
-        else if ((b.first <= m) and (y < x))
-            x = y;   // if b is smaller than x, then we extract it from x
-        else if ((b.first > m))
-            break;              // there is nothing left to extract from x
-    }
-    // at this point, x has to be non-zero, not in the span of the
-    // basis, and with a new MSB: we keep it.
-    m = cpp_msb(x);
-    basis[m] = x;
-    // then, we extract it from all bigger vectors
-    for(auto b: basis)
-        if (b.first > m)  // equality is only possible for x, so we don't care
+        Integer m = cpp_msb(x);    
+        for(auto b : basis)
         {
             BinWord y = x ^ b.second;
-            if (y < b.second)
-                basis[b.first] = y;
+            if (y == 0)
+                return false;  // x was already in the span, we do nothing
+            else if ((b.first <= m) and (y < x))
+                x = y;   // if b is smaller than x, then we extract it from x
+            else if ((b.first > m))
+                break;              // there is nothing left to extract from x
         }
-    return true;
+        // at this point, x has to be non-zero, not in the span of the
+        // basis, and with a new MSB: we keep it.
+        m = cpp_msb(x);
+        basis[m] = x;
+        // then, we extract it from all bigger vectors
+        for(auto b: basis)
+            if (b.first > m)  // equality is only possible for x, so we don't care
+            {
+                BinWord y = x ^ b.second;
+                if (y < b.second)
+                    basis[b.first] = y;
+            }
+        return true;
+    }
 }
+
 
 bool cpp_Linear_basis::is_in_span(BinWord x) const
 {
@@ -115,4 +121,60 @@ std::vector<BinWord> cpp_complete_basis(
             result.push_back(x);
     }
     return result;
+}
+
+
+cpp_Linear_basis cpp_Linear_basis::image_by(const cpp_BinLinearMap & L) const
+{
+    cpp_Linear_basis result;
+    for (auto &b : basis)
+        result.add_to_span(L(b.second));
+    return result;
+}
+
+
+
+bool cpp_Linear_basis::operator==(const cpp_Linear_basis & other_basis) const
+{
+    if (basis.size() != other_basis.rank())
+        return false;
+    else
+    {
+        for (auto & b : other_basis)
+            if (! basis.contains(b.first))
+                return false;
+            else if (basis.at(b.first) != b.second)
+                return false;
+    }
+    return true;
+}
+
+
+bool cpp_Linear_basis::operator<(const cpp_Linear_basis & other_basis) const
+{
+    auto b1 = basis.begin();
+    auto b2 = other_basis.begin();
+    // the following works because std::map iterators iterate in
+    // ascending order of the key, i.e. of the MSBs here.
+    while ((b1 != basis.end()) && (b2 != other_basis.end()))
+    {
+        // comapring values
+        if (b1->second < b2->second)
+            return true;
+        else if (b1->second > b2->second)
+            return false;
+        // values are identical, we keep going
+        else
+        {
+            b1 ++;
+            b2 ++;
+        }
+    }
+    // at this point, either b1 or b2 has reached its end
+    if (b2 != basis.end())     // if b2 is not finished
+        return true;
+    else // either b1 is the only one finished (in which case b1 is
+         // shorter, thus smaller), or they are equal, in which case
+         // the strict inequality is also false
+        return false;
 }

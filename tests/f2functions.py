@@ -5,7 +5,7 @@ from sage.all import *
 from sboxUv2 import *
 
 
-n = 10
+n = 8
 
 def pretty_bin(x):
     result = ""
@@ -20,8 +20,8 @@ def pretty_bin(x):
 if __name__ == "__main__":
     canonical = [1 << i for i in range(0, n)]
     entries = []
-    for t in range(0, 100):
-        mask = randint(0, 2**n)
+    for t in range(0, 15):
+        mask = randint(0, 2**n-1)
         if hamming_weight(mask) < 4:
             x = linear_combination(canonical, mask)
             print("{} {:3d} {:3d}".format(
@@ -30,6 +30,40 @@ if __name__ == "__main__":
                 msb(x)))
             entries.append(x)
     print(pretty_bin(xor(entries)) + " (tot)")
-    print(pretty_bin(xor(entries, 0x3FF)) + " (not tot)")
+    print(pretty_bin(xor(entries, sum(1 << i for i in range(0, n)))) + " (not tot)")
             
-            
+    tot_sum  = zero_BinLinearMap(n)
+    tot_prod = identity_BinLinearMap(n)
+    for t in range(0, 15):
+        masks = [randint(1, 2**n-1) for i in range(0, randint(n-1, n+1))]
+        print(masks)
+        L = Blm(masks)
+        x = [randint(0, 2**n) for u in range(0, 15)]
+        img = [L(x_i) for x_i in x]
+        print(img)
+        print([linear_combination(masks, x_i) for x_i in x])
+        print(L.get_input_length(), rank_of_vector_set(img), L.rank())
+        s = Sb(L)
+        print(Blm(s))
+        print(L)
+        pprint(s)
+        if L.get_input_length() == n and n == L.rank():
+            tot_prod = L * tot_prod
+            tot_sum = L + tot_sum
+            L_inv = L.inverse()
+            print(L_inv)
+            print([(L_inv * L)(x) for x in range(0, 2**n)])
+        print("")
+    print("\ntot_prod", tot_prod)
+    print("\ntot_sum", tot_sum)
+
+    ## Testing to_bin and from_bin
+    is_correct=True
+    for _ in range(10):
+        x=randint(0,2**64-1)
+        if from_bin(to_bin(x,64))!=x:
+            is_correct=False
+    if is_correct:
+        print("to_bin and from_bin seem to work")
+    else :
+        print("Error in to_bin or in from_bin")
