@@ -32,6 +32,6 @@ typedef std::vector<Integer> Row;
 typedef uint64_t BinWord;
 typedef std::vector<BinWord> Lut;
 
-
+typedef std::vector<Integer> FpWord;
 
 #endif
