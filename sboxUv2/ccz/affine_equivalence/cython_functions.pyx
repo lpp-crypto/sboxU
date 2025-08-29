@@ -2,6 +2,7 @@
 
 
 from sboxUv2.core import Sb
+from sboxUv2.core.sbox import F2_trans
 from sboxUv2.config import MAX_N_THREADS
 
 
@@ -71,37 +72,39 @@ def affine_equivalence_permutations(f, g):
     Springer-Verlag, pp. 33--50, 2003.
 
     """
-    raise NotImplemented("not yet implemented, sorry")
+    # raise NotImplemented("not yet implemented, sorry")
 
-    # sf = Sb(f)
-    # sg = Sb(g)
-    # if len(f) != len(g):
-    #     raise "f and g are of different dimensions!"
-    # if not sf.is_invertible():
-    #     raise Exception("first argument is not a permutation!")
-    # if not sg.is_invertible():
-    #     raise Exception("second argument is not a permutation!")
-    # table = defaultdict(int)
-    # tr = [F2_trans(c) for c in sf.input_space()] # translations
-    # for b in sf.input_space():
-    #     table[le_class_representative(tr[c] * f)] = b
-    # rs = []
-    # a = -1
-    # b = -1    
-    # for a in sf.input_space():
-    #     g_c = le_class_representative(g * tr[c])
-    #     if g_c in table.keys():
-    #         b = table[g_c]
-    #         rs = g_c
-    #         break
-    # if a == -1:
-    #     return []
-    # # !FINISH! 
-    # l_f = linear_equivalence([tr[b] * f, rs)
-    # A_f, B_f = l_f[0], l_f[1]
-    # l_g = linear_equivalence([g * tr[a], rs)
-    # A_g, B_g = l_g[0], l_g[1]
-    # A = A_g.inverse() * A_f
-    # B = B_f * B_g.inverse()
-    # # a = apply_bin_mat(a, A.inverse())
-    # return [A, a, B, b]
+    sf = Sb(f)
+    sg = Sb(g)
+    
+    if len(f) != len(g):
+        raise "f and g are of different dimensions!"
+    if not sf.is_invertible():
+        raise Exception("first argument is not a permutation!")
+    if not sg.is_invertible():
+        raise Exception("second argument is not a permutation!")
+    table = defaultdict(int)
+    n= sf.get_input_length()
+    tr = [F2_trans(c,bit_length = n) for c in sf.input_space()] # translations
+    for b in sf.input_space():
+        table[le_class_representative(tr[c] * f)] = b
+    rs = []
+    a = -1
+    b = -1    
+    for a in sf.input_space():
+        g_c = le_class_representative(g * tr[c])
+        if g_c in table.keys():
+            b = table[g_c]
+            rs = g_c
+            break
+    if a == -1:
+        return []
+    # !FINISH! 
+    l_f = linear_equivalence(tr[b] * f, rs)
+    A_f, B_f = l_f[0], l_f[1]
+    l_g = linear_equivalence(g * tr[a], rs)
+    A_g, B_g = l_g[0], l_g[1]
+    A = A_g.inverse() * A_f
+    B = B_f * B_g.inverse()
+    a = apply_bin_mat(a, A.inverse())
+    return [A, a, B, b]

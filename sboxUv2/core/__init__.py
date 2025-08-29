@@ -4,3 +4,4 @@
 
 from .sbox import *
 from .f2functions import * 
+from .building_blocks import *
