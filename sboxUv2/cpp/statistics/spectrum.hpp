@@ -31,9 +31,14 @@ public:
         return content.cend();
     };
     
-    inline Integer operator[] (const Integer x)
+    inline Integer & operator[] (const Integer x)
     {
         return content[x];
+    };
+    
+    inline Integer operator[] (const Integer x) const
+    {
+        return content.at(x);
     };
     
     inline void erase(const Integer x)

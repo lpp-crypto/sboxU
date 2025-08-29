@@ -4,7 +4,7 @@
 // !SECTION! The BCT itself 
 
 
-std::vector<Integer> bct_row(
+std::vector<Integer> cpp_bct_row(
     const cpp_S_box & s,
     const BinWord a)
 {
@@ -36,7 +36,7 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 	std::vector< std::vector<Integer>> table_bct ;
         table_bct.reserve(s.input_space_size());
 	for(unsigned int a = 0; a < s.input_space_size(); a++)
-		table_bct.push_back(bct_row(s,a)) ;
+		table_bct.push_back(cpp_bct_row(s,a)) ;
 	return table_bct ;
 }
 
@@ -53,7 +53,7 @@ void bct_rows_count(
 {
     for (unsigned int a=a_min; a<a_max; a++)
     {
-        std::vector<Integer> row = bct_row(s, a);
+        std::vector<Integer> row = cpp_bct_row(s, a);
         for (unsigned int i=1; i<row.size(); i++) // we start at 1, not 0
             result.incr(row[i]);
     }
@@ -67,7 +67,7 @@ cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_th
 #pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
     for( unsigned int a = 1; a < s.input_space_size(); a++)
         count.incr_by_counting(cpp_bct_row(s,a));
-    count[s.input_space_size()]-= (s.input_space_size()-1);
+    count[s.input_space_size()] -= (s.input_space_size()-1);
     if(count[s.input_space_size()] == 0)
         count.erase(s.input_space_size());
     return count;
