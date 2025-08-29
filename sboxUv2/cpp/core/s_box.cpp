@@ -168,3 +168,23 @@ cpp_S_box cpp_empty_S_box()
 {
     return cpp_S_box(std::vector<BinWord>(0), 0, 0);
 }
+
+// !SECTION! Basic helper functions
+
+Lut cpp_inverse(Lut & s)
+{
+    Lut result(s.size(), 0);
+    for (unsigned int x=0; x<s.size(); x++)
+        result[s[x]] = x;
+    return result;
+}
+
+
+bool cpp_is_permutation(Lut & s)
+{
+    std::vector<BinWord> counters(s.size(), 0);
+    for(unsigned int x=0; x<s.size(); x++)
+        if ((counters[s[x]]++) > 1)
+            return false;
+    return true;
+}
