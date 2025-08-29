@@ -36,6 +36,10 @@ public:
         return content[x];
     };
     
+    inline void erase(const Integer x)
+    {
+        content.erase(x);
+    }
     
     void operator+= (const cpp_Spectrum sp) ;
 
@@ -53,5 +57,7 @@ public:
 
     void incr_by_counting(const std::vector<Integer> & vector_to_count);
 };
+
+#pragma omp declare reduction(aggregateSpectrum : cpp_Spectrum : omp_out+=omp_in)
 
 #endif
