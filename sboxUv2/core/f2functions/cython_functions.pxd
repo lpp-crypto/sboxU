@@ -52,6 +52,8 @@ cdef extern from "../../cpp/core/f2functions.cpp":
 
 cdef extern from "../../cpp/core/binLinearMap.hpp":
     cppclass cpp_BinLinearMap:
+        cpp_BinLinearMap()
+    
         cpp_BinLinearMap(
             const std_vector[BinWord] & _image_vectors
         )
