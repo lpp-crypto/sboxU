@@ -5,5 +5,5 @@
 """
 
 from .cython_functions import \
-    le_class_representative, affine_equivalence, affine_equivalence_permutations
+    le_class_representative, affine_equivalence, affine_equivalence_permutations, linear_equivalence, linear_equivalence_permutations
 

@@ -14,6 +14,13 @@ private:
 public:
     std::vector<BinWord> image_vectors;
     
+    inline cpp_BinLinearMap() :
+        image_vectors(std::vector<BinWord>(0)),
+        input_length(0),
+        output_length(0)
+    {};
+    
+    
     inline cpp_BinLinearMap(const std::vector<BinWord> & _image_vectors) :
         image_vectors(_image_vectors),
         input_length(_image_vectors.size()),
@@ -103,6 +110,10 @@ public:
 };
 
 cpp_BinLinearMap identity_BinLinearMap(unsigned int n);
+
+cpp_BinLinearMap cpp_BinLinearMap_from_lut(Lut & s);
+
+cpp_BinLinearMap cpp_BinLinearMap_from_lut(cpp_S_box & s);
 
 
 #endif

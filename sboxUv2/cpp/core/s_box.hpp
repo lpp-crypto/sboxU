@@ -75,18 +75,16 @@ public:
     
     cpp_S_box derivative(BinWord delta) const;
 
-    
-    // !TODO! implement:
-    // ! - ANF (but not in a BooleanFunction way)
-
-    // !TODO! documentation:
-    // ! - endianess
-    // ! - swap_matrix and tu_decomposition are not coherent
 };
 
 
 cpp_S_box cpp_translation(const BinWord a, const Integer input_bit_length);
 
 cpp_S_box cpp_empty_S_box();
+
+Lut cpp_inverse(Lut & s);
+
+bool cpp_is_permutation(Lut & s);
+
 
 #endif

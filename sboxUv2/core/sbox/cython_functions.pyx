@@ -418,7 +418,8 @@ def F2_trans(additive_cstte, field=None, bit_length=None):
         elif "degree" in dir(field): # case of a field
             n = field.degree()
         else:
-            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be speficied!")
+            inputs = {"field": field, "bit_length": bit_length}
+            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be speficied, instead, got {}".format(inputs))
     else: # case where the additive constant is a finite field element
         k = ffe_to_int(additive_cstte)
         n = additive_cstte.parent().degree()

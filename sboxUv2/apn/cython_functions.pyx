@@ -1,6 +1,7 @@
 # -*- python -*-
 
 from sboxUv2.sbox import Sb
+from sboxUv2.config import N_THREADS
 
 
 def ortho_derivative(q):
@@ -13,9 +14,18 @@ def ortho_derivative(q):
         An S_box instance containing the ortho-derivative of `q`. If the ortho-derivative of `q` is actually not defined (e.g. if it is not a quadratic APN), then returns an empty S_box.
     
     """
-    s = Sb(q)
-    result = S_box(name="π_{".encode("UTF-8") + s.name() + b"}")
+    sb = Sb(q)
+    result = S_box(name="π_{".encode("UTF-8") + sb.name() + b"}")
     (<S_box>result).set_inner_sbox(
-        cpp_ortho_derivative((<S_box>s).cpp_sb[0])
+        cpp_ortho_derivative((<S_box>sb).cpp_sb[0])
+    )
+    return result
+
+
+def sigma_multiplicities(s, k):
+    sb = Sb(s)
+    result = Spectrum()
+    result.set_inner_sp(
+        cpp_sigma_multiplicities((<S_box>sb).cpp_sb[0], k, N_THREADS)
     )
     return result
