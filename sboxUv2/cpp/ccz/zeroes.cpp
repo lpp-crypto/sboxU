@@ -43,6 +43,46 @@ void cpp_WalshZeroesSpaces::init_mappings()
 }
 
 
+void cpp_WalshZeroesSpaces::init_mappings(
+    const std::vector<cpp_BinLinearMap> & automorphisms
+    )
+{
+    // computing the image of each basis
+    std::map<cpp_Linear_basis, unsigned int> preimages;
+    for (unsigned int i=0; i<bases.size(); i++)
+        preimages[cpp_Linear_basis(bases[i])] = i;
+    // initializing walsh zeroes automorphisms
+    std::vector<cpp_BinLinearMap> A;
+    A.reserve(automorphisms.size());
+    for(auto & a_i : automorphisms)
+        A.push_back(a_i.transpose());
+    // checking if an automorphism maps a space to another
+    std::vector<bool> relevant(preimages.size(), true);
+    for (auto & space : preimages)
+        if (relevant[space.second])
+            for (auto & Aj : A)
+            {
+                cpp_Linear_basis img = space.first.image_by(Aj);
+                if (preimages.contains(img))
+                {
+                    unsigned int index = preimages[img];
+                    if (index != space.second)
+                        relevant[index] = false;
+                }
+            }
+    // building the mappings by transposing
+    for(unsigned int i=0; i<bases.size(); i++)
+        if (relevant[i])
+        {
+            std::vector<BinWord> img = cpp_complete_basis(bases[i],
+                                                          total_size);
+            std::reverse(img.begin(), img.end());
+            cpp_BinLinearMap L(img);
+            mappings.push_back(L.transpose());
+        }
+}
+
+
 
 cpp_Spectrum cpp_WalshZeroesSpaces::thickness_spectrum() const
 {

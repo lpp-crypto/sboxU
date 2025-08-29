@@ -31,11 +31,20 @@ public:
         return content.cend();
     };
     
-    inline Integer operator[] (const Integer x)
+    inline Integer & operator[] (const Integer x)
     {
         return content[x];
     };
     
+    inline Integer operator[] (const Integer x) const
+    {
+        return content.at(x);
+    };
+    
+    inline void erase(const Integer x)
+    {
+        content.erase(x);
+    }
     
     void operator+= (const cpp_Spectrum sp) ;
 
@@ -53,5 +62,7 @@ public:
 
     void incr_by_counting(const std::vector<Integer> & vector_to_count);
 };
+
+#pragma omp declare reduction(aggregateSpectrum : cpp_Spectrum : omp_out+=omp_in)
 
 #endif

@@ -4,5 +4,6 @@
 #include "./s_box.hpp"
 #include "./f2functions.hpp"
 #include "./binLinearMap.hpp"
+#include "./multithread.hpp"
 
 #endif

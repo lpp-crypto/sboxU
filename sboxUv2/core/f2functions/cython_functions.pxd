@@ -40,11 +40,8 @@ cdef extern from "../../cpp/core/f2functions.hpp":
     )
 
     BinWord cpp_from_bin (
-        const std_vector[int] & v)
-
-
-    
-
+        const std_vector[int] & v
+    )
 
     
 cdef extern from "../../cpp/core/f2functions.cpp":
@@ -64,7 +61,11 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
             const int64_t _input_length,
             const int64_t _output_length
         )
-    
+
+        cpp_BinLinearMap(
+            const cpp_S_box & lut
+        )
+
         int64_t get_input_length()
     
         int64_t get_output_length()
@@ -87,7 +88,7 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
     
         BinWord rank() 
         
-        cpp_S_box cpp_get_S_box() 
+        cpp_S_box get_cpp_S_box() 
 
         std_vector[BinWord] get_image_vectors()
     
