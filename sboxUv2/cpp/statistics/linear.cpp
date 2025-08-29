@@ -60,48 +60,15 @@ std::vector< std::vector<Integer> > cpp_lat(const cpp_S_box & s)
 // !SECTION! Walsh spectrum
 
 
-void walsh_spectrum_cols_count(
-    cpp_Spectrum &result,
-    const cpp_S_box & s,
-    const BinWord b_min,
-    const BinWord b_max)
-{
-    for (unsigned int b=b_min; b<b_max; b++)
-        result.incr_by_counting(cpp_walsh_transform(s.component(b))) ;
-}
-
-
 cpp_Spectrum cpp_walsh_spectrum(
     const cpp_S_box & s,
     const unsigned int n_threads)
 {
     cpp_Spectrum count;
-    if (n_threads == 1)         // single thread
-    {
-        walsh_spectrum_cols_count(std::ref(count), s, 1, s.size());
-    }
-    else                        // strictly more than 1 thread
-    {
-        std::vector<std::thread> threads;
-        std::vector<cpp_Spectrum> local_counts(n_threads, cpp_Spectrum());
-        BinWord lower_bound = 1;
-        for (unsigned int i=0; i<n_threads; i++)
-        {
-            // Will break on 32-bit arch if nthreads*s.size >= 1 << 32
-            BinWord upper_bound = ((i+1)*s.output_space_size())/n_threads;
-            threads.push_back(std::thread(walsh_spectrum_cols_count,
-                                          std::ref(local_counts[i]),
-                                          s,
-                                          lower_bound,
-                                          upper_bound));
-            lower_bound = upper_bound;
-        }
-        for (unsigned int i=0; i<n_threads; i++)
-        {
-            threads[i].join();
-            count += local_counts[i];
-        }
-    }
+    int threads = threads_from_size(s.input_space_size());
+#pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
+    for( unsigned int b = 1; b < s.input_space_size(); b++)
+        count.incr_by_counting(cpp_walsh_transform(s.component(b)));
     return count;
 }
 
