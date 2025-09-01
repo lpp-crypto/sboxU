@@ -161,6 +161,23 @@ class cpp_S_box_fp {
             }
         }
 
+        // Returns the derivative of the S-Box, namely x -> S(x+delta) - S(x)
+        cpp_S_box_fp derivative(const FpWord& delta) const {
+            Integer delta_int = vec_to_int(delta,powers_in);
+            std::vector<FpWord> new_lut(pow((float)p,(float)input_size));
+            for (int i = 0; i < input_space.size(); i++){
+                Integer j = (j+delta_int)%p;
+                const FpWord& out_i = lut[i];
+                const FpWord& out_j = lut[j];
+                Integer out_i_int = vec_to_int(out_i,powers_out);
+                Integer out_j_int = vec_to_int(out_j,powers_out);
+                Integer new_out_int = (out_j_int - out_i_int)% p;
+                FpWord new_out = int_to_vec(new_out_int,output_space);
+                new_lut[i] = new_out;
+            }
+            return cpp_S_box_fp(input_size,output_size,p,powers_in,powers_out,input_space,output_space,new_lut);
+        }
+
 
         // Returns the list of base p decomposition of integers in range [0,...,p^input_size - 1]
         // The integers are stored in increasing order, in little endian convention
