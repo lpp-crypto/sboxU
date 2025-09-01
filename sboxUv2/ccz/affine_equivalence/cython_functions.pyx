@@ -4,6 +4,7 @@
 from sboxUv2.core import Sb
 from sboxUv2.core.sbox import F2_trans
 from sboxUv2.config import MAX_N_THREADS
+from collections import defaultdict
 
 
 # !SECTION! Linear equivalence
@@ -113,7 +114,7 @@ def affine_equivalence_permutations(f, g):
     the "Linear Representative" using an algorithm from [EC:BDCBP03].
 
     """
-    # raise NotImplemented("not yet implemented, sorry")
+
 
     sf = Sb(f)
     sg = Sb(g)
@@ -127,25 +128,26 @@ def affine_equivalence_permutations(f, g):
     table = defaultdict(int)
     n= sf.get_input_length()
     tr = [F2_trans(c,bit_length = n) for c in sf.input_space()] # translations
-    for b in sf.input_space():
-        table[le_class_representative(tr[c] * f)] = b
+    for c in sf.input_space():
+        table[le_class_representative(tr[c] * sf)] = c
     rs = []
     a = -1
     b = -1    
-    for a in sf.input_space():
-        g_c = le_class_representative(g * tr[c])
+    for c in sf.input_space():
+        g_c = le_class_representative(sg * tr[c])
         if g_c in table.keys():
+            a=c
             b = table[g_c]
             rs = g_c
             break
     if a == -1:
         return []
     # !FINISH! 
-    l_f = linear_equivalence(tr[b] * f, rs)
-    A_f, B_f = l_f[0], l_f[1]
-    l_g = linear_equivalence(g * tr[a], rs)
-    A_g, B_g = l_g[0], l_g[1]
+    l_f = linear_equivalence(tr[b] * sf, rs)
+    A_f, B_f = l_f[0][0], l_f[0][1]
+    l_g = linear_equivalence(sg * tr[a], rs)
+    A_g, B_g = l_g[0][0], l_g[0][1]
     A = A_g.inverse() * A_f
-    B = B_f * B_g.inverse()
-    a = apply_bin_mat(a, A.inverse())
+    B = B_f *B_g.inverse()
+    a = A.inverse()(a)
     return [A, a, B, b]

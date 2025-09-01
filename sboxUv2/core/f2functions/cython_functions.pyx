@@ -134,6 +134,8 @@ cdef class BinLinearMap:
 
     # !TODO! from_blob / to_blob
 
+     # !TODO! __eq__ 
+
 
 
 def identity_BinLinearMap(int64_t n):
