@@ -24,13 +24,59 @@ def le_class_representative(s):
         result = S_box(name=b"LE(" + sb.name() + b")")
         result.set_inner_sbox(
             # we always try use the "fast" variant of cpp_le_class_representative
-            cpp_le_class_representative((<S_box>sb).cpp_sb[0], 1) 
+            cpp_le_class_representative((<S_box>sb).cpp_sb[0])
         )
         return result
     else:
         raise NotImplemented("Linear representatives can only be computed for permutations")
+
+
+
+
+def linear_equivalence(f, g, all_mappings=False):
+    sf = Sb(f)
+    sg = Sb(g)
+    if len(f) != len(g):
+        raise "f and g are of different dimensions!"
+    if sf.is_invertible() or sg.is_invertible():
+        if sf.is_invertible() and sg.is_invertible():
+            return linear_equivalence_permutations(sf, sg, all_mappings=all_mappings)
+        else:
+            return False # a permutation can only be linear equivalent
+                         # to another permutation
+    else:
+        # !TODO! use Jules table-based algorithm or Itai's algorithm if the degree is maximum
+        raise NotImplemented("only permutations are implemented at the moment")
     
 
+
+def linear_equivalence_permutations(f, g, all_mappings=False):
+    """Returns, if it exists, the tuple A, a, B, b where A and B are matrices such that, for all x:
+
+    f = B o g o A
+
+    where "o" denotes functional composition. If no such linear permutations exist, returns an empty list.
+
+    The algorithm used is specified in [EC:BDCBP03].
+
+    """
+    sf = Sb(f)
+    sg = Sb(g)
+    result = cpp_linear_equivalence_permutations(
+        (<S_box>sf).cpp_sb[0],
+        (<S_box>sg).cpp_sb[0],
+        all_mappings
+        )
+    mappings = []
+    for cpp_A in result:
+        A = BinLinearMap()
+        (<BinLinearMap>A).cpp_blm = new cpp_BinLinearMap()
+        (<BinLinearMap>A).cpp_blm[0] = <cpp_BinLinearMap>cpp_A
+        mappings.append(A)
+    return [(mappings[i], mappings[i+1])
+            for i in range(0, len(mappings), 2)]
+    
+    
 
 
 # # !SECTION! Affine equivalence
@@ -49,6 +95,7 @@ def affine_equivalence(f, g):
             return False # a permutation can only be affine equivalent
                          # to another permutation
     else:
+        # !TODO! use Jules table-based algorithm in general, and Alain's algorithm for quadratic functions
         raise NotImplemented("only permutations are implemented at the moment")
     
 
@@ -62,13 +109,7 @@ def affine_equivalence_permutations(f, g):
     no such affine permutations exist, returns an empty list.
 
     Internally calls a function written in C++ for speed which returns
-    the "Linear Representative" using an algorithm from
-
-    Alex Biryukov, Christophe De Canniere, An Braeken, and Bart
-    Preneel (2003).  "A Toolbox for Cryptanalysis: Linear and Affine
-    Equivalence Algorithms", Advances in Cryptology -- EUROCRYPT 2003,
-    Lecture Notes in Computer Science 2656, E. Biham (ed.),
-    Springer-Verlag, pp. 33--50, 2003.
+    the "Linear Representative" using an algorithm from [EC:BDCBP03].
 
     """
     raise NotImplemented("not yet implemented, sorry")

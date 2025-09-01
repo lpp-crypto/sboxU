@@ -91,3 +91,31 @@ cpp_BinLinearMap identity_BinLinearMap(unsigned int n)
         imgs[i] = ((BinWord)1) << i;
     return cpp_BinLinearMap(imgs, n, n);
 }
+
+
+cpp_BinLinearMap cpp_BinLinearMap_from_lut(Lut & s)
+{
+    if (s[0] != 0)
+        throw std::runtime_error("Input of cpp_BinLinearMap_from_lut must map 0 to 0!");
+    else
+    {
+        std::vector<BinWord> images;
+        for(unsigned int x=1; x<s.size(); x <<= 1)
+            images.push_back(s[x]);
+        return cpp_BinLinearMap(images);
+    }
+}
+
+
+cpp_BinLinearMap cpp_BinLinearMap_from_lut(cpp_S_box & s)
+{
+    if (s[0] != 0)
+        throw std::runtime_error("Input of cpp_BinLinearMap_from_lut must map 0 to 0!");
+    else
+    {
+        std::vector<BinWord> images;
+        for(unsigned int x=1; x<s.size(); x <<= 1)
+            images.push_back(s[x]);
+        return cpp_BinLinearMap(images);
+    }
+}
