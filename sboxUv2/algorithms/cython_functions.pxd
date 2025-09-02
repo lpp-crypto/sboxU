@@ -35,12 +35,12 @@ cdef extern from "../cpp/algorithms/spaceSearch.cpp":
 
 
 
-# !SUBSECTION! The cpp_Linear_basis class
+# !SUBSECTION! The cpp_BinLinearBasis class
     
-cdef extern from "../cpp/algorithms/linearBasis.hpp":
-    cppclass cpp_Linear_basis:
+cdef extern from "../cpp/algorithms/binLinearBasis.hpp":
+    cppclass cpp_BinLinearBasis:
     
-        cpp_Linear_basis(
+        cpp_BinLinearBasis(
             const std_vector[BinWord] & l
         )
         bool add_to_span(
@@ -57,11 +57,11 @@ cdef extern from "../cpp/algorithms/linearBasis.hpp":
 
 
         
-cdef extern from "../cpp/algorithms/linearBasis.cpp":
+cdef extern from "../cpp/algorithms/binLinearBasis.cpp":
     pass
 
 
 # !SECTION! Declaring cython code
 
-cdef class Linear_basis:
-    cdef cpp_Linear_basis * cpp_lb
+cdef class BinLinearBasis:
+    cdef cpp_BinLinearBasis * cpp_lb

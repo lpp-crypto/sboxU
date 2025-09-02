@@ -1,8 +1,8 @@
-#include "./linearBasis.hpp"
+#include "./binLinearBasis.hpp"
 
 
 
-cpp_Linear_basis::cpp_Linear_basis(const std::vector<BinWord> & l) :
+cpp_BinLinearBasis::cpp_BinLinearBasis(const std::vector<BinWord> & l) :
     basis()
 {
     for(auto &v : l)
@@ -10,7 +10,7 @@ cpp_Linear_basis::cpp_Linear_basis(const std::vector<BinWord> & l) :
 }
 
 
-bool cpp_Linear_basis::add_to_span(BinWord x)
+bool cpp_BinLinearBasis::add_to_span(BinWord x)
 /** The content of basis is corresponds to binary vectors indexed by
  * their MSBs. At every instant, these vectors satisfy the following
  * properties:
@@ -69,7 +69,7 @@ bool cpp_Linear_basis::add_to_span(BinWord x)
 }
 
 
-bool cpp_Linear_basis::is_in_span(BinWord x) const
+bool cpp_BinLinearBasis::is_in_span(BinWord x) const
 {
     Integer m = cpp_msb(x);    
     for(auto b : basis)
@@ -86,7 +86,7 @@ bool cpp_Linear_basis::is_in_span(BinWord x) const
 }
 
 
-std::vector<BinWord> cpp_Linear_basis::get_basis() const
+std::vector<BinWord> cpp_BinLinearBasis::get_basis() const
 {
     std::vector<BinWord> result;
     result.reserve(basis.size());
@@ -96,7 +96,7 @@ std::vector<BinWord> cpp_Linear_basis::get_basis() const
 }
 
 
-std::vector<BinWord> cpp_Linear_basis::span() const
+std::vector<BinWord> cpp_BinLinearBasis::span() const
 {
     unsigned int total_size = 1 << basis.size();
     std::vector<BinWord>
@@ -112,7 +112,7 @@ std::vector<BinWord> cpp_complete_basis(
     const unsigned int n
     )
 {
-    cpp_Linear_basis lb(basis);
+    cpp_BinLinearBasis lb(basis);
     std::vector<BinWord> result(basis.cbegin(), basis.cend());
     result.reserve(n);
     for(BinWord x=1; result.size() < n; x*=2)
@@ -124,9 +124,9 @@ std::vector<BinWord> cpp_complete_basis(
 }
 
 
-cpp_Linear_basis cpp_Linear_basis::image_by(const cpp_BinLinearMap & L) const
+cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) const
 {
-    cpp_Linear_basis result;
+    cpp_BinLinearBasis result;
     for (auto &b : basis)
         result.add_to_span(L(b.second));
     return result;
@@ -134,7 +134,7 @@ cpp_Linear_basis cpp_Linear_basis::image_by(const cpp_BinLinearMap & L) const
 
 
 
-bool cpp_Linear_basis::operator==(const cpp_Linear_basis & other_basis) const
+bool cpp_BinLinearBasis::operator==(const cpp_BinLinearBasis & other_basis) const
 {
     if (basis.size() != other_basis.rank())
         return false;
@@ -150,7 +150,7 @@ bool cpp_Linear_basis::operator==(const cpp_Linear_basis & other_basis) const
 }
 
 
-bool cpp_Linear_basis::operator<(const cpp_Linear_basis & other_basis) const
+bool cpp_BinLinearBasis::operator<(const cpp_BinLinearBasis & other_basis) const
 {
     auto b1 = basis.begin();
     auto b2 = other_basis.begin();

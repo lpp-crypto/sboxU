@@ -48,9 +48,9 @@ void cpp_WalshZeroesSpaces::init_mappings(
     )
 {
     // computing the image of each basis
-    std::map<cpp_Linear_basis, unsigned int> preimages;
+    std::map<cpp_BinLinearBasis, unsigned int> preimages;
     for (unsigned int i=0; i<bases.size(); i++)
-        preimages[cpp_Linear_basis(bases[i])] = i;
+        preimages[cpp_BinLinearBasis(bases[i])] = i;
     // initializing walsh zeroes automorphisms
     std::vector<cpp_BinLinearMap> A;
     A.reserve(automorphisms.size());
@@ -62,7 +62,7 @@ void cpp_WalshZeroesSpaces::init_mappings(
         if (relevant[space.second])
             for (auto & Aj : A)
             {
-                cpp_Linear_basis img = space.first.image_by(Aj);
+                cpp_BinLinearBasis img = space.first.image_by(Aj);
                 if (preimages.contains(img))
                 {
                     unsigned int index = preimages[img];
