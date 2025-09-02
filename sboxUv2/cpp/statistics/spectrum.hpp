@@ -5,6 +5,7 @@
 #include "../core/include.hpp"
 
 
+
 class cpp_Spectrum
 {
 private:

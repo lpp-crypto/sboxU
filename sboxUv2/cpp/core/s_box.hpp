@@ -4,6 +4,7 @@
 #include "../sboxU.hpp"
 #include "f2functions.hpp"
 
+class cpp_Spectrum;
 
 class cpp_S_box
 {
@@ -85,6 +86,10 @@ cpp_S_box cpp_empty_S_box();
 Lut cpp_inverse(Lut & s);
 
 bool cpp_is_permutation(Lut & s);
+
+std::vector<BinWord> cpp_anf_component( const cpp_S_box & f);
+
+cpp_Spectrum cpp_degree_spectrum(const cpp_S_box &f);
 
 
 #endif
