@@ -66,8 +66,8 @@ cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_th
     int threads = threads_from_size(s.input_space_size());
 #pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
     for( unsigned int a = 1; a < s.input_space_size(); a++)
-        count.incr_by_counting(cpp_bct_row(s,a));
-    count[s.input_space_size()] -= (s.input_space_size()-1);
+        count.incr_by_counting(bct_row(s,a));
+    count.incr_by_amount(s.input_space_size(),-(s.input_space_size()-1));
     if(count[s.input_space_size()] == 0)
         count.erase(s.input_space_size());
     return count;
