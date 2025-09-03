@@ -1174,7 +1174,7 @@ template<typename int_type> bool is_greater(const std::vector<int_type>& R_S, co
     return false;
 }
 
-template<typename set_t, typename int_type> bool subroutine(const std::vector<int_type>& S, const std::vector<int_type>& S_inv, const tstate_t<set_t, int_type>& state, std::vector<int_type>& R_S_best, const u32 length)
+template<typename set_t, typename int_type> bool subroutine(const std::vector<int_type>& S, const std::vector<int_type>& S_inv, const tstate_t<set_t, int_type>& state, std::vector<int_type>& R_S_best, std::vector<int_type>& A_best, std::vector<int_type>& B_best, const u32 length)
 {
     std::vector<int_type> A(state.A);
     std::vector<int_type> B(state.B);
@@ -1301,10 +1301,13 @@ template<typename set_t, typename int_type> bool subroutine(const std::vector<in
     }
     if (Set<set_t, int_type>::is_empty(U_A) && Set<set_t, int_type>::is_empty(U_B))
     {
+
         for (u32 i = 0; i < length; i++)
         {
             // new best
             R_S_best[i] = R_S[i];
+            A_best[i] = A[i];
+            B_best[i] = B[i];
         }
         return true;
     }
@@ -1315,7 +1318,7 @@ template<typename set_t, typename int_type> bool subroutine(const std::vector<in
         U_A                = Set<set_t, int_type>::setminus(U_A, D_A_new, length);
         D_A                = Set<set_t, int_type>::unite(D_A, D_A_new);
         N_A                = Set<set_t, int_type>::unite(N_A, D_A_new);
-        bool flag          = false;
+        bool flag = false;
         set_t Y            = Set<set_t, int_type>::init_full(length);
         set_t A_set        = Set<set_t, int_type>::init_empty(length);
         for (u32 i = 0; i < length; i++)
@@ -1347,7 +1350,8 @@ template<typename set_t, typename int_type> bool subroutine(const std::vector<in
             state_next.U_A = U_A;
             state_next.U_B = U_B;
 
-            if (subroutine<set_t, int_type>(S, S_inv, state_next, R_S_best, length))
+
+            if (subroutine<set_t, int_type>(S, S_inv, state_next, R_S_best, A_best, B_best, length))
             {
                 flag = true;
             }
@@ -1358,12 +1362,14 @@ template<typename set_t, typename int_type> bool subroutine(const std::vector<in
 }
 
 
-template<typename set_t, typename int_type> std::vector<int_type> compute_linear_representative(const std::vector<int_type>& sbox)
+template<typename set_t, typename int_type> std::array<std::vector<int_type>,3> compute_linear_representative(const std::vector<int_type>& sbox)
 {
     u32 length = sbox.size();
 
     // variable for current best candidate
     std::vector<int_type> R_S_best(length, 0);
+    std::vector<int_type> A_best(length, 0);
+    std::vector<int_type> B_best(length, 0);
 
     // invert sbox
     std::vector<int_type> S_inv(length, 0);
@@ -1402,9 +1408,9 @@ template<typename set_t, typename int_type> std::vector<int_type> compute_linear
     }
 
     // compute linear representative recursively
-    subroutine<set_t, int_type>(sbox, S_inv, state, R_S_best, length);
+    subroutine<set_t, int_type>(sbox, S_inv, state, R_S_best, A_best, B_best, length);
 
-    return R_S_best;
+    return { R_S_best, A_best, B_best };
 }
 
 
@@ -1412,55 +1418,62 @@ template<typename set_t, typename int_type> std::vector<int_type> compute_linear
 
 
 /*
- * Current templates allows to use the same algorithm using various bit containers:
- * vectors, arrays, and 256-bit registers leveraging CPU vectorial CPU instructions
+ * Current templates allow to use the same algorithm using various bit containers:
+ * vectors, arrays, and 256-bit registers leveraging vectorial CPU instructions
  * We could have arrays of 256-bit registers, or even 512-bit registers or longer,
  * but given the limited gains compared to arrays of u64 this is probably not worth
  * the effort.
  */
 
-cpp_S_box cpp_le_class_representative(const cpp_S_box f)
+std::tuple<cpp_S_box, cpp_BinLinearMap, cpp_BinLinearMap> cpp_le_class_representative(const cpp_S_box f)
 {
     if(f.size() <= 256){
         std::vector<u8> ff;
         for(unsigned int i = 0; i < f.size(); i++){
             ff.push_back((u8) f[i]);
         }
-        std::vector<u8> lr;
+        std::array<std::vector<u8>,3> result;
         if(f.size() <= 64)
-            lr = compute_linear_representative<std::array<u64,1>,u8>(ff);
+            result = compute_linear_representative<std::array<u64,1>,u8>(ff);
         else if(f.size() == 128)
-            lr = compute_linear_representative<std::array<u64,2>,u8>(ff); // Could be faster with AVX/NEON/u128
+             result = compute_linear_representative<std::array<u64,2>,u8>(ff); // Could be faster with AVX/NEON/u128
         else
         {
 #if defined(__AVX2__) or defined(__ARM_NEON)
-            lr = compute_linear_representative<fastset_t,u8>(ff);
+             result = compute_linear_representative<fastset_t,u8>(ff);
 #else
-            lr = compute_linear_representative<std::array<u64,4>,u8>(ff);
+             result = compute_linear_representative<std::array<u64,4>,u8>(ff);
 #endif
         }
         Lut linear_representative(f.size(), 0);
+        Lut lut_A(f.size(), 0);
+        Lut lut_B(f.size(), 0);
+
         for(unsigned int i = 0; i < f.size(); i++){
-            linear_representative[i] = (BinWord)lr[i];
+            linear_representative[i] = (BinWord)result[0][i];
+            lut_A[i] = (BinWord)result[1][i];
+            lut_B[i] = (BinWord)result[2][i];
         }
-        return cpp_S_box(linear_representative);
+        cpp_BinLinearMap A = cpp_BinLinearMap_from_lut(lut_A);
+        cpp_BinLinearMap B = cpp_BinLinearMap_from_lut(lut_B);
+        return std::make_tuple(cpp_S_box(linear_representative), A, B);
     }
     std::vector<u64> ff;
     for(unsigned int i = 0; i < f.size(); i++){
         ff.push_back(f[i]);
     }
-    std::vector<u64> lr;
+    std::array<std::vector<u64>,3> result;
     if(f.size() == 512)
-        lr = compute_linear_representative<std::array<u64,8>,u64>(ff); // Could be faster with AVX512
+         result = compute_linear_representative<std::array<u64,8>,u64>(ff); // Could be faster with AVX512
     else if(f.size() == 1024)
-        lr = compute_linear_representative<std::array<u64,16>,u64>(ff);
+         result = compute_linear_representative<std::array<u64,16>,u64>(ff);
     else if(f.size() == 2048)
-        lr = compute_linear_representative<std::array<u64,32>,u64>(ff);
+         result= compute_linear_representative<std::array<u64,32>,u64>(ff);
     else if(f.size() == 4096)
-        lr = compute_linear_representative<std::array<u64,64>,u64>(ff);
+         result = compute_linear_representative<std::array<u64,64>,u64>(ff);
     else
         // Currently Set<std::vector<u64>, u64> does not support < 6 bit sboxes, due to simple init_full()
-        lr = compute_linear_representative<std::vector<u64>, u64>(ff);
-    return cpp_S_box(lr);
+         result = compute_linear_representative<std::vector<u64>, u64>(ff);
+    return std::make_tuple(cpp_S_box(result[0]), cpp_BinLinearMap_from_lut(result[1]),cpp_BinLinearMap_from_lut(result[2]));
 }
 

@@ -7,7 +7,7 @@
 
 
 
-cpp_S_box cpp_class_representative(const cpp_S_box & f);
+std::tuple<cpp_S_box, cpp_BinLinearMap, cpp_BinLinearMap> cpp_class_representative(const cpp_S_box & f);
 
 
 // the following class was used by the old linear representative implementation

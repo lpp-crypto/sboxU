@@ -2,6 +2,6 @@
 #define _ALGORITHMS_
 
 #include "spaceSearch.hpp"
-#include "linearBasis.hpp"
+#include "binLinearBasis.hpp"
 
 #endif

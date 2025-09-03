@@ -7,7 +7,7 @@ n = 10
 if __name__ == "__main__":
     for t in range(0, 20):
         print("------------")
-        l = Linear_basis([])
+        l = BinLinearBasis([])
         for i in range(0, 15):
             x = randint(0, 2**n)
             print(hex(x))

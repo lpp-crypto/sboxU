@@ -54,12 +54,12 @@ def extract_affine_bases(
 
 
 
-# !SECTION! The Linear_basis class
+# !SECTION! The BinLinearBasis class
 
 
-cdef class Linear_basis:
+cdef class BinLinearBasis:
     def __init__(self, std_vector[BinWord] l):
-        self.cpp_lb = new cpp_Linear_basis(l)
+        self.cpp_lb = new cpp_BinLinearBasis(l)
 
         
     def __iter__(self):
