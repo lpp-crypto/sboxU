@@ -1,7 +1,5 @@
 #include "s_box.hpp"
 
-
-
 // !SECTION! Constructors 
 
 
@@ -188,3 +186,5 @@ bool cpp_is_permutation(Lut & s)
             return false;
     return true;
 }
+
+

@@ -482,4 +482,3 @@ def F2_trans(additive_cstte, field=None, bit_length=None):
         k = ffe_to_int(additive_cstte)
         n = additive_cstte.parent().degree()
     return pyx_F2_trans(k, n)
-

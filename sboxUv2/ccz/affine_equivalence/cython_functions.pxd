@@ -10,7 +10,13 @@ from sboxUv2.algorithms cimport *
 
 cdef extern from "../../cpp/ccz/linear_representative.hpp":
     cpp_S_box cpp_le_class_representative(
-        const cpp_S_box & f,
+        const cpp_S_box f,
+        cpp_BinLinearMap & A,
+        cpp_BinLinearMap & B
+    )
+
+    cpp_S_box cpp_le_class_representative(
+        const cpp_S_box f,
     )
 
 cdef extern from "../../cpp/ccz/linear_representative.cpp":

@@ -213,3 +213,15 @@ def boomerang_uniformity(s):
     bom = boomerang_spectrum(s)
     return bom.maximum()
 
+
+# # !SUBSECTION! Degree spectrum 
+
+# def degree_spectrum(s):
+#     sb = Sb(s)
+#     result = Spectrum(name="Degree".encode("UTF-8"))
+#     n_threads = n_threads_from_sbox_size(sb.get_input_length())
+#     result.set_inner_sp(
+#         cpp_degree_spectrum((<S_box>sb).cpp_sb[0],
+#                            n_threads)
+#     )
+#     return result
