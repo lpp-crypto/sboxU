@@ -6,6 +6,10 @@
 
 class cpp_Spectrum;
 
+/** @class cpp_S_box
+
+    This class stores the lookup table of a vectorial Boolean function and provides convenient methods to simplify the interaction with it. 
+ */
 class cpp_S_box
 {
 private:
@@ -22,7 +26,11 @@ public:
 
     cpp_S_box(std::vector<BinWord> _lut) ;
 
-
+    /** Returns the lookup table of the binary sum (XOR) of this S-box and `s`, the sum being done for each possible input.
+        
+        @param s The other S-box.
+        @return A new S-box containing the lookup of the XOR of the S-boxes.
+     */
     cpp_S_box operator+ (const cpp_S_box &s) const;
 
     cpp_S_box operator* (const cpp_S_box &s) const;
