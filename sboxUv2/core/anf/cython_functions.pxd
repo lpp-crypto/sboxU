@@ -1,20 +1,8 @@
 # cython_functions.pxd
 
 from sboxUv2.cython_types cimport *
-
-cdef extern from "../../cpp/core/s_box.hpp":
-    cdef cppclass cpp_S_box:
-        cpp_S_box() except +
-        int get_input_length() const
-        int get_output_length() const
-        std_vector[BinWord] get_lut() const
-        cpp_S_box component(int u) const
-
-cdef extern from "../../cpp/core/spectrum.hpp":
-    cdef cppclass cpp_Spectrum:
-        cpp_Spectrum() except +
-        int64_t size() const
-        void incr(int64_t entry)
+from sboxUv2.core cimport *
+from sboxUv2.core.spectrum cimport cpp_Spectrum
 
 cdef extern from "../../cpp/core/anf.hpp":
     std_vector[BinWord] cpp_anf_component(const cpp_S_box& f)

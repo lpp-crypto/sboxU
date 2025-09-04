@@ -1,6 +1,6 @@
 # cython_functions.pyx
-from ..sbox.cython_functions cimport S_box, cpp_S_box
-from ...statistics.cython_functions cimport Spectrum, cpp_Spectrum
+from ..sbox.cython_functions cimport cpp_S_box, S_box
+from ..spectrum.cython_functions cimport cpp_Spectrum, Spectrum
 from .cython_functions cimport cpp_degree_spectrum,cpp_anf_component
 from sage.all import GF,PolynomialRing,prod
 

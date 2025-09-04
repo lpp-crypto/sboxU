@@ -1,6 +1,6 @@
 from sboxUv2.cython_types cimport *
 
-cdef extern from "../cpp/core/spectrum.hpp":
+cdef extern from "../../cpp/core/spectrum.hpp":
     cdef cppclass cpp_Spectrum:
         cpp_Spectrum()
         int64_t maximum() const
@@ -21,7 +21,7 @@ cdef extern from "../cpp/core/spectrum.hpp":
         int64_t size() const
 
     
-cdef extern from "../cpp/core/spectrum.cpp":
+cdef extern from "../../cpp/core/spectrum.cpp":
     pass
 
 
