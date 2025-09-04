@@ -11,5 +11,5 @@ More precisely, at this stage, it contains:
 
 from .cython_functions import \
     extract_bases, extract_affine_bases, \
-    Linear_basis
+    BinLinearBasis
 

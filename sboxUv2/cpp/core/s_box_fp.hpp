@@ -84,6 +84,11 @@ class cpp_S_box_fp {
 
         // Operators overloading
 
+        // Evaluation
+        FpWord operator[](const FpWord& input) const {
+            return lut[vec_to_int(input,powers_in)];
+        }
+
         // Pointwise addition
         cpp_S_box_fp operator+(const cpp_S_box_fp& s) const {
             if (s.get_input_size() != input_size)

@@ -1,0 +1,115 @@
+#+TITLE: sboxU: On the Code
+
+If you want to learn how to install =sboxU=, check out the README.md file the root directory [[../README.md][here]].
+
+If you want to help with =sboxU=, awesome! A TODO list is maintained [[https://github.com/users/lpp-crypto/projects/1/views/1][here]]: if an item is in "ready" column, then feel free to start working on it. If you do, please let us know by sending an email to =leo.perrin at inria dot fr=: this will help ensure that all efforts are coordinated.
+
+Finally, if you want an overview of what happens under the hood, then read along!
+
+
+* Code Structure
+
+The =sboxU= is divided into modules, each corresponding to a specific topic. There is an order to them, in order to avoid having to deal with cross-dependencies: a module can only depend on the modules that have a smaller index.
+
+
+** Innermost layer
+
+1. [[./cpp][cpp]] To improve (significantly) the speed of the inner routines of =sboxU=, significant chunks are written in =C++=. This folder does **not** contain a python module, it instead contains a =C++= library that can stand on its own, and on which the actual python modules rely on.
+
+2. [[./core][core]] Contains the most elementary operations and tools: arithmetic over the relevant alphabets (in particular over the vector space F_2^n), and the classes implementing the S-boxes that =sboxU= is intended to study. It also contains utilities to deal with spectra.
+
+
+** Middle Layer
+
+3. [@3] [[./statistics][statistics]] Contains the tools needed to perform "statistical" attacks, meaning differential, linear, and all their variants. 
+4. [[./algorithms/][algorithms]] Lower level sophisticated algorithms, such as the vector space search.
+5. [[./databases][databases]] The logic to store S-boxes of various specific types in =tinySQL= databases (a TODO at this stage).
+6. [[./biblio][biblio]] Will help users to find more information about the algorithms and tools implemented in =sboxU=, and will also help them cite them.
+7. [[./display][display]] Provides convenient utilities to display the information generated using for example [[https://rich.readthedocs.io/][Rich]] for terminal display.
+
+** Outer Layer
+
+8. [@8] [[./ccz][ccz]] Contains efficient algorithms to test (particular cases of) CCZ-equivalence, if possible. In particular, various algorithms testing for linear and affine equivalence are included.
+   
+9. [[./apn][apn]] Provides utilities for the specific case of Almost Perfect Normal (APN) functions in characteristic 2.
+
+*  Some Rules
+
+The following rules should be followed if you intend to contribute to =sboxU=. Before writing them, let's first go over the context and intended use of this library.
+
+** Guiding principle
+
+1. *The sboxU libray is about all matters related to the non-linear components of symmetric cryptosystems.*
+
+   The idea is to implement all the algorithms and tools that are helpful when analysing Boolean functions (as used in stream ciphers), vectorial Boolean functions (so-called "S-boxes"), and functions defined over small finite fields and their vector spaces (as used e.g. in arithmetization-oriented designs).
+
+   The algorithms of interest deal with both the design and the analysis of these components.
+
+2. *Performance is paramount.*
+
+   Be it for mathematics or cryptography research, =sboxU= is regularly used on large objects and/or on a very large number of them. Good performance can be the difference between a research project being feasible or not.
+
+3. *The high level interface must be simple.*
+
+   Complicated research results can still be easy to use if the software interface is well made. Furthermore, a lot of =sboxU= users come from mathematics rather than computer science.
+
+** Practical Recommendations
+*** Coding Style
+1. The API documentation of =python= / =cython= code should be done in the *Google* style, detailed [[https://docs.idmod.org/projects/doc-guidance/en/latest/docstrings.html][here]].
+   
+2. Imports from the file =otherFile= from the same folder should be done using
+
+   #+BEGIN_SRC python
+   from .otherFile import <stuff>
+   #+END_SRC
+
+   while imports from other folders should be done using
+
+   #+BEGIN_SRC python
+   
+   from sboxUv2.path.to.otherModule import <stuff>
+   #+END_SRC
+
+3. When converting between for example =list=, =tuple= or =std::vector= and integer, entry =0= must correspond to the quantity of lowest weight.
+
+   Concretely, the binary representation of an integer is done such that
+   #+BEGIN_SRC python
+   binary_repr[i] = (x >> i) & 1
+   #+END_SRC
+   
+*** Module structure
+
+1. *Only one cython file per module, called "cython_functions.pyx".*
+
+   This greatly simplifies the compilation, and, along with the overall structure of the library ensures a reliable and simple interface between =C++= and SAGE. If you need to split =cython_functions.pyx= into several files, then you may need to split your module into submodules (that would then each have their own =cython_functions.pyx= file).
+
+2. *Two cython headers per module: "cython_functions.pxd", and "__init__.pxd".*
+
+   The job of the =pxd= file is twofold: it is where the =C++= code to be interfaced with the cython code is declared and imported, and it also serves as a header for the =cython= code in contained in =cython_functions.pyx=. It is crucial that the =pyx= and =pxd= files have the same name (up to the extension of course). That's not an =sboxU= rule, it is a =cython= thing.
+
+   The role of the file =__init__.pxd= is simply to allow writing =from <module> cimport *= in other parts of the code. Splitting the =pxd= in two also simplifies the use of the =cython= code into the rest of the module.
+   
+3. *Wildcard imports should be avoided; explicit imports should be preferred.*
+
+   That is because, in general =cython= can be very finicky, and importing a =C++= extension twice will cause compilation to fail. As a consequence, each module must contain a =__init__.py= file (of course) that contains explicit imports of all the functions and classes that should be made available to the rest of the library and to the user, and only those. This sort of filter will prevent some double imports.
+
+*** C++ and Python
+1. *C++ functions and classes must have names starting with "cpp_".*
+
+   There is very often a =cython= object that is simply a wrapper for a =C++= object. This naming convention ensures that the two cannot get mixed at the boundary between the languages, i.e., in the =pyx= and =pxd= files.
+
+2. *Type conversions happen within =cython= functions, not before.*
+
+   For example, if a =cython= function takes as input an S-boxable object, then it should look like the following:
+   
+   #+BEGIN_SRC python
+   def function(s):
+       sb = Sb(s)
+       <logic>
+   #+END_SRC
+
+   This will then allow users to query this function on the type of their choice (provided that it makes sense of course). It might however be necessary to explicitely identify the class of =sb= in the reminder of the function.
+
+3. *The std::tuple C++ type shouldn't be used.*
+
+   This type cannot be interfaced with =cython=, see for instance [[https://stackoverflow.com/questions/71930481/how-to-declare-a-c-tuple-in-cython][this stakoverflow discussion]].
