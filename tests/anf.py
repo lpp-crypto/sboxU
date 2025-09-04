@@ -15,8 +15,8 @@ if anf_Sb0==[x0*x1*x2 + x0*x1*x3 + x0*x2 + x0*x3 + x1*x2*x3 + x1,
 
 test=[]
 for i in range(16):
-    t3,t2,t1,t0=to_bin(i,4)
-    test.append(from_bin([anf_Sb0[j](t0,t1,t2,t3) for j in [3,2,1,0]]))
+    t0,t1,t2,t3=to_bin(i,4)
+    test.append(from_bin([anf_Sb0[j](t0,t1,t2,t3) for j in range(4)]))
 
 if Sb0.lut()==test:
     print("The polynomials can be evaluated to retrieve the LUT")
