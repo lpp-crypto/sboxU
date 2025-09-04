@@ -14,7 +14,7 @@ def feistel_round(F1):
     res=[]
     for xR in range(2**n):
         for xL in range(2**n):
-            res.append(from_bin(to_bin(oplus(xL,S1[xR]),n)+to_bin(xR,n))) 
+            res.append(from_bin(to_bin(xR,n)+to_bin(oplus(xL,S1[xR]),n)))
     return Sb(res)
 
 
