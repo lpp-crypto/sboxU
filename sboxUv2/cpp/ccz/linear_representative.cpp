@@ -5,270 +5,6 @@
 
 
 
-// !SECTION! The  unoptimized approach
-
-// LErepr::LErepr(const cpp_S_box _f) :
-//     f(_f),
-//     f_inv(_f.inverse()),
-//     contiguous_length(0),
-//     best_guess(f.size(), f.size()),
-//     a(0),
-//     b(0),
-//     a_inv(0),
-//     b_inv(0)
-// {
-// }
-
-
-// void LErepr::add_entry(const IOpair e)
-// {
-//     BinWord x = e.first, y = e.second;
-//     if (is_set[x])
-//     {
-//         if (partial_lut[x] != y)
-//             throw ContradictionFound(x, y);
-//     }
-//     if (is_inv_set[y])
-//     {
-//         if (partial_inv_lut[y] != x)
-//             throw ContradictionFound(x, y);
-//     }
-//     if ((not is_set[x]) or (not is_inv_set[y]))
-//     {
-//         partial_lut[x] = y;
-//         is_set[x] = true;
-//         partial_inv_lut[y] = x;
-//         is_inv_set[y] = true;
-//         if (is_set[contiguous_length + 1])
-//         {
-//             while ((contiguous_length < f.size()) and is_set[contiguous_length])
-//                 contiguous_length ++;
-//             if (current_is_greater_than_best())
-//                 throw ContradictionFound(0, 0);
-//         }
-//     }
-// }
-
-
-// Lut LErepr::lut()
-// {
-//     return best_guess;
-// }
-
-
-// bool LErepr::current_is_greater_than_best()
-// {
-//     for (unsigned int x=0; x<contiguous_length; x++)
-//     {
-//         if (partial_lut[x] > best_guess[x])
-//             return true;
-//         else if (partial_lut[x] < best_guess[x])
-//             return false;
-//     }
-//     return false;
-// }
-
-
-// bool LErepr::update_state()
-// {
-//     std::vector<IOpair> just_added;
-//     bool
-//         done_propagating = false,
-//         modified = false;
-//     while (not done_propagating)
-//     {
-//         done_propagating = true;
-//         // B(Rs(x)) = f(A(x))
-//         for (unsigned int x=0; x<f.size(); x++)
-//             if (a.is_entry_set(x) and is_set[x])
-//             {
-//                 just_added = b.add_entry(IOpair(partial_lut[x],
-//                                                 f[a.img(x)]));
-//                 b_inv.add_entry(IOpair(f[a.img(x)],
-//                                        partial_lut[x]));
-//                 if (just_added.size() > 0)
-//                     done_propagating = false;
-//             }
-//         // A(Rs^{-1}(y)) = f^{-1}(B(y))
-//         for (unsigned int y=0; y<f.size(); y++)
-//             if (b.is_entry_set(y) and is_inv_set[y])
-//             {
-//                 just_added = a.add_entry(IOpair(partial_inv_lut[y],
-//                                                 f_inv[b.img(y)]));
-//                 a_inv.add_entry(IOpair(f_inv[b.img(y)],
-//                                        partial_inv_lut[y]));
-//                 if (just_added.size() > 0)
-//                     done_propagating = false;
-//             }
-//         // Rs(x) = B^{-1}(f(A(x)))
-//         for (unsigned int x=0; x<f.size(); x++)
-//             if (a.is_entry_set(x)
-//                 and
-//                 b_inv.is_entry_set(f[a.img(x)]))
-//             {
-//                 unsigned int y = b_inv.img(f[a.img(x)]);
-//                 if (not is_set[x])
-//                     done_propagating = false;
-//                 add_entry(IOpair(x, y));
-//             }
-//         if (not done_propagating)
-//             modified = true;
-//     }
-//     return modified;
-// }
-
-
-// unsigned int LErepr::min_n_a()
-// {
-//     // D_A is the set of points x such that A(x) is known but not
-//     // Rs(x)
-//     for (auto & entry : a.is_set)
-//         if (entry.second and not is_set[entry.first])
-//             return entry.first;
-//     return f.size();
-// }
-
-
-// unsigned int LErepr::min_n_b()
-// {
-//     // D_A is the set of points x such that B(x) is known but
-//     // not Rs^{-1}(x)
-//     for (auto & entry : b.is_set)
-//         if (entry.second and not is_inv_set[entry.first])
-//             return entry.first;
-//     return f.size();
-// }
-
-
-// unsigned int LErepr::min_u_a()
-// {
-//     // U_A is the set of points x such that A(x) is not known
-//     return a.min_u();
-// }
-
-
-// unsigned int LErepr::min_u_b()
-// {
-//     // U_A is the set of points x such that B(x) is not known
-//     return b.min_u();
-// }
-
-
-// void LErepr::initialize()
-// {
-//     // IMPORTANT REMARK:
-//     //
-//     // We look for Rs which is linearly equivalent to f and the linear
-//     // permutations A and B such that Rs = B^{-1} o f o A. These
-//     // notations are those used in the paper of Biryukov et al but
-//     // they are different from those in are_linear_equivalent_cpp
-//     // (although they are also borrowed from the same paper).
-
-//     std::vector<IOpair> constraints_a;
-//     if (f[0] != 0)
-//         constraints_a.push_back(IOpair(1, f_inv[0]));
-//     std::vector<LEguessIterator> a_generators;
-//     a_generators.push_back(LEguessIterator(f.size(),
-//                                            constraints_a));
-//     // In this loop, all guesses for A are explored. The guesses are
-//     // built iteratively: we start by guessing only one entry. If it
-//     // leads to a contradiction, we move on to the next value. If no
-//     // conclusion is reached, then we add an additional variable to
-//     // guess. We effectively explore a tree corresponding to all
-//     // possible A by making a decision on each branch as early as
-//     // possible.
-//     while (true)
-//     {
-//         while ((a_generators.size() > 0) and (not a_generators.back().prepare_successfully()))
-//             a_generators.pop_back();
-//         if (a_generators.size() == 0)
-//             return ; // nothing more to be found, we have exhausted
-//                      // all possible guesses.
-//         // reinitializing guesses
-//         a = a_generators.back().get_prepared_guess();
-//         b = LEguess(f.size());
-//         a_inv = LEguess(f.size());
-//         b_inv = LEguess(f.size());
-//         // reinitialize state
-//         partial_lut.clear();
-//         partial_inv_lut.clear();
-//         is_set.clear();
-//         is_inv_set.clear();
-//         // adding first two entries to Rs and updating a_inv
-//         bool contradiction_found = false;
-//         try
-//         {
-//             if (f[0] == 0)
-//             {
-//                 add_entry(IOpair(0, 0));
-//                 add_entry(IOpair(1, 1));
-//             }
-//             else
-//             {
-//                 add_entry(IOpair(0, 1));
-//                 add_entry(IOpair(1, 0));
-//             }
-//             for (auto & entry : a.is_set)
-//                 if (entry.second)
-//                     a_inv.add_entry(IOpair(a.img(entry.first), entry.first));
-//             (void)update_state();
-//         }
-//         catch (ContradictionFound & e) {contradiction_found = true;}
-//         // Main loop
-//         unsigned int x = 0, y = 0;
-//         while ((min_n_a() < f.size())     // N_A is not empty
-//                and (not contradiction_found))
-//         {
-//             x = min_n_a();
-//             y = min_u_b();
-//             try
-//             {
-//                 add_entry(IOpair(x, y));
-//                 b.add_entry(IOpair(y, f[a.img(x)]));
-//                 b_inv.add_entry(IOpair(f[a.img(x)], y));
-//                 (void)update_state();
-//             }
-//             catch (ContradictionFound & e) {contradiction_found = true; }
-//             while ((min_n_a() == f.size()) // N_A is empty
-//                    and (min_n_b() < f.size()) // N_B is not empty
-//                    and (not contradiction_found))
-//             {
-//                 try
-//                 {
-//                     x = min_u_a();
-//                     y = min_n_b();
-//                     add_entry(IOpair(x, y));
-//                     a.add_entry(IOpair(x, f_inv[b.img(y)]));
-//                     a_inv.add_entry(IOpair(f_inv[b.img(y)], x));
-//                     (void)update_state();
-//                 }
-//                 catch (ContradictionFound & e) {contradiction_found = true; }
-//             }
-//         }
-//         if (not contradiction_found) // then we have found a new candidate for Rs!
-//         {
-
-//             bool is_new_candidate_valid = true;
-//             // testing if it is fully specified
-//             for (unsigned int x=0; x<f.size(); x++)
-//                 if (not is_set[x])
-//                 {
-//                     // if Rs is not fully specified, we need to guess deeper
-//                     a_generators.push_back(a_generators.back().deeper_guess_gen());
-//                     is_new_candidate_valid = false;
-//                     break;
-//                 }
-//             // if it is fully specified and smaller, replacing best candidate
-//             if (is_new_candidate_valid and (not current_is_greater_than_best()))
-//             {
-//                 for (unsigned int x=0; x<f.size(); x++)
-//                     best_guess[x] = partial_lut[x];
-//             }
-//         }
-//     }
-// }
-
-
 
 // !SECTION! Lukas Stennes' fast linear representative, templated and generalized
 
@@ -1425,7 +1161,10 @@ template<typename set_t, typename int_type> std::array<std::vector<int_type>,3> 
  * the effort.
  */
 
-std::tuple<cpp_S_box, cpp_BinLinearMap, cpp_BinLinearMap> cpp_le_class_representative(const cpp_S_box f)
+cpp_S_box cpp_le_class_representative(
+    const cpp_S_box f,
+    cpp_BinLinearMap & A,
+    cpp_BinLinearMap & B)
 {
     if(f.size() <= 256){
         std::vector<u8> ff;
@@ -1454,9 +1193,9 @@ std::tuple<cpp_S_box, cpp_BinLinearMap, cpp_BinLinearMap> cpp_le_class_represent
             lut_A[i] = (BinWord)result[1][i];
             lut_B[i] = (BinWord)result[2][i];
         }
-        cpp_BinLinearMap A = cpp_BinLinearMap_from_lut(lut_A);
-        cpp_BinLinearMap B = cpp_BinLinearMap_from_lut(lut_B);
-        return std::make_tuple(cpp_S_box(linear_representative), A, B);
+        A = cpp_BinLinearMap_from_lut(lut_A);
+        B = cpp_BinLinearMap_from_lut(lut_B);
+        return cpp_S_box(linear_representative);
     }
     std::vector<u64> ff;
     for(unsigned int i = 0; i < f.size(); i++){
@@ -1474,6 +1213,8 @@ std::tuple<cpp_S_box, cpp_BinLinearMap, cpp_BinLinearMap> cpp_le_class_represent
     else
         // Currently Set<std::vector<u64>, u64> does not support < 6 bit sboxes, due to simple init_full()
          result = compute_linear_representative<std::vector<u64>, u64>(ff);
-    return std::make_tuple(cpp_S_box(result[0]), cpp_BinLinearMap_from_lut(result[1]),cpp_BinLinearMap_from_lut(result[2]));
+    A = cpp_BinLinearMap_from_lut(result[1]);
+    B = cpp_BinLinearMap_from_lut(result[2]);
+    return cpp_S_box(result[0]);
 }
 
