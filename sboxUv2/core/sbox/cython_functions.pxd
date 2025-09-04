@@ -38,7 +38,6 @@ cdef extern from "../../cpp/core/s_box.hpp":
 cdef extern from "../../cpp/core/s_box.cpp":
     pass
 
-
 # !SECTION! Declaring cython functions and classes
 
 # !SUBSECTION! The S_box class
