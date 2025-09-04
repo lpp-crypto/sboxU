@@ -39,7 +39,7 @@ The following rules should be followed if you intend to contribute to =sboxU=. B
 
 ** Guiding principle
 
-1. *The =sboxU= libray is about all matters related to the non-linear components of symmetric cryptosystems.*
+1. *The sboxU libray is about all matters related to the non-linear components of symmetric cryptosystems.*
 
    The idea is to implement all the algorithms and tools that are helpful when analysing Boolean functions (as used in stream ciphers), vectorial Boolean functions (so-called "S-boxes"), and functions defined over small finite fields and their vector spaces (as used e.g. in arithmetization-oriented designs).
 
@@ -79,22 +79,22 @@ The following rules should be followed if you intend to contribute to =sboxU=. B
    
 *** Module structure
 
-1. *Only one =cython= file per module, called =cython_functions.pyx=.*
+1. *Only one cython file per module, called "cython_functions.pyx".*
 
    This greatly simplifies the compilation, and, along with the overall structure of the library ensures a reliable and simple interface between =C++= and SAGE. If you need to split =cython_functions.pyx= into several files, then you may need to split your module into submodules (that would then each have their own =cython_functions.pyx= file).
 
-2. *Two headers per module: =cython_functions.pxd=, and =__init__.pxd=.*
+2. *Two cython headers per module: "cython_functions.pxd", and "__init__.pxd".*
 
    The job of the =pxd= file is twofold: it is where the =C++= code to be interfaced with the cython code is declared and imported, and it also serves as a header for the =cython= code in contained in =cython_functions.pyx=. It is crucial that the =pyx= and =pxd= files have the same name (up to the extension of course). That's not an =sboxU= rule, it is a =cython= thing.
 
    The role of the file =__init__.pxd= is simply to allow writing =from <module> cimport *= in other parts of the code. Splitting the =pxd= in two also simplifies the use of the =cython= code into the rest of the module.
    
-3. *Instructions like =from <file.py> import *= should be avoided; explicit imports should be preferred.*
+3. *Wildcard imports should be avoided; explicit imports should be preferred.*
 
    That is because, in general =cython= can be very finicky, and importing a =C++= extension twice will cause compilation to fail. As a consequence, each module must contain a =__init__.py= file (of course) that contains explicit imports of all the functions and classes that should be made available to the rest of the library and to the user, and only those. This sort of filter will prevent some double imports.
 
 *** C++ and Python
-1. *C++ functions and classes must have names starting with =cpp_=.*
+1. *C++ functions and classes must have names starting with "cpp_".*
 
    There is very often a =cython= object that is simply a wrapper for a =C++= object. This naming convention ensures that the two cannot get mixed at the boundary between the languages, i.e., in the =pyx= and =pxd= files.
 
@@ -110,6 +110,6 @@ The following rules should be followed if you intend to contribute to =sboxU=. B
 
    This will then allow users to query this function on the type of their choice (provided that it makes sense of course). It might however be necessary to explicitely identify the class of =sb= in the reminder of the function.
 
-3. *The =std::tuple= C++ type shouldn't be used.*
+3. *The std::tuple C++ type shouldn't be used.*
 
    This type cannot be interfaced with =cython=, see for instance [[https://stackoverflow.com/questions/71930481/how-to-declare-a-c-tuple-in-cython][this stakoverflow discussion]].
