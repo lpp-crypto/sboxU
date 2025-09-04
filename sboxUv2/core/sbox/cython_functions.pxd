@@ -38,37 +38,37 @@ cdef extern from "../../cpp/core/s_box.hpp":
 cdef extern from "../../cpp/core/s_box.cpp":
     pass
 
-# !SUBSECTION! The cpp_S_box_fp class, header only hence no cpp file down below
-cdef extern from "../../cpp/core/s_box_fp.hpp":
-    cdef cppclass cpp_S_box_fp:
-        cpp_S_box()
-        cpp_S_box(BinWord input_size, BinWord output_size, Integer p, std_vector[Integer] powers_in, std_vector[Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut)
-        cpp_S_box(Integer p, std_vector[FpWord] lut)
-        BinWord get_input_size() const
-        BinWord get_output_size() const
-        Integer get_p() const
-        const std_vector[Integer]& get_powers_in() const
-        const std_vector[Integer]& get_powers_out() const
-        const std_vector[FpWord]& get_input_space() const
-        const std_vector[FpWord]& get_output_space() const
-        const std_vector[FpWord]& get_lut() const
+# # !SUBSECTION! The cpp_S_box_fp class, header only hence no cpp file down below
+# cdef extern from "../../cpp/core/s_box_fp.hpp":
+#     cdef cppclass cpp_S_box_fp:
+#         cpp_S_box()
+#         cpp_S_box(BinWord input_size, BinWord output_size, Integer p, std_vector[Integer] powers_in, std_vector[Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut)
+#         cpp_S_box(Integer p, std_vector[FpWord] lut)
+#         BinWord get_input_size() const
+#         BinWord get_output_size() const
+#         Integer get_p() const
+#         const std_vector[Integer]& get_powers_in() const
+#         const std_vector[Integer]& get_powers_out() const
+#         const std_vector[FpWord]& get_input_space() const
+#         const std_vector[FpWord]& get_output_space() const
+#         const std_vector[FpWord]& get_lut() const
 
-        FpWord operator[](const FpWord& input) const
-        cpp_S_box_fp operator+(const cpp_S_box_fp& s) except + const 
-        cpp_S_box_fp operator*(const cpp_S_box_fp& s) except + const 
+#         FpWord operator[](const FpWord& input) const
+#         cpp_S_box_fp operator+(const cpp_S_box_fp& s) except + const 
+#         cpp_S_box_fp operator*(const cpp_S_box_fp& s) except + const 
 
-        bool is_invertible() const
+#         bool is_invertible() const
 
-        cpp_S_box_fp get_inverse() const
+#         cpp_S_box_fp get_inverse() const
 
-        cpp_S_box_fp derivatice(const FpWord& delta) const
+#         cpp_S_box_fp derivatice(const FpWord& delta) const
 
-        @staticmethod
-        std_vector[FpWord] build_input_space(Integer p, BinWord inputsize)
-        @staticmethod 
-        FpWord int_to_vec(Integer i, const std_vector[FpWord]& lookup)
-        @staticmethod
-        Integer vec_to_int(const FpWord& v, const std_vector[Integer]& powers)
+#         @staticmethod
+#         std_vector[FpWord] build_input_space(Integer p, BinWord inputsize)
+#         @staticmethod 
+#         FpWord int_to_vec(Integer i, const std_vector[FpWord]& lookup)
+#         @staticmethod
+#         Integer vec_to_int(const FpWord& v, const std_vector[Integer]& powers)
 
 # !SECTION! Declaring cython functions and classes
 
@@ -84,8 +84,8 @@ cdef class S_box:
 cdef cpp_S_box pyx_add_sboxes(cpp_S_box s, cpp_S_box t)
 cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t)
 
-# !SUBSECTION! The S_Box_fp class
-cdef class S_box_fp:
-    cdef cpp_S_box_fp * cpp_sb 
-    cdef string cpp_name
-    cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s)
+# # !SUBSECTION! The S_Box_fp class
+# cdef class S_box_fp:
+#     cdef cpp_S_box_fp * cpp_sb 
+#     cdef string cpp_name
+#     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s)

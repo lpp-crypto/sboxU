@@ -345,63 +345,63 @@ cdef class S_box:
 
 # !SECTION! The S_box_fp class
 
-cdef class S_box_fp:
+# cdef class S_box_fp:
     
-    # !SUBSECTION! Initialization
+#     # !SUBSECTION! Initialization
 
-    def __init__(self,name=None):
-        self.rename(name)
+#     def __init__(self,name=None):
+#         self.rename(name)
 
-    # !SUBSECTION! Dealing with the name
+#     # !SUBSECTION! Dealing with the name
 
-    def rename(self,name):
-        if name == None:
-            self.cpp_name = new_sbox_name()
-        elif isinstance(name, bytes):
-            self.cpp_name = name
-        elif isinstance(name, str):
-            self.cpp_name = name.encode("UTF-8")
-        else:
-            raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+#     def rename(self,name):
+#         if name == None:
+#             self.cpp_name = new_sbox_name()
+#         elif isinstance(name, bytes):
+#             self.cpp_name = name
+#         elif isinstance(name, str):
+#             self.cpp_name = name.encode("UTF-8")
+#         else:
+#             raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
 
-    # !SUBSECTION! Python built-in methods
+#     # !SUBSECTION! Python built-in methods
 
-    def __add__(self, _s):
-        """Pointwise addition in F_p (i.e., modular addition mod p).
+#     def __add__(self, _s):
+#         """Pointwise addition in F_p (i.e., modular addition mod p).
 
-        Args:
-            _s: the S_box to add to the current one. Must be an S_boxable type.
+#         Args:
+#             _s: the S_box to add to the current one. Must be an S_boxable type.
 
-        Returns:
-            An `S_box_fp` instance whose output is the modular addition of `self` and `_s`.
+#         Returns:
+#             An `S_box_fp` instance whose output is the modular addition of `self` and `_s`.
 
-        """
-        s = Sb(_s)
-        if len(s) != len(self):
-            raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
-        name = self.cpp_name + b"+" + s.name()
-        result = S_box_fp(name)
-        (<S_box_fp>result).set_inner_sbox(self.cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
-        return result
+#         """
+#         s = Sb(_s)
+#         if len(s) != len(self):
+#             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
+#         name = self.cpp_name + b"+" + s.name()
+#         result = S_box_fp(name)
+#         (<S_box_fp>result).set_inner_sbox(self.cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
+#         return result
 
-    def __getitem__(self, FpWord x):
-        """Querying the S-box on a specific input.
+#     def __getitem__(self, FpWord x):
+#         """Querying the S-box on a specific input.
 
-        Args:
-            x (FpWord): a vector of integers representing where the S-box is queried.
+#         Args:
+#             x (FpWord): a vector of integers representing where the S-box is queried.
 
-        Returns:
-            The result of calling this S-box on the input of `x`.
-        """      
-        return self.cpp_sb[0][x]
+#         Returns:
+#             The result of calling this S-box on the input of `x`.
+#         """      
+#         return self.cpp_sb[0][x]
 
 
 
-    cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
-        if self.cpp_sb:
-            del self.cpp_sb
-        self.cpp_sb = new cpp_S_box()
-        self.cpp_sb[0] = s
+#     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
+#         if self.cpp_sb:
+#             del self.cpp_sb
+#         self.cpp_sb = new cpp_S_box()
+#         self.cpp_sb[0] = s
 
 
 # !SECTION! Generating S-boxes
