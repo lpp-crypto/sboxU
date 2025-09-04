@@ -17,7 +17,7 @@ from sboxUv2.core cimport *
 # !SUBSECTION! The cpp_Spectrum class
 
 
-cdef extern from "../cpp/statistics/spectrum.hpp":
+cdef extern from "../cpp/core/spectrum.hpp":
     cdef cppclass cpp_Spectrum:
         cpp_Spectrum()
         int64_t maximum() const
@@ -38,7 +38,7 @@ cdef extern from "../cpp/statistics/spectrum.hpp":
         int64_t size() const
 
     
-cdef extern from "../cpp/statistics/spectrum.cpp":
+cdef extern from "../cpp/core/spectrum.cpp":
     pass
 
 

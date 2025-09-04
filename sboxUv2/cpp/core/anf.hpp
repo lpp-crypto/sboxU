@@ -4,7 +4,7 @@
 #include "s_box.hpp"
 #include "../sboxU.hpp"
 #include "f2functions.hpp"
-#include "../statistics/spectrum.hpp"
+#include "spectrum.hpp"
 
 class cpp_Spectrum;
 class cpp_S_Box;

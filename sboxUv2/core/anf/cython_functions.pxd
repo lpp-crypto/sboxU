@@ -10,7 +10,7 @@ cdef extern from "../../cpp/core/s_box.hpp":
         std_vector[BinWord] get_lut() const
         cpp_S_box component(int u) const
 
-cdef extern from "../../cpp/statistics/spectrum.hpp":
+cdef extern from "../../cpp/core/spectrum.hpp":
     cdef cppclass cpp_Spectrum:
         cpp_Spectrum() except +
         int64_t size() const
