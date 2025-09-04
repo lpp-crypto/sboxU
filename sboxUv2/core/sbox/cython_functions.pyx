@@ -1,11 +1,14 @@
 # -*- python -*-
 
 
-from sboxUv2.core.f2functions import ffe_to_int
-from sboxUv2.core.f2functions cimport *
 
+from sboxUv2.core.f2functions cimport *
+from sboxUv2.core.f2functions import ffe_to_int
+
+
+from sage.all import Integer as sage_Integer
+from sage.all import ceil, floor
 from sage.crypto.sboxes import SBox as sage_SBox
-from sage.all import Integer, ceil, floor
 
 
 # !SECTION! Helpers
@@ -469,9 +472,9 @@ def F2_trans(additive_cstte, field=None, bit_length=None):
     Returns:
         An S_box instance
     """
-    if isinstance(additive_cstte, (int, Integer)):
+    if isinstance(additive_cstte, (int, sage_Integer)):
         k = additive_cstte
-        if isinstance(bit_length, (int, Integer)):
+        if isinstance(bit_length, (int, sage_Integer)):
             n = bit_length
         elif "degree" in dir(field): # case of a field
             n = field.degree()

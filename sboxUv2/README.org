@@ -98,7 +98,7 @@ The following rules should be followed if you intend to contribute to =sboxU=. B
 
    There is very often a =cython= object that is simply a wrapper for a =C++= object. This naming convention ensures that the two cannot get mixed at the boundary between the languages, i.e., in the =pyx= and =pxd= files.
 
-2. *Type conversions happen within =cython= functions, not before.*
+2. *Type conversions happen within cython functions, not before.*
 
    For example, if a =cython= function takes as input an S-boxable object, then it should look like the following:
    
