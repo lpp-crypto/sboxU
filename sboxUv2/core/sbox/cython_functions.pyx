@@ -1,11 +1,14 @@
 # -*- python -*-
 
 
-from sboxUv2.core.f2functions import ffe_to_int
-from sboxUv2.core.f2functions cimport *
 
+from sboxUv2.core.f2functions cimport *
+from sboxUv2.core.f2functions import ffe_to_int
+
+
+from sage.all import Integer as sage_Integer
+from sage.all import ceil, floor
 from sage.crypto.sboxes import SBox as sage_SBox
-from sage.all import Integer, ceil, floor
 
 
 # !SECTION! Helpers
@@ -44,8 +47,6 @@ cdef BinWord sboxU_SBOXES_COUNTER = 0
 
 
 # !SECTION! The S_box class
-
-
 
 cdef class S_box:
     # "cdef" attributes are declared in the .pxd file
@@ -345,6 +346,66 @@ cdef class S_box:
         return result
 
 
+# !SECTION! The S_box_fp class
+
+# cdef class S_box_fp:
+    
+#     # !SUBSECTION! Initialization
+
+#     def __init__(self,name=None):
+#         self.rename(name)
+
+#     # !SUBSECTION! Dealing with the name
+
+#     def rename(self,name):
+#         if name == None:
+#             self.cpp_name = new_sbox_name()
+#         elif isinstance(name, bytes):
+#             self.cpp_name = name
+#         elif isinstance(name, str):
+#             self.cpp_name = name.encode("UTF-8")
+#         else:
+#             raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+
+#     # !SUBSECTION! Python built-in methods
+
+#     def __add__(self, _s):
+#         """Pointwise addition in F_p (i.e., modular addition mod p).
+
+#         Args:
+#             _s: the S_box to add to the current one. Must be an S_boxable type.
+
+#         Returns:
+#             An `S_box_fp` instance whose output is the modular addition of `self` and `_s`.
+
+#         """
+#         s = Sb(_s)
+#         if len(s) != len(self):
+#             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
+#         name = self.cpp_name + b"+" + s.name()
+#         result = S_box_fp(name)
+#         (<S_box_fp>result).set_inner_sbox(self.cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
+#         return result
+
+#     def __getitem__(self, FpWord x):
+#         """Querying the S-box on a specific input.
+
+#         Args:
+#             x (FpWord): a vector of integers representing where the S-box is queried.
+
+#         Returns:
+#             The result of calling this S-box on the input of `x`.
+#         """      
+#         return self.cpp_sb[0][x]
+
+
+
+#     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
+#         if self.cpp_sb:
+#             del self.cpp_sb
+#         self.cpp_sb = new cpp_S_box()
+#         self.cpp_sb[0] = s
+
 
 # !SECTION! Generating S-boxes
 
@@ -411,9 +472,9 @@ def F2_trans(additive_cstte, field=None, bit_length=None):
     Returns:
         An S_box instance
     """
-    if isinstance(additive_cstte, (int, Integer)):
+    if isinstance(additive_cstte, (int, sage_Integer)):
         k = additive_cstte
-        if isinstance(bit_length, (int, Integer)):
+        if isinstance(bit_length, (int, sage_Integer)):
             n = bit_length
         elif "degree" in dir(field): # case of a field
             n = field.degree()
