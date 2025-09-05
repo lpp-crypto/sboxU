@@ -41,6 +41,9 @@ def declare_cython(full_module_name):
         extra_compile_args = extra_compile_args,
     )
 
+# !WARNING! The order of the modules in the list below is very important!
+# ! Do not use cross dependencies in cython modules.
+# ! It is crucial that the module with index i only depends on modules with indices j with j<i
 
 all_cython_extensions = [ declare_cython(name) for name in [
     "sboxUv2.core.f2functions.cython_functions",
