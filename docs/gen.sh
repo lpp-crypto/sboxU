@@ -9,7 +9,7 @@ rm -rf ./build/*
 sphinx-apidoc ../sboxUv2 -o source -M
 
 # generating the HTML
-make html #sphinx-build -M html source build
+sphinx-build -M html source build
 
 # opening it
 open ./build/html/index.html 
