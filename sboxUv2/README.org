@@ -110,6 +110,12 @@ The following rules should be followed if you intend to contribute to =sboxU=. B
 
    This will then allow users to query this function on the type of their choice (provided that it makes sense of course). It might however be necessary to explicitely identify the class of =sb= in the reminder of the function.
 
-3. *The std::tuple C++ type shouldn't be used.*
+*** Cython pitfalls
+
+1. *The std::tuple C++ type shouldn't be used.*
 
    This type cannot be interfaced with =cython=, see for instance [[https://stackoverflow.com/questions/71930481/how-to-declare-a-c-tuple-in-cython][this stakoverflow discussion]].
+
+2. **A function can't both be const and allow exception.**
+
+   The constance of the state cannot be guaranteed when exceptions are allowed. Keep it in mind as compilation errors might not be super clear about this being the problem.
