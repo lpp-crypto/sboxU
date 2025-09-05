@@ -7,4 +7,4 @@ from libc.stdint cimport uint64_t as BinWord
 from libc.stdint cimport int64_t
 
 ctypedef std_vector[int64_t] FpWord
-ctypedef int64_t Integer
+ctypedef int64_t cpp_Integer

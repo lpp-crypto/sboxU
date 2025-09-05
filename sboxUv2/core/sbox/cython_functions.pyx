@@ -387,24 +387,24 @@ cdef class S_box:
 #         (<S_box_fp>result).set_inner_sbox(self.cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
 #         return result
 
-#     def __getitem__(self, FpWord x):
-#         """Querying the S-box on a specific input.
+    # def __getitem__(self, FpWord x):
+    #     """Querying the S-box on a specific input.
 
-#         Args:
-#             x (FpWord): a vector of integers representing where the S-box is queried.
+    #     Args:
+    #         x (FpWord): a vector of integers representing where the S-box is queried.
 
-#         Returns:
-#             The result of calling this S-box on the input of `x`.
-#         """      
-#         return self.cpp_sb[0][x]
+    #     Returns:
+    #         The result of calling this S-box on the input of `x`.
+    #     """      
+    #     return self.cpp_sb[0][x]
 
 
 
-#     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
-#         if self.cpp_sb:
-#             del self.cpp_sb
-#         self.cpp_sb = new cpp_S_box()
-#         self.cpp_sb[0] = s
+    # cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
+    #     if self.cpp_sb:
+    #         del self.cpp_sb
+    #     self.cpp_sb = new cpp_S_box()
+    #     self.cpp_sb[0] = s
 
 
 # !SECTION! Generating S-boxes

@@ -21,16 +21,6 @@ class cpp_S_box_fp {
         std::vector<FpWord> output_space;
         // Contains the list of all outputs, in base p decomposition. The convention used is little-endian
         std::vector<FpWord> lut ;
-
-        // Performs fast exponentiation x^k mod p
-        Integer mod_pow(Integer x, Integer k, Integer p) {
-            Integer res = x;
-            while (k > 0) {
-                if (k % 2 == 0) {res = (res*res)%p; k=k/2;}
-                else {res = (res*res*x)%p; k=k/2;}
-            }
-            return res;
-        }
     
     public :
         // CONSTRUCTORS
