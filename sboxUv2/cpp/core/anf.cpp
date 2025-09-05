@@ -1,7 +1,4 @@
-
-#include "s_box.hpp"
 #include "anf.hpp"
-#include "../statistics/spectrum.hpp" 
 
 // !SECTION! Functions on Boolean Functions
 

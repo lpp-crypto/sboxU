@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 # cleaning up
-rm source/sboxUv2.*.rst
+rm source/sboxUv2*.rst
 rm -rf ./build/*
 
 
@@ -9,4 +9,7 @@ rm -rf ./build/*
 sphinx-apidoc ../sboxUv2 -o source -M
 
 # generating the HTML
-make html
+sphinx-build -M html source build
+
+# opening it
+open ./build/html/index.html 

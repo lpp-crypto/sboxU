@@ -2,7 +2,7 @@
 #define _STAT_SPECTRUM_
 
 #include "../sboxU.hpp"
-#include "../core/include.hpp"
+#include "include.hpp"
 
 
 

@@ -5,5 +5,6 @@
 #include "./f2functions.hpp"
 #include "./binLinearMap.hpp"
 #include "./multithread.hpp"
+#include "./spectrum.hpp"
 
 #endif
