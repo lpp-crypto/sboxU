@@ -2,3 +2,4 @@
 *cython_functions.cpp
 *.so
 *__pycache__
+*docs/source/sboxUv2*
