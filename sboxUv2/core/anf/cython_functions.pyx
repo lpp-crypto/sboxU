@@ -1,8 +1,8 @@
 # -*- python -*-
 # cython_functions.pyx
 
-from ..sbox cimport cpp_S_box, S_box
-from ..spectrum cimport cpp_Spectrum, Spectrum
+from ..sbox cimport *
+from ..spectrum cimport *
 
 from ..sbox import Sb
 from sage.all import GF, PolynomialRing, prod

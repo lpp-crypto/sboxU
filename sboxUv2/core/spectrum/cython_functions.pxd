@@ -1,3 +1,5 @@
+# -*- python -*-
+
 from sboxUv2.cython_types cimport *
 
 cdef extern from "../../cpp/core/spectrum.hpp":

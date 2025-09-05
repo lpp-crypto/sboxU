@@ -1,3 +1,5 @@
+# -*- python -*-
+
 from sboxUv2.config import n_threads_from_sbox_size
 
 
