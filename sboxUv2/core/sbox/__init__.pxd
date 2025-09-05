@@ -6,7 +6,5 @@
 
 # -*- python -*-
 
-
+# from sboxUv2.core.sbox.cython_functions cimport *
 from .cython_functions cimport *
-
-
