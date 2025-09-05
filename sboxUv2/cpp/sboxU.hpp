@@ -9,6 +9,9 @@
 #include <map>
 #include <string>
 
+// mathematics
+#include <cmath>
+#include <numeric>
 
 // Input/Outputs
 #include <iostream>
@@ -22,6 +25,7 @@
 
 // Standard algorithms
 #include <algorithm>
+
 
 // !SECTION! Special types 
 

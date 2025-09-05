@@ -43,15 +43,14 @@ def declare_cython(full_module_name):
 
 
 all_cython_extensions = [ declare_cython(name) for name in [
-    
     "sboxUv2.core.f2functions.cython_functions",
+    "sboxUv2.core.spectrum.cython_functions",
     "sboxUv2.core.sbox.cython_functions",
+    "sboxUv2.core.anf.cython_functions",
     "sboxUv2.algorithms.cython_functions",
     "sboxUv2.statistics.cython_functions",
     "sboxUv2.ccz.cython_functions",
     "sboxUv2.ccz.affine_equivalence.cython_functions",
-    "sboxUv2.core.spectrum.cython_functions",
-    "sboxUv2.core.anf.cython_functions"
 ]]
 
     

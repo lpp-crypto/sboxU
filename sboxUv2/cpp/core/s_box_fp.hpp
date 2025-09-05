@@ -2,8 +2,6 @@
 #define _S_BOX_FP_
 
 #include "../sboxU.hpp"
-#include <cmath>
-#include <numeric>
 
 class cpp_S_box_fp {
 
