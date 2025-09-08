@@ -44,29 +44,13 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 // !SECTION! BCT Spectrum 
 
 
-
-void bct_rows_count(
-    cpp_Spectrum &result,
-    const cpp_S_box & s,
-    const BinWord a_min,
-    const BinWord a_max)
-{
-    for (unsigned int a=a_min; a<a_max; a++)
-    {
-        std::vector<Integer> row = cpp_bct_row(s, a);
-        for (unsigned int i=1; i<row.size(); i++) // we start at 1, not 0
-            result.incr(row[i]);
-    }
-}
-
-
 cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_threads)
 {
     cpp_Spectrum count;
     int threads = threads_from_size(s.input_space_size());
 #pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
     for( unsigned int a = 1; a < s.input_space_size(); a++)
-        count.incr_by_counting(bct_row(s,a));
+        count.incr_by_counting(cpp_bct_row(s,a));
     count.incr_by_amount(s.input_space_size(),-(s.input_space_size()-1));
     if(count[s.input_space_size()] == 0)
         count.erase(s.input_space_size());
