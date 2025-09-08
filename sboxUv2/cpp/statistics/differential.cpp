@@ -18,7 +18,9 @@ std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box & s)
 {
     std::vector< std::vector<Integer> > table ;
     table.reserve(s.input_space_size());
-    for (unsigned int delta=0 ; delta<s.input_space_size(); delta++)
+    table.push_back(std::vector<Integer>(s.output_space_size(),0));
+    table[0][0] = s.input_space_size();
+    for (unsigned int delta=1 ; delta<s.input_space_size(); delta++)
         table.push_back(cpp_ddt_row(s, delta));
     return table ;
 }
