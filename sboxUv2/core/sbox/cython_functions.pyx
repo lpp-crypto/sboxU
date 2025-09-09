@@ -384,8 +384,24 @@ cdef class S_box_fp:
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
         name = self.cpp_name + b"+" + s.name()
         result = S_box_fp(name)
-        (<S_box_fp>result).set_inner_sbox(self.cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
+        (<S_box_fp>result).set_inner_sbox((<S_box_fp>self).cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
         return result
+
+    def __mul__(self,_s):
+        """Composition of S-Boxes in F_p
+
+        Args:
+            _s (_type_): the S_box to be composed to the right to the current one. Output size and input size must match.
+        
+        Returns:
+            An `S_box_fp` instance whose output is the composition of `self`and `_s`.
+        """      
+        s = Sb(_s)
+        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
+        result = S_box_fp(name)
+        (<S_box_fp>result).set_inner_sbox((<S_box_fp>self).cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
+        return result
+      
 
     def __getitem__(self, FpWord x):
         """Querying the S-box on a specific input.
@@ -398,14 +414,52 @@ cdef class S_box_fp:
         """      
         return self.cpp_sb[0][x]
 
+    def __len__(self):
+        """Returns:
+            The number of entries in the lookup table of this S_box.
+        """        
+        return self.cpp_sb.get_lut().size()
 
+    def __str__(self):
+        return f"""S-box over F{self.cpp_sb.get_p()} \n 
+        Name : {self.cpp_name} \n 
+        Input size : {self.cpp_sb.get_input_size()} \n 
+        Output size" : {self.cpp_sb.get_output_size()}"""
+
+    #! SUBSECTION! Getters dealing with the underlying cpp object
+
+    def get_p(self):
+        return self.cpp_sb.get_p()
+
+    def get_input_size(self):
+        return self.cpp_sb.get_input_size()
+
+    def get_output_size(self):
+        return self.cpp_sb.get_output_size()
+
+    def input_space_size(self):
+        return pow(self.get_p(),self.get_input_size())
+
+    def output_space_size(self):
+        return pow(self.get_p(),self.get_output_size())
+
+    def input_space(self):
+        return range(0,self.get_input_size())
+
+    def output_space(self):
+        return range(0,self.get_output_size())
+
+    def get_name(self):
+        return self.cpp_name
+
+    def lut(self):
+        return self.cpp_sb.get_lut()
 
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
         if self.cpp_sb:
             del self.cpp_sb
         self.cpp_sb = new cpp_S_box_fp()
         self.cpp_sb[0] = s
-
 
 # !SECTION! Generating S-boxes
 
