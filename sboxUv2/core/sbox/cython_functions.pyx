@@ -3,13 +3,14 @@
 
 
 from sboxUv2.core.f2functions cimport *
-from sboxUv2.core.f2functions import ffe_to_int
+
+from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin
 
 
 from sage.all import Integer as sage_Integer
 from sage.all import ceil, floor
 from sage.crypto.sboxes import SBox as sage_SBox
-
+from sage.rings.polynomial.multi_polynomial_element import MPolynomial # needed to test ANF
 
 # !SECTION! Helpers
 
@@ -53,6 +54,7 @@ cdef class S_box:
     """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
 
     Objects of this class should be initialized using the :py:func:Sb function.
+
     """
                                  
     
@@ -419,9 +421,8 @@ def Sb(s, name=None):
     corresponding S_box instance.
 
     Args:
-        - s: an object of a class that can be turned into an S_box.
-        - name: the name to give the object. If none is provided, one
-          will be picked using `sboxU_SBOXES_COUNTER`.
+        s: an object of a class that can be turned into an S_box.
+        name: the name to give the object. If none is provided, one will be picked using `sboxU_SBOXES_COUNTER`.
 
     """
     if isinstance(s, S_box):
@@ -429,7 +430,22 @@ def Sb(s, name=None):
     else:
         result = S_box(name=name)
         if isinstance(s, list):
-            (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
+            if isinstance(s[0], (int, sage_Integer)): # case of a lookup table
+                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
+            elif isinstance(s[0], (MPolynomial)): # case of an ANF
+                n_vars = len(s[0].parent().gens())
+                lut = [0 for x in range(0, 2**n_vars)]
+                for x in range(0, len(lut)):
+                    # duplicating the code from ..anf to prevent cross dependencies
+                    x_bin = to_bin(x, n_vars)
+                    y = 0
+                    for i in range(0, len(s)):
+                        y = (<int>(s[i](x_bin)) << i) | y
+                    lut[x] = y
+                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+                return result
+            else:
+                raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
         elif isinstance(s, sage_SBox):
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
             # !TODO! add other possible initializations (from polynomials for ex) 
