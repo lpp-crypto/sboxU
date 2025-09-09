@@ -39,7 +39,7 @@ def algebraic_normal_form_coordinate(s, polynomial_vars=None):
     elif (len(polynomial_vars) != s.get_input_length()):
         raise Exception("Wrong number of variables in `polynomial_vars`")
     coeffs = cpp_anf_component((<S_box>sb).cpp_sb[0])
-    P = R(0)
+    P = polynomial_vars[0].parent()(0)
     for i, c in enumerate(coeffs):
         if c == 0:
             continue
@@ -51,6 +51,14 @@ def algebraic_normal_form_coordinate(s, polynomial_vars=None):
 
 def algebraic_normal_form(s, polynomial_vars=None):
     sb = Sb(s)
+    if polynomial_vars == None:
+        R = PolynomialRing(
+            GF(2),
+            ['x{}'.format(i) for i in range(sb.get_input_length())]
+        )
+        polynomial_vars = R.gens()
+    elif (len(polynomial_vars) != s.get_input_length()):
+        raise Exception("Wrong number of variables in `polynomial_vars`")
     return [algebraic_normal_form_coordinate(sb.coordinate(i),
                                              polynomial_vars=polynomial_vars)
             for i in range(sb.get_output_length())]
