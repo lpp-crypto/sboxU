@@ -1158,7 +1158,8 @@ template<typename set_t, typename int_type> std::array<std::vector<int_type>,3> 
  * vectors, arrays, and 256-bit registers leveraging vectorial CPU instructions
  * We could have arrays of 256-bit registers, or even 512-bit registers or longer,
  * but given the limited gains compared to arrays of u64 this is probably not worth
- * the effort.
+ * the effort. Nevertheless, fixed-size arrays where benched ~2 times faster than
+ * vectors, which explains the current approach.
  */
 
 cpp_S_box cpp_le_class_representative(

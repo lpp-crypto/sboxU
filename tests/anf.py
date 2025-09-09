@@ -21,10 +21,7 @@ if anf_Sb0==[x0*x1*x2 + x0*x1*x3 + x0*x2 + x0*x3 + x1*x2*x3 + x1,
     print("The ANF of Midori_Sb0 is computed correctly")
 
 
-test=[]
-for i in range(16):
-    t0,t1,t2,t3=to_bin(i,4)
-    test.append(from_bin([anf_Sb0[j](t0,t1,t2,t3) for j in range(4)]))
+test=Sb(anf_Sb0)
 
 if Sb0.lut()==test:
     print("The polynomials can be evaluated to retrieve the LUT")
