@@ -29,9 +29,9 @@ def algebraic_normal_form_coordinate(s):
         if c == 0:
             continue
         # getting binary representation of the index
-        # !QUESTION! why not use to_bin? 
-        bits = [(i >> j) & 1 for j in range(sb.get_input_length())]
-        monomial = prod(var**b for var, b in zip(vars, bits))
+        # # !QUESTION! why not use to_bin? 
+        # bits = [(i >> j) & 1 for j in range(sb.get_input_length())]
+        monomial = prod(var**b for var, b in zip(vars, to_bin(i,sb.get_input_length())))
         P += monomial
     return P
 
