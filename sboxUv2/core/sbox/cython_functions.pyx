@@ -484,7 +484,9 @@ def Sb(s, name=None):
     else:
         result = S_box(name=name)
         if isinstance(s, list):
-            if isinstance(s[0], (int, sage_Integer)): # case of a lookup table
+            if len(s) == 0:
+                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
+            elif isinstance(s[0], (int, sage_Integer)): # case of a lookup table
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
             elif isinstance(s[0], (MPolynomial)): # case of an ANF
                 n_vars = len(s[0].parent().gens())
