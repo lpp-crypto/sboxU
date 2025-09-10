@@ -140,6 +140,8 @@ class TableCursor:
 
 # !SECTION! Studying distributions of coefficients
 
+# !SUBSECTION! General function
+
 def interactive_distribution_comparison(
         spec,
         in_length,
@@ -227,6 +229,8 @@ def interactive_distribution_comparison(
     plt.show()
 
 
+# !SUBSECTION! Specific instanciations
+
 def interactive_distribution_comparison_lat(s):
     sb = Sb(s)
     if sb.is_invertible():
@@ -248,4 +252,29 @@ def interactive_distribution_comparison_lat(s):
             name=sb.name().decode("UTF-8")
         )
         
+            
+
+def interactive_distribution_comparison_ddt(s):
+    sb = Sb(s)
+    interactive_distribution_comparison(
+        differential_spectrum(sb),
+        sb.get_input_length(),
+        sb.get_output_length(),
+        ddt_coeff_probability,
+        title="DDT",
+        name=sb.name().decode("UTF-8")
+    )
+            
+ 
+
+def interactive_distribution_comparison_bct(s):
+    sb = Sb(s)
+    interactive_distribution_comparison(
+        boomerang_spectrum(sb),
+        sb.get_input_length(),
+        sb.get_output_length(),
+        bct_coeff_probability,
+        title="BCT",
+        name=sb.name().decode("UTF-8")
+    )
             

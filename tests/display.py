@@ -27,6 +27,7 @@ lat_interactive_view(pi_prime)
 F = Sb(sboxes["Skipjack"])
 F.rename("Skipjack")
 interactive_distribution_comparison_lat(F)
+interactive_distribution_comparison_bct(F)
 
 
 
