@@ -20,9 +20,13 @@ pprint(thickness_spectrum(s))
 
 
 print("Testing interactive tables display")
-s = Sb(sboxes["Kuznyechik"])
-s.rename("Kuznyechik")
-pprint(s)
-pprint(absolute_walsh_spectrum(s))
-lat_interactive_view(s, absolute=False)
+pi_prime = Sb(sboxes["Kuznyechik"])
+pi_prime.rename("Kuznyechik")
+lat_interactive_view(pi_prime)
+
+F = Sb(sboxes["Skipjack"])
+F.rename("Skipjack")
+interactive_distribution_comparison_lat(F)
+
+
 
