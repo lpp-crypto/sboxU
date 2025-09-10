@@ -4,13 +4,16 @@
 
 from sboxUv2.core.f2functions cimport *
 
-from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin
+from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
 
 
 from sage.all import Integer as sage_Integer
 from sage.all import ceil, floor
+
+# imports needed to test the input type in the Sb factory
+from sage.all import Polynomial 
 from sage.crypto.sboxes import SBox as sage_SBox
-from sage.rings.polynomial.multi_polynomial_element import MPolynomial # needed to test ANF
+from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 
 # !SECTION! Helpers
 
@@ -348,6 +351,8 @@ cdef class S_box:
         return result
 
 
+    
+
 # !SECTION! The S_box_fp class
 
 cdef class S_box_fp:
@@ -484,7 +489,9 @@ def Sb(s, name=None):
     else:
         result = S_box(name=name)
         if isinstance(s, list):
-            if isinstance(s[0], (int, sage_Integer)): # case of a lookup table
+            if len(s) == 0:
+                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
+            elif isinstance(s[0], (int, sage_Integer)): # case of a lookup table
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
             elif isinstance(s[0], (MPolynomial)): # case of an ANF
                 n_vars = len(s[0].parent().gens())
@@ -497,18 +504,26 @@ def Sb(s, name=None):
                         y = (<int>(s[i](x_bin)) << i) | y
                     lut[x] = y
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
-                return result
             else:
                 raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
         elif isinstance(s, sage_SBox):
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
-            # !TODO! add other possible initializations (from polynomials for ex) 
+        elif isinstance(s, Polynomial):
+            field = s.base_ring()
+            if field.characteristic() == 2:
+                n = field.degree()
+                i2f, f2i = i2f_and_f2i(field)
+                lut = [f2i(s(i2f(x))) 
+                       for x in range(0, 2**n)]
+                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+            else:
+                raise NotImplemented("we don't yet support polynomials over fields of characteristic >2")
         else:
             try:
                 result = s.get_S_box()
             except:
                 raise NotImplemented("can't turn object of type '{}' into an S_box".format(type(s)))
-    return result
+        return result
 
 
 # !SUBSECTION! Other basic structures
