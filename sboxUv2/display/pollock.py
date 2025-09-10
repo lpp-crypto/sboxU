@@ -47,7 +47,13 @@ def table_interactive_view(
 
 # !SUBSECTION! Specific instanciations 
     
-def lat_interactive_view(s, cmap="coolwarm", vmin=None, vmax=40, absolute=True):
+def lat_interactive_view(
+        s,
+        cmap="coolwarm",
+        vmin=None,
+        vmax=40,
+        absolute=True,
+        show_only=None):
     sb = Sb(s)
     table = lat(sb)
     if absolute:
@@ -59,35 +65,58 @@ def lat_interactive_view(s, cmap="coolwarm", vmin=None, vmax=40, absolute=True):
         t = table
         if vmin == None:
             vmin = -vmax
+    if show_only != None:
+        t = [[t[a][b] if t[a][b] in show_only else vmax+2
+              for b in range(0, len(t[a]))]
+             for a in range(0, len(t))]
     table_interactive_view(t,
                            title="LAT of {}".format(sb.name().decode("UTF-8")),
                            desc="$\\sum_x (-1)^{ax +bS(x)}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax)
+                           vmax=vmax
+                           )
 
 
     
     
-def ddt_interactive_view(s, cmap="coolwarm", vmin=0, vmax=10, absolute=True):
+def ddt_interactive_view(
+        s,
+        cmap="coolwarm",
+        vmin=0,
+        vmax=10,
+        show_only=None
+):
     sb = Sb(s)
-    table_interactive_view(ddt(sb),
+    t = ddt(sb)
+    if show_only != None:
+        t = [[t[a][b] if t[a][b] in show_only else vmax+2
+              for b in range(0, len(t[a]))]
+             for a in range(0, len(t))]
+    table_interactive_view(t,
                            title="DDT of {}".format(sb.name().decode("UTF-8")),
                            desc="$\\#\\{x, S(x+a)+S(x)=b\\}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax)
+                           vmax=vmax
+                           )
 
     
     
 def bct_interactive_view(s, cmap="coolwarm", vmin=0, vmax=32, absolute=True):
     sb = Sb(s)
-    table_interactive_view(bct(sb),
+    t = bct(sb)
+    if show_only != None:
+        t = [[t[a][b] if t[a][b] in show_only else vmax+2
+              for b in range(0, len(t[a]))]
+             for a in range(0, len(t))]
+    table_interactive_view(t,
                            title="BCT of {}".format(sb.name().decode("UTF-8")),
                            desc="$\\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax)
+                           vmax=vmax
+                           )
 
 
 # !SUBSECTION! The TableCursor class 
@@ -151,9 +180,9 @@ def interactive_distribution_comparison(
         name="S",
         l_min=None,
         l_max=None,
-        x_log_scale=False,
-        y_log_scale=True
+        y_log_scale=True,
 ):
+    # preprocessing arguments
     spectra = {}
     spectra[name] = defaultdict(float)
     absolute_spec = defaultdict(int)
@@ -216,11 +245,6 @@ def interactive_distribution_comparison(
     p.xaxis.get_label().set_fontsize(18)
     p.tick_params(labelsize=12)
     p.grid(color="0.8")
-    if x_log_scale:
-        # if require_version(9):
-            # p.set_xscale("log", basex=2, nonposx="clip")
-        # else:
-        p.set_xscale("log", base=2, nonpositive="clip")
     if y_log_scale:
         # if require_version(9):
         #     p.set_yscale("log", basey=2, nonposy="clip")
@@ -231,7 +255,7 @@ def interactive_distribution_comparison(
 
 # !SUBSECTION! Specific instanciations
 
-def interactive_distribution_comparison_lat(s):
+def interactive_distribution_comparison_lat(s, y_log_scale=True):
     sb = Sb(s)
     if sb.is_invertible():
         interactive_distribution_comparison(
@@ -240,7 +264,8 @@ def interactive_distribution_comparison_lat(s):
             sb.get_output_length(),
             lat_coeff_probability_permutation,
             title="LAT",
-            name=sb.name().decode("UTF-8")
+            name=sb.name().decode("UTF-8"),
+            y_log_scale=y_log_scale
         )
     else:
         interactive_distribution_comparison(
@@ -249,12 +274,13 @@ def interactive_distribution_comparison_lat(s):
             sb.get_output_length(),
             lat_coeff_probability_function,
             title="LAT",
-            name=sb.name().decode("UTF-8")
+            name=sb.name().decode("UTF-8"),
+            y_log_scale=y_log_scale
         )
         
             
 
-def interactive_distribution_comparison_ddt(s):
+def interactive_distribution_comparison_ddt(s, y_log_scale=True):
     sb = Sb(s)
     interactive_distribution_comparison(
         differential_spectrum(sb),
@@ -262,12 +288,13 @@ def interactive_distribution_comparison_ddt(s):
         sb.get_output_length(),
         ddt_coeff_probability,
         title="DDT",
-        name=sb.name().decode("UTF-8")
+        name=sb.name().decode("UTF-8"),
+        y_log_scale=y_log_scale
     )
             
  
 
-def interactive_distribution_comparison_bct(s):
+def interactive_distribution_comparison_bct(s, y_log_scale=True):
     sb = Sb(s)
     interactive_distribution_comparison(
         boomerang_spectrum(sb),
@@ -275,6 +302,7 @@ def interactive_distribution_comparison_bct(s):
         sb.get_output_length(),
         bct_coeff_probability,
         title="BCT",
-        name=sb.name().decode("UTF-8")
+        name=sb.name().decode("UTF-8"),
+        y_log_scale=y_log_scale
     )
             
