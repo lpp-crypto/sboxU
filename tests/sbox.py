@@ -2,7 +2,7 @@
 
 from sboxUv2 import *
 from sage.crypto.sboxes import sboxes
-from sage.all import GF, Integer
+from sage.all import *
 
 if __name__ == "__main__":
     u = Sb(list(range(0, 16)))
@@ -58,6 +58,8 @@ if __name__ == "__main__":
 
     g = GF(16)
     print("gf_inv", monomial(14, g))
+    X = PolynomialRing(g, "X").gen()
+    print("other_inv", Sb(X**14))
 
     sb0 = Sb(sboxes["Midori_Sb0"], name="Midori_Sb0")
     print("Midori_Sb0", sb0)
