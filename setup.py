@@ -66,5 +66,3 @@ setup( # names and others are specified in the pyproject.toml file
         language_level = "3",
     ),
 )
-
-

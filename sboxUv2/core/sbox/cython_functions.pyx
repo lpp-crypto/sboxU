@@ -389,6 +389,7 @@ cdef class S_box_fp:
         (<S_box_fp>result).set_inner_sbox((<S_box_fp>self).cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
         return result
 
+
     def __mul__(self,_s):
         """Composition of S-Boxes in F_p
 
@@ -462,6 +463,33 @@ cdef class S_box_fp:
             del self.cpp_sb
         self.cpp_sb = new cpp_S_box_fp()
         self.cpp_sb[0] = s
+
+# !SUBSECTION! Functions from the SBox
+
+    def coordinate(S_box_fp self, BinWord i):
+        """Args:
+            i: the index of the coordinate, where 0 is the Fp word of lowest weight.
+        
+        Returns:
+            An S_box instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
+        
+        """
+        assert i < self.cpp_sb.get_output_size()
+        result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
+        (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.coordinate(<BinWord>i))
+        return result
+
+    def derivative(S_box_fp self, FpWord delta):
+        """Args:
+            i: the index of the coordinate, where 0 is the bit of lowest weight.
+        
+        Returns:
+            An S_box_fp instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
+        
+        """
+        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.cpp_name)
+        (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.derivative(delta))
+        return result
 
 # !SECTION! Generating S-boxes
 

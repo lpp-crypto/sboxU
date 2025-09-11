@@ -62,7 +62,9 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 
         cpp_S_box_fp get_inverse() const
 
-        cpp_S_box_fp derivatice(const FpWord& delta) const
+        cpp_S_box_fp derivative(const FpWord& delta) const
+
+        cpp_S_box_fp coordinate(const BinWord i) const 
 
         @staticmethod
         std_vector[FpWord] build_input_space(cpp_Integer p, BinWord inputsize)

@@ -171,6 +171,17 @@ class cpp_S_box_fp {
             return cpp_S_box_fp(input_size,output_size,p,powers_in,powers_out,input_space,output_space,new_lut);
         }
 
+        // Returns the i-th coordinate function of the SBox 
+        cpp_S_box_fp coordinate(const BinWord i) const {
+            std::vector<FpWord> new_lut(pow((float)p,(float)input_size));
+            for (int j = 0; j < input_space.size(); j++){
+                const FpWord& out = lut[j];
+                FpWord new_out{lut[j][i]};
+                new_lut[i] = new_out;
+            }
+            return cpp_S_box_fp(p,new_lut);
+        }
+
 
         // Returns the list of base p decomposition of integers in range [0,...,p^input_size - 1]
         // The integers are stored in increasing order, in little endian convention
