@@ -133,8 +133,8 @@ cdef class BinLinearMap:
 
     # !TODO! from_blob / to_blob
 
-    def __eq__(self,s):
-        return self.get_S_box()==s.get_S_box()
+    def __eq__(self,BinLinearMap L):
+        return self.cpp_blm[0].get_image_vectors()==L.cpp_blm[0].get_image_vectors()
 
 
 
