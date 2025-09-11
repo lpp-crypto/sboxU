@@ -47,7 +47,7 @@ for name in ["Kuznyechik", "Fantomas"]:
             print("u <= ", u)
         else:
             print("u > ", u)
-
+    pprint(fbct_spectrum(s))
 
 targets = []
 for t in range(0, 8):
@@ -58,3 +58,4 @@ for i, s in enumerate(targets):
     sp = differential_spectrum(s)
     print(sp)
 print(c)
+

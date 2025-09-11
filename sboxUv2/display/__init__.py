@@ -7,7 +7,7 @@ from .output import \
 
 from .pollock import \
     table_interactive_view, \
-    ddt_interactive_view, lat_interactive_view, bct_interactive_view, \
+    ddt_interactive_view, lat_interactive_view, bct_interactive_view, fbct_interactive_view, \
     interactive_distribution_comparison, \
     interactive_distribution_comparison_lat, interactive_distribution_comparison_ddt, interactive_distribution_comparison_bct
 

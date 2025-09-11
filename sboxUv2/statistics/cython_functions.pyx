@@ -8,9 +8,8 @@ from sboxUv2.core cimport *
 
 
 
-# !SECTION! Basic tables and spectra
 
-# !SUBSECTION! Differential properties
+# !SECTION! Differential properties
 
 
 def differential_spectrum(s):
@@ -44,7 +43,7 @@ def is_differential_uniformity_smaller_than(s, u):
     )
 
 
-# !SUBSECTION! Linear properties
+# !SECTION! Linear properties
 
 
 def walsh_transform(s):
@@ -89,12 +88,13 @@ def linearity(s):
 
         
 
-# !SUBSECTION! Boomerang properties
+# !SECTION! Boomerang properties
 
+# !SUBSECTION! BCT 
 
 def boomerang_spectrum(s):
     sb = Sb(s)
-    result = Spectrum(name="Boomerang".encode("UTF-8"))
+    result = Spectrum(name="BCT".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
         cpp_boomerang_spectrum((<S_box>sb).cpp_sb[0],
@@ -115,14 +115,22 @@ def boomerang_uniformity(s):
     return bom.maximum()
 
 
-# # !SUBSECTION! Degree spectrum 
 
-# def degree_spectrum(s):
-#     sb = Sb(s)
-#     result = Spectrum(name="Degree".encode("UTF-8"))
-#     n_threads = n_threads_from_sbox_size(sb.get_input_length())
-#     result.set_inner_sp(
-#         cpp_degree_spectrum((<S_box>sb).cpp_sb[0],
-#                            n_threads)
-#     )
-#     return result
+# !SUBSECTION! FBCT
+
+def fbct_spectrum(s):
+    sb = Sb(s)
+    result = Spectrum(name="F-BCT".encode("UTF-8"))
+    n_threads = n_threads_from_sbox_size(sb.get_input_length())
+    result.set_inner_sp(
+        cpp_fbct_spectrum((<S_box>sb).cpp_sb[0],
+                          n_threads)
+    )
+    return result
+
+
+
+def fbct(s):
+    sb = Sb(s)
+    result = cpp_fbct((<S_box>sb).cpp_sb[0])
+    return result

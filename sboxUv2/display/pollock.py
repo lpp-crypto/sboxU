@@ -7,7 +7,8 @@ from sboxUv2.core import Sb
 from sboxUv2.statistics import \
     ddt, differential_spectrum, ddt_coeff_probability, \
     lat, walsh_spectrum, absolute_walsh_spectrum, lat_coeff_probability_permutation, lat_coeff_probability_function, \
-    bct, boomerang_spectrum, bct_coeff_probability \
+    bct, boomerang_spectrum, bct_coeff_probability, \
+    fbct, fbct_spectrum \
     
 
 
@@ -76,8 +77,6 @@ def lat_interactive_view(
                            vmin=vmin,
                            vmax=vmax
                            )
-
-
     
     
 def ddt_interactive_view(
@@ -100,10 +99,16 @@ def ddt_interactive_view(
                            vmin=vmin,
                            vmax=vmax
                            )
-
     
     
-def bct_interactive_view(s, cmap="coolwarm", vmin=0, vmax=32, absolute=True):
+def bct_interactive_view(
+        s,
+        cmap="coolwarm",
+        vmin=0,
+        vmax=32,
+        absolute=True,
+        show_only=None
+):
     sb = Sb(s)
     t = bct(sb)
     if show_only != None:
@@ -113,6 +118,29 @@ def bct_interactive_view(s, cmap="coolwarm", vmin=0, vmax=32, absolute=True):
     table_interactive_view(t,
                            title="BCT of {}".format(sb.name().decode("UTF-8")),
                            desc="$\\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$",
+                           cmap=cmap,
+                           vmin=vmin,
+                           vmax=vmax
+                           )
+
+    
+def fbct_interactive_view(
+        s,
+        cmap="coolwarm",
+        vmin=0,
+        vmax=16,
+        absolute=True,
+        show_only=None
+):
+    sb = Sb(s)
+    t = fbct(sb)
+    if show_only != None:
+        t = [[t[a][b] if t[a][b] in show_only else vmax+2
+              for b in range(0, len(t[a]))]
+             for a in range(0, len(t))]
+    table_interactive_view(t,
+                           title="F-BCT of {}".format(sb.name().decode("UTF-8")),
+                           desc="$\\#\\{x, \\sum_{y \\in x+<a, b>}S(y)\\}$",
                            cmap=cmap,
                            vmin=vmin,
                            vmax=vmax

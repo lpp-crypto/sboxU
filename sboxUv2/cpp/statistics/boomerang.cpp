@@ -1,7 +1,9 @@
 #include "boomerang.hpp"
 
 
-// !SECTION! The BCT itself 
+
+// !SECTION! BCT 
+// !SUBSECTION! The BCT itself 
 
 
 std::vector<Integer> cpp_bct_row(
@@ -41,7 +43,7 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 }
 
 
-// !SECTION! BCT Spectrum 
+// !SUBSECTION! BCT Spectrum 
 
 
 cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_threads)
@@ -57,7 +59,7 @@ cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_th
     return count;
 }
 
-// FBCT
+// !SECTION! FBCT
 
 std::vector<Integer> cpp_fbct_row(
     const cpp_S_box & s,
@@ -95,7 +97,7 @@ cpp_Spectrum cpp_fbct_spectrum(const cpp_S_box & s, const unsigned int n_threads
 }
 
 
-std::vector< std::vector<Integer>> fbct(
+std::vector< std::vector<Integer>> cpp_fbct(
     const cpp_S_box & s)
 {
     std::vector<std::vector<Integer>> result(s.input_space_size(), std::vector<Integer>(s.input_space_size(), 0));
