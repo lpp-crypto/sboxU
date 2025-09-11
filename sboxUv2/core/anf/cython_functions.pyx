@@ -29,6 +29,15 @@ def degree_spectrum(s):
 
 
 def algebraic_normal_form_coordinate(s, polynomial_vars=None):
+    """The algebraic normal form of a boolean function is the multivariate polynomial representation of this function
+
+    Args:
+       s: an S_box-able of output length 1. 
+       polynomial_vars: the variables used to express the polynomial. 
+
+    Returns:
+       A polynomial corresponding to the boolean function s, expressed in terms of polynomial_vars if not None.
+    """
     sb = Sb(s)
     if polynomial_vars == None:
         R = PolynomialRing(

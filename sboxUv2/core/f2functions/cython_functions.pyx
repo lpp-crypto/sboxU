@@ -1,6 +1,6 @@
 # -*- python -*-
 
-
+from sage.all import Matrix, GF
 # !SECTION! Wrapped C++
 
 # !SUBSECTION! Bit-fiddling
@@ -120,8 +120,7 @@ cdef class BinLinearMap:
 
 
     def __str__(self):
-        # !TODO! proper __str__ 
-        return str(list(self.cpp_blm[0].get_image_vectors()))
+        return str(Matrix(GF(2),[cpp_to_bin(x,self.get_output_length()) for x in self.cpp_blm[0].get_image_vectors()]))
 
 
     def get_S_box(self):
@@ -134,7 +133,8 @@ cdef class BinLinearMap:
 
     # !TODO! from_blob / to_blob
 
-     # !TODO! __eq__ 
+    def __eq__(self,BinLinearMap L):
+        return self.cpp_blm[0].get_image_vectors()==L.cpp_blm[0].get_image_vectors()
 
 
 

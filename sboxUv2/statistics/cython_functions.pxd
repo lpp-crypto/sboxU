@@ -69,6 +69,13 @@ cdef extern from "../cpp/statistics/boomerang.hpp":
     std_vector[std_vector[int64_t]] cpp_bct(
         const cpp_S_box & s
     )
+    cpp_Spectrum cpp_fbct_spectrum(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+    std_vector[std_vector[int64_t]] cpp_fbct(
+        const cpp_S_box & s
+    )
 
 
 cdef extern from "../cpp/statistics/boomerang.cpp":

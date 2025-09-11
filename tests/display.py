@@ -18,3 +18,21 @@ pprint(walsh_spectrum(s))
 pprint(absolute_walsh_spectrum(s))
 pprint(thickness_spectrum(s))
 
+
+print("Testing interactive tables display")
+pi_prime = Sb(sboxes["Kuznyechik"])
+pi_prime.rename("Kuznyechik")
+fbct_interactive_view(pi_prime)
+pprint(fbct_spectrum(pi_prime))
+
+F = Sb(sboxes["Skipjack"])
+F.rename("Skipjack")
+interactive_distribution_comparison_lat(F)
+interactive_distribution_comparison_bct(F)
+interactive_distribution_comparison_ddt(F, y_log_scale=False)
+
+
+S = random_permutation_S_box(8)
+fbct_interactive_view(S)
+pprint(fbct_spectrum(S))
+

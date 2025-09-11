@@ -1,7 +1,9 @@
 #include "boomerang.hpp"
 
 
-// !SECTION! The BCT itself 
+
+// !SECTION! BCT 
+// !SUBSECTION! The BCT itself 
 
 
 std::vector<Integer> cpp_bct_row(
@@ -11,7 +13,7 @@ std::vector<Integer> cpp_bct_row(
     if (a == 0)
         return std::vector<Integer>(s.output_space_size(),s.input_space_size());
 
-    std::vector<Integer> result(s.size(), 0);
+    std::vector<Integer> result(s.output_space_size(), 0);
     std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
     result[0] = s.input_space_size();
 
@@ -41,7 +43,7 @@ std::vector< std::vector<Integer>> cpp_bct(const cpp_S_box & s)
 }
 
 
-// !SECTION! BCT Spectrum 
+// !SUBSECTION! BCT Spectrum 
 
 
 cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_threads)
@@ -55,4 +57,79 @@ cpp_Spectrum cpp_boomerang_spectrum(const cpp_S_box & s, const unsigned int n_th
     if(count[s.input_space_size()] == 0)
         count.erase(s.input_space_size());
     return count;
+}
+
+// !SECTION! FBCT
+
+std::vector<Integer> cpp_fbct_row(
+    const cpp_S_box & s,
+    const BinWord a)
+{
+    if (a == 0)
+        return std::vector<Integer>(s.input_space_size(),s.input_space_size());
+
+    std::vector<Integer> result(s.input_space_size(), 0);
+    std::vector<std::vector<BinWord> > xor_list(s.input_space_size(), std::vector<BinWord>(0));
+    // result[0] = s.input_space_size();
+    // result[a] = s.input_space_size();
+
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
+    {
+        BinWord z = s[x] ^ s[x^a];
+
+        for(auto x2 : xor_list[z]){
+            result[ x ^ x2 ] += 4;
+            result[ x ^ x2 ^ a ] += 4;
+        }
+        xor_list[z].push_back(x);
+    }
+    return result;
+}
+
+cpp_Spectrum cpp_fbct_spectrum(const cpp_S_box & s, const unsigned int n_threads)
+{
+    cpp_Spectrum count;
+    int threads = threads_from_size(s.input_space_size());
+#pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
+    for( unsigned int a = 1; a < s.input_space_size(); a++)
+        count.incr_by_counting(cpp_fbct_row(s,a));
+    return count;
+}
+
+
+std::vector< std::vector<Integer>> cpp_fbct(
+    const cpp_S_box & s)
+{
+    std::vector<std::vector<Integer>> result(s.input_space_size(), std::vector<Integer>(s.input_space_size(), 0));
+    result[0] = std::vector<Integer>(s.input_space_size(), s.input_space_size());
+    result[1][0] = s.input_space_size();
+    result[1][1] = s.input_space_size();
+    for( BinWord a = 2; a < s.input_space_size(); a+=2)
+    {
+        result[a][0] = s.input_space_size();
+        result[a][a] = s.input_space_size();
+        result[a+1][0] = s.input_space_size();
+        result[a+1][a+1] = s.input_space_size();
+        for(BinWord x = 0, _max = s.input_space_size(), _msb = 1 << cpp_msb(a) ; x < _max; x+=_msb)
+        {
+            std::vector<std::vector<BinWord> > xor_list(_msb, std::vector<BinWord>(0));
+            for(BinWord _ceil = x + _msb; x < _ceil; x++)
+            {
+                BinWord z = s[x] ^ s[x^a];
+                BinWord low = x % _msb;
+                for(auto x2 : xor_list[low]){
+                    BinWord b = x ^ x2;
+                    BinWord c = b ^ a;
+                    result[a][b] += 4;
+                    result[a][c] += 4;
+                    result[b][a] += 4;
+                    result[b][c] += 4;
+                    result[c][a] += 4;
+                    result[c][b] += 4;
+                }
+                xor_list[low].push_back(x);
+            }
+        }
+    }
+    return result;
 }
