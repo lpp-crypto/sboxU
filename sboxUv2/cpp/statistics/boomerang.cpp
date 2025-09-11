@@ -103,6 +103,8 @@ std::vector< std::vector<Integer>> cpp_fbct(
 {
     std::vector<std::vector<Integer>> result(s.input_space_size(), std::vector<Integer>(s.input_space_size(), 0));
     result[0] = std::vector<Integer>(s.input_space_size(), s.input_space_size());
+    result[1][0] = s.input_space_size();
+    result[1][1] = s.input_space_size();
     for( BinWord a = 2; a < s.input_space_size(); a++)
     {
         result[a][0] = s.input_space_size();
@@ -116,7 +118,7 @@ std::vector< std::vector<Integer>> cpp_fbct(
                 for(auto x2 : xor_list[z]){
                     BinWord b = x ^ x2;
                     BinWord c = b ^ a;
-                    if (c < a) {
+                    if (c < a) {// Couldn't find a way to leverage this symetry :(
                         result[a][b] += 4;
                         result[a][c] += 4;
                         result[b][a] += 4;
