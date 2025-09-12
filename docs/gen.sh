@@ -9,7 +9,7 @@ rm -rf ./build/*
 sphinx-apidoc ../sboxUv2 -o source -M
 
 # generating the bibliography
-sage ./biblio.py
+sage ./biblio.py "gen"
 
 # generating the HTML
 sphinx-build -M html source build
