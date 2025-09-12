@@ -8,6 +8,9 @@ rm -rf ./build/*
 # parsing the docstrings
 sphinx-apidoc ../sboxUv2 -o source -M
 
+# generating the bibliography
+sage ./biblio.py
+
 # generating the HTML
 sphinx-build -M html source build
 
