@@ -2,7 +2,7 @@
 # !SECTION! Threads number
 
 """The maximum number of threads used in each function. """
-MAX_N_THREADS = 8
+MAX_N_THREADS = int(8)
 
 def n_threads_from_sbox_size(n):
     """Customize this function to adjust the number of threads used by multi-threaded functions.
