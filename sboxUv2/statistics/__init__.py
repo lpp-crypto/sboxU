@@ -16,8 +16,8 @@ from .cython_functions import \
 
 
 from .anomalies import \
-    ddt_coeff_probability, expected_max_ddt, \
-    lat_coeff_probability_permutation, lat_coeff_probability_function, expected_max_lat, expected_max_lat_function, \
+    ddt_coeff_probability, expected_differential_uniformity_distribution, \
+    lat_coeff_probability_permutation, lat_coeff_probability_function, expected_linearity_permutation_distribution, expected_max_lat_function, \
     bct_coeff_probability, \
     probability_of_max_and_occurrences, get_proba_func, \
     table_anomaly, table_negative_anomaly
