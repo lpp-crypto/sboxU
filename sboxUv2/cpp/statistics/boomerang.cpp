@@ -94,6 +94,7 @@ cpp_Spectrum cpp_fbct_spectrum(const cpp_S_box & s, const unsigned int n_threads
 #pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
     for( unsigned int a = 1; a < s.input_space_size(); a++)
         count.incr_by_counting(cpp_fbct_row(s,a));
+    count.incr_by_amount(0,-s.input_space_size()*2+2);
     return count;
 }
 

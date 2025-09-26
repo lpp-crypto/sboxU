@@ -1,5 +1,6 @@
 from sage.all import *
 from sage.crypto.sboxes import sboxes
+from collections import defaultdict
 
 from timer import *
 
@@ -58,4 +59,20 @@ for i, s in enumerate(targets):
     sp = differential_spectrum(s)
     print(sp)
 print(c)
+
+print("testing expected distribution")
+n = 7
+n_tested = 2**13
+dis = defaultdict(int)
+print("-- experimental")
+for t in range(0, n_tested):
+    dis[linearity(random_permutation_S_box(n))] += 1
+for k in sorted(dis.keys()):
+    if dis[k] != 0:
+        print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
+print("-- theoretical")
+dis = expected_linearity_permutation_distribution(n, n)
+for k in sorted(dis.keys()):
+    if dis[k] != 0.0:
+        print("{:3d}: {:.4f}".format(k, dis[k]))
 

@@ -1,18 +1,32 @@
 #!/usr/bin/env sh
 
-# cleaning up
+
+# SAGE code documentation
+# =======================
+
+# -- cleaning up
 rm source/sboxUv2*.rst
 rm -rf ./build/*
 
 
-# parsing the docstrings
+# -- parsing the docstrings
 sphinx-apidoc ../sboxUv2 -o source -M
 
-# generating the bibliography
+# -- generating the bibliography
 sage ./biblio.py "gen"
 
-# generating the HTML
+# -- generating the HTML
 sphinx-build -M html source build
 
-# opening it
+# -- opening it
 open ./build/html/index.html 
+
+
+# C++ code documentation
+# ======================
+
+# -- parsing source code
+doxygen ./cpp/doxygen.conf
+
+# -- opening it
+open ./html/index.html

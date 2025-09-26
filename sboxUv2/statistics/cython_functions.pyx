@@ -13,6 +13,15 @@ from sboxUv2.core cimport *
 
 
 def differential_spectrum(s):
+    """The differential spectrum of an S-box counts the number of entries in the DDT that are equal to each value.
+
+    Args:
+        s: An S-boxable object.
+    
+    Returns:
+        Spectrum: A `Spectrum` instance `d` such that `d[k]` is equal to the number of occurrences of the coefficient `k` in the DDT of `s`.
+    
+    """
     sb = Sb(s)
     result = Spectrum(name="Differential".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
@@ -24,18 +33,45 @@ def differential_spectrum(s):
 
 
 def ddt(s):
+    """The Difference Distribution Table of a function F is a two dimensional array `D` such that `D[a][b] = #{x, F(x+a) = F(x)+b}`. The number of rows and columns of the DDT depends on the dimensions of the input and output of the S-box (respectively). Depending on the underlying arithmetic of `s`, `+` corresponds either to a XOR (in F_2) or to a modular addition.
+
+    Args:
+        s: An S-boxable object.
+
+    Returns:
+        list: A list of lists corresponding to a 2-dimensional array containing the DDT of `s`.
+    
+    """
     sb = Sb(s)
     result = cpp_ddt((<S_box>sb).cpp_sb[0])
     return result
 
 
 def differential_uniformity(s):
+    """The differential uniformity of a function F is the maximum over all a != 0 and all b of the number of solutions x of the equation F(x+a)=F(x)+b.
+
+    Args:
+        s: An S-boxable object.
+
+    Returns:
+        int: The differential uniformity of the function corresponding to `s`.
+    """
     sb = Sb(s)
     dif = differential_spectrum(s)
     return dif.maximum()
 
 
 def is_differential_uniformity_smaller_than(s, u):
+    """Tests whether the differential uniformity of a function is below or equal to a given threshold. If the answer is "no", then its execution can be much smaller than a proper computation of the differential uniformity.
+
+    Args:
+        s: An S-boxable object.
+        u (int): The threshold such differential uniformity <= u.
+
+    Returns:
+        bool: True if and only if the differential uniformity of the function corresponding to `s` is at most equal to `u`.
+    
+    """
     sb = Sb(s)
     return cpp_is_differential_uniformity_smaller_than(
         (<S_box>sb).cpp_sb[0],
