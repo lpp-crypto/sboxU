@@ -1,41 +1,19 @@
-# Anomalies
-
-
-## Concept
-
-
-
-### Testing
-
-#### Setting up imports and parameters 
-
-We obviously need to import `sboxU` along with `SAGE`. To simplify counting, we also import the `defaultdict` class from standard python module `collections`.
-
-```python
 from sage.all import *
 from sboxUv2 import *
 from collections import defaultdict
-```
 
-Statistical tests lose their relevance when the input size becomes too small so we fix `n=8`. Running a couple thousand tests is sufficient to gather enough information, hence `n_tested=2**13`.
+# ----
 
-```python
 n = 8
 n_tested = 2**13
-
 with Experiment("Testing distribution of maximum values"):
-```
 
+# ----
 
-#### LAT
-
-```python
     section("LAT")
-```
 
-We first compute experimental data by generating `n_tested` random permutations. For each, we compute the linearity and increase a corresponding counter in a dictionary called `dis`. We then display the proportion of each linearity encountered.
+# ----
 
-```python
     subsection("Experimental")
     dis = defaultdict(int)
     for t in range(0, n_tested):
@@ -43,29 +21,21 @@ We first compute experimental data by generating `n_tested` random permutations.
     for k in sorted(dis.keys()):
         if dis[k] != 0:
             print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
-```
 
-For comparison, we then generate the expected distribution using the relevant function (`expected_linearity_distribution_permutation`), and then display the result.
+# ----
 
-```python
     subsection("Theoretical")
     dis = expected_linearity_distribution_permutation(n, n)
     for k in sorted(dis.keys()):
         if dis[k] != 0.0:
             print("{:3d}: {:.4f}".format(k, dis[k]))
 
-```
+# ----
 
-
-#### DDT
-
-```python
     section("DDT")
-```
 
-Our experiment for the DDT is essentially the same as for the LAT and uses the same variables. We just need to replace `linearity` with `differential_uniformity` and `expected_linearity_distribution_permutation` with `expected_differential_uniformity_distribution_permutation`
+# ----
 
-```python
     subsection("Experimental")
     dis = defaultdict(int)
     for t in range(0, n_tested):
@@ -80,18 +50,12 @@ Our experiment for the DDT is essentially the same as for the LAT and uses the s
         if dis[k] != 0.0:
             print("{:3d}: {:.4f}".format(k, dis[k]))
 
-```
+# ----
 
-
-#### BCT
-
-```python
     section("BCT")
-```
 
-For the BCT, it is again the same except that we consider `boomerang_uniformity` with and `expected_boomerang_uniformity_distribution_permutations`.
+# ----
 
-```python
     subsection("Experimental")
     dis = defaultdict(int)
     for t in range(0, n_tested):
@@ -106,4 +70,5 @@ For the BCT, it is again the same except that we consider `boomerang_uniformity`
         if dis[k] != 0.0:
             print("{:3d}: {:.4f}".format(k, dis[k]))
 
-```
+# ----
+

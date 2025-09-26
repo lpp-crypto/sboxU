@@ -18,6 +18,46 @@ from sboxUv2.config import DEFAULT_HIGH_PRECISION
 # !SECTION! Probability distributions
 
 
+# !SUBSECTION! Functions handling probability distributions
+
+
+def expected_maximum_distribution(
+        in_length,
+        out_length,
+        proba_func,
+        n_coeffs,
+        vmin=2,
+        vmax=100):
+    """Assuming that a table contains 2**in_length-1 non trivial rows of 2**out_length-1 non-trivial columns, returns the probability distribution of the maximum coefficient in the table as dictionary.
+    
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        proba_func (function): a function taking as input an input length, an output length and a coefficient, and which returns the probability that this coefficient occurs given the other parameters
+        n_coeffs (int): the total number of non-trivial coefficients
+        vmin (int): the minimum value of the differential uniformity to consider
+        vmax (int): the maximum value of the differential uniformity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that the maximum coefficient is equal to `i`.
+    
+    """
+    cumul = {}
+    m, n = in_length, out_length
+    power = RealNumber(n_coeffs)
+    for k in range(vmin, vmax+2):
+        to_add = sum(proba_func(m, n, z) for z in range(0, k+1))
+        to_add = to_add**power
+        if to_add > 0:
+            cumul[k] = to_add
+        elif k-1 in cumul.keys():
+            cumul[k] = cumul[k-1]
+    result = {}
+    for i, k in enumerate(sorted(cumul.keys())):
+        if i > 0:
+            result[k] = cumul[k] - cumul[k-1]
+    return result
+
 
 # !SUBSECTION! DDT
 
@@ -53,7 +93,7 @@ def ddt_coeff_probability(
             return RealNumber(binomial(2**(m-1), d) * 2**(-n*d) * (1 - 2**-n)**(2**(m-1)-d))
 
 
-def expected_differential_uniformity_distribution(
+def expected_differential_uniformity_distribution_permutation(
         in_length,
         out_length,
         vmin=2,
@@ -70,20 +110,13 @@ def expected_differential_uniformity_distribution(
         dict: A dictionary `d` such that `d[i]` is the probability that an F_2 S-box mapping `in_length` bits to `out_length` has a differential uniformity equal to `i`.
     
     """
-    cumul = {}
-    m, n = in_length, out_length
-    for k in range(int(floor(vmin / 2)), int(floor(vmax / 2))):
-        to_add = sum(ddt_coeff_probability(m, n, 2*z) for z in range(0, k+1))
-        to_add = to_add**RealNumber((2**m-1) * (2**n-1))
-        if to_add > 0:
-            cumul[k] = to_add
-        elif k-1 in cumul.keys():
-            cumul[k] = cumul[k-1]
-    result = {}
-    for i, k in enumerate(sorted(cumul.keys())):
-        if i > 0:
-            result[k] = cumul[k] - cumul[k-1]
-    return result
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        ddt_coeff_probability,
+        (2**in_length-1) * (2**out_length-1),
+        vmin=vmin,
+        vmax=vmax)
 
     
 # !SUBSECTION! LAT
@@ -123,7 +156,7 @@ def lat_coeff_probability_permutation(
         return 2 * big_precision(Integer(binomial(2**(n-1), 2**(n-2) + c/2))**2) / Integer(binomial(2**n, 2**(n-1)))
 
 
-def expected_linearity_permutation_distribution(
+def expected_linearity_distribution_permutation(
         in_length,
         out_length,
         vmin=8,
@@ -140,16 +173,13 @@ def expected_linearity_permutation_distribution(
         dict: A dictionary `d` such that `d[i]` is the probability that a permutation operating on `in_length` bits has a linearity uniformity equal to `i`.
     
     """
-    m, n = in_length, out_length
-    cumul = [0]
-    for k in range(1, 100):
-        to_add = sum(lat_coeff_probability_permutation(m, n, z) for z in range(0, k+1))
-        to_add = to_add**RealNumber((2**m-1) * (2**n-1))
-        cumul.append(to_add)
-    result = {}
-    for i in range(1, len(cumul)):
-        result[i] = cumul[i] - cumul[i-1]
-    return result
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        lat_coeff_probability_permutation,
+        (2**in_length-1) * (2**out_length-1),
+        vmin=vmin,
+        vmax=vmax)
     
 
 # !SUBSUBSECTION! Non-bijective case
@@ -184,18 +214,32 @@ def lat_coeff_probability_function(
         return 2 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
 
 
-def expected_max_lat_function(m, n):
-    result = RealNumber(0.0)
-    cumul = [0]
-    for k in range(1, 70):
-        to_add = sum(lat_coeff_probability_function(m, n, z) for z in range(0, k+1))
-        to_add = to_add**RealNumber((2**m) * (2**n))
-        cumul.append(to_add)
-    result = []
-    for i in range(1, len(cumul)):
-        result.append(cumul[i] - cumul[i-1])
-    return result
 
+def expected_linearity_distribution_function(
+        in_length,
+        out_length,
+        vmin=8,
+        vmax=100):
+    """The coefficients of the LAT of a random function can be modeled like independent and identically distributed random variables following a specific Poisson distribution [JMC:DaeRij07]. As a consequence, we can estimate the value of the maximum absolute coefficient of the LAT (i.e., the linearity).
+
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        vmin (int): the minimum value of the linearity to consider
+        vmax (int): the maximum value of the linearity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that a permutation operating on `in_length` bits has a linearity uniformity equal to `i`.
+    
+    """
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        lat_coeff_probability_permutation,
+        (2**in_length-1) * 2**out_length,
+        vmin=vmin,
+        vmax=vmax)
+    
 
 # !SUBSECTION! BCT
 # !TODO! Write proper docstring for the BCT anomalies functions
@@ -205,16 +249,24 @@ def bct_coeff_probability(
         out_length,
         c,
         precision=DEFAULT_HIGH_PRECISION):
-    """Returns the probability that a coefficient of the BCT of an S-Box
-    mapping m bits to n is equal to c.
+    """The non-trivial coefficients of the BCT of a permutation behave like samples from independent and identically distributed random variables following the same distribution, as explained in [AC:BonPerTia19] (where said distribution is also given). 
 
-    This probability is only defined for permutations. Thus, an error is raised if m != n.
+    If in_length != out_length, raises an error: the BCT is not defined in this case.
+
+    Args:
+        in_length (int): the input bit-length
+        out_length (int): the output bit-length
+        c (int): the absolute value of the BCT coefficient value whose probability we want
+        precision (int): a facultative argument corresponding to the level of precision to use for the floating point arithmetic.
+
+    Returns:
+        RealNumber: The probability that a coefficient of the BCT of a permutation operating on `in_length` bits has an absolute value equal to `c`.
 
     """
     m, n = in_length, out_length
     big_precision = RealField(precision)
     if m != n:
-        raise "the BCT is only defined when m==n"
+        raise "the BCT is only defined when in_length == out_length"
     if c % 2 == 1:
         return RealNumber(0.0)
     B = big_precision(2**(n-1))
@@ -230,6 +282,31 @@ def bct_coeff_probability(
             result += added / base
     return result
 
+
+def expected_boomerang_uniformity_distribution_permutation(
+        in_length,
+        out_length,
+        vmin=2,
+        vmax=28):
+    """The coefficients of the BCT of a random function can be modeled like independent and identically distributed random variables following a specific Poisson distribution [AC:BonPerTia19]. As a consequence, we can estimate the value of the maximum coefficient.
+
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        vmin (int): the minimum value of the differential uniformity to consider
+        vmax (int): the maximum value of the differential uniformity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that an F_2 S-box mapping `in_length` bits to `out_length` has a boomerang uniformity equal to `i`.
+    
+    """
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        bct_coeff_probability,
+        (2**in_length-1) * (2**out_length-1),
+        vmin=vmin,
+        vmax=vmax)
     
 # !SECTION! Aggregated information from the tables
 # !TODO! Write proper docstring for the high level anomalies functions

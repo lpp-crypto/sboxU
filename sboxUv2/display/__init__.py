@@ -3,7 +3,8 @@
 """
 
 from .output import \
-    pprint
+    pprint, \
+    Experiment, section, subsection
 
 from .pollock import \
     table_interactive_view, \
