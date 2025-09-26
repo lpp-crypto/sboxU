@@ -363,12 +363,19 @@ def get_proba_func(s, table):
 
 # !SUBSECTION! Anomaly computations
 
-def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
-    """Computes the positive anomaly (in the sense of [AC:BonPerTia19]) of the S_box `s` that corresponds to its DDT, LAT or BCT.
+def table_anomaly(
+        s,
+        table,
+        spec=None,
+        precision=DEFAULT_HIGH_PRECISION):
+    """Computes the positive anomaly (in the sense of [AC:BonPerTia19]) of the S-boxable object `s` that corresponds to its DDT, LAT or BCT.
 
     Args:
-        - s: the S_boxable object you want the anomaly of.
-        - table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+        s: the S_boxable object you want the anomaly of.
+        table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+
+    Returns:
+        RealNumber: the positive anomaly associated to the given table for the S-box corresponding to `s`.
     
     """
     if table not in ["DDT", "LAT", "BCT"]:
@@ -406,12 +413,19 @@ def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
         return -p.log2()
 
     
-def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
+def table_negative_anomaly(
+        s,
+        table,
+        spec=None,
+        precision=DEFAULT_HIGH_PRECISION):
     """Computes the negative anomaly (in the sense of [AC:BonPerTia19]) of the S_box `s` that corresponds to its DDT, LAT or BCT.
 
     Args:
-        - s: the S_boxable object you want the anomaly of.
-        - table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+        s: the S_boxable object you want the anomaly of.
+        table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+
+    Returns:
+        RealNumber: the negative anomaly associated to the given table for the S-box corresponding to `s`.
     
     """
     if table not in ["DDT", "LAT", "BCT"]:
@@ -426,7 +440,6 @@ def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION
         elif table == "LAT":
             if spec == None:
                 spec = walsh_spectrum(s)
-                print(spec)
         else:
             if spec == None:
                 spec = boomerang_spectrum(s)

@@ -15,6 +15,7 @@ from sboxUv2.statistics import \
 # !SECTION! Interactive Tables
 
 
+
 # !SUBSECTION! General function to generate interacting views
 
 def table_interactive_view(
@@ -44,6 +45,7 @@ def table_interactive_view(
                          desc=desc)
     fig.canvas.mpl_connect('motion_notify_event', cursor.on_mouse_move)
     plt.show()
+    
 
 
 # !SUBSECTION! Specific instanciations 
@@ -261,9 +263,6 @@ def interactive_distribution_comparison(
             abscissa.append(float(c))
             diff_min.append(float(min(spectra[name][c], spectra["Expected"][c])))
             diff_max.append(float(max(spectra[name][c], spectra["Expected"][c])))
-    print(abscissa)
-    print(diff_min)
-    print(diff_max)
     p.fill_between(abscissa, diff_min, diff_max, alpha=0.5, linewidth=0)
     # adding the metadata
     p.legend(shadow=True, fontsize=18)
@@ -279,6 +278,8 @@ def interactive_distribution_comparison(
         # else:
         p.set_yscale("log", base=2, nonpositive="clip")
     plt.show()
+
+
 
 
 # !SUBSECTION! Specific instanciations

@@ -4,9 +4,48 @@ from collections import defaultdict
 
 # ----
 
-n = 8
-n_tested = 2**13
+from sage.crypto.sboxes import sboxes
+
+# ----
+
+with Experiment("Checking some anomalies"):
+
+# ----
+
+    section("Skipjack")
+    skipjack = Sb(sboxes["Skipjack"])
+    for table in ["LAT", "BCT", "DDT"]:
+        print("{} {:10.5f} {:10.5f}".format(
+            table,
+            table_anomaly(skipjack, table),
+            table_negative_anomaly(skipjack, table)
+        ))
+
+# ----
+
+    interactive_distribution_comparison_lat(skipjack)
+
+# ----
+
+    section("Other S-boxes")
+    for k in ["AES", "Fantomas", "Kuznyechik"]:
+        s = Sb(sboxes[k])
+        subsection(k)
+        for table in ["LAT", "BCT", "DDT"]:
+            print("{} {:10.5f} {:10.5f}".format(
+                table,
+                table_anomaly(s, table),
+                table_negative_anomaly(s, table)
+            ))
+
+# ----
+
 with Experiment("Testing distribution of maximum values"):
+
+# ----
+
+    n = 8
+    n_tested = 2**13
 
 # ----
 
