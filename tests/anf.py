@@ -1,6 +1,7 @@
 from sage.all import *
 from sboxUv2 import *
 from sage.crypto.sboxes import sboxes
+from random import randint
 
 
 Sb0=Sb(sboxes["Midori_Sb0"])
@@ -25,3 +26,21 @@ test=Sb(anf_Sb0)
 
 if Sb0.lut()==test:
     print("The polynomials can be evaluated to retrieve the LUT")
+
+
+print("Testing eval_anf on a 8-bit random Boolean Function")
+S=Sb([randint(0,1) for _ in range(256)])
+anf=algebraic_normal_form(S)[0]
+if [eval_anf(anf,x) for x in range(256)]==S:
+    print("Success")
+else :
+    print("Failure")
+
+print("Testing eval_vect_anf on a random 8-bit Sbox")
+S=Sb([randint(0,255) for _ in range(256)])
+anfs=algebraic_normal_form(S)
+if [eval_vect_anf(anfs,x) for x in range(256)]==S:
+    print("Success")
+else :
+    print("Failure")
+

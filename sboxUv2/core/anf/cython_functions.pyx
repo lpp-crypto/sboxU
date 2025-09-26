@@ -29,14 +29,14 @@ def degree_spectrum(s):
 
 
 def algebraic_normal_form_coordinate(s, polynomial_vars=None):
-    """The algebraic normal form of a boolean function is the multivariate polynomial representation of this function
+    """The algebraic normal form of a boolean function is the multivariate polynomial representation of this function.
 
     Args:
-       s: an S_box-able of output length 1. 
+       s: an S_box-able object of output length 1. 
        polynomial_vars: the variables used to express the polynomial. 
 
     Returns:
-       A polynomial corresponding to the boolean function s, expressed in terms of polynomial_vars if not None.
+       A polynomial corresponding to the anf of the boolean function s, expressed in terms of polynomial_vars if not None.
     """
     sb = Sb(s)
     if polynomial_vars == None:
@@ -59,6 +59,15 @@ def algebraic_normal_form_coordinate(s, polynomial_vars=None):
 
 
 def algebraic_normal_form(s, polynomial_vars=None):
+    """The algebraic normal form of a vectorial boolean function is the multivariate polynomial representation of the coordinates of this function.
+
+    Args:
+        s: an S_box-able object 
+        polynomial_vars: the variables used to express the polynomial. 
+
+    Returns:
+        A list of polynomials corresponding to the anfs of the coordinate functions of s, expressed in terms of polynomial_vars if not None.
+    """
     sb = Sb(s)
     if polynomial_vars == None:
         R = PolynomialRing(
@@ -74,11 +83,37 @@ def algebraic_normal_form(s, polynomial_vars=None):
 
 
 def eval_anf(anf, x):
-    return from_bin(anf(to_bin(x)))
+    """
+    Evaluate a multivariate binary polynomial (in Algebraic Normal Form, ANF) 
+    at a given integer input. The polynomial is defined on `n` variables. The integer `x` is interpreted 
+    as an n-bit binary vector, where each bit corresponds to the value assigned 
+    to one variable of the polynomial.
+
+    Args:
+        anf: a multivariate binary polynomial on n variables (in algebraic normal form). 
+        x (int): an integer between 0 and 2**n - 1. Its n-bit binary representation is used as the variable assignment for the polynomial.
+
+    Returns:
+        The evaluation of the polynomial at the assignment given by `x` (always 0 or 1).
+    """
+    return anf(to_bin(x,len(anf.args())))
 
 
 def eval_vect_anf(anfs, x):
-    x_bin = to_bin(x)
+    """
+    Evaluate a vectorial Boolean function, represented as a list of multivariate 
+    binary polynomials (in Algebraic Normal Form, ANF), at a given integer input. Each polynomial in `anfs` corresponds to one output coordinate of the function. 
+    The integer `x` is interpreted as an n-bit binary vector, used as the variable 
+    assignment for all polynomials. 
+
+    Args:
+        anfs (list): list of multivariate binary polynomials. All polynomials must have the same number of variables.  
+        x (int): an integer whose n-bit binary representation defines the input assignment for the polynomials.
+
+    Returns:
+        the integer `y` representing the vector of polynomial evaluations, where bit i of `y` is the output of `anfs[i](x)`.
+    """
+    x_bin = to_bin(x,len(anfs[0].args()))
     y = 0
     for i in range(0, len(anfs)):
         y = (<int>(anfs[i](x_bin)) << i) | y
