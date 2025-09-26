@@ -96,7 +96,7 @@ def eval_anf(anf, x):
     Returns:
         The evaluation of the polynomial at the assignment given by `x` (always 0 or 1).
     """
-    return from_bin(anf(to_bin(x,len(anf.args()))))
+    return anf(to_bin(x,len(anf.args())))
 
 
 def eval_vect_anf(anfs, x):
@@ -105,7 +105,7 @@ def eval_vect_anf(anfs, x):
     binary polynomials (in Algebraic Normal Form, ANF), at a given integer input. Each polynomial in `anfs` corresponds to one output coordinate of the function. 
     The integer `x` is interpreted as an n-bit binary vector, used as the variable 
     assignment for all polynomials. 
-    
+
     Args:
         anfs (list): list of multivariate binary polynomials. All polynomials must have the same number of variables.  
         x (int): an integer whose n-bit binary representation defines the input assignment for the polynomials.
