@@ -32,9 +32,12 @@
 // signed
 typedef int64_t Integer;
 typedef std::vector<Integer> Row;
+
 // unsigned
 typedef uint64_t BinWord;
 typedef std::vector<BinWord> Lut;
+
+typedef std::vector< std::vector<std::vector<BinWord>>> Xtable;
 
 typedef std::vector<Integer> FpWord;
 

@@ -170,3 +170,11 @@ def fbct(s):
     sb = Sb(s)
     result = cpp_fbct((<S_box>sb).cpp_sb[0])
     return result
+
+# SECTION xddt and co
+
+def xddt(s):
+    sb=Sb(s)
+    result = cpp_xddt((<S_box>sb).cpp_sb[0])
+    return result
+
