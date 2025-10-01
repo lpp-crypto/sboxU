@@ -83,6 +83,19 @@ def is_differential_uniformity_smaller_than(s, u):
 
 
 def walsh_transform(s):
+    """The Walsh transform of a function f over of a field of characteristic $c$ is the set
+
+    $W_f(a) = \\sum_x \\rho_c^{ax + f(x)}$
+
+    where ax is a the scalar product of the vectors a and x, where $\\rho_c$ is an order $c$ complex root of unity, and where a takes all possible values. Here, they are ordered using their representation as integers.
+
+    Args:
+        s: an S-boxable object
+
+    Returns:
+        list: a list `l` such that `l[a]` is equal to $W_f(a)$. Contains integers for vectorial Boolean function, complex numbers otherwise.
+    """
+    # !CHECK! does the output consists of complex numbers in the case of non binary fields?
     sb = Sb(s)
     if sb.get_output_length() != 1:
         raise Exception("Walsh transform takes as input a boolean function")
@@ -91,6 +104,14 @@ def walsh_transform(s):
 
     
 def walsh_spectrum(s):
+    """The Walsh spectrum of a function describes the number of time each value appears in its Walsh transform (as returned by `walsh_transform`). For a vectorial function, it counts the number of occurrences of each coefficient in its LAT (as returned by `lat`).
+
+    Args:
+        s: an S-boxable object
+
+    Returns:
+        Spectrum: a Spectrum instance `d` such that `d[i]` is the number of occurrences of `i` in the LAT of `s`.
+    """
     sb = Sb(s)
     result = Spectrum(name="Walsh".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
@@ -102,16 +123,44 @@ def walsh_spectrum(s):
 
 
 def absolute_walsh_spectrum(s):
+    """The absolute Walsh transform counts the number of occurrences of coefficients with a given absolute value in the Walsh transform for a function (or LAT for a vectorial function).
+
+    Args:
+        s: an S-boxable object
+
+    Returns:
+        Spectrum: a Spectrum instance `d` such that `d[i]` is the sum of the number of occurrences of `i` and `-i` in the LAT of `s`.
+    """
     return walsh_spectrum(s).absolute()
     
 
 def lat(s):
+    """The Linear Approximation Table of a function F over a vector space of a field of prime characteristic p is a two dimensional array $W_F$ such that
+
+    $ W_F(a, b) = \\sum_x \\rho_c^{ax + bF(x)} $
+
+    where $ax$ and $bF(x)$ denote the scalar products of $a$ and $x$, and $b$ and $F(x)$; and where $\\rho_c$ is a complex order c root of unity (i.e. $\\rho_c = -1$ for Boolean functions).
+    
+    Args:
+        s: an S-boxable object
+    
+    Returns:
+        list: A list of list `l` such that `l[a][b]` = $W_{F}(a, b)$.
+    """
     sb = Sb(s)
     result = cpp_lat((<S_box>sb).cpp_sb[0])
     return result
 
 
 def invert_lat(l):
+    """The LAT is essentially a Fourier transform, meaning that it can be inverted. That is what this function does.
+
+    Args:
+        l (list): A list of list corresponding to the LAT of a function.
+
+    Returns:
+        An S_box instance whose LAT is `l`.
+    """
     sb = S_box(name="LAT^-1")
     (<S_box>sb).set_inner_sbox(<cpp_S_box>cpp_invert_lat(l))
     return sb
