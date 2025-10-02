@@ -30,7 +30,7 @@ std::vector< std::vector<Integer>> cpp_ddt(const cpp_S_box & s)
 // !SECTION! The XDDT and its associated sets
 // !SUBSECTION! The sets
 std::vector< std::vector<BinWord>> cpp_xddt_row(const cpp_S_box & s, const BinWord delta)
-{   std::vector< std::vector<BinWord>> result(s.input_space_size());
+{   std::vector< std::vector<BinWord>> result;
     result.reserve(s.input_space_size());
     BinWord y;
     for (unsigned int i=1; i< s.input_space_size(); i++)
@@ -61,7 +61,7 @@ return table;
 }
 
 std::vector<std::vector<BinWord>> cpp_yddt_row(const cpp_S_box & s, const BinWord delta)
-{   std::vector< std::vector<BinWord>> result(s.input_space_size());
+{   std::vector< std::vector<BinWord>> result;
     result.reserve(s.input_space_size());
     BinWord y;
     for (unsigned int i=1; i< s.input_space_size(); i++)
@@ -93,7 +93,7 @@ return table;
 
 
 std::vector< std::vector<BinWord>> cpp_zddt_row(const cpp_S_box & s, const BinWord delta)
-{   std::vector< std::vector<BinWord>> result(s.input_space_size());
+{   std::vector< std::vector<BinWord>> result;
     result.reserve(s.input_space_size());
     BinWord y;
     for (unsigned int i=1; i< s.input_space_size(); i++)
