@@ -223,7 +223,46 @@ def fbct(s):
 # SECTION xddt and co
 
 def xddt(s):
+    """
+    The XDDT of a function F is a three dimensional array `D` such that `D[a][b] = {x, F(x+a) = F(x)+b}`. The number of rows and columns of the XDDT depends on the dimensions of the input and output of the S-box (respectively).
+
+    Args :
+        s: an S-boxable object over F_2
+    
+    Returns :
+        list: A list of lists of lists corresponding to a 3-dimensional array containing the XDDT of `s`.
+    """
     sb=Sb(s)
     result = cpp_xddt((<S_box>sb).cpp_sb[0])
+    return result
+
+
+def yddt(s):
+    """
+    The YDDT of a function F is a three dimensional array `D` such that `D[a][b] = {F(x), F(x+a) = F(x)+b}`. The number of rows and columns of the YDDT depends on the dimensions of the input and output of the S-box (respectively).
+
+    Args :
+        s: an S-boxable object over F_2
+    
+    Returns :
+        list: A list of lists of lists corresponding to a 3-dimensional array containing the YDDT of `s`.
+    """
+    sb=Sb(s)
+    result = cpp_yddt((<S_box>sb).cpp_sb[0])
+    return result
+
+
+def zddt(s):
+    """
+    The ZDDT of a function F is a three dimensional array `D` such that `D[a][b] = {x|F(x), F(x+a) = F(x)+b}`. The number of rows and columns of the ZDDT depends on the dimensions of the input and output of the S-box (respectively).
+
+    Args :
+        s: an S-boxable object over F_2
+    
+    Returns :
+        list: A list of lists of lists corresponding to a 3-dimensional array containing the ZDDT of `s`.
+    """
+    sb=Sb(s)
+    result = cpp_zddt((<S_box>sb).cpp_sb[0])
     return result
 

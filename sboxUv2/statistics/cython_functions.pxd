@@ -34,6 +34,14 @@ cdef extern from "../cpp/statistics/differential.hpp":
         const cpp_S_box & s
     )
 
+    std_vector[std_vector[std_vector[BinWord]]] cpp_yddt(
+        const cpp_S_box & s
+    )
+
+    std_vector[std_vector[std_vector[BinWord]]] cpp_zddt(
+        const cpp_S_box & s
+    )
+
 
 cdef extern from "../cpp/statistics/differential.cpp":
     pass
