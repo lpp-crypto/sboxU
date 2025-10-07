@@ -15,6 +15,7 @@
 
 // Input/Outputs
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 
 // Exceptions
