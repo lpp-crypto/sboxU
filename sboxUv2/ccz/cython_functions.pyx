@@ -3,6 +3,7 @@
 
 from sboxUv2.core import Sb, Blm
 from sboxUv2.config import MAX_N_THREADS
+from sboxUv2.statistics import lat
 
 
 # !SECTION! Walsh zeroes and friends
@@ -59,4 +60,102 @@ def enumerate_ea_classes(s):
     return result
 
 
+# !SECTION! LAT-based equivalence tests
 
+# !SUBSECTION! All linear automorphisms
+
+def linear_automorphisms_from_lat(lat, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+    """ Compute the linear automorphisms (*) of a function F from its linear approximation table (LAT).
+        (*) i.e. all pairs of linear bijections (A, B) satisfying B o F o A = F.
+
+        More information on the search algorithms can be found in the corresponding C++ code.
+
+        Args:
+            lat: The linear approximation table of F.
+            algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
+                        - "alt_partition_diag_mappings" (default)
+                        - "alt_partition"
+                        - "std_partition_diag_mappings"
+            number_of_threads (int): The number of threads to use. By default, it is set to 8.
+
+        Returns:
+            list: A list of pairs of look-up tables corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
+
+    """
+    return cpp_linear_automorphisms_from_lat(lat, algorithm.encode('ascii'), number_of_threads)
+
+
+def linear_automorphisms(lut, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+    """Return the linear automorphisms of a function F,
+    i.e. all pairs of linear bijections (A, B) satisfying B o F o A = F.
+
+    If the LAT is already computed and stored, the function linear_automorphisms_from_lat behaves the same
+    but avoid the unnecessary recomputation of the LAT.
+
+    More information on the search algorithms can be found in the corresponding C++ code.
+
+    Args:
+        lut: The look-up table of F.
+        algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
+                    - "alt_partition_diag_mappings" (default)
+                    - "alt_partition"
+                    - "std_partition_diag_mappings"
+        number_of_threads (int): The number of threads to use. By default, it is set to 8.
+
+    Returns:
+        list: A list of pairs of look-up tables corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
+
+    """
+    return linear_automorphisms_from_lat(lat(lut), algorithm, number_of_threads)
+
+
+# !SUBSECTION! At most one linear automorphism
+
+def is_linearly_self_equivalent_from_lat(lat, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+    """ Checks whether a function F is linearly self-equivalent (*) from its linear approximation table (LAT).
+     (*) i.e. if it exists a non-trivial pair of linear bijections (A, B) satisfying B o F o A = F.
+
+    More information on the search algorithms can be found in the corresponding C++ code.
+
+    Args:
+        lat: The linear approximation table of F.
+        algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
+                    - "alt_partition_diag_mappings" (default)
+                    - "alt_partition"
+                    - "std_partition_diag_mappings"
+        number_of_threads (int): The number of threads to use. By default, it is set to 8.
+
+    Returns:
+        A pair of look-up tables corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
+        Return False otherwise.
+
+    """
+    res = cpp_is_linearly_self_equivalent_from_lat(lat, algorithm.encode('ascii'), number_of_threads)
+    if res == ([], []):
+        return False
+    else:
+        return res
+
+def is_linearly_self_equivalent(lut, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+    """ Checks whether a function F is linearly self-equivalent, i.e,
+     if it exists a non-trivial pair of linear bijections (A, B) satisfying B o F o A = F.
+
+     If the LAT is already computed and stored, the function is_linearly_self_equivalent_from_lat behaves the same
+    but avoid the unnecessary recomputation of the LAT.
+
+    More information on the search algorithms can be found in the corresponding C++ code.
+
+    Args:
+        lut: The look-up table of F.
+        algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
+                    - "alt_partition_diag_mappings" (default)
+                    - "alt_partition"
+                    - "std_partition_diag_mappings"
+        number_of_threads (int): The number of threads to use. By default, it is set to 8.
+
+    Returns:
+        tuple: A pair of look-up tables corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
+        Return False otherwise.
+
+    """
+    return is_linearly_self_equivalent_from_lat(lat(lut), algorithm, number_of_threads)
