@@ -2,8 +2,7 @@
 #define _APN_
 
 #include "../sboxU.hpp"
-#include "../f2functions.hpp"
-#include "../s_box.hpp"
+#include "../core/include.hpp"
 #include "../statistics/include.hpp"
 
 

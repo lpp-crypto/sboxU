@@ -242,6 +242,7 @@ def expected_linearity_distribution_function(
     
 
 # !SUBSECTION! BCT
+
 # !TODO! Write proper docstring for the BCT anomalies functions
 
 def bct_coeff_probability(

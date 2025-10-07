@@ -1,10 +1,8 @@
 # -*- python -*-
 
-from libc.stdint cimport uint64_t
-from libcpp.vector cimport vector
-
-from sboxUv2.sbox.cython_functions cimport *
-from sboxUv2.statistics.cython_functions cimport *
+from sboxUv2.cython_types cimport *
+from sboxUv2.core cimport *
+from sboxUv2.statistics cimport *
 
 cdef extern from "../cpp/apn/invariants.hpp":
     cpp_S_box cpp_ortho_derivative(

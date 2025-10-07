@@ -67,3 +67,12 @@ if __name__ == "__main__":
     
     for delta in sb0.input_space():
         print(sb0.derivative(delta))
+
+    c     = CastFromF2Product([2, 3])
+    c_inv = CastToF2Product([2, 3])
+    s_prod = Sb(random_permutation_S_box(5).lut(),
+                input_cast=[c],
+                output_cast=[c_inv]
+                )
+    for x in c.structure([2, "*"]):
+        print(x, s_prod(x))

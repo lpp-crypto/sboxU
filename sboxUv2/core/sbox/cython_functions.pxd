@@ -80,6 +80,8 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 cdef class S_box:
     cdef cpp_S_box * cpp_sb
     cdef string cpp_name
+    cdef list input_cast
+    cdef list output_cast
     cdef set_inner_sbox(S_box self, cpp_S_box s)
 
 

@@ -60,18 +60,34 @@ for i, s in enumerate(targets):
     print(sp)
 print(c)
 
-print("testing expected distribution")
-n = 7
+print("testing expected distributions")
+n = 8
 n_tested = 2**13
+
+print("-- LAT")
 dis = defaultdict(int)
-print("-- experimental")
+print("---- experimental")
 for t in range(0, n_tested):
     dis[linearity(random_permutation_S_box(n))] += 1
 for k in sorted(dis.keys()):
     if dis[k] != 0:
         print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
-print("-- theoretical")
-dis = expected_linearity_permutation_distribution(n, n)
+print("---- theoretical")
+dis = expected_linearity_distribution_permutation(n, n)
+for k in sorted(dis.keys()):
+    if dis[k] != 0.0:
+        print("{:3d}: {:.4f}".format(k, dis[k]))
+
+print("-- DDT")
+dis = defaultdict(int)
+print("---- experimental")
+for t in range(0, n_tested):
+    dis[differential_uniformity(random_permutation_S_box(n))] += 1
+for k in sorted(dis.keys()):
+    if dis[k] != 0:
+        print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
+print("---- theoretical")
+dis = expected_differential_uniformity_distribution_permutation(n, n)
 for k in sorted(dis.keys()):
     if dis[k] != 0.0:
         print("{:3d}: {:.4f}".format(k, dis[k]))
