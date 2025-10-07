@@ -7,6 +7,8 @@
 from .cython_functions import \
     thickness_spectrum, \
     ccz_equivalent_function, \
-    enumerate_ea_classes
+    enumerate_ea_classes, \
+    is_linearly_self_equivalent_from_lat, is_linearly_self_equivalent, \
+    linear_automorphisms_from_lat, linear_automorphisms
 
 from .affine_equivalence import *
