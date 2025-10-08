@@ -1,5 +1,6 @@
 from sage.all import *
 from sboxUv2 import *
+from time import time
 
 
 # global variables of the module
@@ -89,7 +90,7 @@ def test_linear_automorphisms(lut, algorithms=None, number_of_threads=8):
     # The sage search
     if algo_sage:
         start = time()
-        automorphisms = table_linear_automorphisms(tab)
+        automorphisms = linear_automorphisms(tab)
         stop = time()
         automorphisms = set([tuple([tuple(a), tuple(b)]) for a, b in automorphisms])
         automorphisms_algo_by_algo.append(automorphisms)
@@ -103,11 +104,11 @@ def test_linear_automorphisms(lut, algorithms=None, number_of_threads=8):
     assert all([automorphisms == automorphisms_algo_by_algo[0] for automorphisms in automorphisms_algo_by_algo])
     # Each output is indeed an automorphism
     for a, b in automorphisms_algo_by_algo[0]:
-        a = linear_function_lut_to_matrix(a).transpose().inverse()
-        a = linear_function_matrix_to_lut(a)
-        b = linear_function_lut_to_matrix(b).transpose()
-        b = linear_function_matrix_to_lut(b)
-        assert comp([b, lut, a]) == lut
+        # !TODO! to update using modern sboxU 
+        a = a.transpose().inverse()
+        b = b.transpose()
+        lut = Sb(lut)
+        assert b * lut * a == lut
     stop = time()
     print(" %.3f " % (stop - start))
 
@@ -126,20 +127,25 @@ def test_is_linearly_self_equivalent(lut, number_of_threads=8):
         number_of_threads (int): The number of threads to use. By default, it is set to 8.
     """
     tab = lat(lut)
+    print(len(tab))
     automorphism_algo_by_algo = []
     print("[alt_partition_diag_mappings, alt_partition, std_partition_diag_mappings, sage]")
 
     # The C++ searches
     for algo in ["alt_partition_diag_mappings", "alt_partition", "std_partition_diag_mappings"]:
         start = time()
-        automorphism = is_linearly_self_equivalent_from_lat(tab, algo, number_of_threads)
+        automorphism = is_linearly_self_equivalent_from_lat(
+            tab,
+            algo,
+            number_of_threads
+        )
         stop = time()
         automorphism_algo_by_algo.append(automorphism)
         print("%.3f " % (stop - start), end='')
 
     # The sage search
     start = time()
-    automorphism_sage = table_linear_automorphisms(tab)
+    automorphism_sage = linear_automorphisms(lut)
     stop = time()
     automorphism_sage = set([tuple([tuple(a), tuple(b)]) for a, b in automorphism_sage])
     print("%.3f " % (stop - start), end='')
@@ -150,11 +156,14 @@ def test_is_linearly_self_equivalent(lut, number_of_threads=8):
         assert all([automorphism[0] or automorphism[1] for automorphism in automorphism_algo_by_algo])
     print()
 
-if __name__ == "__main__":
 
+    
+if __name__ == "__main__":
     for i_f, funcs in enumerate([all_quadratics_6]):
-        print()
         print('=== TESTING orthoderivatives of %d-bit functions ==='%(i_f+6))
         for f in funcs():
+            print(f)
             #test_linear_automorphisms(ortho_derivative(f), algorithms=["alt_partition_diag_mappings"])
-            test_is_linearly_self_equivalent(ortho_derivative(f))
+            o = ortho_derivative(f)
+            print(o)
+            test_is_linearly_self_equivalent(o)

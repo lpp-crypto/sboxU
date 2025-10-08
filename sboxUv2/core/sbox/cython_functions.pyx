@@ -211,7 +211,7 @@ cdef class S_box:
 
     
     def __hash__(self):
-        return hash(self.cpp_sb.to_bytes())
+        return hash(self.to_bytes())
 
 
     def __pow__(self, d, modulo):

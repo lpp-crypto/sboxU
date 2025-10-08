@@ -52,10 +52,11 @@ cpp_BinLinearMap cpp_BinLinearMap::operator+(const cpp_BinLinearMap l) const
 
 cpp_BinLinearMap cpp_BinLinearMap::inverse() const
 {
-    if (input_length <= 8)      // up to n=8, n^2.8 is greater than 2^n
+    if (input_length <= 20)      // up to n=8, n^2.8 is greater than 2^n
+                                 // but for now, we don't have anything else
     {
-        // bruteforcing inputs and sotring those mapped to
-        // hamming-weigh-1 values
+        // bruteforcing inputs and sorting those mapped to
+        // hamming-weight-1 values
         std::vector<BinWord> preimages(input_length, 0);
         Integer n_found = 0;
         for (BinWord x=1; x<(1 << input_length); x++)

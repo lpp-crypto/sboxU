@@ -64,7 +64,11 @@ def enumerate_ea_classes(s):
 
 # !SUBSECTION! All linear automorphisms
 
-def linear_automorphisms_from_lat(lat, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+def linear_automorphisms_from_lat(
+        l,
+        algorithm="alt_partition_diag_mappings",
+        n_threads=MAX_N_THREADS
+):
     """ Compute the linear automorphisms (*) of a function F from its linear approximation table (LAT).
         (*) i.e. all pairs of linear bijections (A, B) satisfying B o F o A = F.
 
@@ -82,10 +86,17 @@ def linear_automorphisms_from_lat(lat, algorithm="alt_partition_diag_mappings", 
             list: A list of pairs of look-up tables corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
 
     """
-    return cpp_linear_automorphisms_from_lat(lat, algorithm.encode('ascii'), number_of_threads)
+    return cpp_linear_automorphisms_from_lat(
+        l,
+        algorithm.encode('ascii'),
+        n_threads)
 
 
-def linear_automorphisms(lut, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+def linear_automorphisms(
+        lut,
+        algorithm="alt_partition_diag_mappings",
+        n_threads=MAX_N_THREADS
+):
     """Return the linear automorphisms of a function F,
     i.e. all pairs of linear bijections (A, B) satisfying B o F o A = F.
 
@@ -106,12 +117,20 @@ def linear_automorphisms(lut, algorithm="alt_partition_diag_mappings", number_of
         list: A list of pairs of look-up tables corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
 
     """
-    return linear_automorphisms_from_lat(lat(lut), algorithm, number_of_threads)
+    return linear_automorphisms_from_lat(
+        lat(lut),
+        algorithm,
+        n_threads
+    )
 
 
 # !SUBSECTION! At most one linear automorphism
 
-def is_linearly_self_equivalent_from_lat(lat, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+def is_linearly_self_equivalent_from_lat(
+        l,
+        algorithm="alt_partition_diag_mappings",
+        n_threads=MAX_N_THREADS
+):
     """ Checks whether a function F is linearly self-equivalent (*) from its linear approximation table (LAT).
      (*) i.e. if it exists a non-trivial pair of linear bijections (A, B) satisfying B o F o A = F.
 
@@ -123,20 +142,29 @@ def is_linearly_self_equivalent_from_lat(lat, algorithm="alt_partition_diag_mapp
                     - "alt_partition_diag_mappings" (default)
                     - "alt_partition"
                     - "std_partition_diag_mappings"
-        number_of_threads (int): The number of threads to use. By default, it is set to 8.
+        n_threads (int): The number of threads to use. By default, it is set to 8.
 
     Returns:
-        A pair of look-up tables corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
-        Return False otherwise.
+        A pair of BinLinearMaps corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
+        Returns False otherwise.
 
     """
-    res = cpp_is_linearly_self_equivalent_from_lat(lat, algorithm.encode('ascii'), number_of_threads)
+    res = cpp_is_linearly_self_equivalent_from_lat(
+        l,
+        algorithm.encode('ascii'),
+        n_threads
+    )
     if res == ([], []):
         return False
     else:
-        return res
+        return (Blm(Sb(res.first)), Blm(Sb(res.second)))
 
-def is_linearly_self_equivalent(lut, algorithm="alt_partition_diag_mappings", number_of_threads=8):
+    
+def is_linearly_self_equivalent(
+        s,
+        algorithm="alt_partition_diag_mappings",
+        n_threads=MAX_N_THREADS
+):
     """ Checks whether a function F is linearly self-equivalent, i.e,
      if it exists a non-trivial pair of linear bijections (A, B) satisfying B o F o A = F.
 
@@ -151,11 +179,15 @@ def is_linearly_self_equivalent(lut, algorithm="alt_partition_diag_mappings", nu
                     - "alt_partition_diag_mappings" (default)
                     - "alt_partition"
                     - "std_partition_diag_mappings"
-        number_of_threads (int): The number of threads to use. By default, it is set to 8.
+        n_threads (int): The number of threads to use. By default, it is set to 8.
 
     Returns:
         tuple: A pair of look-up tables corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
         Return False otherwise.
 
     """
-    return is_linearly_self_equivalent_from_lat(lat(lut), algorithm, number_of_threads)
+    return is_linearly_self_equivalent_from_lat(
+        lat(s),
+        algorithm,
+        n_threads
+    )

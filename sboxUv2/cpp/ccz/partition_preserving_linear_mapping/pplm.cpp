@@ -16,7 +16,14 @@
 //      - if true, the standard partition is used : {lat[x][y], x, y \in GF(2**n)} is split by values.
 //      - otherwise, {lat[x][y], x, y \in GF(2**n)} is split by values. Furthermore, the buckets are split
 //        so that (x, 0) is necessarily mapped onto (x', 0) (and the same for (0, y) -> (0, y') ).
-vector<pair<vector<BinWord>, vector<BinWord>>> linear_automorphism_search(const vector<vector<Integer>> &lat, const bool &single_non_trivial_answer, const bool &diagonal_mappings, const bool &alternative_partition, const unsigned int &number_of_threads) {
+vector<pair<vector<BinWord>, vector<BinWord>>> linear_automorphism_search(
+    const vector<vector<Integer>> &lat,
+    const bool &single_non_trivial_answer,
+    const bool &diagonal_mappings,
+    const bool &alternative_partition,
+    const unsigned int &number_of_threads
+    )
+{
 	Integer n = log2(lat.size());
 	BinWord size = (ONE << n);
 
@@ -51,7 +58,13 @@ vector<pair<vector<BinWord>, vector<BinWord>>> linear_automorphism_search(const 
 }
 
 // The three different search strategies
-vector<pair<vector<BinWord>,vector<BinWord>>> linear_automorphisms(const vector<vector<Integer>> &lat, const bool &single_non_trivial_answer, const string &algo, const unsigned int &number_of_threads) {
+vector<pair<vector<BinWord>,vector<BinWord>>> linear_automorphisms(
+    const vector<vector<Integer>> &lat,
+    const bool &single_non_trivial_answer,
+    const string &algo,
+    const unsigned int &number_of_threads
+    )
+{
 	vector<pair<vector<BinWord>, vector<BinWord>>> luts;
 	if(algo == "alt_partition_diag_mappings")
 		luts = linear_automorphism_search(lat, single_non_trivial_answer, true, true, number_of_threads);
@@ -64,12 +77,22 @@ vector<pair<vector<BinWord>,vector<BinWord>>> linear_automorphisms(const vector<
 }
 
 // The full search
-vector<pair<vector<BinWord>, vector<BinWord>>> cpp_linear_automorphisms_from_lat(const vector<vector<Integer>> &lat, const string algo, const unsigned int &number_of_threads) {
+vector<pair<vector<BinWord>, vector<BinWord>>> cpp_linear_automorphisms_from_lat(
+    const vector<vector<Integer>> &lat,
+    const string algo,
+    const unsigned int &number_of_threads
+    )
+{
 	return linear_automorphisms(lat, false, algo, number_of_threads);
 }
 
 // The early-abort search
-pair<vector<BinWord>, vector<BinWord>> cpp_is_linearly_self_equivalent_from_lat(const vector<vector<Integer>> &lat, const string algo, const unsigned int &number_of_threads) {
+pair<vector<BinWord>, vector<BinWord>> cpp_is_linearly_self_equivalent_from_lat(
+    const vector<vector<Integer>> &lat,
+    const string algo,
+    const unsigned int &number_of_threads
+    )
+{
 	auto luts = linear_automorphisms(lat, true, algo, number_of_threads);
 	if(luts.size())
 		return luts[0];
