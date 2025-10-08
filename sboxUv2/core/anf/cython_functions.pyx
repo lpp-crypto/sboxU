@@ -1,5 +1,5 @@
 # -*- python -*-
-# cython_functions.pyx
+
 
 from ..sbox cimport *
 from ..spectrum cimport *
@@ -10,6 +10,11 @@ from sboxUv2.core.sbox import Sb
 
 from sage.all import GF, PolynomialRing, prod
 
+
+# !SECTION! Information about the ANF
+
+
+# !SUBSECTION! General information
 
 def degree_spectrum(s):
     """The degree spectrum describes the number of components of an S-box that have algebraic degree exactly k.
@@ -26,6 +31,15 @@ def degree_spectrum(s):
         cpp_degree_spectrum((<S_box>s).cpp_sb[0])
     )
     return py_result
+
+
+def algebraic_degree(s):
+    # !TODO! docstring for algebraic_degree
+    sb = Sb(s)
+    return cpp_algebraic_degree((<S_box>s).cpp_sb[0])
+
+
+# !SUBSECTION! The ANF itself
 
 
 def algebraic_normal_form_coordinate(s, polynomial_vars=None):
@@ -81,6 +95,8 @@ def algebraic_normal_form(s, polynomial_vars=None):
                                              polynomial_vars=polynomial_vars)
             for i in range(sb.get_output_length())]
 
+
+# !SECTION! Evaluating ANFs
 
 def eval_anf(anf, x):
     """

@@ -4,5 +4,6 @@
 """
 
 from .cython_functions import \
-    ortho_derivative, sigma_multiplicities
+    ortho_derivative, sigma_multiplicities, \
+    apn_ea_mugshot
 

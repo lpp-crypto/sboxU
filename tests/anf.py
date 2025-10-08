@@ -27,6 +27,9 @@ test=Sb(anf_Sb0)
 if Sb0.lut()==test:
     print("The polynomials can be evaluated to retrieve the LUT")
 
+if algebraic_degree(Sb0) == 3:
+    print("The algebraic degree of Midori_Sb0 is computed correctly")
+    
 
 print("Testing eval_anf on a 8-bit random Boolean Function")
 S=Sb([randint(0,1) for _ in range(256)])

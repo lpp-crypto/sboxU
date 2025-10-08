@@ -6,5 +6,6 @@
 #include "./binLinearMap.hpp"
 #include "./multithread.hpp"
 #include "./spectrum.hpp"
+#include "./anf.hpp"
 
 #endif
