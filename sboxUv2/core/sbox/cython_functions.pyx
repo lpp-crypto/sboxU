@@ -211,7 +211,7 @@ cdef class S_box:
 
     
     def __hash__(self):
-        return hash(self.cpp_sb.content_string_repr())
+        return hash(self.cpp_sb.to_bytes())
 
 
     def __pow__(self, d, modulo):
@@ -312,6 +312,10 @@ cdef class S_box:
             del self.cpp_sb
         self.cpp_sb = new cpp_S_box()
         self.cpp_sb[0] = s
+
+    
+    def to_bytes(self):
+        return bytes(self.cpp_sb.to_bytes())
 
     
     def name(self):
@@ -547,7 +551,13 @@ def Sb(s, name=None, input_cast=[], output_cast=None):
         return s
     else:
         result = S_box(name=name)
-        if isinstance(s, list):
+
+        if isinstance(s, (bytes, bytearray)):
+            # case of a sequence of bytes
+            (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
+
+        elif isinstance(s, list):
+            # Case of a list of entries. Could be a list numbers or a list of polynomials
             if len(s) == 0:
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
             elif isinstance(s[0], (int, sage_Integer)): # case of a lookup table
@@ -564,9 +574,14 @@ def Sb(s, name=None, input_cast=[], output_cast=None):
                     lut[x] = y
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
             else:
-                raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+                msg = "can't turn list of objects of type '{}' into an S_box".format(type(s[0]))
+                print(msg)
+                raise NotImplemented(msg)
+            
         elif isinstance(s, sage_SBox):
+            # case of a Sage-style SBox instance
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
+
         elif isinstance(s, Polynomial):
             field = s.base_ring()
             if field.characteristic() == 2:
@@ -581,7 +596,9 @@ def Sb(s, name=None, input_cast=[], output_cast=None):
             try:
                 result = s.get_S_box()
             except:
-                raise NotImplemented("can't turn object of type '{}' into an S_box".format(type(s)))
+                msg = "can't turn object of type '{}' into an S_box".format(type(s))
+                print(msg)
+                raise NotImplemented(msg)
         (<S_box>result).input_cast = input_cast
         if output_cast == None:
             (<S_box>result).output_cast = [lambda x : x]

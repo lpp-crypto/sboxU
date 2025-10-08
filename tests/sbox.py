@@ -76,3 +76,14 @@ if __name__ == "__main__":
                 )
     for x in c.structure([2, "*"]):
         print(x, s_prod(x))
+
+
+    for n in range(3, 11):
+        print("\n\n----\n", n)
+        for t in range(0, 3):
+            s = random_function_S_box(randint(2, 7), n)
+            b = s.to_bytes()
+            print("\n{}\n{}\n{}".format(
+                b,
+                s,
+                Sb(b)))

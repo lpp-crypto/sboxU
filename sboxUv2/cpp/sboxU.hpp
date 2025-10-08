@@ -30,6 +30,9 @@
 
 // !SECTION! Special types 
 
+// bytearray
+typedef std::vector<uint8_t> Bytearray;
+
 // signed
 typedef int64_t Integer;
 typedef std::vector<Integer> Row;

@@ -12,11 +12,13 @@ cdef extern from "../../cpp/core/s_box.hpp":
     cppclass cpp_S_box:
         cpp_S_box()
         cpp_S_box(std_vector[BinWord] lut)
+        cpp_S_box(Bytearray b)
         cpp_S_box(std_vector[BinWord] lut, int64_t input_length, int64_t output_length)
         BinWord brackets "operator[]" (const BinWord x) const
         cpp_S_box add "operator+" (const cpp_S_box s) const
         cpp_S_box mul "operator*" (const cpp_S_box s) const
         string content_string_repr()
+        Bytearray to_bytes() const
         std_vector[BinWord] get_lut()
         int64_t size()
         int64_t get_input_length()
