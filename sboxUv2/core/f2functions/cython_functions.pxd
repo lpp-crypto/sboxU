@@ -94,6 +94,12 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
 
         std_vector[BinWord] get_image_vectors()
     
+    cpp_BinLinearMap cpp_block_diagonal_BinLinearMap(
+        const cpp_BinLinearMap &A,
+        const cpp_BinLinearMap &B,
+    )
+
+
 
     
 cdef extern from "../../cpp/core/binLinearMap.cpp":

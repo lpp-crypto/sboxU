@@ -115,5 +115,16 @@ cpp_BinLinearMap cpp_BinLinearMap_from_lut(Lut & s);
 
 cpp_BinLinearMap cpp_BinLinearMap_from_lut(cpp_S_box & s);
 
+cpp_BinLinearMap cpp_block_diagonal_BinLinearMap(
+    const cpp_BinLinearMap &A,
+    const cpp_BinLinearMap &B
+    );
 
+cpp_BinLinearMap cpp_EA_BinLinearMap(
+    const cpp_BinLinearMap &A,
+    const cpp_BinLinearMap &B,
+    const cpp_BinLinearMap &C
+    );
+
+    
 #endif

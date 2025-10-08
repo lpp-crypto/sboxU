@@ -147,13 +147,15 @@ def test_is_linearly_self_equivalent(lut, number_of_threads=8):
     start = time()
     automorphism_sage = linear_automorphisms(lut)
     stop = time()
-    automorphism_sage = set([tuple([tuple(a), tuple(b)]) for a, b in automorphism_sage])
+    automorphism_sage = set([tuple([tuple(a), tuple(b)])
+                             for a, b in automorphism_sage])
     print("%.3f " % (stop - start), end='')
 
     if len(automorphism_sage) == 1:
         assert all([automorphism is False for automorphism in automorphism_algo_by_algo])
     else:
-        assert all([automorphism[0] or automorphism[1] for automorphism in automorphism_algo_by_algo])
+        assert all([automorphism[0] or automorphism[1]
+                    for automorphism in automorphism_algo_by_algo])
     print()
 
 
@@ -164,6 +166,4 @@ if __name__ == "__main__":
         for f in funcs():
             print(f)
             #test_linear_automorphisms(ortho_derivative(f), algorithms=["alt_partition_diag_mappings"])
-            o = ortho_derivative(f)
-            print(o)
-            test_is_linearly_self_equivalent(o)
+            test_is_linearly_self_equivalent(ortho_derivative(f))

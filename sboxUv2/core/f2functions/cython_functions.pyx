@@ -137,6 +137,7 @@ cdef class BinLinearMap:
         return self.cpp_blm[0].get_image_vectors()==L.cpp_blm[0].get_image_vectors()
 
 
+# !SUBSECTION! Factories 
 
 def identity_BinLinearMap(int64_t n):
     return Blm([(1 << i) for i in range(0, n)])
@@ -145,6 +146,17 @@ def identity_BinLinearMap(int64_t n):
 def zero_BinLinearMap(int64_t n):
     return Blm([0 for i in range(0, n)])
 
+
+def block_diagonal_BinLinearMap(A, B):
+    Ablm = Blm(A)
+    Bblm = Blm(B)
+    result = BinLinearMap()
+    result.cpp_blm[0] = cpp_block_diagonal_BinLinearMap(
+        (<BinLinearMap>A).cpp_blm[0],
+        (<BinLinearMap>B).cpp_blm[0],
+    )
+    return result
+    
 
 def Blm(x):
     if isinstance(x, (BinLinearMap)):

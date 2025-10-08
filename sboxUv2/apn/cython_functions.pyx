@@ -4,7 +4,9 @@ from sboxUv2.core import Sb
 from sboxUv2.config import MAX_N_THREADS
 
 
-# !SECTION! Invariants themselves
+# !SECTION! Invariants
+
+# !SUBSECTION! Invariants themselves
 
 def ortho_derivative(q):
     """Returns the ortho-derivative of the function corresponding to the S_boxable object `q`, as defined e.g. in [TiT:CanCouPer22].
@@ -34,8 +36,28 @@ def sigma_multiplicities(s, k):
     return result
 
 
-# !SECTION! Aggregated invariants
+# !SUBSECTION! Aggregated invariants
 
 def apn_ea_mugshot(s):
     sb = Sb(s)
     return cpp_apn_ea_mugshot((<S_box>sb).cpp_sb[0], MAX_N_THREADS)
+
+
+# !SECTION!  CCZ-equivalence class exploration
+
+def enumerate_ea_classes_apn_quadratic(
+        s,
+        n_threads=MAX_N_THREADS
+        ):
+    sb = Sb(s)
+    result = []
+    i = 0
+    for new_s in cpp_enumerate_ea_classes_quadratic_apn(
+        (<S_box>sb).cpp_sb[0],
+        MAX_N_THREADS):
+        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb.set_inner_sbox(<cpp_S_box>new_s)
+        result.append(new_sb)
+        i += 1
+    return result
+

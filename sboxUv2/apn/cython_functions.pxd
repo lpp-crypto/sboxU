@@ -29,3 +29,13 @@ cdef extern from "../cpp/apn/invariants.hpp":
 cdef extern from "../cpp/apn/invariants.cpp":
     pass
 
+
+cdef extern from "../cpp/apn/ccz_class.hpp":
+    std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
+
+cdef extern from "../cpp/apn/ccz_class.cpp":
+    pass
