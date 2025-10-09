@@ -30,9 +30,11 @@ F.rename("Skipjack")
 interactive_distribution_comparison_lat(F)
 interactive_distribution_comparison_bct(F)
 interactive_distribution_comparison_ddt(F, y_log_scale=False)
+fbct_interactive_view(F)
 
 
 S = random_permutation_S_box(8)
 fbct_interactive_view(S)
 pprint(fbct_spectrum(S))
 
+fbct_interactive_view(monomial(3, GF(2**6)))

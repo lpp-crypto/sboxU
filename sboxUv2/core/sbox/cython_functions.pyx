@@ -66,6 +66,8 @@ cdef class S_box:
  
     def __init__(self, name=None):
         self.rename(name)
+        self.input_cast = []
+        self.output_cast = []
 
 
     # !SUBSECTION! Dealing with the name
@@ -100,7 +102,33 @@ cdef class S_box:
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
+
+    
+    def __call__(self, x):
+        """Querying the S-box on a specific input.
+
+        Unlike __getitem__, the input does not have to be an integer; however, it needs to be a of a type that this S_box isntance can cast to an integer. The integer obtained by querying the lookup is then cast to another type using `self.output_cast`.
+
+        Because of the logic related to casting, it is slower than __getitem__.
         
+        Args:
+            x: a valid input for the cast `self.input_cast`.
+        
+        Returns:
+            The result of calling this S-box on the input of `x`, and then casting the result to the correct type.
+        """
+        if isinstance(x, (int, sage_Integer)):
+            return self.output_cast(self.cpp_sb.brackets(<BinWord>x))
+        elif self.input_cast != None:
+            for c in self.input_cast:
+                if c.is_valid_input(x):
+                    return self.output_cast[0](self.cpp_sb.brackets(c(x)))
+            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
+        else:
+            raise Exception("A cast able to process {} must be specified".format(type(x)))
+
+    # !CONTINUE! put basic casts to a dedicated file, and then add the logic to add those to S_boxes
+
 
     def __eq__(self, s):
         if len(s) != self.cpp_sb.size():
@@ -117,7 +145,7 @@ cdef class S_box:
 
         
     def __getitem__(self, BinWord x):
-        """Querying the S-box on a specific input.
+        """Querying the S-box on a specific integer.
         
         Args:
             x: an integer whose binary representation corresponds to the input on which to query the S-box.
@@ -126,7 +154,6 @@ cdef class S_box:
             The result of calling this S-box on the input of `x`.
         """
         return self.cpp_sb.brackets(x)
-
 
 
     def __len__(self):
@@ -184,7 +211,7 @@ cdef class S_box:
 
     
     def __hash__(self):
-        return hash(self.cpp_sb.content_string_repr())
+        return hash(self.to_bytes())
 
 
     def __pow__(self, d, modulo):
@@ -287,6 +314,10 @@ cdef class S_box:
         self.cpp_sb[0] = s
 
     
+    def to_bytes(self):
+        return bytes(self.cpp_sb.to_bytes())
+
+    
     def name(self):
         return self.cpp_name
 
@@ -353,6 +384,8 @@ cdef class S_box:
 
     
 
+
+        
 # !SECTION! The S_box_fp class
 
 cdef class S_box_fp:
@@ -498,9 +531,9 @@ cdef class S_box_fp:
 
 # !SECTION! Generating S-boxes
 
-# !SUBSECTION! Main factory 
+# !SUBSECTION! Main factory
 
-def Sb(s, name=None):
+def Sb(s, name=None, input_cast=[], output_cast=None):
     """Turns its input into an object of the S_box class.
 
     If it is already an S_box instance, simply returns its
@@ -510,13 +543,21 @@ def Sb(s, name=None):
     Args:
         s: an object of a class that can be turned into an S_box.
         name: the name to give the object. If none is provided, one will be picked using `sboxU_SBOXES_COUNTER`.
+        input_casts: a list of casts that are allowed for this S_box.
+        output_cast: the function to apply to the integer output when querying the LUT.
 
     """
     if isinstance(s, S_box):
         return s
     else:
         result = S_box(name=name)
-        if isinstance(s, list):
+
+        if isinstance(s, (bytes, bytearray)):
+            # case of a sequence of bytes
+            (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
+
+        elif isinstance(s, list):
+            # Case of a list of entries. Could be a list numbers or a list of polynomials
             if len(s) == 0:
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
             elif isinstance(s[0], (int, sage_Integer)): # case of a lookup table
@@ -533,9 +574,14 @@ def Sb(s, name=None):
                     lut[x] = y
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
             else:
-                raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+                msg = "can't turn list of objects of type '{}' into an S_box".format(type(s[0]))
+                print(msg)
+                raise NotImplemented(msg)
+            
         elif isinstance(s, sage_SBox):
+            # case of a Sage-style SBox instance
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
+
         elif isinstance(s, Polynomial):
             field = s.base_ring()
             if field.characteristic() == 2:
@@ -550,7 +596,14 @@ def Sb(s, name=None):
             try:
                 result = s.get_S_box()
             except:
-                raise NotImplemented("can't turn object of type '{}' into an S_box".format(type(s)))
+                msg = "can't turn object of type '{}' into an S_box".format(type(s))
+                print(msg)
+                raise NotImplemented(msg)
+        (<S_box>result).input_cast = input_cast
+        if output_cast == None:
+            (<S_box>result).output_cast = [lambda x : x]
+        else:
+            (<S_box>result).output_cast = output_cast
         return result
 
 

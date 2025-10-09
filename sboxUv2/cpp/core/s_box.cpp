@@ -30,6 +30,36 @@ cpp_S_box::cpp_S_box(std::vector<BinWord> _lut) :
     input_length = cpp_msb(lut.size());
 }
 
+
+cpp_S_box::cpp_S_box(Bytearray bytes) 
+{
+    output_length = bytes[0];
+    if (output_length <= 4)
+    {
+        // case where we store two outputs per byte
+        lut.assign((bytes.size()-1) * 2, 0);
+        for(BinWord x=0; x<lut.size(); x+=2)
+        {
+            BinWord y = bytes[(x >> 1) + 1];
+            lut[x]   = y & 0xF;
+            lut[x+1] = y >> 4;
+        }
+    }
+    else
+    {
+        // case where we store outputs over whole bytes
+        unsigned int output_byte_length = output_length / 8;
+        if ((output_length % 8) != 0)
+            output_byte_length ++ ;
+        lut.assign((bytes.size()-1) / output_byte_length, 0);
+        for(BinWord x=0; x<lut.size(); x++)
+            for(unsigned int i=0; i<output_byte_length; i++)
+                lut[x] ^= bytes[x*output_byte_length + i + 1] << (i*8);
+    }
+    input_length = cpp_msb(lut.size());
+}
+
+
 // !SECTION! Operator overloading 
 
 cpp_S_box cpp_S_box::operator+ (const cpp_S_box &s) const
@@ -78,6 +108,35 @@ std::string cpp_S_box::content_string_repr() const
 }
 
 
+Bytearray cpp_S_box::to_bytes() const
+{
+    if (output_length <= 4)
+    {
+        // case where we store two outputs per byte
+        Bytearray result(lut.size() / 2 + 1, 0);
+        result[0] = output_length;
+        for(BinWord x=0; x<lut.size(); x+=2)
+        {
+            BinWord x_prime = (x >> 1) + 1;
+            result[x_prime] = lut[x] ;
+            result[x_prime] ^= lut[x+1] << 4;
+        }
+        return result;
+    }
+    else
+    {
+        // case where each output is stored over whole bytes
+        unsigned int output_byte_length = output_length / 8;
+        if ((output_length % 8) != 0)
+            output_byte_length ++ ;
+        Bytearray result(lut.size() * output_byte_length + 1, 0);
+        result[0] = output_length;
+        for(BinWord x=0; x<lut.size(); x++)
+            for(BinWord i=0; i<output_byte_length; i++)
+                result[x*output_byte_length + i + 1] = (lut[x] >> (i*8)) & 0xFF;
+        return result;
+    }
+}
 
 
 // !SECTION! More sophisticated operations

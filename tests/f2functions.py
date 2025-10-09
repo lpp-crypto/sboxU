@@ -67,3 +67,10 @@ if __name__ == "__main__":
         print("to_bin and from_bin seem to work")
     else :
         print("Error in to_bin or in from_bin")
+
+    # testing diagonal maps
+
+    print(block_diagonal_BinLinearMap(
+        identity_BinLinearMap(3),
+        identity_BinLinearMap(4),
+    ))

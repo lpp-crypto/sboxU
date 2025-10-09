@@ -21,7 +21,8 @@ cdef extern from "../../cpp/core/spectrum.hpp":
         )
         std_vector[int64_t] keys() const
         int64_t size() const
-
+        string content_string_repr() const
+        cpp_Spectrum absolute() const
     
 cdef extern from "../../cpp/core/spectrum.cpp":
     pass

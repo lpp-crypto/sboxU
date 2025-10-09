@@ -62,6 +62,10 @@ public:
     }
 
     void incr_by_counting(const std::vector<Integer> & vector_to_count);
+
+    cpp_Spectrum absolute() const;
+
+    std::string content_string_repr() const;
 };
 
 #pragma omp declare reduction(aggregateSpectrum : cpp_Spectrum : omp_out+=omp_in)

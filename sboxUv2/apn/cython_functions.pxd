@@ -1,22 +1,41 @@
 # -*- python -*-
 
-from libc.stdint cimport uint64_t
-from libcpp.vector cimport vector
+from sboxUv2.cython_types cimport *
+from sboxUv2.core cimport *
+from sboxUv2.statistics cimport *
+from sboxUv2.ccz cimport *
 
-from sboxUv2.sbox.cython_functions cimport *
-from sboxUv2.statistics.cython_functions cimport *
+
+# !SECTION! Declaring C++ code
 
 cdef extern from "../cpp/apn/invariants.hpp":
     cpp_S_box cpp_ortho_derivative(
-        const cpp_S_box q
+        const cpp_S_box &q
     )
 
     cpp_Spectrum cpp_sigma_multiplicities(
-        const cpp_S_box f,
+        const cpp_S_box &f,
         const int64_t k,
         const int64_t n_threads
     )
+
+    
+    string cpp_apn_ea_mugshot(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
     
 cdef extern from "../cpp/apn/invariants.cpp":
     pass
 
+
+cdef extern from "../cpp/apn/ccz_class.hpp":
+    std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
+
+cdef extern from "../cpp/apn/ccz_class.cpp":
+    pass

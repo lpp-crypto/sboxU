@@ -60,8 +60,7 @@ cdef class Spectrum:
 
     def absolute(self):
         result = Spectrum(name=b"|" + self.name + b"|")
-        for k in self.keys():
-            result.incr_by_amount(abs(k), self.cpp_sp.brackets(k))
+        result.set_inner_sp(self.cpp_sp.absolute())
         return result
         
     

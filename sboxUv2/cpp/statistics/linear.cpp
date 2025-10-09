@@ -73,6 +73,14 @@ cpp_Spectrum cpp_walsh_spectrum(
 }
 
 
+cpp_Spectrum cpp_absolute_walsh_spectrum(
+    const cpp_S_box & s,
+    const unsigned int n_threads)
+{
+    return cpp_walsh_spectrum(s, n_threads).absolute();
+}
+
+
 cpp_S_box cpp_invert_lat(const std::vector< std::vector<Integer> > & l)
 {
     std::vector<BinWord> result(l.size(), 0);

@@ -6,7 +6,15 @@ n = 4
 g = GF(2**n)
 cube = monomial(3, g)
 print(cube)
-print(differential_spectrum(cube))
-print(ortho_derivative(cube))
-print(sigma_multiplicities(cube, 4))
-print(thickness_spectrum(cube))
+pprint(differential_spectrum(cube))
+pprint(ortho_derivative(cube))
+pprint(sigma_multiplicities(cube, 4))
+pprint(thickness_spectrum(cube))
+
+print(apn_ea_mugshot(cube))
+
+reprs = enumerate_ea_classes_apn_quadratic(cube)
+print("EA classes in CCZ: ", len(reprs))
+for s in reprs:
+    pprint(degree_spectrum(s))
+

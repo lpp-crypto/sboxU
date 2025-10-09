@@ -52,10 +52,11 @@ cpp_BinLinearMap cpp_BinLinearMap::operator+(const cpp_BinLinearMap l) const
 
 cpp_BinLinearMap cpp_BinLinearMap::inverse() const
 {
-    if (input_length <= 8)      // up to n=8, n^2.8 is greater than 2^n
+    if (input_length <= 20)      // up to n=8, n^2.8 is greater than 2^n
+                                 // but for now, we don't have anything else
     {
-        // bruteforcing inputs and sotring those mapped to
-        // hamming-weigh-1 values
+        // bruteforcing inputs and sorting those mapped to
+        // hamming-weight-1 values
         std::vector<BinWord> preimages(input_length, 0);
         Integer n_found = 0;
         for (BinWord x=1; x<(1 << input_length); x++)
@@ -119,3 +120,33 @@ cpp_BinLinearMap cpp_BinLinearMap_from_lut(cpp_S_box & s)
         return cpp_BinLinearMap(images);
     }
 }
+
+// !TODO! A cpp_block_BinLinearMap that works to generate non-diagonal block matrices would be nice
+
+cpp_BinLinearMap cpp_block_diagonal_BinLinearMap(
+    const cpp_BinLinearMap &A,
+    const cpp_BinLinearMap &B
+    )
+{
+    std::vector<BinWord> images(B.image_vectors);
+    for(auto v : A.image_vectors)
+        images.push_back(v << B.get_output_length());
+    return cpp_BinLinearMap(images);
+}
+
+cpp_BinLinearMap cpp_EA_BinLinearMap(
+    const cpp_BinLinearMap &A,
+    const cpp_BinLinearMap &B,
+    const cpp_BinLinearMap &C
+    )
+{
+    std::vector<BinWord> images(B.image_vectors);
+    for(unsigned int i=0; i<A.get_input_length(); i++)
+    {
+        BinWord y = A.image_vectors[i] << B.get_output_length() ;
+        y |= C.image_vectors[i];
+        images.push_back(y);
+    }
+    return cpp_BinLinearMap(images);
+}
+

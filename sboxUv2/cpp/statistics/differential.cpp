@@ -14,9 +14,11 @@ std::vector<Integer> cpp_ddt_row(const cpp_S_box & s, const BinWord delta)
 
 
 
-std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box & s)
+
+
+std::vector< std::vector<Integer>> cpp_ddt(const cpp_S_box & s)
 {
-    std::vector< std::vector<Integer> > table ;
+    std::vector< std::vector<Integer>> table ;
     table.reserve(s.input_space_size());
     table.push_back(std::vector<Integer>(s.output_space_size(),0));
     table[0][0] = s.input_space_size();
@@ -24,6 +26,100 @@ std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box & s)
         table.push_back(cpp_ddt_row(s, delta));
     return table ;
 }
+
+// !SECTION! The XDDT and its associated sets
+// !SUBSECTION! The sets
+std::vector< std::vector<BinWord>> cpp_xddt_row(const cpp_S_box & s, const BinWord delta)
+{   std::vector< std::vector<BinWord>> result(s.output_space_size());
+    BinWord y;
+    for (unsigned int i=1; i< s.output_space_size(); i++)
+        result[i].reserve(s.get_input_length()*2);
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,delta,s.input_space_size()){
+        y = s[x] ^ s[x^delta];
+        result[y].push_back(x);
+        result[y].push_back(x^delta);
+    }
+        
+    return result;
+}
+
+ Xtable cpp_xddt(const cpp_S_box & s){
+    Xtable table; 
+    table.reserve(s.input_space_size());
+
+    std::vector<std::vector<BinWord>> first_row(s.input_space_size()); 
+    for (BinWord x = 0; x < s.input_space_size(); x++) {
+        first_row[0].push_back(x);
+    }
+    table.push_back(first_row);
+    for (BinWord delta = 1; delta < s.input_space_size(); delta++) {
+        table.push_back(cpp_xddt_row(s, delta));
+}
+
+return table;
+}
+
+std::vector<std::vector<BinWord>> cpp_yddt_row(const cpp_S_box & s, const BinWord delta)
+{   std::vector< std::vector<BinWord>> result(s.output_space_size());
+    BinWord y;
+    for (unsigned int i=1; i< s.output_space_size(); i++)
+        result[i].reserve(s.get_input_length()*2);
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,delta,s.input_space_size()){
+        y= s[x] ^ s[x^delta];
+        result[y].push_back(s[x]);
+        result[y].push_back(s[x^delta]);
+    }
+        
+    return result;
+}
+
+ Xtable cpp_yddt(const cpp_S_box & s){
+    Xtable table; 
+    table.reserve(s.input_space_size());
+
+    std::vector<std::vector<BinWord>> first_row(s.input_space_size()); 
+    for (BinWord x = 0; x < s.input_space_size(); x++) {
+        first_row[0].push_back(x);
+    }
+    table.push_back(first_row);
+    for (BinWord delta = 1; delta < s.input_space_size(); delta++) {
+        table.push_back(cpp_yddt_row(s, delta));
+}
+
+return table;
+}
+
+
+std::vector< std::vector<BinWord>> cpp_zddt_row(const cpp_S_box & s, const BinWord delta)
+{   std::vector< std::vector<BinWord>> result(s.output_space_size());
+    BinWord y;
+    for (unsigned int i=1; i< s.output_space_size(); i++)
+        result[i].reserve(s.get_input_length()*2);
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,delta,s.input_space_size()){
+        y = s[x] ^ s[x^delta];
+        result[y].push_back((x|(s[x]<< s.get_input_length())));
+        result[y].push_back((x^delta|(s[x^delta]<< s.get_input_length())));
+    }
+        
+    return result;
+}
+
+ Xtable cpp_zddt(const cpp_S_box & s){
+    Xtable table; 
+    table.reserve(s.input_space_size());
+
+    std::vector<std::vector<BinWord>> first_row(s.input_space_size()); 
+    for (BinWord x = 0; x < s.input_space_size(); x++) {
+        first_row[0].push_back(x);
+    }
+    table.push_back(first_row);
+    for (BinWord delta = 1; delta < s.input_space_size(); delta++) {
+        table.push_back(cpp_zddt_row(s, delta));
+}
+
+return table;
+}
+
 
 
 

@@ -37,3 +37,23 @@ void cpp_Spectrum::incr_by_counting(const std::vector<Integer> & vector_to_count
     for(auto &c : vector_to_count)
         incr(c);
 }
+
+
+std::string cpp_Spectrum::content_string_repr() const
+{
+    std::stringstream result;
+    result << "{";
+    for(auto row : content)
+        result << row.first << ":" << row.second << ",";
+    result << "}";
+    return result.str();
+}
+
+
+cpp_Spectrum cpp_Spectrum::absolute() const
+{
+    cpp_Spectrum result;
+    for(auto row : content)
+        result.incr_by_amount(llabs(row.first), row.second);
+    return result;
+}
