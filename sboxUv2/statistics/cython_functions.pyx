@@ -14,6 +14,8 @@ from sboxUv2.core cimport *
 
 def differential_spectrum(s):
     """The differential spectrum of an S-box counts the number of entries in the DDT that are equal to each value.
+    
+    This function does not store the DDT in memory before counting, and uses openMP multi-threading to speed things further.
 
     Args:
         s: An S-boxable object.
@@ -105,6 +107,8 @@ def walsh_transform(s):
     
 def walsh_spectrum(s):
     """The Walsh spectrum of a function describes the number of time each value appears in its Walsh transform (as returned by `walsh_transform`). For a vectorial function, it counts the number of occurrences of each coefficient in its LAT (as returned by `lat`).
+    
+    This function does not store the LAT in memory before counting, and uses openMP multi-threading to speed things further.
 
     Args:
         s: an S-boxable object
@@ -124,6 +128,8 @@ def walsh_spectrum(s):
 
 def absolute_walsh_spectrum(s):
     """The absolute Walsh transform counts the number of occurrences of coefficients with a given absolute value in the Walsh transform for a function (or LAT for a vectorial function).
+    
+    This function does not store the LAT in memory before counting, and uses openMP multi-threading to speed things further.
 
     Args:
         s: an S-boxable object
@@ -167,6 +173,14 @@ def invert_lat(l):
 
 
 def linearity(s):
+    """The linearity is the maximum module/absolute value to be found among non-trivial coefficients in the Walsh transform/LAT of a function.
+
+    Args:
+        s: an S-boxable object
+
+    Returns:
+        number: In F_2, an integer; in F_p, a real number.
+    """
     sb = Sb(s)
     wal = walsh_spectrum(s)
     return wal.maximum()
@@ -178,6 +192,16 @@ def linearity(s):
 # !SUBSECTION! BCT 
 
 def boomerang_spectrum(s):
+    """The boomerang spectrum captures the number of occurrences of each coefficient in the BCT of a vectorial Boolean function (as returned by the `bct` function).
+
+    This function does not store the full BCT in memory before counting, and uses openMP multi-threading to speed things further.
+
+    Args:
+        s: an S-boxable object
+
+    Returns:
+        Spectrum: a Spectrum instance `d` such that `d[i]` is the number of occurrences of `i` in the BCT of `s`.
+    """
     sb = Sb(s)
     result = Spectrum(name="BCT".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
@@ -189,6 +213,12 @@ def boomerang_spectrum(s):
 
 
 def bct(s):
+    """The Boomerang Connectivity Table was introduced in [EC:CHPS+18] to better capture what happens at the transition between the forward and the backward trail in a boomerang attack against an SPN.
+
+    It is a two dimensional array B such that, for all a and b:
+
+    $B(a,b) = \\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$
+    """
     sb = Sb(s)
     result = cpp_bct((<S_box>sb).cpp_sb[0])
     return result
