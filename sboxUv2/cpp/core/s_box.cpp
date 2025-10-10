@@ -93,6 +93,19 @@ cpp_S_box cpp_S_box::operator* (const cpp_S_box &s) const
 }
 
 
+bool cpp_S_box::operator==(const cpp_S_box & other_s) const
+{
+    if ((input_length != other_s.get_input_length())
+        or
+        (output_length != other_s.get_output_length()))
+        return false;
+    for(BinWord x=0; x<input_space_size(); x++)
+        if (lut[x] != other_s[x])
+            return false;
+    return true;
+}
+
+
 // !SECTION! Basic access methods
 
 

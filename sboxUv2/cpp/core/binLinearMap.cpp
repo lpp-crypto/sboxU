@@ -133,20 +133,3 @@ cpp_BinLinearMap cpp_block_diagonal_BinLinearMap(
         images.push_back(v << B.get_output_length());
     return cpp_BinLinearMap(images);
 }
-
-cpp_BinLinearMap cpp_EA_BinLinearMap(
-    const cpp_BinLinearMap &A,
-    const cpp_BinLinearMap &B,
-    const cpp_BinLinearMap &C
-    )
-{
-    std::vector<BinWord> images(B.image_vectors);
-    for(unsigned int i=0; i<A.get_input_length(); i++)
-    {
-        BinWord y = A.image_vectors[i] << B.get_output_length() ;
-        y |= C.image_vectors[i];
-        images.push_back(y);
-    }
-    return cpp_BinLinearMap(images);
-}
-

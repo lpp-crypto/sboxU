@@ -26,4 +26,14 @@ public:
     cpp_S_box get_ccz_equivalent_function(const cpp_BinLinearMap &L) const;
 };
 
+
+/* Returns a BinLinearMap corresponding to the n+m bit linear application that must be applied to the graph of a function F in order to obtain the graph of the function BoFoA + C.
+ */
+cpp_BinLinearMap cpp_EA_mapping(
+    const cpp_BinLinearMap &A,
+    const cpp_BinLinearMap &B,
+    const cpp_BinLinearMap &C
+    );
+
+
 #endif

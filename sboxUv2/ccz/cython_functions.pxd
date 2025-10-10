@@ -37,6 +37,13 @@ cdef extern from "../cpp/ccz/explore.hpp":
         const cpp_S_box & s,
         const unsigned int n_threads
         )
+
+    cpp_BinLinearMap cpp_EA_mapping(
+        const cpp_BinLinearMap &A,
+        const cpp_BinLinearMap &B,
+        const cpp_BinLinearMap &C
+        )
+
     
 
 cdef extern from "../cpp/ccz/explore.cpp":

@@ -1,6 +1,8 @@
 # -*- python -*-
 
-from sage.all import Matrix, GF
+from sage.all import Matrix, GF, Polynomial
+from sboxUv2.core.f2functions.field_arithmetic import i2f_and_f2i
+
 # !SECTION! Wrapped C++
 
 # !SUBSECTION! Bit-fiddling
@@ -76,7 +78,6 @@ def from_bin(std_vector[int] l):
 # !SUBSECTION! The BinLinearMap class
 
 cdef class BinLinearMap:
-
     
     def __init__(self):
         self.cpp_blm = new cpp_BinLinearMap(<std_vector[BinWord]>[ ])
@@ -89,7 +90,13 @@ cdef class BinLinearMap:
     def get_output_length(self):
         return self.cpp_blm[0].get_output_length()
 
+    
+    def transpose(self):
+        result = BinLinearMap()
+        result.cpp_blm[0] = self.cpp_blm[0].transpose()
+        return result
 
+    
     def __call__(self, BinWord x):
         return self.cpp_blm[0].call(x)
 
@@ -158,18 +165,28 @@ def block_diagonal_BinLinearMap(A, B):
     return result
     
 
-def Blm(x):
-    if isinstance(x, (BinLinearMap)):
-        return x
+def Blm(l):
+    if isinstance(l, (BinLinearMap)):
+        return l
     else:
         result = BinLinearMap()
-        if isinstance(x, (list)):
-            result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>x)
-        elif isinstance(x, (S_box)):
-            result.cpp_blm[0] = cpp_BinLinearMap((<S_box>x).cpp_sb[0])
+        if isinstance(l, (list)):
+            result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>l)
+        elif isinstance(l, (S_box)):
+            result.cpp_blm[0] = cpp_BinLinearMap((<S_box>l).cpp_sb[0])
+        elif isinstance(l, Polynomial):
+            # case of a univariate polynomial
+            field = l.base_ring()
+            if field.characteristic() == 2:
+                n = field.degree()
+                i2f, f2i = i2f_and_f2i(field)
+                imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
+                result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>imgs)
+            else:
+                raise Exception("A polynomial in characteristic 2 is needed for a BinLinearMap")
         else:
             # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplemented("Blm function cannot process input of type {}".format(type(x)))
+            raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))
         return result
 
 

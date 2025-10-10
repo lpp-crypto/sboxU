@@ -582,7 +582,13 @@ def Sb(s, name=None, input_cast=[], output_cast=None):
             # case of a Sage-style SBox instance
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
 
+        elif isinstance(s, BinLinearMap):
+            # case of a BinLinearMap
+            (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
+            (<S_box>result).cpp_sb[0] = (<BinLinearMap>s).cpp_blm[0].get_cpp_S_box()
+
         elif isinstance(s, Polynomial):
+            # case of a univariate polynomial
             field = s.base_ring()
             if field.characteristic() == 2:
                 n = field.degree()

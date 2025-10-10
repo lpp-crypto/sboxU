@@ -18,18 +18,48 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
     for(auto ab : autom_luts)
     {
         cpp_BinLinearMap
-            L_A = cpp_BinLinearMap(cpp_S_box(ab.first)).transpose(),
-            L_B = cpp_BinLinearMap(cpp_S_box(ab.second));
-        // now need to find C
-        // sanity check [PASSED]
-        L_A = L_A.inverse();
-        L_B = L_B.transpose();
-        for(BinWord x=0; x<o.output_space_size(); x++)
-            if (L_B(o[L_A(x)]) != o[x])
-                std::cout << "well shit" << std::endl;
+            L_A_inv = cpp_BinLinearMap(cpp_S_box(ab.first)).transpose(),
+            L_B_T = cpp_BinLinearMap(cpp_S_box(ab.second)),
+            L_A = L_A_inv.inverse(),
+            L_B = L_B_T.transpose();
+        cpp_S_box
+            L_A_inv_sb = L_A_inv.get_cpp_S_box(),
+            L_B_T_sb   = L_B_T.get_cpp_S_box(),
+            L_A_sb = L_A.get_cpp_S_box(),
+            L_B_sb = L_B.get_cpp_S_box();
+        
+        // sanity check
+        if (L_B_sb*o*L_A_sb != o)
+            std::cout << "[ERROR] automorphisms of the ortho-derivative are actually not automorphisms!" << std::endl;
+        cpp_FunctionGraph G_o(o);
 
-        // !CONTINUE!  
+        // now need to find C
+        for(BinWord delta=0; delta<s.input_space_size(); delta++)
+        {
+            cpp_S_box
+                add_delta = cpp_translation(delta, s.get_input_length()),
+                C = s*add_delta + L_B_T_sb * s * L_A_inv_sb;
+            cpp_Spectrum diff = cpp_differential_spectrum(C, n_threads);
+            if (diff[s.input_space_size()] == (s.input_space_size()-1))
+            {
+                cpp_S_box
+                    C_0 = cpp_translation(C[0], s.get_input_length());                
+                cpp_BinLinearMap
+                    L_C(C + C_0),
+                    L = cpp_EA_mapping(L_A_inv, L_B_T, L_C);
+                // sanity check
+                std::cout << std::hex << delta << "  "
+                          << L.rank()
+                          << " "
+                          << (G_o.get_ccz_equivalent_function(L) == o)
+                          << std::endl ;
+                    
+                // !CONTINUE! Add a test that the automorphism is indeed a graph automorphism
+                automorphisms.push_back(L);
+            }
+        }
     }
+    std::cout << "TOTAL: " << std::dec << automorphisms.size() << std::endl;
     return automorphisms;
 }
 

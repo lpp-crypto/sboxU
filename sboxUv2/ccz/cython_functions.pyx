@@ -60,6 +60,30 @@ def enumerate_ea_classes(s):
     return result
 
 
+def EA_mapping(A, B, C):
+    """Assume that A and B are full-rank linear applications, and C another (maybe not-full rank) linear application. Given a function F, these can be used to define G as an extended affine equivalent function of F. This function helps expressing the relationship between F and G in terms of graph.
+    
+    Args:
+        A: a BinLinearMap-able object corresponding to a full rank linear application.
+        B: a BinLinearMap-able object corresponding to a full rank linear application.
+        C: a BinLinearMap-able object.
+
+    Returns:
+        A `BinLinearMap` corresponding to the linear permutation that must be applied to the graph of a function F in order to obtain the graph of the function B*F*A + C.
+    
+    """
+    result = BinLinearMap()
+    Ablm = Blm(A)
+    Bblm = Blm(B)
+    Cblm = Blm(C)
+    result.cpp_blm[0] = cpp_EA_mapping(
+        (<BinLinearMap>Ablm).cpp_blm[0],
+        (<BinLinearMap>Bblm).cpp_blm[0],
+        (<BinLinearMap>Cblm).cpp_blm[0]
+    )
+    return result
+    
+
 # !SECTION! LAT-based equivalence tests
 
 # !SUBSECTION! All linear automorphisms
