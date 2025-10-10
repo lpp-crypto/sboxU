@@ -66,6 +66,11 @@ public:
     cpp_Spectrum absolute() const;
 
     std::string content_string_repr() const;
+
+    bool contains(const Integer entry) const
+    {
+        return content.contains(entry);
+    }
 };
 
 #pragma omp declare reduction(aggregateSpectrum : cpp_Spectrum : omp_out+=omp_in)

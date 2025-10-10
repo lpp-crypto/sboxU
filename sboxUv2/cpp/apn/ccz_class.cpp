@@ -14,6 +14,7 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
             "alt_partition_diag_mappings",
             n_threads
             );
+    BinWord pw_n = s.input_space_size();
     std::vector<cpp_BinLinearMap> automorphisms;
     for(auto ab : autom_luts)
     {
@@ -31,16 +32,16 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
         // sanity check
         if (L_B_sb*o*L_A_sb != o)
             std::cout << "[ERROR] automorphisms of the ortho-derivative are actually not automorphisms!" << std::endl;
-        cpp_FunctionGraph G_o(o);
+        cpp_FunctionGraph G_s(s);
 
         // now need to find C
-        for(BinWord delta=0; delta<s.input_space_size(); delta++)
+        for(BinWord delta=0; delta<pw_n; delta++)
         {
             cpp_S_box
                 add_delta = cpp_translation(delta, s.get_input_length()),
                 C = s*add_delta + L_B_T_sb * s * L_A_inv_sb;
             cpp_Spectrum diff = cpp_differential_spectrum(C, n_threads);
-            if (diff[s.input_space_size()] == (s.input_space_size()-1))
+            if (diff.contains(pw_n) && (diff[pw_n] == (pw_n-1)))
             {
                 cpp_S_box
                     C_0 = cpp_translation(C[0], s.get_input_length());                
@@ -49,12 +50,11 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
                     L = cpp_EA_mapping(L_A_inv, L_B_T, L_C);
                 // sanity check
                 std::cout << std::hex << delta << "  "
-                          << L.rank()
                           << " "
-                          << (G_o.get_ccz_equivalent_function(L) == o)
+                          << G_s.get_ccz_equivalent_function(L).content_string_repr()
                           << std::endl ;
                     
-                // !CONTINUE! Add a test that the automorphism is indeed a graph automorphism
+                // !CONTINUE! The automorphism for the ortho-derivative is correct, but not for the function
                 automorphisms.push_back(L);
             }
         }

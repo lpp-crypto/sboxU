@@ -115,7 +115,7 @@ std::string cpp_S_box::content_string_repr() const
     std::stringstream result;
     result << "[";
     for (unsigned int x=0; x<size()-1; x++)
-        result << std::hex << lut[x] << ",";
+        result << std::dec << lut[x] << ",";
     result << std::hex << lut.back() << "]";
     return result.str();    
 }
