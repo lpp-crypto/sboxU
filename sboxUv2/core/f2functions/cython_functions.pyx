@@ -54,6 +54,18 @@ def msb(BinWord x):
 def lsb(BinWord x):
     return cpp_lsb(x)
 
+def circ_shift(BinWord x, int n, int shift):
+    """A circular shift is the operation of rearranging the entries in a vector, either by moving the final entry to the first position, while shifting all other entries to the next position, or by performing the inverse operation. 
+
+    Args :
+        - x : a positive integer
+        - n : the bit length of x 
+        - shift : a signed integer
+    Returns :
+        The integer whose binary decomposition is the result of a circular shift on the binary decomposition of x by 'shift' positions. The LSB-first decomposition of x is shifted to the left if shift is positive and to the right otherwise. 
+    """
+    return cpp_circ_shift(x,n,shift)
+
 
 
 # !SUBSECTION! Linear combinations and ranks 
@@ -163,6 +175,18 @@ def block_diagonal_BinLinearMap(A, B):
         (<BinLinearMap>B).cpp_blm[0],
     )
     return result
+
+def circ_shift_BinLinearMap(int n, int shift):
+    """A circular shift is the operation of rearranging the entries in a vector, either by moving the final entry to the first position, while shifting all other entries to the next position, or by performing the inverse operation. 
+
+    Args : 
+        - n : a positive integer
+        - shift : a signed integer
+    Returns :
+        A BinLinearMap object which encodes the circular shift by 'shift' positions. This linear map is an automorphism of (F_2)^n. As for circ_shift, the LSB-first decomposition of a vector x is shifted to the left if shift is positive and to the right otherwise. 
+    """
+    return Blm([circ_shift(1 <<i,n,shift) for i in range(0, n)])
+
     
 
 def Blm(l):

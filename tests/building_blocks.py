@@ -24,3 +24,12 @@ if __name__ == "__main__":
         print("Succeeded")
     else : 
         print("Failed") 
+
+    print("Constructing ZUC_S0 Sbox as a Feistel")
+    F1=Sb([9,15,0,14,15,15,2,10,0,4,0,12,7,5,3,9])
+    F2=Sb([8,13,6,5,7,0,12,4,11,1,14,10,15,3,9,2])
+    F3=Sb([2,6,10,6,0,13,10,15,3,3,13,5,0,9,12,13])
+    if circ_shift_BinLinearMap(8,-5).get_S_box()*feistel_round(F3)*feistel_round(F2)*feistel_round(F1)*SW==Sb(sboxes["ZUC_S0"]):
+        print("Succeeded")
+    else :
+        print("Failed")

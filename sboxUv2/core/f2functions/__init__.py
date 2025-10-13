@@ -7,10 +7,10 @@
 from .cython_functions import \
     xor, oplus, \
     hamming_weight, scal_prod, msb, lsb, \
-    to_bin, from_bin, \
+    to_bin, from_bin, circ_shift, \
     linear_combination, rank_of_vector_set, \
     BinLinearMap, Blm, \
-    identity_BinLinearMap, zero_BinLinearMap, block_diagonal_BinLinearMap
+    identity_BinLinearMap, zero_BinLinearMap, block_diagonal_BinLinearMap,circ_shift_BinLinearMap
 
             
 from .field_arithmetic import * 

@@ -74,4 +74,9 @@ BinWord cpp_from_bin(const std::vector<int>& v) {
     return y;
 }
 
+BinWord cpp_circ_shift(const BinWord x, int n, int shift){
+    shift=((shift %n) + n)%n ;
+    int mask =  (1<<n) -1;
+    return (x >> shift) | ((x << (n - shift))& mask ); 
+}
 

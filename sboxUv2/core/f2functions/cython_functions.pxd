@@ -42,6 +42,11 @@ cdef extern from "../../cpp/core/f2functions.hpp":
     BinWord cpp_from_bin (
         const std_vector[int] & v
     )
+    BinWord cpp_circ_shift(
+        const BinWord x,
+        int n, 
+        int shift
+    )
 
     
 cdef extern from "../../cpp/core/f2functions.cpp":
