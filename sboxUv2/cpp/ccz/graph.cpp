@@ -18,9 +18,9 @@ void cpp_FunctionGraph::init_from_S_box(
 {
     n = s.get_output_length();
     mask = (1 << n) - 1;
-    graph.reserve(s.input_space_size());
+    graph.assign(s.input_space_size(), 0);
     for(BinWord x=0; x<s.input_space_size(); x++)
-        graph.push_back((x << n) | s[x]);
+        graph[x] = (x << n) | s[x];
 }
 
 
@@ -37,7 +37,7 @@ void cpp_FunctionGraph::set_content(
 
 cpp_S_box cpp_FunctionGraph::get_S_box() const
 {
-    BinWord forbidden_value = (1 << n) + 1;
+    BinWord forbidden_value = 1 << (n + 1);
     std::vector<BinWord> lut(graph.size(), forbidden_value);
     for (auto & entry : graph)
     {
@@ -58,7 +58,7 @@ cpp_S_box cpp_FunctionGraph::get_ccz_equivalent_function(
     const cpp_BinLinearMap &L
     ) const
 {
-    BinWord forbidden_value = (1 << n) + 1;
+    BinWord forbidden_value = 1 << (n + 1);
     std::vector<BinWord> lut(graph.size(), forbidden_value);
     for (auto & entry : graph)
     {
@@ -98,9 +98,9 @@ cpp_BinLinearMap cpp_EA_mapping(
         {
             images.push_back(B.image_vectors[i]);
         }
-        for(unsigned int i=0; i<A_inv.get_input_length(); i++)
+        for(unsigned int i=0; i<A.get_output_length(); i++)
         {
-            BinWord y = A_inv.image_vectors[i] << A_inv.get_output_length() ;
+            BinWord y = A_inv.image_vectors[i] << A.get_output_length() ;
             y ^= C_prime.image_vectors[i];
             images.push_back(y);
         }

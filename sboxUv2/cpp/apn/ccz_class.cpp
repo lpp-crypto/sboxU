@@ -18,6 +18,7 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
     std::vector<cpp_BinLinearMap> automorphisms;
     for(auto ab : autom_luts)
     {
+        std::cout << "----" << std::endl;
         cpp_BinLinearMap
             L_A_inv = cpp_BinLinearMap(cpp_S_box(ab.first)).transpose(),
             L_B_T = cpp_BinLinearMap(cpp_S_box(ab.second)),
@@ -28,10 +29,16 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
             L_B_T_sb   = L_B_T.get_cpp_S_box(),
             L_A_sb = L_A.get_cpp_S_box(),
             L_B_sb = L_B.get_cpp_S_box();
+        std::cout << "ab.first  " << cpp_S_box(ab.first).content_string_repr()
+                  << std::endl
+                  << "ab.second " << cpp_S_box(ab.second).content_string_repr()
+                  << std::endl;
         
         // sanity check
         if (L_B_sb*o*L_A_sb != o)
             std::cout << "[ERROR] automorphisms of the ortho-derivative are actually not automorphisms!" << std::endl;
+        else
+            std::cout << "[SUCCESS] automorphisms of the ortho-derivative are correct" << std::endl;
         cpp_FunctionGraph G_s(s);
 
         // now need to find C
@@ -44,16 +51,30 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
             if (diff.contains(pw_n) && (diff[pw_n] == (pw_n-1)))
             {
                 cpp_S_box
-                    C_0 = cpp_translation(C[0], s.get_input_length());                
-                cpp_BinLinearMap
-                    L_C(C + C_0),
-                    L = cpp_EA_mapping(L_A_inv, L_B_T, L_C);
+                    L_C_sb = C + cpp_translation(C[0], s.get_input_length());
+                cpp_BinLinearMap L_C(L_C_sb);
+                cpp_BinLinearMap L = cpp_EA_mapping(L_A_inv, L_B_T, L_C); // !PROBLEM! L is actually not invertible sometimes
                 // sanity check
-                std::cout << std::hex << delta << "  "
-                          << " "
-                          << G_s.get_ccz_equivalent_function(L).content_string_repr()
-                          << std::endl ;
-                    
+                cpp_S_box s_prime = G_s.get_ccz_equivalent_function(L);
+                if (s_prime.get_input_length() > 1)
+                {
+                    std::cout << std::hex << delta << "  "
+                              << L_A_inv_sb.is_invertible() << " " << L_B_T_sb.is_invertible()
+                              << " " << L.rank()
+                              << std::endl
+                              << (s + s_prime).content_string_repr() << std::endl
+                              << (L_C_sb).content_string_repr() << std::endl;
+                }
+                else
+                {
+                    std::cout << std::hex << delta << "  "
+                              << L_A_inv_sb.is_invertible() << " " << L_B_T_sb.is_invertible()
+                              << " " << L.rank()
+                              << std::endl
+                              << "[fail] "
+                              << (L_C_sb).content_string_repr() << std::endl;
+                }
+                
                 // !CONTINUE! The automorphism for the ortho-derivative is correct, but not for the function
                 automorphisms.push_back(L);
             }

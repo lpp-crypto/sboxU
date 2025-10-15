@@ -29,7 +29,7 @@ cpp_BinLinearMap cpp_BinLinearMap::operator*(const cpp_BinLinearMap l) const
         std::vector<BinWord> images(output_length, 0);
         for(unsigned int i=0; i<images.size(); i++)
             images[i] = cpp_linear_combination(image_vectors, l.image_vectors[i]);
-        return cpp_BinLinearMap(images, input_length, output_length);
+        return cpp_BinLinearMap(images, l.get_input_length(), output_length);
     }
 };
 
