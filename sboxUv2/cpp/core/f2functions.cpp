@@ -25,14 +25,16 @@ std::vector<BinWord> cpp_transpose (const std::vector<BinWord> & l)
 }
 
 
-BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask)
+BinWord cpp_linear_combination (const std::vector<BinWord> & l, const BinWord mask)
 {
-    BinWord result = 0;
+    BinWord
+        result = 0,
+        bit_selector = 1;
     for(auto &x : l)
     {
-        if (mask & 1)
+        if (mask & bit_selector)
             result ^= x;
-        mask >>= 1;
+        bit_selector <<= 1;
     }
     return result;
 }

@@ -171,8 +171,12 @@ bool cpp_S_box::is_invertible() const
     {
         std::vector<BinWord> counters(lut.size(), 0);
         for(unsigned int x=0; x<input_space_size(); x++)
-            if ((counters[lut[x]]++) > 1)
+        {
+            BinWord y = lut[x];
+            counters[y] ++ ;
+            if (counters[y] > 1)
                 return false;
+        }
         return true;
     }
 }

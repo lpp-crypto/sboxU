@@ -49,7 +49,7 @@ alpha = field.gen()
 X = PolynomialRing(field, "X").gen()
 A = Blm(alpha * X)
 B = Blm(X**2)
-C = Blm(X**4 + alpha*X**2 + alpha**2*X)
+C = Blm(X**4 + alpha**3*X)
 
 cube = X**3
 

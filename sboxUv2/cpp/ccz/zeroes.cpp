@@ -3,14 +3,13 @@
 
 cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
     const cpp_S_box & s,
-    const unsigned int n_threads)
+    const unsigned int n_threads) :
+    mappings(0)
 {
     // setting the machinery to parse BinWords into 2 vectors
     n = s.get_output_length();
     total_size = s.get_input_length() + s.get_output_length();
-    mask = 0;
-    for(unsigned int i=0; i<s.get_output_length(); i++)
-        mask = (mask << 1) | 1;
+    mask = (1 << s.get_output_length()) - 1;
     // going over the zeroes in the LAT, column by column
     std::vector<BinWord> zeroes_coord;
     for (unsigned int b=0; b<s.output_space_size(); b++)
@@ -47,6 +46,11 @@ void cpp_WalshZeroesSpaces::init_mappings(
     const std::vector<cpp_BinLinearMap> & automorphisms
     )
 {
+    std::cout << "reducing ["
+              << std::dec << bases.size()
+              << "] bases using ["
+              << std::dec << automorphisms.size()
+              << "] automorphisms" << std::endl ;
     // computing the image of each basis
     std::map<cpp_BinLinearBasis, unsigned int> preimages;
     for (unsigned int i=0; i<bases.size(); i++)
@@ -57,19 +61,23 @@ void cpp_WalshZeroesSpaces::init_mappings(
     for(auto & a_i : automorphisms)
         A.push_back(a_i.transpose());
     // checking if an automorphism maps a space to another
-    std::vector<bool> relevant(preimages.size(), true);
-    for (auto & space : preimages)
-        if (relevant[space.second])
+    std::vector<bool> relevant(bases.size(), true);
+    for (auto & space_and_i : preimages)
+    {
+        cpp_BinLinearBasis space = space_and_i.first;
+        unsigned int i = space_and_i.second;
+        if (relevant[i])
             for (auto & Aj : A)
             {
-                cpp_BinLinearBasis img = space.first.image_by(Aj);
+                cpp_BinLinearBasis img = space.image_by(Aj);
                 if (preimages.contains(img))
                 {
                     unsigned int index = preimages[img];
-                    if (index != space.second)
+                    if (index != i)
                         relevant[index] = false;
                 }
             }
+    }
     // building the mappings by transposing
     for(unsigned int i=0; i<bases.size(); i++)
         if (relevant[i])

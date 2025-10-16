@@ -2,7 +2,7 @@ from sage.all import *
 from sboxUv2 import *
 
 
-n = 4
+n = 6
 g = GF(2**n)
 cube = monomial(3, g)
 print(cube)
@@ -15,6 +15,6 @@ print(apn_ea_mugshot(cube))
 
 reprs = enumerate_ea_classes_apn_quadratic(cube)
 print("EA classes in CCZ: ", len(reprs))
-for s in reprs:
-    pprint(degree_spectrum(s))
+# for s in reprs:
+#     pprint(degree_spectrum(s))
 
