@@ -84,9 +84,10 @@ std::vector<BinWord> cpp_FunctionGraph::xor_equivalence(const cpp_FunctionGraph 
     std::vector<BinWord> result;
     if (graph.size() != G.size())
         return result;
-    for(BinWord offset=0; offset < (1 << (2*n)); offset++)
+    for (auto p_0 : graph)
     {
         bool valid_offset = true;
+        BinWord offset = p_0 ^ G[0];
         for (auto io_pair : graph)
             if (not G.contains(io_pair ^ offset))
             {
@@ -95,7 +96,7 @@ std::vector<BinWord> cpp_FunctionGraph::xor_equivalence(const cpp_FunctionGraph 
             }
         if (valid_offset)
             result.push_back( offset );
-    }
+    }       
     return result;
 }
 

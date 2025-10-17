@@ -4,7 +4,7 @@ from sboxUv2 import *
 
 with Experiment("Testing APN functions-related functions"):
     section("Initialization")
-    n = 6
+    n = 7
     g = GF(2**n)
     cube = monomial(3, g)
     print("n=", n)
