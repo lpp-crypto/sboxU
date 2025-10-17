@@ -136,69 +136,56 @@ cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) cons
 
 bool cpp_BinLinearBasis::operator==(const cpp_BinLinearBasis & other_basis) const
 {
-    std::vector<BinWord>
-        b1 = get_basis(),
-        b2 = other_basis.get_basis();
-    if (b1.size() != b2.size())
-        return false;
-    else
-    {
-        for(unsigned int i=0; i<b1.size(); i++)
-            if (b1[i] != b2[i])
-                return false;
-        return true;
-    }
-    // if (basis.size() != other_basis.rank())
+    // std::vector<BinWord>
+    //     b1 = get_basis(),
+    //     b2 = other_basis.get_basis();
+    // if (b1.size() != b2.size())
     //     return false;
     // else
     // {
-    //     for (auto & b : other_basis)
-    //         if (! basis.contains(b.first))
+    //     for(unsigned int i=0; i<b1.size(); i++)
+    //         if (b1[i] != b2[i])
     //             return false;
-    //         else if (basis.at(b.first) != b.second)
-    //             return false;
+    //     return true;
     // }
-    // return true;
+    if (basis.size() != other_basis.rank())
+        return false;
+    else
+    {
+        for (auto & b : other_basis)
+            if (! basis.contains(b.first))
+                return false;
+            else if (basis.at(b.first) != b.second)
+                return false;
+    }
+    return true;
 }
 
 
 bool cpp_BinLinearBasis::operator<(const cpp_BinLinearBasis & other_basis) const
 {
-
-    std::vector<BinWord>
-        b1 = get_basis(),
-        b2 = other_basis.get_basis();
-    for(unsigned int i=0; ((i < b1.size()) && (i < b2.size())); i++)
+    auto b1 = basis.begin();
+    auto b2 = other_basis.begin();
+    // the following works because std::map iterators iterate in
+    // ascending order of the key, i.e. of the MSBs here.
+    while ((b1 != basis.end()) && (b2 != other_basis.end()))
     {
-        if (b1[i] > b2[i])
-            return false;
-        else if (b1[i] < b2[i])
-            return true;
+        // values are identical, we keep going
+        if (b1->second == b2->second)
+        {
+            b1 ++;
+            b2 ++;
+        }
+        else
+            // comparing values
+            return (b1->second < b2->second);
     }
-    return (b1.size() < b2.size());
-    // auto b1 = basis.begin();
-    // auto b2 = other_basis.begin();
-    // // the following works because std::map iterators iterate in
-    // // ascending order of the key, i.e. of the MSBs here.
-    // while ((b1 != basis.end()) && (b2 != other_basis.end()))
-    // {
-    //     // comapring values
-    //     if (b1->second < b2->second)
-    //         return true;
-    //     else if (b1->second > b2->second)
-    //         return false;
-    //     // values are identical, we keep going
-    //     else
-    //     {
-    //         b1 ++;
-    //         b2 ++;
-    //     }
-    // }
-    // // at this point, either b1 or b2 has reached its end
-    // if (b2 != basis.end())     // if b2 is not finished
-    //     return true;
-    // else // either b1 is the only one finished (in which case b1 is
-    //      // shorter, thus smaller), or they are equal, in which case
-    //      // the strict inequality is also false
-    //     return false;
+    // at this point, either b1 or b2 has reached its end. If b1 is
+    // the only one finished, then b1 is shorter, thus smaller. If b2
+    // has finished, then one of two things is happening.  b2 has
+    // finished, meaning b1 is longer, and thus larger, so we return
+    // false. Alternatively, they are of equal length, and thus at
+    // this point equal: we also return false (we test for strict
+    // inequality.
+    return (b2 != other_basis.end());
 }
