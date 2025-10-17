@@ -1,28 +1,51 @@
 from sage.all import *
 from sboxUv2 import *
 
+from collections import defaultdict
+import itertools
+
+
+def super_walsh(s):
+    result = defaultdict(int)
+    for b in range(0, len(s)):
+        F_a = []
+        for x in range(0, len(s)):
+            F_a.append( oplus(b, s[x]) )
+        w = walsh_spectrum(F_a)
+        result[str(w)] += 1
+    return result
+
 
 with Experiment("Testing APN functions-related functions"):
-    section("Initialization")
-    n = 7
-    g = GF(2**n)
-    cube = monomial(3, g)
-    print("n=", n)
-    print(cube)
 
-    section("Testing mugshot for quadratic APN functions")
-    pprint(differential_spectrum(cube))
-    pprint(ortho_derivative(cube))
-    pprint(sigma_multiplicities(cube, 4))
-    pprint(thickness_spectrum(cube))
+    # section("Initialization")
+    # n = 7
+    # g = GF(2**n)
+    # cube = monomial(3, g)
+    # print("n=", n)
+    # print(cube)
+
+    # section("Testing mugshot for quadratic APN functions")
+    # pprint(differential_spectrum(cube))
+    # pprint(ortho_derivative(cube))
+    # pprint(sigma_multiplicities(cube, 4))
+    # pprint(thickness_spectrum(cube))
     
-    print(apn_ea_mugshot(cube))
+    # print(apn_ea_mugshot(cube))
 
-    section("Testing CCZ-class reduction")
+    # section("Testing CCZ-class reduction")
     
-    reprs = enumerate_ea_classes_apn_quadratic(cube)
-    print("EA classes in CCZ: ", len(reprs))
-    for s in reprs:
-        pprint(degree_spectrum(s))
-        print(s)
+    # reprs = enumerate_ea_classes_apn_quadratic(cube)
+    # print("EA classes in CCZ: ", len(reprs))
+    # for s in reprs:
+    #     pprint(degree_spectrum(s))
+    #     print(s)
 
+    section("Testing DB generation")
+    
+    all_apns = generate_apn_ea_classes_database(7, db_path="sixBit.db")
+    for s in all_apns:
+        c = super_walsh(s)
+        print("-----")
+        for k in sorted(c.keys()):
+            print(c[k], k)

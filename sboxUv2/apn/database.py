@@ -1,4 +1,7 @@
-class APNFunctions(FunctionDB):
+from sboxUv2.databases import *
+
+
+class APNFunctions(FunctionsDB):
     """This class is expected to be bundled with a literal TinySQL
     database file called "apn_functions.db", and allows an easy
     interaction with it.
@@ -19,10 +22,10 @@ class APNFunctions(FunctionDB):
 
     """
     
-    def __init__(self):
+    def __init__(self, db_file):
         # !IDEA! have a max_degree and a min_degree?
         super().__init__(
-            "apn_functions.db",
+            db_file,
             {
                 "lut" : "BLOB", # the lookup table of the representative
                 "n" : "INTEGER",
@@ -32,8 +35,7 @@ class APNFunctions(FunctionDB):
                 "degree" : "INTEGER",
                 "bibliography" : "TEXT",
                 "ccz_id": "INTEGER",
-                "walsh_L": "BLOB",
-                "mugshot" : "TEXT"
+                "mugshot" : "BLOB"
             }
         )
         self.spaces_table = "spaces"
@@ -41,6 +43,7 @@ class APNFunctions(FunctionDB):
             self.spaces_table,
         )
 
+        
     def __enter__(self):
         super().__enter__()
         try:
@@ -50,6 +53,7 @@ class APNFunctions(FunctionDB):
             self.number_of_ccz_classes = 0
         return self
 
+    
     def __str__(self):
         return "APN function DB containing {} EA-classes from {} CCZ-classes".format(
             self.number_of_functions,
