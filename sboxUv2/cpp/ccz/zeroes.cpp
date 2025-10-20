@@ -1,6 +1,8 @@
 #include "zeroes.hpp"
 
 
+// !SECTION! Construction
+
 cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
     const cpp_S_box & s,
     const unsigned int n_threads) :
@@ -20,7 +22,7 @@ cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
                 zeroes_coord.push_back((a << n) | b);
     }
     // finding vector spaces of dimension n
-    bases = cpp_extract_bases(
+    bases = cpp_extract_BinLinearBases(
         zeroes_coord,
         n,
         n_threads,
@@ -28,6 +30,8 @@ cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
         );
 }
 
+
+// !SECTION! Initiliazing the mappings
 
 void cpp_WalshZeroesSpaces::init_mappings()
 {
@@ -54,7 +58,7 @@ void cpp_WalshZeroesSpaces::init_mappings(
     // computing the image of each basis
     std::map<cpp_BinLinearBasis, unsigned int> preimages;
     for (unsigned int i=0; i<bases.size(); i++)
-        preimages[cpp_BinLinearBasis(bases[i])] = i;
+        preimages[bases[i]] = i;
     // initializing walsh zeroes automorphisms
     std::vector<cpp_BinLinearMap> A;
     A.reserve(automorphisms.size());
@@ -90,14 +94,31 @@ void cpp_WalshZeroesSpaces::init_mappings(
         }
 }
 
+// !SECTION! Applying a linear permutation
 
+cpp_WalshZeroesSpaces cpp_WalshZeroesSpaces::image_by(
+    const cpp_BinLinearMap & L
+    ) const
+{
+    std::vector<cpp_BinLinearBasis> img_bases;
+    img_bases.reserve(bases.size());
+    for(auto & b : bases)
+        img_bases.push_back(b.image_by(L));
+    return cpp_WalshZeroesSpaces(img_bases);
+}
+
+
+
+// !SECTION! Thickness spectrum 
 
 cpp_Spectrum cpp_WalshZeroesSpaces::thickness_spectrum() const
 {
     cpp_Spectrum result;
-    for(auto &b : bases)
+    for(auto &bl : bases)
     {
-        std::vector<BinWord> proj(b.size(), 0);
+        std::vector<BinWord>
+            b = bl.get_basis(),
+            proj(b.size(), 0);
         for (unsigned int i=0; i<b.size(); i++)
             proj[i] = b[i] & mask;
         result.incr(cpp_rank_of_vector_set(proj));

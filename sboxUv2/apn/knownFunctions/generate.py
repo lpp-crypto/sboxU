@@ -20,6 +20,7 @@ def generate_apn_ea_classes_database(
     # generating the DB
     result = []
     with APNFunctions(db_path) as db:
+        
         for s in ccz_class_representatives:
             result.append(s)
     return result

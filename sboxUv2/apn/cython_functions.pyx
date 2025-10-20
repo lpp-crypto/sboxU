@@ -43,6 +43,20 @@ def apn_ea_mugshot(s):
     return cpp_apn_ea_mugshot((<S_box>sb).cpp_sb[0], MAX_N_THREADS)
 
 
+def apn_ea_mugshot_from_spectra(
+        abs_walsh_spec,
+        deg_spec,
+        sig_mult,
+        thk_spec
+):
+    return cpp_apn_ea_mugshot(
+        (<Spectrum>abs_walsh_spec).cpp_sp[0],
+        (<Spectrum>deg_spec).cpp_sp[0],
+        (<Spectrum>sig_mult).cpp_sp[0],
+        (<Spectrum>thk_spec).cpp_sp[0]
+    )
+
+
 # !SECTION!  CCZ-equivalence class exploration
 
 def enumerate_ea_classes_apn_quadratic(

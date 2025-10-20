@@ -108,12 +108,12 @@ std::vector<BinWord> cpp_BinLinearBasis::span() const
 }
 
 std::vector<BinWord> cpp_complete_basis(
-    const std::vector<BinWord> basis,
+    const cpp_BinLinearBasis & basis,
     const unsigned int n
     )
 {
-    cpp_BinLinearBasis lb(basis);
-    std::vector<BinWord> result(basis.cbegin(), basis.cend());
+    cpp_BinLinearBasis lb = basis;
+    std::vector<BinWord> result = basis.get_basis();
     result.reserve(n);
     for(BinWord x=1; result.size() < n; x*=2)
     {

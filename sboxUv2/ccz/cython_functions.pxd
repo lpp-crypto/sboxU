@@ -19,6 +19,21 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
         const cpp_S_box & s,
         const unsigned int n_threads
     )
+
+    cppclass cpp_WalshZeroesSpaces:
+        cpp_WalshZeroesSpaces()
+
+        cpp_WalshZeroesSpaces(std_vector[cpp_BinLinearBasis] _bases)
+
+        cpp_WalshZeroesSpaces(
+            const cpp_S_box & s,
+            const unsigned int n_threads
+        )
+
+        cpp_WalshZeroesSpaces image_by(const cpp_BinLinearMap & L) const
+
+        cpp_Spectrum thickness_spectrum() const
+    
     
 cdef extern from "../cpp/ccz/zeroes.cpp":
     pass
@@ -74,3 +89,12 @@ cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
     pass
 
+
+
+# !SECTION! Declaring cython code
+
+
+# !SUBSECTION! The WalshZeroesSpaces class
+
+cdef class WalshZeroesSpaces:
+    cdef cpp_WalshZeroesSpaces * cpp_wzs;

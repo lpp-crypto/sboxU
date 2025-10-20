@@ -28,6 +28,15 @@ cdef extern from "../cpp/apn/invariants.hpp":
     )
 
     
+    string cpp_apn_ea_mugshot(
+        const cpp_Spectrum &abs_walsh_spec,
+        const cpp_Spectrum &deg_spec,
+        const cpp_Spectrum &sig_mult,
+        const cpp_Spectrum &thk_spec
+    )
+
+
+    
 cdef extern from "../cpp/apn/invariants.cpp":
     pass
 

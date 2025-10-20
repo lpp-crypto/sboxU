@@ -38,21 +38,12 @@ class APNFunctions(FunctionsDB):
                 "mugshot" : "BLOB"
             }
         )
-        self.spaces_table = "spaces"
-        self.spaces_insertion_query = "INSERT INTO {} VALUES (?, ?)".format(
-            self.spaces_table,
-        )
-
-        
-    def __enter__(self):
-        super().__enter__()
         try:
-            self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.spaces_table))
+            self.cursor.execute("SELECT COUNT(ccz_id) FROM {}".format(self.functions_table))
             self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
         except:
             self.number_of_ccz_classes = 0
-        return self
-
+                
     
     def __str__(self):
         return "APN function DB containing {} EA-classes from {} CCZ-classes".format(
@@ -60,42 +51,23 @@ class APNFunctions(FunctionsDB):
             self.number_of_ccz_classes
         )
 
-            
-    def create(self):
-        # creating the functions table
-        super().create()
-        # spaces table name
-        spaces_creation_query  = "CREATE TABLE IF NOT EXISTS {}".format(self.spaces_table)
-        # spaces table format
-        spaces_creation_query +=  "(id INTEGER, bases BLOB)"
-        # creating the table
-        self.cursor.execute(spaces_creation_query)
-        self.number_of_ccz_classes = 0
 
 
-    def insert_function_from_lut(self, lut, bibliography):
-        differential_spec = differential_spectrum(lut)
-        if max(differential_spec.keys()) != 2:
+    def insert_new_ea_repr(self, s, bibliography):
+        sb = Sb(s)
+        differential_spec = differential_spectrum(sb)
+        if differential_spec.maximum() != 2:
             raise Exception("Trying to add a non-APN function to the APN function database: {}".format(lut))
-        n, m = get_block_lengths(lut)
-        encoded = encode_lut(lut, n)
-        # linear
-        walsh_spec = walsh_spectrum(lut)
-        lin = 0
-        for k in walsh_spec.keys():
-            lin = max(lin, abs(k))
-        # degree
-        degree_spec = degree_spectrum(lut)
-        deg = max(degree_spec.keys())
-        # thickness and spaces
-        spaces = WalshZeroesSpaces(lut=lut)
-        thk_spec = spaces.thickness_spectrum()
-        thk = max(thk_spec.keys())
-        # inserting the spaces
-        self.cursor.execute(self.spaces_insertion_query, (
-            self.number_of_ccz_classes,
-            spaces.to_blob()
-        ))
+        encoded = sb.to_bytes()
+        # spectra
+        walsh_spec = walsh_spectrum(sb)
+        lin = walsh_spec.absolute().maximum()
+        degree_spec = degree_spectrum(sb)
+        deg = degree_spec.maximum()
+        thk_spec = thickness_spectrum(sb)
+        thk = thk_spec.maximum()
+        sig_spec = sigma_multiplicities(sb)
+        # we assume that it is from a 
         self.number_of_ccz_classes += 1
         # inserting the function 
         to_insert = {
@@ -107,40 +79,24 @@ class APNFunctions(FunctionsDB):
             "degree" : deg,
             "thickness" : thk,
             "ccz_id" : self.number_of_ccz_classes,
-            "walsh_L" : encode_lut(list(range(0, n+m)), n+m), # the identity
-            "mugshot" : mugshot(lut,
-                                walsh_spec=walsh_spec,
-                                degree_spec=degree_spec,
-                                differential_spec=differential_spec,
-                                thickness_spec=thk_spec)
+            "mugshot" : apn_ea_mugshot_from_spectra(walsh_spec,
+                                                    degree_spec,
+                                                    sig_spec,
+                                                    thk_spec)
         }
         return self.insert_function(to_insert)
 
-    
-    def fetch_WalshZeroesSpaces(self, index):
-        self.cursor.execute("SELECT * FROM {} WHERE id={:d}".format(
-            self.spaces_table,
-            index
-        ))
-        for row in self.cursor.fetchall():
-            W = WalshZeroesSpaces(blob=row[1])
-            return W
-        raise Exception("no WalshZeroesSpaces with index={}".format(index))
 
-
-    def insert_full_ccz_equivalence_class(self, lut, bibliography):
+    def insert_full_ccz_equivalence_class(self, s, bibliography):
+        sb = Sb(s)
         differential_spec = differential_spectrum(lut)
-        if max(differential_spec.keys()) != 2:
+        if differential_spec.maximum() != 2:
             raise Exception("Trying to add a non-APN function to the APN function database: {}".format(lut))
-        n, m = get_block_lengths(lut)
-        encoded = encode_lut(lut, n)
+        encoded = sb.to_bytes()
         # linear
-        walsh_spec = walsh_spectrum(lut)
-        lin = 0
-        for k in walsh_spec.keys():
-            lin = max(lin, abs(k))
-        # finding WalshZeroesSpaces
-        spaces = WalshZeroesSpaces(lut=lut)
+        walsh_spec = walsh_spectrum(sb)
+        lin = walsh_spec.absolute().maximum()
+        # !CONTINUE! stopped here. 
         if algebraic_degree(lut) == 2: # if the function is quadratic,
                                        # we compute automorphisms
                                        # inserting the spaces

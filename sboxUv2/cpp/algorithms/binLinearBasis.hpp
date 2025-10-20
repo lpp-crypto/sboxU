@@ -90,7 +90,7 @@ public:
 
 
 std::vector<BinWord> cpp_complete_basis(
-    const std::vector<BinWord> basis,
+    const cpp_BinLinearBasis & basis,
     const unsigned int n
     );
 

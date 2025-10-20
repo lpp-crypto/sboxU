@@ -30,6 +30,37 @@ def thickness_spectrum(s, spaces=None):
     return result
 
 
+cdef class WalshZeroesSpaces:
+    def __init__(self):
+        self.cpp_wzs = new cpp_WalshZeroesSpaces()
+
+    def image_by(self, L):
+        L = Blm(L)
+        result = WalshZeroesSpaces()
+        (<WalshZeroesSpaces>result).cpp_wzs[0] = (<WalshZeroesSpaces>self).cpp_wzs[0].image_by(
+            (<BinLinearMap>L).cpp_blm[0]
+        )
+        return result
+
+    def thickness_spectrum(self):
+        result = Spectrum(name=b"thickness")
+        result.set_inner_sp(
+            (<WalshZeroesSpaces>self).cpp_wzs[0].thickness_spectrum()
+        )
+        return result
+        
+
+
+def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
+    sb = Sb(s)
+    result = WalshZeroesSpaces()
+    (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
+        (<S_box>sb).cpp_sb[0],
+        n_threads
+    )
+    return result
+    
+
 
 # !SECTION! Exploring a CCZ-equivalence class
 

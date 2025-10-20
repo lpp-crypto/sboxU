@@ -15,16 +15,19 @@ from sage.crypto.sboxes import sboxes
 # print(linear_equivalence_permutations(s, random_permutation_S_box(8)))
 
 
-# # !SECTION! Testing CCZ exploration
+# !SECTION! Testing CCZ exploration
 
-# n = 7
-# cube = monomial(3, GF(2**n))
-# print(thickness_spectrum(cube), cube.get_input_length(), cube.get_output_length())
-# s_s = enumerate_ea_classes(cube)
+n = 7
+cube = monomial(3, GF(2**n))
+print(thickness_spectrum(cube), cube.get_input_length(), cube.get_output_length())
+ws = get_WalshZeroesSpaces(cube)
+print(ws.thickness_spectrum())
+s_s = enumerate_ea_classes(cube)
 # print("tot: ", len(s_s))
 # for s in s_s:
 #     print(s)#, thickness_spectrum(s))
 
+    
 # # !SECTION! Testing affine equivalence on 4 bits
 
 # print('\n',"----Testing the affine equivalence of Midori_Sb0----",'\n')
@@ -41,25 +44,26 @@ from sage.crypto.sboxes import sboxes
 #             print("Failure")
 
 
-# !SECTION! Testing EA mappings
+# # !SECTION! Testing EA mappings
 
-n = 6
-field = GF(2**n)
-alpha = field.gen()
-X = PolynomialRing(field, "X").gen()
-A = Blm(alpha * X)
-B = Blm(X**2)
-C = Blm(X**4 + alpha**3*X)
+# n = 6
+# field = GF(2**n)
+# alpha = field.gen()
+# X = PolynomialRing(field, "X").gen()
+# A = Blm(alpha * X)
+# B = Blm(X**2)
+# C = Blm(X**4 + alpha**3*X)
 
-cube = X**3
+# cube = X**3
 
-print(A)
-print("")
-print(B)
-print("")
-print(C)
-print("")
-L = EA_mapping(A, B, C)
-print(L)
-print(ccz_equivalent_function(cube, L))
-print(Sb(B)*cube*Sb(A) + Sb(C))
+# print(A)
+# print("")
+# print(B)
+# print("")
+# print(C)
+# print("")
+# L = EA_mapping(A, B, C)
+# print(L)
+# print(ccz_equivalent_function(cube, L))
+# print(Sb(B)*cube*Sb(A) + Sb(C))
+
