@@ -18,12 +18,12 @@ def super_walsh(s):
 
 with Experiment("Testing APN functions-related functions"):
 
-    # section("Initialization")
-    # n = 7
-    # g = GF(2**n)
-    # cube = monomial(3, g)
-    # print("n=", n)
-    # print(cube)
+    section("Initialization")
+    n = 7
+    g = GF(2**n)
+    cube = monomial(3, g)
+    print("n=", n)
+    print(cube)
 
     # section("Testing mugshot for quadratic APN functions")
     # pprint(differential_spectrum(cube))
@@ -35,17 +35,18 @@ with Experiment("Testing APN functions-related functions"):
 
     # section("Testing CCZ-class reduction")
     
-    # reprs = enumerate_ea_classes_apn_quadratic(cube)
-    # print("EA classes in CCZ: ", len(reprs))
-    # for s in reprs:
-    #     pprint(degree_spectrum(s))
-    #     print(s)
+    reprs = enumerate_ea_classes_apn_quadratic(cube)
+    print("EA classes in CCZ: ", len(reprs))
+    for s in reprs:
+        pprint(degree_spectrum(s))
+        print(s)
+        pprint("checking: ", degree_spectrum(ccz_equivalent_quadratic_function(s)))
 
-    section("Testing DB generation")
+    # section("Testing DB generation")
     
-    all_apns = generate_apn_ea_classes_database(7, db_path="sixBit.db")
-    for s in all_apns:
-        c = super_walsh(s)
-        print("-----")
-        for k in sorted(c.keys()):
-            print(c[k], k)
+    # all_apns = generate_apn_ea_classes_database(7, db_path="sixBit.db")
+    # for s in all_apns:
+    #     c = super_walsh(s)
+    #     print("-----")
+    #     for k in sorted(c.keys()):
+    #         print(c[k], k)

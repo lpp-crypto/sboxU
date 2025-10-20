@@ -10,6 +10,10 @@ from sboxUv2.algorithms cimport *
 # !SECTION! Loading C++ code
 
 
+# !SUBSECTION! Core functionalities
+
+# !SUBSUBSECTION!  zeroes.[hc]pp
+
 cdef extern from "../cpp/ccz/zeroes.hpp":
     cpp_Spectrum cpp_thickness_spectrum(
         const cpp_S_box & s,
@@ -19,6 +23,7 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
 cdef extern from "../cpp/ccz/zeroes.cpp":
     pass
 
+# !SUBSUBSECTION! graph.[hc]pp
 
 cdef extern from "../cpp/ccz/graph.hpp":
     pass
@@ -26,6 +31,8 @@ cdef extern from "../cpp/ccz/graph.hpp":
 cdef extern from "../cpp/ccz/graph.cpp":
     pass
 
+
+# !SUBSUBSECTION! explore.[hc]pp
 
 cdef extern from "../cpp/ccz/explore.hpp":
     cpp_S_box cpp_ccz_equivalent_function(
@@ -45,14 +52,11 @@ cdef extern from "../cpp/ccz/explore.hpp":
         )
 
     
-
 cdef extern from "../cpp/ccz/explore.cpp":
     pass
 
 
-
-cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
-    pass
+# !SUBSECTION!  Partition preserving mappings
 
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
     cdef pair[std_vector[BinWord], std_vector[BinWord]] cpp_is_linearly_self_equivalent_from_lat(
@@ -65,3 +69,8 @@ cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
         const string algo,
         const unsigned int number_of_threads
     )
+
+
+cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
+    pass
+

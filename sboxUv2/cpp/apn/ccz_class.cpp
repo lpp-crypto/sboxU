@@ -72,3 +72,14 @@ std::vector<cpp_S_box> cpp_enumerate_ea_classes_quadratic_apn(
     return cpp_enumerate_ea_classes(s, ws);
 }
     
+
+cpp_S_box cpp_ccz_equivalent_quadratic_function(
+    const cpp_S_box & s,
+    const unsigned int n_threads
+    )
+{
+    for (auto &f : cpp_enumerate_ea_classes(s, n_threads))
+        if (cpp_algebraic_degree(f) == 2)
+            return f;
+    return cpp_empty_S_box();
+}
