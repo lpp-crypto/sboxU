@@ -126,12 +126,9 @@ cdef class BinLinearMap:
 
     
     def inverse(self):
-        if self.cpp_blm[0].get_input_length() > 8:
-            raise NotImplemented("still a work in progress")
-        else:
-            result = BinLinearMap()
-            result.cpp_blm[0] = self.cpp_blm[0].inverse()
-            return result
+        result = BinLinearMap()
+        result.cpp_blm[0] = self.cpp_blm[0].inverse()
+        return result
 
     
     def rank(self):
