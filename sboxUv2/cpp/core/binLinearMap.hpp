@@ -76,14 +76,7 @@ public:
     cpp_BinLinearMap inverse() const;
 
     
-    inline cpp_BinLinearMap transpose() const
-    {
-        return cpp_BinLinearMap(
-            cpp_transpose(image_vectors),
-            output_length,
-            input_length
-            );
-    };
+    cpp_BinLinearMap transpose() const;
 
 
     inline BinWord rank() const

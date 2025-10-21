@@ -85,6 +85,20 @@ cpp_BinLinearMap cpp_BinLinearMap::inverse() const
 }
 
 
+cpp_BinLinearMap cpp_BinLinearMap::transpose() const
+{
+    std::vector<BinWord> result_imgs(output_length, 0);
+    for(unsigned int i=0; i<output_length; i++)
+    {
+        BinWord mask = 1 << i;
+        for(unsigned int j=0; j<input_length; j++)
+            if (image_vectors[j] & mask)
+                result_imgs[i] ^= (1 << j) ;
+    }
+    return cpp_BinLinearMap(result_imgs, output_length, input_length);
+}
+
+
 cpp_BinLinearMap identity_BinLinearMap(unsigned int n)
 {
     std::vector<BinWord> imgs(n, 0);
