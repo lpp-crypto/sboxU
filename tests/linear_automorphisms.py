@@ -147,7 +147,7 @@ if __name__ == "__main__":
             else:
                 print('ccz eq')
         for abcd in el_equivalences:
-            assert abcd in cczgit_equivalences
+            assert abcd in ccz_equivalences
         for abcd in lin_equivalences:
             assert abcd in lin_equivalences
         # Test of the function are_ccz_linear_equivalent on the known APN functions in dim 6
