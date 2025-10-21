@@ -1,0 +1,1 @@
+from .generate import generate_apn_ea_classes_database

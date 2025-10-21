@@ -28,7 +28,7 @@ cdef extern from "../../cpp/core/f2functions.hpp":
     )
     BinWord cpp_linear_combination (
         const std_vector[BinWord] & v,
-        BinWord mask
+        const BinWord mask
     )
     int64_t cpp_rank_of_vector_set(
         std_vector[BinWord] l

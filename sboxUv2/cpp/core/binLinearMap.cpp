@@ -26,10 +26,10 @@ cpp_BinLinearMap cpp_BinLinearMap::operator*(const cpp_BinLinearMap l) const
         throw std::runtime_error("mismatched input/output length when multiplying BinLinearMap:s");
     else
     {
-        std::vector<BinWord> images(output_length, 0);
-        for(unsigned int i=0; i<images.size(); i++)
+        std::vector<BinWord> images(l.get_input_length(), 0);
+        for(unsigned int i=0; i<l.get_input_length(); i++)
             images[i] = cpp_linear_combination(image_vectors, l.image_vectors[i]);
-        return cpp_BinLinearMap(images, input_length, output_length);
+        return cpp_BinLinearMap(images, l.get_input_length(), output_length);
     }
 };
 
@@ -74,7 +74,7 @@ cpp_BinLinearMap cpp_BinLinearMap::inverse() const
                 }
             }
             if (n_found == input_length)
-                return cpp_BinLinearMap(preimages);
+                return cpp_BinLinearMap(preimages, input_length, input_length);
         }
         // this point can't be reached if the mapping is invertible
         throw std::runtime_error("trying to invert non-invertible cpp_BinLinearMap");

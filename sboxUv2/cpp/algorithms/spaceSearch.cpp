@@ -401,6 +401,26 @@ std::vector<std::vector<BinWord> > cpp_extract_bases(
 }
 
 
+std::vector<cpp_BinLinearBasis> cpp_extract_BinLinearBases(
+    std::vector<BinWord> & z,
+    const Integer dimension,
+    Integer n_threads,
+    const std::string end_condition
+    )
+{
+    std::vector<std::vector<BinWord> > bases = cpp_extract_bases(
+        z,
+        dimension,
+        n_threads,
+        end_condition);
+    std::vector<cpp_BinLinearBasis> result;
+    result.reserve(bases.size());
+    for (auto & b : bases)
+        result.push_back(cpp_BinLinearBasis(b));
+    return result;
+}
+
+
 // !SECTION! Affine Extraction
 
 std::vector<BinWord> affine_pre_process(

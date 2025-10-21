@@ -108,12 +108,12 @@ std::vector<BinWord> cpp_BinLinearBasis::span() const
 }
 
 std::vector<BinWord> cpp_complete_basis(
-    const std::vector<BinWord> basis,
+    const cpp_BinLinearBasis & basis,
     const unsigned int n
     )
 {
-    cpp_BinLinearBasis lb(basis);
-    std::vector<BinWord> result(basis.cbegin(), basis.cend());
+    cpp_BinLinearBasis lb = basis;
+    std::vector<BinWord> result = basis.get_basis();
     result.reserve(n);
     for(BinWord x=1; result.size() < n; x*=2)
     {
@@ -132,49 +132,3 @@ cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) cons
     return result;
 }
 
-
-
-bool cpp_BinLinearBasis::operator==(const cpp_BinLinearBasis & other_basis) const
-{
-    if (basis.size() != other_basis.rank())
-        return false;
-    else
-    {
-        for (auto & b : other_basis)
-            if (! basis.contains(b.first))
-                return false;
-            else if (basis.at(b.first) != b.second)
-                return false;
-    }
-    return true;
-}
-
-
-bool cpp_BinLinearBasis::operator<(const cpp_BinLinearBasis & other_basis) const
-{
-    auto b1 = basis.begin();
-    auto b2 = other_basis.begin();
-    // the following works because std::map iterators iterate in
-    // ascending order of the key, i.e. of the MSBs here.
-    while ((b1 != basis.end()) && (b2 != other_basis.end()))
-    {
-        // comapring values
-        if (b1->second < b2->second)
-            return true;
-        else if (b1->second > b2->second)
-            return false;
-        // values are identical, we keep going
-        else
-        {
-            b1 ++;
-            b2 ++;
-        }
-    }
-    // at this point, either b1 or b2 has reached its end
-    if (b2 != basis.end())     // if b2 is not finished
-        return true;
-    else // either b1 is the only one finished (in which case b1 is
-         // shorter, thus smaller), or they are equal, in which case
-         // the strict inequality is also false
-        return false;
-}

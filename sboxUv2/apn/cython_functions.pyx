@@ -43,21 +43,48 @@ def apn_ea_mugshot(s):
     return cpp_apn_ea_mugshot((<S_box>sb).cpp_sb[0], MAX_N_THREADS)
 
 
+def apn_ea_mugshot_from_spectra(
+        abs_walsh_spec,
+        deg_spec,
+        sig_mult,
+        thk_spec
+):
+    return cpp_apn_ea_mugshot(
+        (<Spectrum>abs_walsh_spec).cpp_sp[0],
+        (<Spectrum>deg_spec).cpp_sp[0],
+        (<Spectrum>sig_mult).cpp_sp[0],
+        (<Spectrum>thk_spec).cpp_sp[0]
+    )
+
+
 # !SECTION!  CCZ-equivalence class exploration
 
 def enumerate_ea_classes_apn_quadratic(
         s,
         n_threads=MAX_N_THREADS
-        ):
+):
     sb = Sb(s)
     result = []
     i = 0
     for new_s in cpp_enumerate_ea_classes_quadratic_apn(
         (<S_box>sb).cpp_sb[0],
-        MAX_N_THREADS):
+        MAX_N_THREADS
+    ):
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
         i += 1
     return result
 
+
+def ccz_equivalent_quadratic_function(
+        s,
+        n_threads=MAX_N_THREADS
+):
+    sb = Sb(s)
+    result = S_box(name=b"deg2-CCZ-" + sb.name())
+    result.set_inner_sbox(cpp_ccz_equivalent_quadratic_function(
+        (<S_box>sb).cpp_sb[0],
+        n_threads
+    ))
+    return result

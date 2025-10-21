@@ -2,7 +2,7 @@
 #define _ALGO_SP_SEARCH
 
 #include "../sboxU.hpp"
-
+#include "./binLinearBasis.hpp"
 
 std::vector<BinWord> cpp_extract_vector(
     const std::vector<BinWord> & z,
@@ -11,6 +11,14 @@ std::vector<BinWord> cpp_extract_vector(
 
 
 std::vector<std::vector<BinWord> > cpp_extract_bases(
+    std::vector<BinWord> & z,
+    const Integer dimension,
+    Integer n_threads,
+    const std::string end_condition
+    );
+
+
+std::vector<cpp_BinLinearBasis> cpp_extract_BinLinearBases(
     std::vector<BinWord> & z,
     const Integer dimension,
     Integer n_threads,

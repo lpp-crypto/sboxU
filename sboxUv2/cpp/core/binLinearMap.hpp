@@ -22,7 +22,7 @@ public:
     
     
     inline cpp_BinLinearMap(const std::vector<BinWord> & _image_vectors) :
-        image_vectors(_image_vectors),
+        image_vectors(_image_vectors.cbegin(), _image_vectors.cend()),
         input_length(_image_vectors.size()),
         output_length(0)
     {
