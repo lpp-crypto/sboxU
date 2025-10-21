@@ -148,6 +148,23 @@ def equivalences_from_lat(
         res.append(abcd)
     return res
 
+
+def up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer=False,  equivalence_type="linear", n_threads=MAX_N_THREADS):
+    if lut1[0] != 0:
+        print("not handled yet")
+        return None
+
+    lat1 = lat(lut1)
+    results = []
+    for a in range(len(lut1)):
+        shifted_lut2 = [lut2[x ^ a] ^ lut2[a] for x in range(len(lut2))]
+        lat2 = lat(shifted_lut2)
+        results.extend(equivalences_from_lat(lat1, lat2, single_non_trivial_answer, equivalence_type, n_threads))
+        if single_non_trivial_answer and len(results):
+            break
+    return results
+
+
 def linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "linear", n_threads)
 
@@ -168,6 +185,18 @@ def ccz_linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threa
     return ccz_linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
 
 
+# Up to constant equivalences
+def affine_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer, "linear", n_threads)
+
+def extended_affine_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer, "extended-linear", n_threads)
+
+def ccz_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer, "ccz-linear", n_threads)
+
+
+
 def are_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
     t = linear_equivalences(lut1, lut2, True, n_threads)
     return lut1 == lut2 or len(t) > 0
@@ -179,3 +208,4 @@ def are_extended_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
 def are_ccz_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
     t = ccz_linear_equivalences(lut1, lut2, True, n_threads)
     return lut1 == lut2 or len(t) > 0
+
