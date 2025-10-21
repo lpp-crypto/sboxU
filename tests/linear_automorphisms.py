@@ -1,6 +1,7 @@
 from sage.all import *
 from sboxUv2 import *
 from time import time
+from collections import Counter
 
 # global variables of the module
 N = 6
@@ -128,15 +129,24 @@ def test_is_linearly_self_equivalent(lut, number_of_threads=8):
 
 
 if __name__ == "__main__":
+    # cubic_BL = [0, 0, 0, 1, 0, 2, 4, 7, 0, 4, 6, 3, 8, 14, 10, 13, 0, 8, 16, 25, 5, 15, 17, 26, 32, 44, 54, 59, 45, 35, 63, 48, 0, 16, 26, 36, 34, 48, 60, 0, 45, 57, 49, 11, 7, 17, 31, 39, 43, 28, 14, 23, 12, 57, 45, 54, 38, 21, 5, 24, 9, 56, 46, 49]
+    # for i_f, f in enumerate(all_quadratics_6() + [cubic_BL]):
+    #     list_w = []
+    #     for a in range(64):
+    #         list_w.append(str(walsh_spectrum([f[x^a] ^ f[a] for x in range(len(f))])))
+    #     print(Counter(list_w))
+
+
     cubic_BL = [0, 0, 0, 1, 0, 2, 4, 7, 0, 4, 6, 3, 8, 14, 10, 13, 0, 8, 16, 25, 5, 15, 17, 26, 32, 44, 54, 59, 45, 35, 63, 48, 0, 16, 26, 36, 34, 48, 60, 0, 45, 57, 49, 11, 7, 17, 31, 39, 43, 28, 14, 23, 12, 57, 45, 54, 38, 21, 5, 24, 9, 56, 46, 49]
     for i_f, f in enumerate(all_quadratics_6() + [cubic_BL]):
         Slut = Sb(f)
         lat_f = lat(f)
-        ccz_equivalences = ccz_linear_equivalences_from_lat(lat_f, lat_f, False, 8)
-        el_equivalences = extended_linear_equivalences_from_lat(lat_f, lat_f, False, 8)
-        lin_equivalences = linear_equivalences_from_lat(lat_f, lat_f, False, 8)
-        print('Number of equivalences', len(ccz_equivalences), len(el_equivalences), len(lin_equivalences))
-        for abcd in ccz_equivalences:
+        ccz_eqs = ccz_equivalences(f, f, False, 8)
+        ccz_lin_eqs = ccz_linear_equivalences_from_lat(lat_f, lat_f, False, 8)
+        el_eqs = extended_linear_equivalences_from_lat(lat_f, lat_f, False, 8)
+        lin_eqs = linear_equivalences_from_lat(lat_f, lat_f, False, 8)
+        print('Number of equivalences', len(ccz_eqs), len(ccz_lin_eqs), len(el_eqs), len(lin_eqs))
+        for abcd in ccz_lin_eqs:
             # Transpose
             a, b, c, d = [Sb(x.transpose()) for x in abcd]
             c, d = d, c  # The top-right and bottom-left block are switched by the transpose
@@ -146,10 +156,10 @@ if __name__ == "__main__":
                 assert (b * Slut * a) + c == Slut
             else:
                 print('ccz eq')
-        for abcd in el_equivalences:
-            assert abcd in ccz_equivalences
-        for abcd in lin_equivalences:
-            assert abcd in lin_equivalences
+        for abcd in el_eqs:
+            assert abcd in ccz_lin_eqs
+        for abcd in lin_eqs:
+            assert abcd in lin_eqs
         # Test of the function are_ccz_linear_equivalent on the known APN functions in dim 6
         for i_h, h in enumerate(all_quadratics_6() + [cubic_BL]):
             assert (f == h) == are_ccz_linear_equivalent(f, h)
