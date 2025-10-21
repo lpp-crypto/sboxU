@@ -27,7 +27,11 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
     
         cpp_WalshZeroesSpaces()
 
-        cpp_WalshZeroesSpaces(const std_vector[cpp_BinLinearBasis] & _bases)
+        cpp_WalshZeroesSpaces(
+            const std_vector[cpp_BinLinearBasis] & _bases,
+            const unsigned int _n,
+            const unsigned int _total_size
+        )
 
         cpp_WalshZeroesSpaces(
             const cpp_S_box & s,
