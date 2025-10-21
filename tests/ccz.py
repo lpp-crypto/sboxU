@@ -20,7 +20,7 @@ from sage.crypto.sboxes import sboxes
 n = 6
 cube = monomial(3, GF(2**n))
 print(thickness_spectrum(cube), cube.get_input_length(), cube.get_output_length())
-ws = get_WalshZeroesSpaces(cube)
+ws = get_WalshZeroesSpaces_quadratic_apn(cube)
 print(ws.thickness_spectrum())
 for L in ws.get_mappings():
     g = ccz_equivalent_function(cube, L)

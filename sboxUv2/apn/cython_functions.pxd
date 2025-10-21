@@ -44,6 +44,11 @@ cdef extern from "../cpp/apn/invariants.cpp":
 # !SUBSECTION! Exploring the CCZ class
 
 cdef extern from "../cpp/apn/ccz_class.hpp":
+    std_vector[cpp_BinLinearMap] cpp_automorphisms_from_ortho_derivative(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+
     std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
         const cpp_S_box &s,
         const unsigned int n_threads

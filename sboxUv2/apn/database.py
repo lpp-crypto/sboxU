@@ -100,48 +100,37 @@ class APNFunctions(FunctionsDB):
         if algebraic_degree(lut) == 2: # if the function is quadratic,
                                        # we compute automorphisms
                                        # inserting the spaces
-            quadratic_case = True
-            autom = [FastLinearMapping(L)
-                     for L in graph_automorphisms_of_apn_quadratic(lut)]
-            Ls = spaces.reduced_linear_mappings(autom)
+            ws = get_WalshZeroesSpaces_quadratic_apn(lut)
+            quadratic = True
         else:
-            quadratic_case = False
-            Ls = spaces.Ls
-        self.cursor.execute(self.spaces_insertion_query, (
-            self.number_of_ccz_classes,
-            spaces.to_blob()
-        ))
+            ws = get_WalshZeroesSpaces(lut)
+            quadratic = False
         # inserting all the functions
-        for L in Ls:
-            new_lut = apply_mapping_to_graph(lut, L)
+        for L in ws.get_mappings():
+            new_lut = ccz_equivalent_function(lut, L)
             if quadratic:
                 worth_adding = True
             else:
                 worth_adding = (self.is_present(new_lut, test_ccz=True)[0] == "absent")
             if worth_adding:
-                L_inv_T = L.transpose().inverse()
-                new_spaces = L_inv_T * spaces
-                new_thk_spec = new_spaces.thickness_spectrum()
-                t1 = pretty_spectrum(thickness_spectrum(new_lut))
-                t2 = pretty_spectrum(new_thk_spec)
-                if t1 != t2:
-                    FAIL("well there's your problem: {} != {}".format(t1, t2))
-                new_degree_spec =degree_spectrum(new_lut)
+                new_ws = ws.image_by(L.transpose().inverse())
+                new_thk_spec = new_ws.thickness_spectrum()
+                new_degree_spec = degree_spectrum(new_lut)
+                new_sigma_mult = sigma_multiplicities(new_lut)
                 to_insert = {
-                    "lut" : encode_lut(new_lut, n),
-                    "n" : n,
-                    "m" : m,
+                    "lut" : new_lut.to_bytes(),
+                    "n" : new_lut.get_input_length(),
+                    "m" : new_lut.get_output_length(),
                     "bibliography" : bibliography,
                     "linearity" : lin,
-                    "degree" : max(new_degree_spec.keys()),
-                    "thickness" : max(new_thk_spec.keys()),
+                    "degree" : new_degree_spec.maximum(),
+                    "thickness" : new_thk_spec.maximum(),
                     "ccz_id" : self.number_of_ccz_classes,
-                    "walsh_L" : encode_lut(L_inv_T.masks, n+m),
-                    "mugshot" : mugshot(new_lut,
-                                        walsh_spec=walsh_spec,
-                                        degree_spec=new_degree_spec,
-                                        differential_spec=differential_spec,
-                                        thickness_spec=new_thk_spec)
+                    "mugshot" : apn_ea_mugshot_from_spectra(
+                        walsh_spec,
+                        new_degree_spec,
+                        new_sigma_mult,
+                        new_thk_spec)
                 }
                 self.insert_function(to_insert)
         self.number_of_ccz_classes += 1
@@ -154,10 +143,7 @@ class APNFunctions(FunctionsDB):
         for i, column in enumerate(sorted(self.row_structure.keys())):
             entry[column] = row[i]
         # post-processing
-        entry["lut"] = decode_lut(entry["lut"])
-        W = self.fetch_WalshZeroesSpaces(entry["ccz_id"])
-        L = FastLinearMapping(decode_lut(entry["walsh_L"]))
-        entry["walsh_spaces"] = L * W
+        entry["lut"] = Sb(entry["lut"])
         return entry
 
     
@@ -186,6 +172,7 @@ class APNFunctions(FunctionsDB):
         only be returned if `test_ccz` is set to `False`.
 
         """
+        # !CONTINUE!  
         n, m = get_block_lengths(s)
         encoded = encode_lut(s, n)
         mug = mugshot(s,

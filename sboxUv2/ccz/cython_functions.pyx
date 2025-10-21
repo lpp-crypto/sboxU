@@ -35,6 +35,7 @@ cdef class WalshZeroesSpaces:
         self.cpp_wzs = new cpp_WalshZeroesSpaces()
         self.mappings = []
 
+        
     def image_by(self, L):
         Lm = Blm(L)
         result = WalshZeroesSpaces()
@@ -43,16 +44,19 @@ cdef class WalshZeroesSpaces:
         )
         return result
 
-
-    def get_mappings(self):
-        if len(self.mappings) == 0:
-            self.cpp_wzs[0].init_mappings()
-        result = []
+    
+    def init_mappings(self):
+        self.cpp_wzs[0].init_mappings()
         for m in self.cpp_wzs[0].mappings:
             L = BinLinearMap()
             (<BinLinearMap>L).cpp_blm[0] = m
-            result.append(L)
-        return result
+            self.mappings.append(L)
+        
+
+    def get_mappings(self):
+        if len(self.mappings) == 0:
+            self.init_mappings()
+        return self.mappings
         
 
     def thickness_spectrum(self):
@@ -71,8 +75,9 @@ def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
         (<S_box>sb).cpp_sb[0],
         n_threads
     )
+    result.init_mappings()
     return result
-    
+
 
 
 # !SECTION! Exploring a CCZ-equivalence class
