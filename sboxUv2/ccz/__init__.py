@@ -7,7 +7,8 @@
 from .cython_functions import \
     thickness_spectrum, WalshZeroesSpaces, get_WalshZeroesSpaces, \
     ccz_equivalent_function, enumerate_ea_classes, EA_mapping, \
-    is_linearly_self_equivalent_from_lat, is_linearly_self_equivalent, \
-    linear_automorphisms_from_lat, linear_automorphisms
-
+    linear_equivalences_from_lat, extended_linear_equivalences_from_lat, ccz_linear_equivalences_from_lat, \
+    linear_equivalences, extended_linear_equivalences, ccz_linear_equivalences, \
+    affine_equivalences, extended_affine_equivalences, ccz_equivalences, \
+    are_linear_equivalent, are_extended_linear_equivalent, are_ccz_linear_equivalent
 from .affine_equivalence import *

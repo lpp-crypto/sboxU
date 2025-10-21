@@ -104,7 +104,7 @@ cpp_WalshZeroesSpaces cpp_WalshZeroesSpaces::image_by(
     img_bases.reserve(bases.size());
     for(auto & b : bases)
         img_bases.push_back(b.image_by(L));
-    return cpp_WalshZeroesSpaces(img_bases);
+    return cpp_WalshZeroesSpaces(img_bases, n, total_size);
 }
 
 

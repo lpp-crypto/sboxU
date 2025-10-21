@@ -8,19 +8,17 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
     )
 {
     cpp_S_box o = cpp_ortho_derivative(s);
-    vector<pair<vector<BinWord>, vector<BinWord>>> autom_luts =
-        cpp_linear_automorphisms_from_lat(
-            cpp_lat(o),
-            "alt_partition_diag_mappings",
-            n_threads
-            );
+    auto lat_ortho = cpp_lat(o);
+    vector<vector<cpp_BinLinearMap>> autom_blocks =
+        cpp_equivalences_from_lat(
+            lat_ortho, lat_ortho, false, n_threads, "linear");
     BinWord pw_n = s.input_space_size();
     std::vector<cpp_BinLinearMap> automorphisms;
-    for(auto ab : autom_luts)
+    for(auto abcd : autom_blocks)
     {
         cpp_BinLinearMap
-            L_A_inv = cpp_BinLinearMap(cpp_S_box(ab.first)).transpose(),
-            L_B_T = cpp_BinLinearMap(cpp_S_box(ab.second)),
+            L_A_inv = cpp_BinLinearMap(abcd[0]).transpose(),
+            L_B_T = cpp_BinLinearMap(abcd[1]),
             L_A = L_A_inv.inverse(),
             L_B = L_B_T.transpose();
         cpp_S_box
