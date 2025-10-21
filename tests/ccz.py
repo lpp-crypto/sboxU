@@ -17,15 +17,17 @@ from sage.crypto.sboxes import sboxes
 
 # !SECTION! Testing CCZ exploration
 
-n = 7
+n = 6
 cube = monomial(3, GF(2**n))
 print(thickness_spectrum(cube), cube.get_input_length(), cube.get_output_length())
 ws = get_WalshZeroesSpaces(cube)
 print(ws.thickness_spectrum())
-s_s = enumerate_ea_classes(cube)
-# print("tot: ", len(s_s))
-# for s in s_s:
-#     print(s)#, thickness_spectrum(s))
+for L in ws.get_mappings():
+    g = ccz_equivalent_function(cube, L)
+    ws_prime = ws.image_by(L.transpose().inverse())
+    print("")
+    pprint(thickness_spectrum(g))
+    pprint(ws_prime.thickness_spectrum())
 
     
 # # !SECTION! Testing affine equivalence on 4 bits

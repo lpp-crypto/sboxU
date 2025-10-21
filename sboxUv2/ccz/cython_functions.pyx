@@ -33,14 +33,27 @@ def thickness_spectrum(s, spaces=None):
 cdef class WalshZeroesSpaces:
     def __init__(self):
         self.cpp_wzs = new cpp_WalshZeroesSpaces()
+        self.mappings = []
 
     def image_by(self, L):
-        L = Blm(L)
+        Lm = Blm(L)
         result = WalshZeroesSpaces()
         (<WalshZeroesSpaces>result).cpp_wzs[0] = (<WalshZeroesSpaces>self).cpp_wzs[0].image_by(
-            (<BinLinearMap>L).cpp_blm[0]
+            (<BinLinearMap>Lm).cpp_blm[0]
         )
         return result
+
+
+    def get_mappings(self):
+        if len(self.mappings) == 0:
+            self.cpp_wzs[0].init_mappings()
+        result = []
+        for m in self.cpp_wzs[0].mappings:
+            L = BinLinearMap()
+            (<BinLinearMap>L).cpp_blm[0] = m
+            result.append(L)
+        return result
+        
 
     def thickness_spectrum(self):
         result = Spectrum(name=b"thickness")
@@ -64,9 +77,21 @@ def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
 
 # !SECTION! Exploring a CCZ-equivalence class
 
-def ccz_equivalent_function(s, basis):
+
+def ccz_equivalent_function(s, L):
+    """Applies a linear permutation to the graph of a function, and returns the function whose graph is the result.
+    Assumes that the linear permutation is admissible. If not, returns an empty S-box.
+
+    Args:
+        s: an S_box-able object
+        L: a BinLinearMap-able object
+
+    Returns:
+        If `L` is indeed admissible for `s`, then returns an `S_box` instance corresponding to the function whose graph is the image of that of `s` by `L`. Otherwise, returns an empty `S_box`.
+    
+    """
     sb = Sb(s)
-    basis = Blm(basis)
+    basis = Blm(L)
     result = S_box(name=b"CCZ-" + sb.name())
     result.set_inner_sbox(
         cpp_ccz_equivalent_function(
@@ -90,6 +115,7 @@ def enumerate_ea_classes(s):
         i += 1
     return result
 
+    
 
 def EA_mapping(A, B, C):
     """Assume that A and B are full-rank linear applications, and C another (maybe not-full rank) linear application. Given a function F, these can be used to define G as an extended affine equivalent function of F. This function helps expressing the relationship between F and G in terms of graph.

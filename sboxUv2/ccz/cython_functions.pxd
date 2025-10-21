@@ -21,14 +21,26 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
     )
 
     cppclass cpp_WalshZeroesSpaces:
+        std_vector[cpp_BinLinearBasis] bases
+        
+        std_vector[cpp_BinLinearMap] mappings
+    
         cpp_WalshZeroesSpaces()
 
-        cpp_WalshZeroesSpaces(std_vector[cpp_BinLinearBasis] _bases)
+        cpp_WalshZeroesSpaces(
+            const std_vector[cpp_BinLinearBasis] & _bases,
+            const unsigned int _n,
+            const unsigned int _total_size
+        )
 
         cpp_WalshZeroesSpaces(
             const cpp_S_box & s,
             const unsigned int n_threads
         )
+
+        void init_mappings()
+
+        void init_mappings(const std_vector[cpp_BinLinearMap] & automorphisms)
 
         cpp_WalshZeroesSpaces image_by(const cpp_BinLinearMap & L) const
 
@@ -93,3 +105,4 @@ cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
 
 cdef class WalshZeroesSpaces:
     cdef cpp_WalshZeroesSpaces * cpp_wzs;
+    cdef list mappings

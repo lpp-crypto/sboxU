@@ -20,11 +20,17 @@ public:
 
     cpp_WalshZeroesSpaces() : bases(0), mappings(0) {} ;
     
-    cpp_WalshZeroesSpaces(std::vector<cpp_BinLinearBasis> _bases):
+    cpp_WalshZeroesSpaces(
+        const std::vector<cpp_BinLinearBasis> & _bases,
+        const unsigned int _n,
+        const unsigned int _total_size
+        ):
+        mask((1 << _n) - 1),
+        n(_n),
+        total_size(_total_size),
         bases(_bases.begin(), _bases.end()),
         mappings(0)
     {};
-
     
     cpp_WalshZeroesSpaces(
         const cpp_S_box & s,
