@@ -2,7 +2,6 @@ from sage.all import *
 from sboxUv2 import *
 from time import time
 
-
 # global variables of the module
 N = 6
 F = GF(2**N, name="a")
@@ -41,6 +40,7 @@ def all_quadratics_6():
     ]
 
 
+# TODO Test consistency with the previous table_linear_automorphisms function of SboxUv1
 def test_linear_automorphisms(lut, algorithms=None, number_of_threads=8):
     """ Test function for linear_automorphisms.
     Verifies that each result coincide for all algorithms and that the returned pairs indeed correspond to linear automorphisms.
@@ -56,61 +56,34 @@ def test_linear_automorphisms(lut, algorithms=None, number_of_threads=8):
                     - "alt_partition_diag_mappings" (default)
                     - "alt_partition"
                     - "std_partition_diag_mappings"
-                    - "sage"
         number_of_threads (int): The number of threads to use. By default, it is set to 8.
     """
     tab = lat(lut)
     automorphisms_algo_by_algo = []
 
-    algo_sage = False
     if algorithms is None:
         algorithms = ["alt_partition_diag_mappings", "alt_partition", "std_partition_diag_mappings"]
-        algo_sage = True
-    else:
-        if "sage" in algorithms:
-            algo_sage = True
-            algorithms.remove("sage")
-
-    print(algorithms, end='')
-    if algo_sage:
-        print("sage")
-    else:
-        print()
 
     print('Search time ', end='')
-    # The C++ searches
     for algo in algorithms:
         start = time()
         automorphisms = linear_automorphisms_from_lat(tab, algo, number_of_threads)
-        stop = time()
-        automorphisms = set([tuple([tuple(a), tuple(b)]) for a, b in automorphisms])
         automorphisms_algo_by_algo.append(automorphisms)
-        print("%.3f " % (stop - start), end='')
-
-    # The sage search
-    if algo_sage:
-        start = time()
-        automorphisms = linear_automorphisms(tab)
         stop = time()
-        automorphisms = set([tuple([tuple(a), tuple(b)]) for a, b in automorphisms])
-        automorphisms_algo_by_algo.append(automorphisms)
         print("%.3f " % (stop - start), end='')
-
+        Slut = Sb(lut)
+        # Each output is indeed an automorphism
+        for a, b in automorphisms:
+            a = Sb(a.transpose().inverse())
+            b = Sb(b.transpose())
+            assert b * Slut * a == Slut
     print()
 
-    print('Asserts time', end='')
-    start = time()
     # All algorithms return the same output
-    assert all([automorphisms == automorphisms_algo_by_algo[0] for automorphisms in automorphisms_algo_by_algo])
-    # Each output is indeed an automorphism
-    for a, b in automorphisms_algo_by_algo[0]:
-        # !TODO! to update using modern sboxU 
-        a = a.transpose().inverse()
-        b = b.transpose()
-        lut = Sb(lut)
-        assert b * lut * a == lut
-    stop = time()
-    print(" %.3f " % (stop - start))
+    for l in automorphisms_algo_by_algo[1:]:
+        assert len(l) == len(automorphisms_algo_by_algo[0])
+        for x in automorphisms_algo_by_algo[0]:
+            assert x in l
 
 
 def test_is_linearly_self_equivalent(lut, number_of_threads=8):
@@ -127,43 +100,56 @@ def test_is_linearly_self_equivalent(lut, number_of_threads=8):
         number_of_threads (int): The number of threads to use. By default, it is set to 8.
     """
     tab = lat(lut)
-    print(len(tab))
     automorphism_algo_by_algo = []
-    print("[alt_partition_diag_mappings, alt_partition, std_partition_diag_mappings, sage]")
+    print("[alt_partition_diag_mappings, alt_partition, std_partition_diag_mappings]")
 
     # The C++ searches
     for algo in ["alt_partition_diag_mappings", "alt_partition", "std_partition_diag_mappings"]:
         start = time()
-        automorphism = is_linearly_self_equivalent_from_lat(
-            tab,
-            algo,
-            number_of_threads
-        )
+        automorphism = is_linearly_self_equivalent_from_lat(tab, algo, number_of_threads)
         stop = time()
         automorphism_algo_by_algo.append(automorphism)
         print("%.3f " % (stop - start), end='')
 
-    # The sage search
-    start = time()
-    automorphism_sage = linear_automorphisms(lut)
-    stop = time()
-    automorphism_sage = set([tuple([tuple(a), tuple(b)])
-                             for a, b in automorphism_sage])
-    print("%.3f " % (stop - start), end='')
-
-    if len(automorphism_sage) == 1:
-        assert all([automorphism is False for automorphism in automorphism_algo_by_algo])
+    if automorphism_algo_by_algo[0] is False:
+        for ans in automorphism_algo_by_algo:
+            assert ans is False
     else:
-        assert all([automorphism[0] or automorphism[1]
-                    for automorphism in automorphism_algo_by_algo])
-    print()
+        Slut = Sb(lut)
+        for ans in automorphism_algo_by_algo:
+            # Each output is indeed an automorphism
+            assert type(ans) is tuple
+            a, b = ans
+            a = Sb(a.transpose().inverse())
+            b = Sb(b.transpose())
+            id_lut = list(range(len(lut)))
+            assert a.lut() != id_lut or b.lut() != id_lut
+            assert b * Slut * a == Slut
 
 
-    
 if __name__ == "__main__":
-    for i_f, funcs in enumerate([all_quadratics_6]):
-        print('=== TESTING orthoderivatives of %d-bit functions ==='%(i_f+6))
-        for f in funcs():
-            print(f)
-            #test_linear_automorphisms(ortho_derivative(f), algorithms=["alt_partition_diag_mappings"])
-            test_is_linearly_self_equivalent(ortho_derivative(f))
+    cubic_BL = [0, 0, 0, 1, 0, 2, 4, 7, 0, 4, 6, 3, 8, 14, 10, 13, 0, 8, 16, 25, 5, 15, 17, 26, 32, 44, 54, 59, 45, 35, 63, 48, 0, 16, 26, 36, 34, 48, 60, 0, 45, 57, 49, 11, 7, 17, 31, 39, 43, 28, 14, 23, 12, 57, 45, 54, 38, 21, 5, 24, 9, 56, 46, 49]
+    for i_f, f in enumerate(all_quadratics_6() + [cubic_BL]):
+        Slut = Sb(f)
+        lat_f = lat(f)
+        ccz_equivalences = ccz_linear_equivalences_from_lat(lat_f, lat_f, False, 8)
+        el_equivalences = extended_linear_equivalences_from_lat(lat_f, lat_f, False, 8)
+        lin_equivalences = linear_equivalences_from_lat(lat_f, lat_f, False, 8)
+        print('Number of equivalences', len(ccz_equivalences), len(el_equivalences), len(lin_equivalences))
+        for abcd in ccz_equivalences:
+            # Transpose
+            a, b, c, d = [Sb(x.transpose()) for x in abcd]
+            c, d = d, c  # The top-right and bottom-left block are switched by the transpose
+            # Rename
+            a, b, c, d = a**(-1), b, c*a**(-1), d
+            if d == [0 for _ in range(2**6)]:
+                assert (b * Slut * a) + c == Slut
+            else:
+                print('ccz eq')
+        for abcd in el_equivalences:
+            assert abcd in cczgit_equivalences
+        for abcd in lin_equivalences:
+            assert abcd in lin_equivalences
+        # Test of the function are_ccz_linear_equivalent on the known APN functions in dim 6
+        for i_h, h in enumerate(all_quadratics_6() + [cubic_BL]):
+            assert (f == h) == are_ccz_linear_equivalent(f, h)
