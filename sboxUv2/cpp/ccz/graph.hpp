@@ -21,9 +21,39 @@ public:
 
     void set_content(const std::vector<BinWord> & v, BinWord _n);
 
-    cpp_S_box get_S_box() const;
+    cpp_S_box get_cpp_S_box() const;
 
     cpp_S_box get_ccz_equivalent_function(const cpp_BinLinearMap &L) const;
+
+    std::vector<BinWord> xor_equivalence(const cpp_FunctionGraph & G) const;
+
+    cpp_FunctionGraph image_by(const cpp_BinLinearMap & L) const;
+
+    inline bool contains(const BinWord x) const
+    {
+        return std::binary_search(graph.begin(), graph.end(), x);
+    }
+
+    inline BinWord operator[](const BinWord & x) const
+    {
+        return graph[x];
+    }
+    
+    inline Integer size() const
+    {
+        return graph.size();
+    }
+    
+    inline std::vector<BinWord>::const_iterator begin() const
+    {
+        return graph.cbegin();
+    }
+    
+    inline std::vector<BinWord>::const_iterator end() const
+    {
+        return graph.cend();
+    }
+
 };
 
 

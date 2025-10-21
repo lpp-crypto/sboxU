@@ -112,12 +112,17 @@ bool cpp_S_box::operator==(const cpp_S_box & other_s) const
 
 std::string cpp_S_box::content_string_repr() const
 {
-    std::stringstream result;
-    result << "[";
-    for (unsigned int x=0; x<size()-1; x++)
-        result << std::dec << lut[x] << ",";
-    result << std::hex << lut.back() << "]";
-    return result.str();    
+    if (lut.size() > 0)
+    {
+        std::stringstream result;
+        result << "[";
+        for (unsigned int x=0; x<size()-1; x++)
+            result << std::dec << lut[x] << ",";
+        result << std::dec << lut.back() << "]";
+        return result.str();    
+    }
+    else
+        return "[]";
 }
 
 
@@ -166,8 +171,12 @@ bool cpp_S_box::is_invertible() const
     {
         std::vector<BinWord> counters(lut.size(), 0);
         for(unsigned int x=0; x<input_space_size(); x++)
-            if ((counters[lut[x]]++) > 1)
+        {
+            BinWord y = lut[x];
+            counters[y] ++ ;
+            if (counters[y] > 1)
                 return false;
+        }
         return true;
     }
 }

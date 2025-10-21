@@ -5,7 +5,7 @@
 """
 
 from .cython_functions import \
-    thickness_spectrum, \
+    thickness_spectrum, WalshZeroesSpaces, get_WalshZeroesSpaces, \
     ccz_equivalent_function, enumerate_ea_classes, EA_mapping, \
     linear_equivalences_from_lat, extended_linear_equivalences_from_lat, ccz_linear_equivalences_from_lat, \
     linear_equivalences, extended_linear_equivalences, ccz_linear_equivalences, \

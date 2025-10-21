@@ -13,4 +13,11 @@ std::vector<cpp_S_box> cpp_enumerate_ea_classes_quadratic_apn(
     const unsigned int n_threads
     );
 
+
+cpp_S_box cpp_ccz_equivalent_quadratic_function(
+    const cpp_S_box & s,
+    const unsigned int n_threads
+    );
+
+
 #endif

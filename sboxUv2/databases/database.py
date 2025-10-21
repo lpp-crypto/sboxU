@@ -39,6 +39,14 @@ class FunctionsDB:
                                              # is already in the
                                              # string above
         )
+        self.connection = sqlite3.connect(self.db_file)
+        self.cursor = self.connection.cursor()
+        # if the file exists, we initialize the length; otherwise we create the DB file
+        try:
+            self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
+            self.number_of_functions = self.cursor.fetchall()[0][0]
+        except:
+            self.create()
 
         
     def create(self):
@@ -136,14 +144,6 @@ class FunctionsDB:
     # !SECTION!  handling the `with` syntax
         
     def __enter__(self):
-        self.connection = sqlite3.connect(self.db_file)
-        self.cursor = self.connection.cursor()
-        # if the file exists, we initialize the length; otherwise we don't
-        try:
-            self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
-            self.number_of_functions = self.cursor.fetchall()[0][0]
-        except:
-            self.number_of_functions = 0
         return self
 
     def __exit__(self, *args):
