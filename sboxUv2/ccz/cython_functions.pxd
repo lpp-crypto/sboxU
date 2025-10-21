@@ -82,17 +82,12 @@ cdef extern from "../cpp/ccz/explore.cpp":
 # !SUBSECTION!  Partition preserving mappings
 
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
-    cdef pair[std_vector[BinWord], std_vector[BinWord]] cpp_is_linearly_self_equivalent_from_lat(
-        const std_vector[std_vector[int64_t]] lat,
-        const string algo,
-        const unsigned int number_of_threads
-    )
-    cdef std_vector[pair[std_vector[BinWord], std_vector[BinWord]]] cpp_linear_automorphisms_from_lat(
-        const std_vector[std_vector[int64_t]] lat,
-        const string algo,
-        const unsigned int number_of_threads
-    )
-
+    cdef std_vector[std_vector[cpp_BinLinearMap]] cpp_equivalences_from_lat(
+        const std_vector[std_vector[int64_t]] lat1,
+        const std_vector[std_vector[int64_t]] lat2,
+        const bool single_non_trivial_answer,
+        const unsigned int number_of_threads,
+        const string equivalence_type)
 
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
     pass

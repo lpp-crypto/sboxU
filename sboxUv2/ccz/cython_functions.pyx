@@ -145,130 +145,63 @@ def EA_mapping(A, B, C):
 
 # !SUBSECTION! All linear automorphisms
 
-def linear_automorphisms_from_lat(
-        l,
-        algorithm="alt_partition_diag_mappings",
+def equivalences_from_lat(
+        lat1, lat2,
+        single_non_trivial_answer=False,
+        equivalence_type="linear",
         n_threads=MAX_N_THREADS
 ):
-    """ Compute the linear automorphisms (*) of a function F from its linear approximation table (LAT).
-        (*) i.e. all pairs of linear bijections (A, B) satisfying B o F o A = F.
+    """ Computes all equivalence relations between two functions F, G, from their linear approximation tables (LAT).
 
-        More information on the search algorithms can be found in the corresponding C++ code.
-
-        Args:
-            lat: The linear approximation table of F.
-            algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
-                        - "alt_partition_diag_mappings" (default)
-                        - "alt_partition"
-                        - "std_partition_diag_mappings"
-            number_of_threads (int): The number of threads to use. By default, it is set to 8.
+        single_non_trivial_answer (bool) : Determines whether the search should stop when at the first automorphism that is encountered.
+        number_of_threads (int): The number of threads to use. By default, it is set to 8.
+        equivalence_type (string): Determines the type of the searched automorphisms.
+        If "linear", search for all pairs of linear bijections (A, B) satisfying B o F o A = F.
+        If "extended-search", search for all (A, B, C) linear with A, B bijective satisfying B o F o A + C = F.
+        If "ccz-linear", search for all *linear* bijection A such that A(graph(F)) = graph(G).
 
         Returns:
-            list: A list of pairs of look-up tables corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
+            list: A list of pairs of BinLinearMaps corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
 
     """
-    return cpp_linear_automorphisms_from_lat(
-        l,
-        algorithm.encode('ascii'),
-        n_threads)
+    res = []
+    for blocks in cpp_equivalences_from_lat(lat1, lat2, single_non_trivial_answer, n_threads, equivalence_type.encode('ascii')):
+        abcd = []
+        for b in blocks:
+            new_blm = BinLinearMap()
+            new_blm.cpp_blm[0] = b
+            abcd.append(new_blm)
+        res.append(abcd)
+    return res
+
+def linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "linear", n_threads)
+
+def extended_linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "extended-linear", n_threads)
+
+def ccz_linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "ccz-linear", n_threads)
 
 
-def linear_automorphisms(
-        lut,
-        algorithm="alt_partition_diag_mappings",
-        n_threads=MAX_N_THREADS
-):
-    """Return the linear automorphisms of a function F,
-    i.e. all pairs of linear bijections (A, B) satisfying B o F o A = F.
+def linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
 
-    If the LAT is already computed and stored, the function linear_automorphisms_from_lat behaves the same
-    but avoid the unnecessary recomputation of the LAT.
+def extended_linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return extended_linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
 
-    More information on the search algorithms can be found in the corresponding C++ code.
-
-    Args:
-        lut: The look-up table of F.
-        algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
-                    - "alt_partition_diag_mappings" (default)
-                    - "alt_partition"
-                    - "std_partition_diag_mappings"
-        number_of_threads (int): The number of threads to use. By default, it is set to 8.
-
-    Returns:
-        list: A list of pairs of look-up tables corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
-
-    """
-    return linear_automorphisms_from_lat(
-        lat(lut),
-        algorithm,
-        n_threads
-    )
+def ccz_linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return ccz_linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
 
 
-# !SUBSECTION! At most one linear automorphism
+def are_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
+    t = linear_equivalences(lut1, lut2, True, n_threads)
+    return lut1 == lut2 or len(t) > 0
 
-def is_linearly_self_equivalent_from_lat(
-        l,
-        algorithm="alt_partition_diag_mappings",
-        n_threads=MAX_N_THREADS
-):
-    """ Checks whether a function F is linearly self-equivalent (*) from its linear approximation table (LAT).
-     (*) i.e. if it exists a non-trivial pair of linear bijections (A, B) satisfying B o F o A = F.
+def are_extended_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
+    t = extended_linear_equivalences(lut1, lut2, True, n_threads)
+    return lut1 == lut2 or len(t) > 0
 
-    More information on the search algorithms can be found in the corresponding C++ code.
-
-    Args:
-        lat: The linear approximation table of F.
-        algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
-                    - "alt_partition_diag_mappings" (default)
-                    - "alt_partition"
-                    - "std_partition_diag_mappings"
-        n_threads (int): The number of threads to use. By default, it is set to 8.
-
-    Returns:
-        A pair of BinLinearMaps corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
-        Returns False otherwise.
-
-    """
-    res = cpp_is_linearly_self_equivalent_from_lat(
-        l,
-        algorithm.encode('ascii'),
-        n_threads
-    )
-    if res == ([], []):
-        return False
-    else:
-        return (Blm(Sb(res.first)), Blm(Sb(res.second)))
-
-    
-def is_linearly_self_equivalent(
-        s,
-        algorithm="alt_partition_diag_mappings",
-        n_threads=MAX_N_THREADS
-):
-    """ Checks whether a function F is linearly self-equivalent, i.e,
-     if it exists a non-trivial pair of linear bijections (A, B) satisfying B o F o A = F.
-
-     If the LAT is already computed and stored, the function is_linearly_self_equivalent_from_lat behaves the same
-    but avoid the unnecessary recomputation of the LAT.
-
-    More information on the search algorithms can be found in the corresponding C++ code.
-
-    Args:
-        lut: The look-up table of F.
-        algorithm (str): A string describing the search algorithm to use. algorithm must be chosen among:
-                    - "alt_partition_diag_mappings" (default)
-                    - "alt_partition"
-                    - "std_partition_diag_mappings"
-        n_threads (int): The number of threads to use. By default, it is set to 8.
-
-    Returns:
-        tuple: A pair of look-up tables corresponding to a non-trivial (A, B) satisfying B o F o A = F, *if it exists*.
-        Return False otherwise.
-
-    """
-    return is_linearly_self_equivalent_from_lat(
-        lat(s),
-        algorithm,
-        n_threads
-    )
+def are_ccz_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
+    t = ccz_linear_equivalences(lut1, lut2, True, n_threads)
+    return lut1 == lut2 or len(t) > 0
