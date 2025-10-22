@@ -78,8 +78,11 @@ class FunctionsDB:
                     ))
             else:
                 where_clause += constraint + " = ? AND "
-                if self.row_structure[constraint] == "BLOB":
+                c_type = self.row_structure[constraint]
+                if c_type  == "BLOB":
                     values.append("x'{}'".format(query_description[constraint].hex()))
+                elif c_type == "INTEGER":
+                    values.append(int(query_description[constraint]))
                 else:
                     values.append(query_description[constraint])
         values = tuple(values)
@@ -89,10 +92,10 @@ class FunctionsDB:
         if len(result) == 0:
             return []
         else:
-            return [
+            return (
                 self.parse_function_from_row(row)
                 for row in result
-            ]
+            )
     
     
 
