@@ -26,7 +26,7 @@ def ortho_derivative(q):
     return result
 
 
-def sigma_multiplicities(s, k):
+def sigma_multiplicities(s, k=4):
     # !TODO! docstring for sigma_multiplicities 
     sb = Sb(s)
     result = Spectrum(name="σ-mult".encode("UTF-8"))

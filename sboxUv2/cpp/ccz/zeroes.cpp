@@ -50,11 +50,6 @@ void cpp_WalshZeroesSpaces::init_mappings(
     const std::vector<cpp_BinLinearMap> & automorphisms
     )
 {
-    std::cout << "reducing ["
-              << std::dec << bases.size()
-              << "] bases using ["
-              << std::dec << automorphisms.size()
-              << "] automorphisms" << std::endl ;
     // computing the image of each basis
     std::map<cpp_BinLinearBasis, unsigned int> preimages;
     for (unsigned int i=0; i<bases.size(); i++)

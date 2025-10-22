@@ -196,6 +196,11 @@ def up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer=False,  eq
     return results
 
 
+# !TODO! in all functions below:
+# ! 1. tweak the interface in order to take S_box instances as input
+# ! 2. write docstrings
+# ! 3. wrap them in simpler tests with Boolean results
+
 def linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "linear", n_threads)
 

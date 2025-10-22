@@ -41,10 +41,11 @@ class FunctionsDB:
         )
         self.connection = sqlite3.connect(self.db_file)
         self.cursor = self.connection.cursor()
-        # if the file exists, we initialize the length; otherwise we create the DB file
+        # if the file exists, we initialize the length
         try:
             self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
             self.number_of_functions = self.cursor.fetchall()[0][0]
+        # otherwise we create the DB file
         except:
             self.create()
 
@@ -67,60 +68,31 @@ class FunctionsDB:
 
     
     def query_functions(self, query_description):
-        where_clause = ""
+        where_clause = "SELECT * from functions WHERE "
+        values = []
         for constraint in query_description.keys():
             if constraint not in self.row_structure.keys():
                 raise Exception("unrecognized parameter in query : {} (={})".format(
                     constraint,
                     query_description[constraint]
                     ))
-            elif constraint == "lut":
-                # particular case of a query on the sbox itself
-                target = Sb(query_description[constraint])
-                where_clause += " (lut==x'{}') AND".format(target.to_bytes().hex())
             else:
-                content = query_description[constraint]
-                # case of an integer equality or difference
-                if isinstance(content, (int, sage_Integer)):
-                    if content >= 0:  # case of positive query on integer
-                        where_clause += " ({}=={:d}) AND".format(constraint, content)
-                    else:
-                        where_clause += " ({}!={:d}) AND".format(constraint, - content)
-                # case of a range
-                elif isinstance(content, (type(range(0,1)))):
-                    where_clause += " ({}>={:d} AND {}<{:d}) AND".format(
-                        constraint,
-                        content.start,
-                        constraint,
-                        content.stop
-                    )
-                # case of a string
-                elif isinstance(content, (str)):
-                    if "%" in content:
-                        # case of search
-                        where_clause += " ({} like '{}') AND".format(
-                            constraint,
-                            content
-                        )
-                    else:
-                        # case of an exact match
-                        where_clause += " ({}=='{}') AND".format(
-                            constraint,
-                            content
-                        )
-        where_clause = where_clause[:-4] # removing the final "AND"
-        self.cursor.execute("SELECT * FROM {} WHERE {}".format(
-            self.functions_table,
-            where_clause
-        ))
+                where_clause += constraint + " = ? AND "
+                if self.row_structure[constraint] == "BLOB":
+                    values.append("x'{}'".format(query_description[constraint].hex()))
+                else:
+                    values.append(query_description[constraint])
+        values = tuple(values)
+        where_clause = where_clause[:-4]
+        self.cursor.execute(where_clause, values)
         result = self.cursor.fetchall()
         if len(result) == 0:
             return []
         else:
-            return (
+            return [
                 self.parse_function_from_row(row)
                 for row in result
-            )
+            ]
     
     
 
