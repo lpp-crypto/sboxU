@@ -8,3 +8,11 @@ name = "sboxUv2"
 version = "2.0"
 description = "SAGE/Python functions useful for studying S-boxes and Boolean functions such as computing the DDT, the Walsh spectrum, investigating their (CCZ/affine/EA equivalence classes..."
 dependencies = [ "pybtex", "rich", "sphinx-rtd-theme" ]
+
+
+
+[tool.setuptools]
+packages = ["sboxUv2", "scripts.apnDB"]
+
+[project.scripts]
+sboxU_apn_db_generation   = "scripts.apnDB.generate:main_cli"

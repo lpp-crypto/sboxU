@@ -1,29 +1,32 @@
 from sboxUv2 import *
-from sys import argv
+from pathlib import Path
+import argparse
 
-DEFAULT_APN_DB_NAME = "apnDB_{}.db"
+
+DEFAULT_APN_DB_NAME = "apnDB.db"
+
 
 def generate_apn_ea_classes_database(
-        n,
-        db_path=None
+        ccz_class_representatives,
+        db_path
 ):
     """!TODO! write docstring
     """
-    with Experiment("Generating database for n={}".format(n)):
+    with Experiment("Generating database"):
+        
         section("Grabbing class representatives")
 
         subsection("reading")
         
-        # handling inputs
-        if n == 6:
-            from reprs6 import ccz_class_representatives
-        elif n == 7:
-            from reprs7 import ccz_class_representatives
-        if db_path == None:
-            db_path = DEFAULT_APN_DB_NAME.format(n)
         # generating the DB
         print("path = ", db_path)
-        print("read {} functions".format(len(ccz_class_representatives)))
+        if Path(db_path).is_file():
+            print("[WARNING] file already exists, we are deleting it")
+            Path(db_path).unlink()
+        else:
+            print("DB will be stored in {}".format(db_path))
+        
+        print("using {} class representatives".format(len(ccz_class_representatives)))
         subsection("splitting into quadratic and non-quadratic")
         quads = []
         non_quads = []
@@ -52,7 +55,7 @@ def generate_apn_ea_classes_database(
                 pprint(degree_spectrum(s))
                 inserted = db.insert_full_ccz_equivalence_class(
                     s,
-                    "{}-bit".format(n)
+                    "--"
                 )
                 print("CCZ class with {} functions added".format(len(inserted)))
                 
@@ -60,10 +63,50 @@ def generate_apn_ea_classes_database(
             print("{} EA classes generated".format(len(db)))
             print("{} CCZ classes found".format(db.number_of_ccz_classes))
 
+            section("How to use it?")
 
-if __name__ == "__main__":
-    n = int(argv[1])
+            print("\n1. Put the file {} in the folder with your script".format(db_path))
+            print("\n2. make sure you import sboxUv2 in your sage script")
+            print("\n3. use the following syntax to check if F is new:")
+            print("with APNFunctions('{}') as db:".format(db_path))
+            print("    print('Yay!' if db.is_new(F) else ':((')")
+            print("\n4. use the following to print the Walsh spectrum of all degree 3 functions:")
+            print("with APNFunctions('{}') as db:".format(db_path))
+            print("    for entry in db.query_functions({'degree' : 3}):")
+            print("        s = entry['sbox']")
+            print("        pprint(walsh_spectrum(s))")
+            print("\n\n")
+
+def process_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--path",
+                        nargs="?",
+                        type=str,
+                        default=DEFAULT_APN_DB_NAME,
+                        help="The path to the file in which to write the database")
+    parser.add_argument("-n", 
+                        type=int,
+                        help="The value of the bit length of the functions to process")
+    return parser.parse_args()
+
+    
+def main_cli():
+    args = process_arguments()
+    n = args.n
+    path = args.path
+    print(n, path)
+    if n == 6:
+        from reprs6 import ccz_class_representatives
+    elif n == 7:
+        from reprs7 import ccz_class_representatives
     if n not in [6,7]:
         print("n must be 6 or 7")
     else:
-        generate_apn_ea_classes_database(n, "apn-{}.db".format(n))
+        generate_apn_ea_classes_database(
+            ccz_class_representatives,
+            path
+        )
+
+
+if __name__ == "__main__":
+    main_cli()
