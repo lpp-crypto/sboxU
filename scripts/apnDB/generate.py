@@ -96,9 +96,9 @@ def main_cli():
     path = args.path
     print(n, path)
     if n == 6:
-        from reprs6 import ccz_class_representatives
+        from .reprs6 import ccz_class_representatives
     elif n == 7:
-        from reprs7 import ccz_class_representatives
+        from .reprs7 import ccz_class_representatives
     if n not in [6,7]:
         print("n must be 6 or 7")
     else:
