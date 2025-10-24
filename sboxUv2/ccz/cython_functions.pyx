@@ -36,6 +36,11 @@ cdef class WalshZeroesSpaces:
         self.mappings = []
 
         
+    def __dealloc__(self):
+        self.cpp_wzs[0].destruct()
+        free(self.cpp_wzs)
+
+        
     def image_by(self, L):
         Lm = Blm(L)
         result = WalshZeroesSpaces()

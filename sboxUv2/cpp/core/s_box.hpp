@@ -28,6 +28,17 @@ public:
 
     cpp_S_box(Bytearray bytes) ;
 
+    void destruct()
+    {
+        lut.clear();
+        lut.shrink_to_fit();
+    }
+    
+    ~cpp_S_box()
+    {
+        destruct();
+    }
+
     /** Returns the lookup table of the binary sum (XOR) of this S-box and `s`, the sum being done for each possible input.
         
         @param s The other S-box.

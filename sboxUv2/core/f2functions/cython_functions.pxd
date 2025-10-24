@@ -73,6 +73,8 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
             const cpp_S_box & lut
         )
 
+        void destruct()
+
         int64_t get_input_length()
     
         int64_t get_output_length()

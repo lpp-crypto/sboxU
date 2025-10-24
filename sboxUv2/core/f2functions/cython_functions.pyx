@@ -3,6 +3,7 @@
 from sage.all import Matrix, GF, Polynomial
 from sboxUv2.core.f2functions.field_arithmetic import i2f_and_f2i
 
+
 # !SECTION! Wrapped C++
 
 # !SUBSECTION! Bit-fiddling
@@ -94,6 +95,11 @@ cdef class BinLinearMap:
     def __init__(self):
         self.cpp_blm = new cpp_BinLinearMap(<std_vector[BinWord]>[ ])
 
+        
+    def __dealloc__(self):
+        self.cpp_blm[0].destruct()
+        free(self.cpp_blm)
+        
 
     def get_input_length(self):
         return self.cpp_blm[0].get_input_length()

@@ -10,6 +10,7 @@ from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
 from sage.all import Integer as sage_Integer
 from sage.all import ceil, floor
 
+
 # imports needed to test the input type in the Sb factory
 from sage.all import Polynomial 
 from sage.crypto.sboxes import SBox as sage_SBox
@@ -61,7 +62,7 @@ cdef class S_box:
     """
                                  
     
-    # !SUBSECTION! Initialization
+    # !SUBSECTION! Initialization and destruction
 
  
     def __init__(self, name=None):
@@ -69,7 +70,12 @@ cdef class S_box:
         self.input_cast = []
         self.output_cast = []
 
+    
+    def __dealloc__(self):
+        self.cpp_sb[0].destruct()
+        free(self.cpp_sb)
 
+        
     # !SUBSECTION! Dealing with the name
     
     def rename(self, name):
@@ -272,8 +278,8 @@ cdef class S_box:
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
-            
-        
+
+    
     # !SUBSECTION! Functions dealing with input/output sizes
 
     
