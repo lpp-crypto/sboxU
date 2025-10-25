@@ -78,13 +78,13 @@ class FunctionsDB:
                     ))
             else:
                 where_clause += constraint + " = ? AND "
-                c_type = self.row_structure[constraint]
-                if c_type  == "BLOB":
-                    values.append("x'{}'".format(query_description[constraint].hex()))
-                elif c_type == "INTEGER":
-                    values.append(int(query_description[constraint]))
-                else:
-                    values.append(query_description[constraint])
+                # c_type = self.row_structure[constraint]
+                # if c_type  == "BLOB":
+                #     values.append("x'{}'".format(query_description[constraint].hex()))
+                # elif c_type == "INTEGER":
+                #     values.append(int(query_description[constraint]))
+                # else:
+                values.append(query_description[constraint])
         values = tuple(values)
         where_clause = where_clause[:-4]
         self.cursor.execute(where_clause, values)
