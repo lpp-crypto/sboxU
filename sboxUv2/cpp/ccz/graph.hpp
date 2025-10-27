@@ -34,7 +34,7 @@ public:
         return std::binary_search(graph.begin(), graph.end(), x);
     }
 
-    inline bool operator==(const cpp_FunctionGraph & g)
+    inline bool operator==(const cpp_FunctionGraph & g) const
     {
         BinWord x = 0;
         for(auto & entry : g)
