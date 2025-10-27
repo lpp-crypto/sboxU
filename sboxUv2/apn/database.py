@@ -57,11 +57,14 @@ class APNFunctions(FunctionsDB):
                 "mugshot" : "BLOB"
             }
         )
-        try:
-            self.cursor.execute("SELECT COUNT(ccz_id) FROM {}".format(self.functions_table))
-            self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
-        except:
+        if self.new_db:
             self.number_of_ccz_classes = 0
+        else:
+            try:
+                self.cursor.execute("SELECT COUNT(ccz_id) FROM {}".format(self.functions_table))
+                self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
+            except:
+                self.number_of_ccz_classes = 0
                 
     
     def __str__(self):
@@ -210,16 +213,23 @@ class APNFunctions(FunctionsDB):
                 sigma_mult,
                 thk_spec
             )
-        query = {"mugshot" : mug}
-        # query = {}
+        # query = {"mugshot" : mug}
+        query = {}
         if ccz_id != None:
             query["ccz_id"] = ccz_id
         candidates = self.query_functions(query)
         if candidates == []:
+            print("+ no candidate")
             return True
         else:
             # checking all the functions with a similar mugshot
+            print("\n\n", len(candidates))
+            print(mug)
+            print(sb)
+            print("___")
             for entry in candidates:
+                print(entry["id"], entry["ccz_id"])
+                print(entry["mugshot"])
                 if sb == entry["sbox"]:
                     return False
                 test_result = extended_affine_equivalences(
@@ -228,5 +238,7 @@ class APNFunctions(FunctionsDB):
                     single_non_trivial_answer=False,
                     )
                 if len(test_result) > 0:
+                    print("[found] ", len(test_result))
+                    print(entry["sbox"])
                     return False
             return True

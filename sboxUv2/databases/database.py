@@ -42,6 +42,7 @@ class FunctionsDB:
         self.connection = sqlite3.connect(self.db_file)
         self.cursor = self.connection.cursor()
         # if the file exists, we initialize the length
+        self.new_db = False
         try:
             self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
             self.number_of_functions = self.cursor.fetchall()[0][0]
@@ -57,6 +58,7 @@ class FunctionsDB:
         creation_query = creation_query[:-1] + ")"
         self.cursor.execute(creation_query)
         self.number_of_functions = 0
+        self.new_db = True
         
         
 
@@ -78,12 +80,6 @@ class FunctionsDB:
                     ))
             else:
                 where_clause += constraint + " = ? AND "
-                # c_type = self.row_structure[constraint]
-                # if c_type  == "BLOB":
-                #     values.append("x'{}'".format(query_description[constraint].hex()))
-                # elif c_type == "INTEGER":
-                #     values.append(int(query_description[constraint]))
-                # else:
                 values.append(query_description[constraint])
         values = tuple(values)
         where_clause = where_clause[:-4]
@@ -92,10 +88,10 @@ class FunctionsDB:
         if len(result) == 0:
             return []
         else:
-            return (
+            return [
                 self.parse_function_from_row(row)
                 for row in result
-            )
+            ]
     
     
 
