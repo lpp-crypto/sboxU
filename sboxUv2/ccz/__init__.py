@@ -12,3 +12,4 @@ from .cython_functions import \
     affine_equivalences, extended_affine_equivalences, ccz_equivalences, \
     are_linear_equivalent, are_extended_linear_equivalent, are_ccz_linear_equivalent
 from .affine_equivalence import *
+from .code_based_equivalence import are_code_equivalent
