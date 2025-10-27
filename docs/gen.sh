@@ -9,6 +9,7 @@ rm source/sboxUv2*.rst
 rm -rf ./build/*
 
 
+PYTHONPATH="$PYTHONPATH:.."
 # -- parsing the docstrings
 sphinx-apidoc ../sboxUv2 -o source -M
 
@@ -19,7 +20,7 @@ sage ./biblio.py "gen"
 sphinx-build -M html source build
 
 # -- opening it
-open ./build/html/index.html 
+xdg-open ./build/html/index.html 
 
 
 # C++ code documentation
@@ -29,4 +30,4 @@ open ./build/html/index.html
 doxygen ./cpp/doxygen.conf
 
 # -- opening it
-open ./html/index.html
+xdg-open ./html/index.html

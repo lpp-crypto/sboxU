@@ -42,11 +42,12 @@ with Experiment("Testing APN functions-related functions"):
     #     print(s)
     #     pprint("checking: ", degree_spectrum(ccz_equivalent_quadratic_function(s)))
 
-    section("Testing DB generation")
+    section("Testing DB")
     
-    all_apns = generate_apn_ea_classes_database(7, db_path="sixBit.db")
-    for s in all_apns:
-        c = super_walsh(s)
-        print("-----")
-        for k in sorted(c.keys()):
-            print(c[k], k)
+    with APNFunctions("./apnDB.db") as db:
+        s = db[0]["sbox"]
+        pprint(s)
+        pprint(differential_spectrum(s))
+        pprint(thickness_spectrum(s))
+        pprint(degree_spectrum(s))
+        pprint(absolute_walsh_spectrum(s))
