@@ -110,6 +110,7 @@ cpp_Spectrum cpp_sigma_multiplicities(
                                           k,
                                           lower_bound,
                                           upper_bound));
+            lower_bound = upper_bound;
 
         }
         for (unsigned int i=0; i<n_threads; i++)
@@ -133,6 +134,8 @@ std::string cpp_apn_ea_mugshot(
     const cpp_Spectrum &thk_spec
     )
 {
+    if (deg_spec.maximum() == 2)
+        throw std::runtime_error("cpp_apn_ea_mughot(...spectra...) shouldn't be called on a quadratic function");
     std::stringstream result;
     result << abs_walsh_spec.content_string_repr()
            <<       deg_spec.content_string_repr()

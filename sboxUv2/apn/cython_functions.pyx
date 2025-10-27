@@ -26,7 +26,7 @@ def ortho_derivative(q):
     return result
 
 
-def sigma_multiplicities(s, k):
+def sigma_multiplicities(s, k=4):
     # !TODO! docstring for sigma_multiplicities 
     sb = Sb(s)
     result = Spectrum(name="σ-mult".encode("UTF-8"))
@@ -59,6 +59,20 @@ def apn_ea_mugshot_from_spectra(
 
 # !SECTION!  CCZ-equivalence class exploration
 
+
+def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
+    sb = Sb(s)
+    result = []
+    for L in cpp_automorphisms_from_ortho_derivative(
+            (<S_box>sb).cpp_sb[0],
+            n_threads
+    ):
+        new_blm = BinLinearMap()
+        (<BinLinearMap>new_blm).cpp_blm[0] = L
+        result.append(new_blm)
+    return result
+
+
 def enumerate_ea_classes_apn_quadratic(
         s,
         n_threads=MAX_N_THREADS
@@ -68,7 +82,7 @@ def enumerate_ea_classes_apn_quadratic(
     i = 0
     for new_s in cpp_enumerate_ea_classes_quadratic_apn(
         (<S_box>sb).cpp_sb[0],
-        MAX_N_THREADS
+        n_threads
     ):
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
@@ -87,4 +101,25 @@ def ccz_equivalent_quadratic_function(
         (<S_box>sb).cpp_sb[0],
         n_threads
     ))
+    return result
+
+
+
+            
+def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
+    sb = Sb(s)
+    result = WalshZeroesSpaces()
+    (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
+        (<S_box>sb).cpp_sb[0],
+        n_threads
+    )
+    # handling the initilization of the mappings by hand
+    result.cpp_wzs[0].init_mappings(
+        cpp_automorphisms_from_ortho_derivative((<S_box>sb).cpp_sb[0],
+                                                n_threads)
+    )
+    for m in result.cpp_wzs[0].mappings:
+        L = BinLinearMap()
+        (<BinLinearMap>L).cpp_blm[0] = m
+        result.mappings.append(L)
     return result

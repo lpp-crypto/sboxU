@@ -49,6 +49,17 @@ public:
     
     cpp_BinLinearMap(const cpp_S_box & lut) ;
 
+    void destruct()
+    {
+        image_vectors.clear();
+        image_vectors.shrink_to_fit();
+    }
+
+    ~cpp_BinLinearMap()
+    {
+        destruct();
+    }
+
     
     inline Integer get_input_length() const
     {

@@ -37,6 +37,19 @@ public:
         const unsigned int n_threads
         );
 
+    void destruct()
+    {
+        bases.clear();
+        bases.shrink_to_fit();
+        mappings.clear();
+        mappings.shrink_to_fit();
+    }
+
+    ~cpp_WalshZeroesSpaces()
+    {
+        destruct();
+    }
+
     void init_mappings();
 
     void init_mappings(const std::vector<cpp_BinLinearMap> & automorphisms);

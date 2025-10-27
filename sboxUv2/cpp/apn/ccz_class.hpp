@@ -8,6 +8,12 @@
 #include "./invariants.hpp"
 
 
+std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
+    const cpp_S_box & s,
+    const unsigned int n_threads
+    );
+
+
 std::vector<cpp_S_box> cpp_enumerate_ea_classes_quadratic_apn(
     const cpp_S_box &s,
     const unsigned int n_threads

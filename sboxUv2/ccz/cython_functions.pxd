@@ -38,6 +38,8 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
             const unsigned int n_threads
         )
 
+        void destruct()
+
         void init_mappings()
 
         void init_mappings(const std_vector[cpp_BinLinearMap] & automorphisms)

@@ -36,7 +36,7 @@ def degree_spectrum(s):
 def algebraic_degree(s):
     # !TODO! docstring for algebraic_degree
     sb = Sb(s)
-    return cpp_algebraic_degree((<S_box>s).cpp_sb[0])
+    return cpp_algebraic_degree((<S_box>sb).cpp_sb[0])
 
 
 # !SUBSECTION! The ANF itself

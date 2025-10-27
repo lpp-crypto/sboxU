@@ -35,6 +35,12 @@ cdef class WalshZeroesSpaces:
         self.cpp_wzs = new cpp_WalshZeroesSpaces()
         self.mappings = []
 
+        
+    def __dealloc__(self):
+        self.cpp_wzs[0].destruct()
+        free(self.cpp_wzs)
+
+        
     def image_by(self, L):
         Lm = Blm(L)
         result = WalshZeroesSpaces()
@@ -43,16 +49,19 @@ cdef class WalshZeroesSpaces:
         )
         return result
 
-
-    def get_mappings(self):
-        if len(self.mappings) == 0:
-            self.cpp_wzs[0].init_mappings()
-        result = []
+    
+    def init_mappings(self):
+        self.cpp_wzs[0].init_mappings()
         for m in self.cpp_wzs[0].mappings:
             L = BinLinearMap()
             (<BinLinearMap>L).cpp_blm[0] = m
-            result.append(L)
-        return result
+            self.mappings.append(L)
+        
+
+    def get_mappings(self):
+        if len(self.mappings) == 0:
+            self.init_mappings()
+        return self.mappings
         
 
     def thickness_spectrum(self):
@@ -71,8 +80,9 @@ def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
         (<S_box>sb).cpp_sb[0],
         n_threads
     )
+    result.init_mappings()
     return result
-    
+
 
 
 # !SECTION! Exploring a CCZ-equivalence class
@@ -190,6 +200,11 @@ def up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer=False,  eq
             break
     return results
 
+
+# !TODO! in all functions below:
+# ! 1. tweak the interface in order to take S_box instances as input
+# ! 2. write docstrings
+# ! 3. wrap them in simpler tests with Boolean results
 
 def linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "linear", n_threads)
