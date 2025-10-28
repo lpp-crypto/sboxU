@@ -92,7 +92,17 @@ class FunctionsDB:
                 self.parse_function_from_row(row)
                 for row in result
             ]
-    
+
+    def __getitem__(self, index):
+        if not isinstance(index, (int, sage_Integer)):
+            raise Exception("db[ index ] can only work if `index` is an integer")
+        else:
+            counter = 0
+            for entry in self.query_functions({"id" : index}):
+                if counter > 0:
+                    raise Exception("ERROR: the database contains multiple entries with the same identifier ({})".format(index))
+                else:
+                    return entry
     
 
     # !SECTION! Handling insertions 
