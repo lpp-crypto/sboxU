@@ -12,8 +12,8 @@ def oplus(BinWord x, BinWord y) -> BinWord:
     """Essentially a wrapper for the operation `^` in C++. Its purpose is to ensure that a XOR is performed regardless of the extension of the script.
 
     Args:
-        - x: a positive integer
-        - y: a positive integer
+        x(BinWord): a positive integer
+        y(BinWord): a positive integer
 
     Returns:
         A positive integer equal to the XOR of `x` and `y`.
@@ -26,7 +26,7 @@ def hamming_weight(BinWord x) -> int:
     """Ultimately call a C++ intrinsic to return the Hamming weight of the vector corresponding to the binary representation of `x`.
     
     Args:
-        - x: a positive integer
+        x(BinWord): a positive integer
 
     Returns:
         The number of bits set to 1 in the binary representation of `x`.
@@ -39,8 +39,8 @@ def scal_prod(BinWord x, BinWord y) -> BinWord:
     """The canonical scalar product in F_2. Wraps a C++ function relying on specific intrinsincs.
 
     Args:
-        - x: a positive integer
-        - y: a positive integer
+        x(BinWord): a positive integer
+        y(BinWord): a positive integer
 
     Returns:
         The scalar product x⋅y, i.e. the modulo 2 sum of the products x_i y_i, where i goes from 0 to 63.
@@ -49,19 +49,35 @@ def scal_prod(BinWord x, BinWord y) -> BinWord:
 
 
 def msb(BinWord x) -> int:
+    """The most significant bit.
+
+    Args:
+        x(BinWord): a positive integer
+
+    Returns:
+        The integer giving the position of the most significant bit of `x`, so that `x >> msb(x)` is always 1, unless `x` is 0. In this case, returns 0.
+    """
     return cpp_msb(x)
 
 
 def lsb(BinWord x) -> int:
+    """The least significant bit.
+
+    Args:
+        x(BinWord): a positive integer
+
+    Returns:
+        The integer giving the position of the least significant bit set to 1 of `x`, unless `x` is 0. In this case, returns 0.
+    """
     return cpp_lsb(x)
 
 def circ_shift(BinWord x, int n, int shift) -> BinWord:
     """A circular shift is the operation of rearranging the entries in a vector, either by moving the final entry to the first position, while shifting all other entries to the next position, or by performing the inverse operation. 
 
     Args :
-        - x : a positive integer
-        - n : the bit length of x 
-        - shift : a signed integer
+        x(BinWord) : a positive integer
+        n(int) : the bit length of x 
+        shift(int) : a signed integer
     Returns :
         The integer whose binary decomposition is the result of a circular shift on the binary decomposition of x by 'shift' positions. The LSB-first decomposition of x is shifted to the left if shift is positive and to the right otherwise. 
     """
@@ -76,7 +92,14 @@ def linear_combination(std_vector[BinWord] v, BinWord mask) -> BinWord:
     return cpp_linear_combination(v, mask)
 
 
-def rank_of_vector_set(std_vector[BinWord] l) -> BinWord:
+def rank_of_vector_set(std_vector[BinWord] l) -> int:
+    """Computes the rank of a set of integers interpreted as binary vectors.
+
+    Args:
+        l: a list of positive integers whose binary representation corresponds to the vector we investigate.
+    Returns:
+        An integer equal to the rank of the matrix obtained by concatenating these vectors. Equivalently, returns the dimension of their span.
+    """
     return cpp_rank_of_vector_set(l)
 
 
@@ -91,6 +114,13 @@ def from_bin(std_vector[int] l) -> BinWord:
 # !SUBSECTION! The BinLinearMap class
 
 cdef class BinLinearMap:
+    """This class models a linear mapping defined over F_2. It encapsulates a C++ class, `cpp_BinLinearMap`, for speed.
+
+    While it implements methods corresponding to matrix operations, such as `transpose`, it does not rely on a matrix representation internally. Instead, it stores the vectors corresponding to the images of the canonical basis of F_2^n, and operates on these.
+
+    Unless you are working *on* (rather than *with* `sboxU`), do not use the constructor of this class. Instead, you should rely on the `Blm` factory.
+    
+    """
     
     def __init__(self):
         self.cpp_blm = new cpp_BinLinearMap(<std_vector[BinWord]>[ ])
