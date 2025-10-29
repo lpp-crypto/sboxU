@@ -124,6 +124,10 @@ cdef class BinLinearMap:
         result.cpp_blm[0] = self.cpp_blm[0].add(L.cpp_blm[0])
         return result
 
+    def __hash__(self):
+        # !TODO! improve the implementation of BinLinearMap.__hash__() 
+        return hash(self.get_S_box())
+
     
     def __mul__(self, BinLinearMap L):
         result = BinLinearMap()

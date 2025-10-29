@@ -15,6 +15,11 @@ public:
     
     cpp_Spectrum() : content() {} ;
 
+    void destruct()
+    {
+        content.clear();
+    }
+
     Integer maximum() const;
 
     inline Integer size() const

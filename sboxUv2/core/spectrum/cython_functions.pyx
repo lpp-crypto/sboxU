@@ -12,6 +12,11 @@ cdef class Spectrum:
         self.name = name
         self.cpp_sp = new cpp_Spectrum()
 
+        
+    def __dealloc__(self):
+        self.cpp_sp[0].destruct()
+        del self.cpp_sp
+        
 
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp):
         self.cpp_sp[0] = sp
