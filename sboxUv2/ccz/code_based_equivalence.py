@@ -1,4 +1,4 @@
-from sage.all import *
+from sage.all import LinearCode, Matrix, GF, log
 from sboxUv2.core import *
 
 # CCZ and EA equivalences ``à la Edel-Pott''
