@@ -70,34 +70,38 @@ cdef class BinLinearBasis:
         self.cpp_lb = new cpp_BinLinearBasis(l)
 
         
-    def __iter__(self):
+    def __iter__(self) -> BinWord:
         for x in self.cpp_lb[0].get_basis():
             yield x
 
             
-    def __len__(self):
+    def __len__(self) -> int:
         return self.cpp_lb[0].rank()
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         result = "("
         for x in self.cpp_lb[0].get_basis():
             result += "{:x}, ".format(x)
         return result[:-2] + ")"
-        
+
     
-    def rank(self):
+    def basis_vectors(self) -> list:
+        return [x for x in self.cpp_lb[0].get_basis()]
+
+    
+    def rank(self) -> int:
         return self.cpp_lb[0].rank()
 
     
-    def add_to_span(self, BinWord x):
+    def add_to_span(self, BinWord x) -> bool:
         return self.cpp_lb[0].add_to_span(x)
         
 
-    def span(self):
+    def span(self) -> std_vector[BinWord]:
         return self.cpp_lb[0].span()
     
 
-    def is_in_span(self, BinWord x):
+    def is_in_span(self, BinWord x) -> bool:
         return self.cpp_lb[0].is_in_span(x)
     
