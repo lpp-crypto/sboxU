@@ -1,6 +1,10 @@
 # -*- python -*-
 
 from sboxUv2.config import MAX_N_THREADS
+from sboxUv2.core import oplus
+from sboxUv2.core.f2functions import Blm,rank_of_vector_set
+from math import log
+from random import randint
 
 
 # !SECTION! Extracting spaces contained in a set
@@ -100,4 +104,57 @@ cdef class BinLinearBasis:
 
     def is_in_span(self, BinWord x):
         return self.cpp_lb[0].is_in_span(x)
+
+  
+
+def is_affine(l,give_basis=False):
+    b = BinLinearBasis([])
+    V = [oplus(l[0], x) for x in l] # on linéarise l'espace pour avoir un espace vectoriel et non un espace affine
+    n = round(log(len(V), 2))
+    if 2**n != len(V):
+        if give_basis:
+            return False,None,None
+        else :
+            return False
+    for x in V:
+        b.add_to_span(x)
+    if give_basis : 
+        if b.rank() > n:
+            return False,None,None
+        else:
+            return True,l[0],[v for v in b]
+    else :
+        return b.rank()==n
+
+
+def complete_basis(basis,N):
+    if rank_of_vector_set(basis)!=len(basis): 
+        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
+    r = len(basis)
+    e_i = 1
+    res=basis
+    while r < N:
+        new_basis = res + [e_i]
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r:
+            res = new_basis[:]
+            r = new_r
+        e_i += 1
+    return res
+
+
+def generating_linear_map(basis, N):
+    """Returns a BinLinearMap M such that M(1 << i) = basis[i] for
+    all i < len(basis) and such that M has full rank.
+    """
+    return Blm(complete_basis(basis,N))
+
+def linear_map_from_masks(basis, N):
+    """Returns a BinLinearMap M such that M(1 << i) = basis[i] for
+    all i < len(basis).
+    """
+    return Blm(basis + [0 for _ in range(len(basis),N)])
+
+def linear_map_bases(inputs,outputs,N):
+    return generating_linear_map(outputs,N)*(generating_linear_map(inputs,N).inverse())
     

@@ -174,8 +174,8 @@ def block_diagonal_BinLinearMap(A, B):
     Bblm = Blm(B)
     result = BinLinearMap()
     result.cpp_blm[0] = cpp_block_diagonal_BinLinearMap(
-        (<BinLinearMap>A).cpp_blm[0],
-        (<BinLinearMap>B).cpp_blm[0],
+        (<BinLinearMap>Ablm).cpp_blm[0],
+        (<BinLinearMap>Bblm).cpp_blm[0],
     )
     return result
 
