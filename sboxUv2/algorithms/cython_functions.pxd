@@ -40,15 +40,20 @@ cdef extern from "../cpp/algorithms/spaceSearch.cpp":
 cdef extern from "../cpp/algorithms/binLinearBasis.hpp":
     cppclass cpp_BinLinearBasis:
     
+        cpp_BinLinearBasis()
+        
         cpp_BinLinearBasis(
             const std_vector[BinWord] & l
         )
+        
         bool add_to_span(
             BinWord x
         )
+        
         bool is_in_span(
             BinWord x
         ) const
+        
         std_vector[BinWord] get_basis() const
         
         int64_t rank() const
