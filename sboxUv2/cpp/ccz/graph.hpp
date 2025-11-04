@@ -79,6 +79,6 @@ cpp_BinLinearMap cpp_EA_mapping(
 
 
 // Returns the block decomposition of a 2n x 2n matrix into four n x n blocks.
-std::vector<cpp_BinLinearMap> ccz_block_decomposition(const cpp_BinLinearMap &L);
+std::vector<cpp_BinLinearMap> cpp_ccz_block_decomposition(const cpp_BinLinearMap &L);
 
 #endif

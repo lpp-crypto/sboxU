@@ -149,7 +149,7 @@ cpp_BinLinearMap cpp_EA_mapping(
 }
 
 // Returns the block decomposition of a 2n x 2n matrix into four n x n blocks.
-std::vector<cpp_BinLinearMap> ccz_block_decomposition(const cpp_BinLinearMap &L) {
+std::vector<cpp_BinLinearMap> cpp_ccz_block_decomposition(const cpp_BinLinearMap &L) {
         if(L.get_input_length() != L.get_output_length() || L.get_input_length() & ((Integer) 1))
             return {};
 
@@ -157,16 +157,19 @@ std::vector<cpp_BinLinearMap> ccz_block_decomposition(const cpp_BinLinearMap &L)
         // C B
         std::vector<std::vector<BinWord>> images_of_each_block(4); // A B C D
         Integer n = L.get_input_length() >> 1;
-
         BinWord v, w;
+        BinWord mask = 0;
+        for (int i = 0; i < n; ++i)
+            mask ^= ((BinWord)1) << i;
+
         for (int i = 0; i < n; i++) {
             v = L.image_vectors[i];
             w = L.image_vectors[(n + i)];
-            images_of_each_block[0].push_back((v << n) >> n); //A
-            images_of_each_block[2].push_back(v >> n); // C
+            images_of_each_block[0].push_back(v & mask); //A
+            images_of_each_block[2].push_back((v >> n) & mask); // C
 
-            images_of_each_block[3].push_back((w << n) >> n); // D
-            images_of_each_block[1].push_back(w >> n); // B
+            images_of_each_block[3].push_back(w & mask); // D
+            images_of_each_block[1].push_back((w >> n) & mask); // B
         }
 
         std::vector<cpp_BinLinearMap> block_decomposition;
