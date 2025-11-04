@@ -9,7 +9,7 @@ from sboxUv2.statistics import \
 from sboxUv2.ccz import \
     thickness_spectrum, \
     get_WalshZeroesSpaces, \
-    ccz_equivalent_function, extended_affine_equivalences
+    ccz_equivalent_function, ea_equivalences
 
 from sboxUv2.apn import \
     get_WalshZeroesSpaces_quadratic_apn, \
