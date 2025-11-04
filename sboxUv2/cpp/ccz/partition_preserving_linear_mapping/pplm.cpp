@@ -18,7 +18,8 @@ bool cpp_verify_el_equivalence(cpp_S_box *sbox1,  cpp_S_box *sbox2, const cpp_Bi
     }
     auto sbox1_prime = (B * (*sbox1)) + C;
     auto sbox2_prime = (*sbox2) * A;
-    cout << (sbox1_prime == sbox2_prime) << endl;q
+    if (sbox1_prime != sbox2_prime)
+    	cout << "EL equivalence test failed" << endl;
     return sbox1_prime == sbox2_prime;
 }
 
