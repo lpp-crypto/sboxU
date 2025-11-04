@@ -1,7 +1,10 @@
 #include "./ccz_class.hpp"
 
 
-
+// !TODO! Unifomize the output :
+//   - the current output of cpp_equivalences_from_lat is lower-triangular
+//   - the output of cpp_automorphisms_from_ortho_derivative is upper-triangular
+// !TODO! change this function into cpp_ea_equivalence_from_ortho_derivate ?
 std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
     const cpp_S_box & s,
     const unsigned int n_threads
@@ -16,10 +19,10 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
     {   
         auto abcd = cpp_ccz_block_decomposition(autom);
         cpp_BinLinearMap
-            L_A_inv = cpp_BinLinearMap(abcd[0]).transpose(),
-            L_B_T = cpp_BinLinearMap(abcd[1]),
+            L_A_inv = cpp_BinLinearMap(abcd[0]),
+            L_B = cpp_BinLinearMap(abcd[1]),
             L_A = L_A_inv.inverse(),
-            L_B = L_B_T.transpose();
+            L_B_T = L_B.transpose();
         cpp_S_box
             L_A_inv_sb = L_A_inv.get_cpp_S_box(),
             L_B_T_sb   = L_B_T.get_cpp_S_box(),
@@ -27,6 +30,7 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
             L_B_sb = L_B.get_cpp_S_box();
         
         // sanity check
+        // !TODO! Remove : the necessary check is now done in cpp_equivalences_from_lat
         if (L_B_sb * o * L_A_sb != o)
             std::cout << "[ERROR] automorphisms of the ortho-derivative are actually not automorphisms!" << std::endl;
         
