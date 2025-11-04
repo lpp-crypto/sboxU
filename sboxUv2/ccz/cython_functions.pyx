@@ -30,6 +30,8 @@ def thickness_spectrum(s, spaces=None):
     return result
 
 
+# !SUBSECTION! The  WalshZeroesSpaces class
+
 cdef class WalshZeroesSpaces:
     def __init__(self):
         self.cpp_wzs = new cpp_WalshZeroesSpaces()
@@ -64,6 +66,16 @@ cdef class WalshZeroesSpaces:
         return self.mappings
         
 
+    def get_mappings(self):
+        if len(self.mappings) == 0:
+            self.init_mappings()
+        return self.mappings
+
+    
+    def get_bases(self) -> list:
+        return [b.get_basis() for b in self.cpp_wzs[0].bases]
+            
+        
     def thickness_spectrum(self):
         result = Spectrum(name=b"thickness")
         result.set_inner_sp(
