@@ -1,5 +1,5 @@
-from sage.all import *
-from sboxUv2.core import *
+from sage.all import Matrix, log, LinearCode, GF
+from sboxUv2.core import to_bin
 
 # CCZ and EA equivalences ``à la Edel-Pott''
 # https://www.yvesedel.de/Papers/nato08.pdf Theorems 9 and 10.
@@ -37,3 +37,11 @@ def are_code_equivalent(f, g, equivalence="CCZ"):
     else:
         # !TODO! Handle here the output of the "verbose" code equivalence to obtain the proper affine mapping.
         return True
+
+
+def are_ea_equivalent_from_code(f, g):
+    return are_code_equivalent(f, g, "EA")
+
+
+def are_ccz_equivalent_from_code(f, g):
+    return are_code_equivalent(f, g, "CCZ")

@@ -7,9 +7,10 @@
 from .cython_functions import \
     thickness_spectrum, WalshZeroesSpaces, get_WalshZeroesSpaces, \
     ccz_equivalent_function, enumerate_ea_classes, EA_mapping, \
-    linear_equivalences_from_lat, extended_linear_equivalences_from_lat, ccz_linear_equivalences_from_lat, \
-    linear_equivalences, extended_linear_equivalences, ccz_linear_equivalences, \
-    affine_equivalences, extended_affine_equivalences, ccz_equivalences, \
-    are_linear_equivalent, are_extended_linear_equivalent, are_ccz_linear_equivalent
+    linear_equivalences, el_equivalences, cczl_equivalences, \
+    affine_equivalences, ea_equivalences, ccz_equivalences, \
+    are_linear_equivalent, are_el_equivalent, are_cczl_equivalent, \
+    are_affine_equivalent, are_ea_equivalent, are_ccz_equivalent, \
+    ccz_block_decomposition, equivalences_from_lat
 from .affine_equivalence import *
-from .code_based_equivalence import are_code_equivalent
+from .code_based_equivalence import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
