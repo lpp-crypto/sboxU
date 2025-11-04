@@ -119,7 +119,15 @@ if __name__ == '__main__':
     n = 5
     ascon = Sb(list(sboxes.sboxes['Ascon']))
 
+    # 1) THIS SHOULD WORK
     #test_ea_equivalence(ascon, ascon, 20)
     #test_random_ea_equivalence(n, 20)
     #test_banff_list()
-    cardinal_of_automorphisms_group_banff_list()
+    #cardinal_of_automorphisms_group_banff_list()
+
+    #2) THERE IS STILL A REPRESENTATION PROBLEM BETWEEN THESE TWO FUNCTIONS
+    # TODO Investigate
+    aut = set([tuple(Sb(t).lut()) for t in automorphisms_from_ortho_derivative(banff_list[4])])
+    aut_bis = set([tuple(Sb(t[0].transpose()).lut()) for t in ea_equivalences(banff_list[4], banff_list[4])])
+    print(len(aut_bis), len(aut))
+    print(aut == aut_bis)
