@@ -13,4 +13,4 @@ from .cython_functions import \
     are_affine_equivalent, are_ea_equivalent, are_ccz_equivalent, \
     ccz_block_decomposition, equivalences_from_lat
 from .affine_equivalence import *
-from .code_based_equivalence import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
+from .equivalences_from_code import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
