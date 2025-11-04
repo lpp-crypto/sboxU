@@ -126,7 +126,12 @@ public:
     const vector<BinWord>& operator[](keyType key) const {return partition.at(key);}
 };
 
-bool cpp_verify_el_equivalence(cpp_S_box *sbox1,  cpp_S_box *sbox2, const cpp_BinLinearMap &solution);
+
+/* ==============================================
+*    Sanity checks and early aborts
+*  ==============================================
+*/
+bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_BinLinearMap &solution, const string &equivalence_type);
 
 class PPExitCondition
 {
@@ -140,21 +145,18 @@ public:
   bool is_valid(const cpp_BinLinearMap &solution) {return true;}
 };
 
-class PPExitConditionEL : public virtual PPExitCondition
+class PPExitConditionLinearOrEL : public virtual PPExitCondition
 {
 private:
     cpp_S_box *sbox1, *sbox2;
+    string equivalence_type;
 
 public:
-    PPExitConditionEL(cpp_S_box *_sbox1, cpp_S_box *_sbox2) {
-        sbox1 = _sbox1;
-        sbox2 = _sbox2;
-    }
+    PPExitConditionLinearOrEL(cpp_S_box *_sbox1, cpp_S_box *_sbox2, string _equivalence_type) : 
+    sbox1(_sbox1), sbox2(_sbox2), equivalence_type(_equivalence_type) {}
 
     bool is_valid(const cpp_BinLinearMap &solution) {
-        if(cpp_verify_el_equivalence(sbox1, sbox2, solution) == false)
-            cout << "ICI PB " << endl;
-        return cpp_verify_el_equivalence(sbox1, sbox2, solution);
+        return cpp_verify_linear_or_el_equivalence(*sbox1, *sbox2, solution, equivalence_type);
     }
 };
 

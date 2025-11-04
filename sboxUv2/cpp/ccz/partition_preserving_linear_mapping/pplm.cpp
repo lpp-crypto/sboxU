@@ -5,24 +5,29 @@
 #include "pplm.hpp"
 
 
-bool cpp_verify_el_equivalence(cpp_S_box *sbox1,  cpp_S_box *sbox2, const cpp_BinLinearMap &solution) {
-    vector<cpp_BinLinearMap> ABCD = cpp_ccz_block_decomposition(solution);
+bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_BinLinearMap &solution, const string &equivalence_type) {
+	vector<cpp_BinLinearMap> ABCD = cpp_ccz_block_decomposition(solution);
  	cpp_S_box A = ABCD[0].get_cpp_S_box();
     cpp_S_box B = ABCD[1].get_cpp_S_box();
     cpp_S_box C = ABCD[2].get_cpp_S_box();
     cpp_S_box D = ABCD[3].get_cpp_S_box();
     
-    for (int i = 0; i < sbox1->size(); ++i) {
-    	if(D[i])
+    for (int i = 0; i < sbox1.size(); ++i) {
+    	if(D[i]) {
+    		cout << "[Error] Not an EL mapping" << endl;
     		return false;
+    	}
+    	if(equivalence_type == "linear" && C[i]) {
+    		cout << "[Error] Not an EL mapping" << endl;
+    		return false;
+    	}
     }
-    auto sbox1_prime = (B * (*sbox1)) + C;
-    auto sbox2_prime = (*sbox2) * A;
-    if (sbox1_prime != sbox2_prime)
-    	cout << "EL equivalence test failed" << endl;
-    return sbox1_prime == sbox2_prime;
+    bool test = ((B * sbox1) + C == sbox2 * A);
+    if (!test) {
+    	cout << "[Error]" << equivalence_type << " test failed" << endl;
+    }
+    return test;
 }
-
 
 vector<cpp_BinLinearMap> cpp_equivalences_from_lat(
     cpp_S_box sbox1,
@@ -76,17 +81,21 @@ vector<cpp_BinLinearMap> cpp_equivalences_from_lat(
 
 	PPExitCondition *exit_condition; 
 	PPEarlyAbortCondition *early_abort_condition;
-	if(equivalence_type == "extended-linear") {
-		exit_condition = new PPExitConditionEL(&sbox1, &sbox2);
-		early_abort_condition = new PPEarlyAbortConditionEL();
-	}
-	else {
+
+	if(equivalence_type == "extended-linear" || equivalence_type == "linear")
+		exit_condition = new PPExitConditionLinearOrEL(&sbox1, &sbox2, equivalence_type);
+	else
 		exit_condition = new PPExitConditionTrivial();
+
+	if(equivalence_type == "extended-linear")
+		early_abort_condition = new PPEarlyAbortConditionEL();
+	else
 		early_abort_condition = new PPEarlyAbortConditionTrivial();
-	}
 	
 		
 	PartitionPreservingLinearMappings<pair<Integer, string>> pplm = PartitionPreservingLinearMappings<pair<Integer, string>>(&partition1, &partition2, exit_condition, early_abort_condition, single_non_trivial_answer, number_of_threads);
 	pplm.search();
+	delete exit_condition;
+	delete early_abort_condition;
 	return pplm.found_mappings;
 }
