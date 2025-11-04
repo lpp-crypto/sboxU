@@ -142,7 +142,7 @@ cdef class BinLinearMap:
 
 
     def __str__(self):
-        return str(Matrix(GF(2),[cpp_to_bin(x,self.get_output_length()) for x in self.cpp_blm[0].get_image_vectors()]))
+        return str(Matrix(GF(2),[cpp_to_bin(x,self.get_output_length()) for x in self.cpp_blm[0].get_image_vectors()]).transpose())
 
 
     def get_S_box(self):
