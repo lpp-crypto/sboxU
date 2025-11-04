@@ -55,7 +55,7 @@ cdef extern from "../cpp/ccz/zeroes.cpp":
 # !SUBSUBSECTION! graph.[hc]pp
 
 cdef extern from "../cpp/ccz/graph.hpp":
-    pass
+    cdef std_vector[cpp_BinLinearMap] cpp_ccz_block_decomposition(const cpp_BinLinearMap L)
 
 cdef extern from "../cpp/ccz/graph.cpp":
     pass
@@ -88,9 +88,9 @@ cdef extern from "../cpp/ccz/explore.cpp":
 # !SUBSECTION!  Partition preserving mappings
 
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
-    cdef std_vector[std_vector[cpp_BinLinearMap]] cpp_equivalences_from_lat(
-        const std_vector[std_vector[int64_t]] lat1,
-        const std_vector[std_vector[int64_t]] lat2,
+    cdef std_vector[cpp_BinLinearMap] cpp_equivalences_from_lat(
+        cpp_S_box sbox1,
+        cpp_S_box sbox2,
         const bool single_non_trivial_answer,
         const unsigned int number_of_threads,
         const string equivalence_type)
