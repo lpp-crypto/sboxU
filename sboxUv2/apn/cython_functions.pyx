@@ -57,7 +57,7 @@ def apn_ea_mugshot_from_spectra(
     )
 
 
-# !SECTION!  CCZ-equivalence class exploration
+# !SECTION! CCZ-equivalence class exploration
 
 
 def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
@@ -65,6 +65,24 @@ def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
     result = []
     for L in cpp_automorphisms_from_ortho_derivative(
             (<S_box>sb).cpp_sb[0],
+            n_threads
+    ):
+        new_blm = BinLinearMap()
+        (<BinLinearMap>new_blm).cpp_blm[0] = L
+        result.append(new_blm)
+    return result
+
+
+def ea_mappings_from_ortho_derivative(
+        s,
+        s_prime,
+        n_threads=MAX_N_THREADS
+):
+    sb, sb_prime = Sb(s), Sb(s_prime)
+    result = []
+    for L in cpp_ea_mappings_from_ortho_derivative(
+            (<S_box>sb).cpp_sb[0],
+            (<S_box>sb_prime).cpp_sb[0],
             n_threads
     ):
         new_blm = BinLinearMap()
@@ -102,8 +120,6 @@ def ccz_equivalent_quadratic_function(
         n_threads
     ))
     return result
-
-
 
             
 def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
