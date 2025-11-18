@@ -291,7 +291,7 @@ cdef class S_box:
         return self.cpp_sb.input_space_size()
 
 
-    def input_space(self) -> int:
+    def input_space(self) -> range:
         return range(0, self.cpp_sb.input_space_size())
 
     
@@ -303,7 +303,7 @@ cdef class S_box:
         return self.cpp_sb.output_space_size()
 
     
-    def output_space(self):
+    def output_space(self) -> range:
         return range(0, self.cpp_sb.output_space_size())
 
     
