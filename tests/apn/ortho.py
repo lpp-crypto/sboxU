@@ -29,7 +29,13 @@ if __name__ == "__main__":
         section("initialization")
 
         n = 6
-        cube = monomial(3, GF(2**n))
+        field = GF(2**n)
+        X = PolynomialRing(field, "X").gen()
+        g = field.gen()
+
+        cube = Sb(X**3)
+        not_cube = Sb(X**3 + g**11*X**6 + g*X**9)
+
         A = rand_linear_permutation(n)
         B = rand_linear_permutation(n)
         C = rand_linear_function(n, n)
@@ -40,7 +46,7 @@ if __name__ == "__main__":
 
         section("functions considered")
         
-        for f in [cube, other_func]:
+        for f in [cube, other_func, not_cube]:
             pprint(f)
             pprint(differential_spectrum(f))
             pprint(absolute_walsh_spectrum(f))
@@ -48,11 +54,41 @@ if __name__ == "__main__":
             pprint(thickness_spectrum(f))
             print()
 
-        section("testing EA equivalence")
+        section("testing EA equivalence of (X^3) to (B o X^3 o A + C)")
 
         c = 0
-        for x in ea_mappings_from_ortho_derivative(cube, other_func):
-            print(x)
-            print()
+        successes = 0
+        for L in ea_mappings_from_ortho_derivative(cube, other_func):
+            if len(xor_equivalence(cube, ccz_equivalent_function(other_func, L))) == 0:
+                print("[FAIL]")
+            else:
+                successes += 1
             c += 1
-        print("total: ", c)
+        if c == 0:
+            print("no mapping found")
+        else:
+            print("total: {} success out of {} ({:03.2f})%".format(
+                  successes,
+                  c,
+                  100 * float(successes) / c
+            ))
+
+            
+        section("testing EA equivalence of (X^3) to unequivalent function")
+
+        c = 0
+        successes = 0
+        for L in ea_mappings_from_ortho_derivative(cube, not_cube):
+            if len(xor_equivalence(cube, ccz_equivalent_function(other_func, L))) == 0:
+                print("[FAIL]")
+            else:
+                successes += 1
+            c += 1
+        if c == 0:
+            print("no mapping found")
+        else:
+            print("total: {} success out of {} ({:03.2f})%".format(
+                  successes,
+                  c,
+                  100 * float(successes) / c
+            ))

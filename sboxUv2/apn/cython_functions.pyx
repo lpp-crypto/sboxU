@@ -78,6 +78,17 @@ def ea_mappings_from_ortho_derivative(
         s_prime,
         n_threads=MAX_N_THREADS
 ):
+    """Returns all the EL mappings L such that graph(s) = L(graph(s_prime)) + c, for some constant c that is not returned. Works only for quadratic APN functions since it is based on the ortho-derivative.
+
+    Args:
+        s: an S-boxable object corresponding to a quadratic APN function
+        s_prime: an S-boxable object corresponding to a quadratic APN function
+        n_threads: the number of threads to use. Defaults to `MAX_N_THREADS`.
+
+    Returns:
+        A list of BinLinearMaps L_i such that the graph of s is, up to a constant addition, the same as the image of the graph of s_prime under the linear permutation L_i.
+    
+    """
     sb, sb_prime = Sb(s), Sb(s_prime)
     result = []
     for L in cpp_ea_mappings_from_ortho_derivative(
