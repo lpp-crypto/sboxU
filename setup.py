@@ -1,7 +1,7 @@
 import os
 import sys
 import re
-
+import multiprocessing
 
 from setuptools import find_packages, setup
 from setuptools.extension import Extension
@@ -56,6 +56,9 @@ all_cython_extensions = [ declare_cython(name) for name in [
     "sboxUv2.ccz.affine_equivalence.cython_functions",
     "sboxUv2.apn.cython_functions",
 ]]
+
+
+
 
     
 # !SECTION! Final setup 
