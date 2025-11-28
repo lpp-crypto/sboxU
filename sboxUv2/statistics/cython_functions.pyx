@@ -299,16 +299,48 @@ def zddt(s):
 # !SECTION! Linear structures
 
 def linear_structures(s):
+    """
+    Args :
+        s: an S-boxable object over F_2 of output length 1
+    
+    Returns: 
+        list,list : A pair of lists `[l_0, l_1]` such that, for all `a` in l_e (with e in [0,1]),
+        f(x+a) + f(x) = e,
+        for all x (where `+` corresponds to a XOR). 0 does not appear in `l_0` as it would always be present.
+    """
     sb=Sb(s)
     result=cpp_linear_structures((<S_box>sb).cpp_sb[0])
     return result
 
 def linear_structures_vectorial(s):
+    """
+    Args :
+        s: an S-boxable object over F_2 
+    
+    Returns : 
+        dict : A dictionnary `d`, where `d[c]` is a pair of lists `[l_0,l_1]` such that, for all `a` in l_e (with e in [0,1]),
+        c. (s(x+a) + s(x)) = e,
+        for all x (where `+` corresponds to a XOR), where `.` is the
+        scalar product.
+        The dictionnary only contains keys where `l_0` or `l_1` are
+        non-trivial, i.e. where `l_0` contains more than just 0 and/or
+        where `l_1` is non-empty.
+
+    """
     sb=Sb(s)
     result=cpp_linear_structures_vectorial((<S_box>sb).cpp_sb[0])
     return result
 
 def linear_structures_vectorial_spectrum(s):
+    """
+    Args :
+        s: an S-boxable object over F_2 
+    
+    Returns : 
+        Spectrum: a Spectrum instance `d` such that `d[c]` is the number of linear structures of the Boolean function c.s , where `.` is the
+        scalar product. The spectrum only contains keys for which the number of linear structures is non-zero.
+
+    """
     sb=Sb(s)
     result=Spectrum(name="Linear Structures".encode("UTF-8"))
     result.set_inner_sp(cpp_linear_structures_vectorial_spectrum((<S_box>sb).cpp_sb[0]))
