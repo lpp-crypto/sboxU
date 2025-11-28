@@ -92,5 +92,23 @@ cdef extern from "../cpp/statistics/boomerang.hpp":
 cdef extern from "../cpp/statistics/boomerang.cpp":
     pass
 
+# !SUBSECTION! Linear structures
+
+cdef extern from "../cpp/statistics/linear_structures.hpp":
+    std_vector[std_vector[int64_t]] cpp_linear_structures(
+        const cpp_S_box & s
+    )
+    std_map[int64_t,std_vector[std_vector[int64_t]]] cpp_linear_structures_vectorial(
+        const cpp_S_box & s
+    )
+    cpp_Spectrum cpp_linear_structures_vectorial_spectrum(
+        const cpp_S_box & s
+    )
+   
+
+
+cdef extern from "../cpp/statistics/linear_structures.cpp":
+    pass
+
 
 

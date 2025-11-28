@@ -11,5 +11,6 @@ More precisely, at this stage, it contains:
 
 from .cython_functions import \
     extract_bases, extract_affine_bases, \
-    BinLinearBasis
+    BinLinearBasis, is_affine, \
+    generating_BinLinearMap_r,generating_BinLinearMap, BinLinearMap_from_masks,BinLinearMap_from_range_and_image
 

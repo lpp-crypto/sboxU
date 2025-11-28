@@ -147,7 +147,7 @@ cdef class S_box:
 
 
     def __ne__(self, s) -> bool:
-        return not self.__equal__(s)
+        return not self.__eq__(s)
 
         
     def __getitem__(self, BinWord x) -> BinWord:
@@ -568,17 +568,33 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
             elif isinstance(s[0], (int, sage_Integer)): # case of a lookup table
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
-            elif isinstance(s[0], (MPolynomial)): # case of an ANF
-                n_vars = len(s[0].parent().gens())
-                lut = [0 for x in range(0, 2**n_vars)]
-                for x in range(0, len(lut)):
+            elif isinstance(s[0], (MPolynomial)): # case of a list of polynomials
+                field = s[0].parent().base_ring()
+                if field.characteristic() == 2:
+                    degree_vars = field.degree()
+                    n_vars = len(s[0].parent().gens())
+                    lut = [0 for x in range(0, 2**(n_vars*degree_vars))]
+                    if degree_vars ==1: # case of an ANF
+                        for x in range(0, len(lut)):
                     # duplicating the code from ..anf to prevent cross dependencies
-                    x_bin = to_bin(x, n_vars)
-                    y = 0
-                    for i in range(0, len(s)):
-                        y = (<int>(s[i](x_bin)) << i) | y
-                    lut[x] = y
-                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+                            x_bin = to_bin(x, n_vars)
+                            y = 0
+                            for i in range(0, len(s)):
+                                y = (<int>(s[i](x_bin)) << i) | y
+                            lut[x] = y
+                        (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+                    else : # case of multivariate polynomials on field extensions
+                        i2f, f2i = i2f_and_f2i(field)
+                        for x in range(0, len(lut)):
+                            bin_x=to_bin(x,n_vars*degree_vars)
+                            pol_inputs=[i2f(from_bin(bin_x[degree_vars*i:degree_vars*(i+1)])) for i in range(n_vars)]
+                            y = 0
+                            for i in range(0, len(s)):
+                                y = (<int>f2i(s[i](pol_inputs)) << degree_vars*i) | y
+                            lut[x] = y
+                        (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)    
+                else:
+                    raise NotImplemented("we don't yet support polynomials over fields of characteristic >2")
             else:
                 msg = "can't turn list of objects of type '{}' into an S_box".format(type(s[0]))
                 print(msg)

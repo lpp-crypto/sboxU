@@ -1,5 +1,5 @@
-from sboxUv2.core.f2functions import to_bin, from_bin, oplus # type: ignore
-from sboxUv2.core.sbox import Sb # type: ignore
+from sboxUv2.core.f2functions import to_bin, from_bin, oplus
+from sboxUv2.core.sbox import Sb 
 
 def swap_halves(n):
     """
@@ -28,7 +28,6 @@ def feistel_round(F1):
         for xL in range(2**n):
             res.append(from_bin(to_bin(xR,n)+to_bin(oplus(xL,S1[xR]),n)))
     return Sb(res)
-
 
     
     

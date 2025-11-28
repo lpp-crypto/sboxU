@@ -1,6 +1,10 @@
 # -*- python -*-
 
 from sboxUv2.config import MAX_N_THREADS
+from sboxUv2.core import oplus
+from sboxUv2.core.f2functions import Blm,rank_of_vector_set
+from math import log
+from random import randint
 
 
 # !SECTION! Extracting spaces contained in a set
@@ -104,4 +108,75 @@ cdef class BinLinearBasis:
 
     def is_in_span(self, BinWord x) -> bool:
         return self.cpp_lb[0].is_in_span(x)
+
+    def __eq__(self, BinLinearBasis b) -> bool:
+        return self.basis_vectors()==b.basis_vectors()
+  
+
+def is_affine(l,give_basis=False):
+    b = BinLinearBasis([])
+    V = [oplus(l[0], x) for x in l] 
+    n = round(log(len(V), 2))
+    if 2**n != len(V):
+        if give_basis:
+            return False,None,None
+        else :
+            return False
+    for x in V:
+        b.add_to_span(x)
+    if give_basis : 
+        if b.rank() != n:
+            return False,None,None
+        else:
+            return True,l[0],[v for v in b]
+    else :
+        return b.rank()==n
+
+
+def complete_basis(basis,N):
+    if rank_of_vector_set(basis)!=len(basis): 
+        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
+    r = len(basis)
+    e_i = 1
+    res=basis
+    while r < N:
+        new_basis = res + [e_i]
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r:
+            res = new_basis[:]
+            r = new_r
+        e_i += 1
+    return res
+
+def complete_basis_reversed(basis,N): 
+    if rank_of_vector_set(basis) != len(basis):
+        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
+    r = len(basis)
+    e_i = 1
+    while r < N:
+        new_basis = [e_i] + basis
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r:
+            basis = new_basis[:]
+            r = new_r
+        e_i += 1
+    return basis
+
+def generating_BinLinearMap_r(basis,N)-> BinLinearMap:
+    return Blm(complete_basis_reversed(basis,N),N,N)
+
+def generating_BinLinearMap(basis, N)-> BinLinearMap:
+    """Returns a BinLinearMap L from N bits to N bits such that L(1 << i) = basis[i] for
+    all i < len(basis) and such that L is a bijection .
+    """
+    return Blm(complete_basis(basis,N),N,N)
+
+def BinLinearMap_from_masks(masks, N,M)-> BinLinearMap:
+    """Returns a BinLinearMap L from N bits to M bits such that L(1 << i) = basis[i] for
+    all i < len(basis) and L(1<<i)=0 for all i >= len(basis).
+    """
+    return Blm(masks + [0 for _ in range(len(masks),N)],N,M)
+
+def BinLinearMap_from_range_and_image(inputs,outputs,N,M)-> BinLinearMap:
+    return BinLinearMap_from_masks(outputs,M,N)*(generating_BinLinearMap(inputs,M).inverse())
     

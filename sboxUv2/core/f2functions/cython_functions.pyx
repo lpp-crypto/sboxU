@@ -185,6 +185,9 @@ cdef class BinLinearMap:
         (<S_box>result).cpp_sb[0] = self.cpp_blm[0].get_cpp_S_box()
         return result
     
+    def get_image_vectors(self):
+        return self.cpp_blm[0].get_image_vectors()
+    
     # !TODO! __rich_repr__
 
     # !TODO! from_blob / to_blob
@@ -196,11 +199,11 @@ cdef class BinLinearMap:
 # !SUBSECTION! Factories 
 
 def identity_BinLinearMap(int64_t n) -> BinLinearMap:
-    return Blm([(1 << i) for i in range(0, n)])
+    return Blm([(1 << i) for i in range(0, n)],n,n)
 
 
-def zero_BinLinearMap(int64_t n) -> BinLinearMap:
-    return Blm([0 for i in range(0, n)])
+def zero_BinLinearMap(int64_t n,int64_t m) -> BinLinearMap:
+    return Blm([0 for i in range(0, n)],n,m)
 
 
 def block_diagonal_BinLinearMap(A, B) -> BinLinearMap:
@@ -208,8 +211,8 @@ def block_diagonal_BinLinearMap(A, B) -> BinLinearMap:
     Bblm = Blm(B)
     result = BinLinearMap()
     result.cpp_blm[0] = cpp_block_diagonal_BinLinearMap(
-        (<BinLinearMap>A).cpp_blm[0],
-        (<BinLinearMap>B).cpp_blm[0],
+        (<BinLinearMap>Ablm).cpp_blm[0],
+        (<BinLinearMap>Bblm).cpp_blm[0],
     )
     return result
 
@@ -222,14 +225,14 @@ def circ_shift_BinLinearMap(int n, int shift) -> BinLinearMap:
     Returns :
         A BinLinearMap object which encodes the circular shift by 'shift' positions. This linear map is an automorphism of (F_2)^n. As for circ_shift, the LSB-first decomposition of a vector x is shifted to the left if shift is positive and to the right otherwise. 
     """
-    return Blm([circ_shift(1 <<i,n,shift) for i in range(0, n)])
+    return Blm([circ_shift(1 <<i,n,shift) for i in range(0, n)],n,n)
 
     
 
-def Blm(l) -> BinLinearMap:
+def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
     if isinstance(l, (BinLinearMap)):
         return l
-    else:
+    elif input_length is None and output_length is None:
         result = BinLinearMap()
         if isinstance(l, (list)):
             result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>l)
@@ -243,6 +246,30 @@ def Blm(l) -> BinLinearMap:
                 i2f, f2i = i2f_and_f2i(field)
                 imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
                 result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>imgs)
+            else:
+                raise Exception("A polynomial in characteristic 2 is needed for a BinLinearMap")
+        else:
+            # !TODO! implement Blm processing of SAGE matrices 
+            raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))
+        return result
+    elif (input_length is None) or (output_length is None):
+        raise NotImplemented("You must specify both input_length and output_length or none of them")
+    else :
+        result = BinLinearMap()
+        if isinstance(l, (list)):
+            result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>l,input_length,output_length)
+        elif isinstance(l, (S_box)):
+            if l.get_input_length()!=input_length or l.get_output_length()!= output_length:
+                raise Exception("You specified uncompatible input or output length")
+            result.cpp_blm[0] = cpp_BinLinearMap((<S_box>l).cpp_sb[0])
+        elif isinstance(l, Polynomial):
+            # case of a univariate polynomial
+            field = l.base_ring()
+            if field.characteristic() == 2:
+                n = field.degree()
+                i2f, f2i = i2f_and_f2i(field)
+                imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
+                result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>imgs,input_length,output_length)
             else:
                 raise Exception("A polynomial in characteristic 2 is needed for a BinLinearMap")
         else:

@@ -33,3 +33,51 @@ if __name__ == "__main__":
         print("Succeeded")
     else :
         print("Failed")
+
+
+    print("Testing the construction of closed generalised butterflies")
+
+    ## Testing Main Theorem of [CDP17]
+    test= True
+
+    for alpha in GF(8).list()[1::]:
+        for beta in GF(8).list()[1::]:
+            if algebraic_degree(closed_butterfly(alpha,beta))!=2:
+                test=False 
+
+    for alpha in GF(8).list()[1::]:
+        if alpha.trace()==0:
+            for beta in [alpha**3+alpha,alpha**3+alpha.inverse()]:
+                butterfly=closed_butterfly(alpha,beta)
+                if differential_uniformity(butterfly) > 2 or linearity(butterfly) != 16:
+                    test=False
+
+    for n in [3,5]:     
+        for alpha in GF(2**n).list()[1::]:
+            beta=(1+alpha)**3
+            if beta !=0:
+                butterfly=closed_butterfly(alpha,beta)
+                if differential_uniformity(butterfly)!= 2**(n+1) or linearity(butterfly) != 2**((3*n+1)//2):
+                    test=False 
+    if test :
+        print("Succeeded")
+    else :
+        print("Failed")
+
+    print("Checking if open generalised butterflies are equal to Feistel's")
+   
+    for n in [3,5]:
+        test=True
+        print("Testing n=",n)
+        SW=swap_halves(2*n)
+        R = PolynomialRing(GF(2**n), names=('X')); 
+        (X,) = R._first_ngens(1)
+        elts=GF(2**n).list()[1::]
+
+        for beta in elts:
+            if (open_butterfly(GF(2**n)(1),beta) == SW *feistel_round(Sb(beta*X**3))*feistel_round(Sb(X**inverse_mod(3,2**n-1)))*feistel_round(Sb(beta*X**3)))==False:
+                test=False
+        if test :
+            print("Succeeded")
+        else :
+            print("Failed")

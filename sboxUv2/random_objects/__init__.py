@@ -1,0 +1,1 @@
+from .random_objects import rand_linear_function, rand_linear_permutation, rand_Sbox, rand_invertible_Sbox

@@ -28,7 +28,7 @@ def degree_spectrum(s):
     sb = Sb(s)
     py_result = Spectrum(name=b"Degree")  
     py_result.set_inner_sp(
-        cpp_degree_spectrum((<S_box>s).cpp_sb[0])
+        cpp_degree_spectrum((<S_box>sb).cpp_sb[0])
     )
     return py_result
 
