@@ -4,6 +4,7 @@
 #include "./differential.hpp"
 #include "./linear.hpp"
 #include "./boomerang.hpp"
+#include "./linear_structures.hpp"
 
 
 #endif

@@ -296,3 +296,20 @@ def zddt(s):
     result = cpp_zddt((<S_box>sb).cpp_sb[0])
     return result
 
+# !SECTION! Linear structures
+
+def linear_structures(s):
+    sb=Sb(s)
+    result=cpp_linear_structures((<S_box>sb).cpp_sb[0])
+    return result
+
+def linear_structures_vectorial(s):
+    sb=Sb(s)
+    result=cpp_linear_structures_vectorial((<S_box>sb).cpp_sb[0])
+    return result
+
+def linear_structures_vectorial_spectrum(s):
+    sb=Sb(s)
+    result=Spectrum(name="Linear Structures".encode("UTF-8"))
+    result.set_inner_sp(cpp_linear_structures_vectorial_spectrum((<S_box>sb).cpp_sb[0]))
+    return result
