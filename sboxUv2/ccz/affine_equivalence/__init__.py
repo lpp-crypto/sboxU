@@ -5,6 +5,7 @@
 """
 
 from .cython_functions import \
+    xor_equivalence, \
     le_class_representative, linear_equivalence, linear_equivalence_permutations, \
     affine_equivalence_permutations, affine_equivalence
 

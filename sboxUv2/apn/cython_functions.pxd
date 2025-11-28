@@ -49,6 +49,12 @@ cdef extern from "../cpp/apn/ccz_class.hpp":
         const unsigned int n_threads
     )
 
+    std_vector[cpp_BinLinearMap] cpp_ea_mappings_from_ortho_derivative(
+        const cpp_S_box & s,
+        const cpp_S_box & s_prime,
+        const unsigned int n_threads
+    )
+
     std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
         const cpp_S_box &s,
         const unsigned int n_threads

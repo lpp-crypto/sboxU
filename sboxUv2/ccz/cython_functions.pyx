@@ -165,10 +165,10 @@ def EA_mapping(A, B, C):
 
 # !SECTION! LAT-based equivalence tests
 
-# !SUBSECTION! All linear automorphisms
+# !SUBSECTION! All "linear" equivalences
 
 def equivalences_from_lat(
-        lat1, lat2,
+        sbox1, sbox2,
         single_non_trivial_answer=False,
         equivalence_type="linear",
         n_threads=MAX_N_THREADS
@@ -187,78 +187,112 @@ def equivalences_from_lat(
 
     """
     res = []
-    for blocks in cpp_equivalences_from_lat(lat1, lat2, single_non_trivial_answer, n_threads, equivalence_type.encode('ascii')):
-        abcd = []
-        for b in blocks:
-            new_blm = BinLinearMap()
-            new_blm.cpp_blm[0] = b
-            abcd.append(new_blm)
-        res.append(abcd)
+    for solution in cpp_equivalences_from_lat((<S_box>sbox1).cpp_sb[0], (<S_box>sbox2).cpp_sb[0], single_non_trivial_answer, n_threads, equivalence_type.encode('ascii')):
+        new_blm = BinLinearMap()
+        new_blm.cpp_blm[0] = solution
+        res.append(new_blm)
     return res
 
+# !TODO! in all functions below:
+# ! 1. write docstrings
+# ! 2. wrap them in simpler tests with Boolean results
 
-def up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer=False,  equivalence_type="linear", n_threads=MAX_N_THREADS):
-    if lut1[0] != 0:
-        print("not handled yet")
-        return None
+def linear_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return equivalences_from_lat(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "linear", n_threads)
 
-    lat1 = lat(lut1)
+def el_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return equivalences_from_lat(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "extended-linear", n_threads)
+
+def cczl_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return equivalences_from_lat(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "ccz-linear", n_threads)
+
+# !SUBSECTION! All "affine" equivalences
+
+def up_to_constant_equivalences(sbox1, sbox2, single_non_trivial_answer=False,  equivalence_type="linear", n_threads=MAX_N_THREADS):
+    shifted_sbox1 = Sb([x ^ sbox1[0] for x in sbox1])
+
     results = []
-    for a in range(len(lut1)):
-        shifted_lut2 = [lut2[x ^ a] ^ lut2[a] for x in range(len(lut2))]
-        lat2 = lat(shifted_lut2)
-        results.extend(equivalences_from_lat(lat1, lat2, single_non_trivial_answer, equivalence_type, n_threads))
-        if single_non_trivial_answer and len(results):
-            break
+    for a in range(len(sbox1)):
+        shifted_sbox2 = Sb([sbox2[x ^ a] ^ sbox2[a] for x in range(len(sbox2))])
+        res = equivalences_from_lat(shifted_sbox1, shifted_sbox2, False, equivalence_type, 8)
+        for r in res:
+            verify_up_to_constant_equivalence(sbox1, sbox2, r, a, equivalence_type) # Sanity checks
+            results.append((r, a))
     return results
 
 
+def affine_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return up_to_constant_equivalences(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "linear", n_threads)
+
+def ea_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return up_to_constant_equivalences(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "extended-linear", n_threads)
+
+def ccz_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
+    return up_to_constant_equivalences(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "ccz-linear", n_threads)
+
+
+# !SUBSECTION! Boolean tests
+
 # !TODO! in all functions below:
-# ! 1. tweak the interface in order to take S_box instances as input
-# ! 2. write docstrings
-# ! 3. wrap them in simpler tests with Boolean results
-
-def linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "linear", n_threads)
-
-def extended_linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "extended-linear", n_threads)
-
-def ccz_linear_equivalences_from_lat(lat1, lat2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return equivalences_from_lat(lat1, lat2, single_non_trivial_answer, "ccz-linear", n_threads)
+# ! 1. write docstrings
+# ! 2. handle invariant computations before launching the full search
+# ! 2. handle option to use either equivalence from lats or from codes
 
 
-def linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
+def are_linear_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
+    t = linear_equivalences(sbox1, sbox2, True, n_threads)
+    return sbox1 == sbox2 or len(t) > 0
 
-def extended_linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return extended_linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
+def are_el_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
+    t = el_equivalences(sbox1, sbox2, True, n_threads)
+    return sbox1 == sbox2 or len(t) > 0
 
-def ccz_linear_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return ccz_linear_equivalences_from_lat(lat(lut1), lat(lut2), single_non_trivial_answer, n_threads)
+def are_cczl_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
+    t = cczl_equivalences(sbox1, sbox2, True, n_threads)
+    return sbox1 == sbox2 or len(t) > 0
+
+def are_affine_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
+    t = affine_equivalences(sbox1, sbox2, True, n_threads)
+    return sbox1 == sbox2 or len(t) > 0
+
+def are_ea_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
+    t = ea_equivalences(sbox1, sbox2, True, n_threads)
+    return sbox1 == sbox2 or len(t) > 0
+
+def are_ccz_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
+    t = ccz_equivalences(sbox1, sbox2, True, n_threads)
+    return sbox1 == sbox2 or len(t) > 0
 
 
-# Up to constant equivalences
-def affine_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer, "linear", n_threads)
+# !SUBSECTION! Some utils
 
-def extended_affine_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer, "extended-linear", n_threads)
+def ccz_block_decomposition(blm):
+    """ Decompose a 2n x 2n matrix (BinLinearMap) into the 4 corresponding n x n matrices (returned as BinLinearMap)."""
+    abcd = []
+    for block in cpp_ccz_block_decomposition((<BinLinearMap>blm).cpp_blm[0]):
+        new_blm = BinLinearMap()
+        new_blm.cpp_blm[0] = block
+        abcd.append(new_blm)
+    return abcd
 
-def ccz_equivalences(lut1, lut2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return up_to_constant_equivalences(lut1, lut2, single_non_trivial_answer, "ccz-linear", n_threads)
 
+def verify_up_to_constant_equivalence(sbox1, sbox2, L, a, equivalence_type):
+    """ Verify whether sbox1 and sbox2 are indeed equivalent given an affine mapping x \mapsto Lx + a. """
+    if equivalence_type in ["extended-linear", "linear"]:
+        A, B, C, D = ccz_block_decomposition(L)
+        A, B, C, D = Sb(A), Sb(B), Sb(C), Sb(D)
 
+        # Verify the null blocks
+        assert D == [0 for _ in range(len(D))]
+        if equivalence_type == "linear":
+            assert C == [0 for _ in range(len(C))]
 
-def are_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
-    t = linear_equivalences(lut1, lut2, True, n_threads)
-    return lut1 == lut2 or len(t) > 0
-
-def are_extended_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
-    t = extended_linear_equivalences(lut1, lut2, True, n_threads)
-    return lut1 == lut2 or len(t) > 0
-
-def are_ccz_linear_equivalent(lut1, lut2, n_threads=MAX_N_THREADS):
-    t = ccz_linear_equivalences(lut1, lut2, True, n_threads)
-    return lut1 == lut2 or len(t) > 0
-
+        A_aff = Sb([A[x] ^ a for x in range(len(A))])
+        B_aff = Sb([B[x] ^ sbox2[a] ^ B[sbox1[0]] for x in range(len(B))])
+        
+        sbox1_prime = (B_aff * sbox1) + C
+        sbox2_prime = sbox2 * A_aff
+        assert sbox1_prime == sbox2_prime
+    if equivalence_type == "ccz-linear":
+        pass
+        # !TODO! Add appropriate test for ccz equivalence

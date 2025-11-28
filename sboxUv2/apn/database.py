@@ -9,7 +9,7 @@ from sboxUv2.statistics import \
 from sboxUv2.ccz import \
     thickness_spectrum, \
     get_WalshZeroesSpaces, \
-    ccz_equivalent_function, extended_affine_equivalences
+    ccz_equivalent_function, are_ea_equivalent
 
 from sboxUv2.apn import \
     get_WalshZeroesSpaces_quadratic_apn, \
@@ -232,12 +232,8 @@ class APNFunctions(FunctionsDB):
                 print(entry["mugshot"])
                 if sb == entry["sbox"]:
                     return False
-                test_result = extended_affine_equivalences(
-                    sb.lut(),
-                    entry["sbox"].lut(),
-                    single_non_trivial_answer=False,
-                    )
-                if len(test_result) > 0:
+                
+                if are_ea_equivalent(sb.lut(), entry["sbox"].lut()):
                     print("[found] ", len(test_result))
                     print(entry["sbox"])
                     return False

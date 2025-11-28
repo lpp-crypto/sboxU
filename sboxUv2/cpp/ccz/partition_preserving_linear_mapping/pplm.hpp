@@ -1,6 +1,6 @@
 //
 // Created by Jules Baudrin on 19/06/2025.
-// Modified by Jules Baudrin on 21/10/2025.
+// Modified by Jules Baudrin on 03/11/2025.
 //
 
 #ifndef PARTITION_PRESERVING_LINEAR_MAPPING_HPP
@@ -9,6 +9,7 @@
 #include <iostream>
 #include <omp.h>
 
+#include <bit>
 #include <cmath>
 #include <algorithm>
 #include <vector>
@@ -18,7 +19,7 @@
 #include <stdexcept>
 
 #include "../../core/include.hpp"
-#include "../../core/binLinearMap.hpp"
+#include "../../statistics/include.hpp"
 
 #define BINWORD_SIZE 64
 #define EMPTY UINT64_MAX
@@ -126,6 +127,77 @@ public:
 };
 
 
+/* ==============================================
+*    Sanity checks and early aborts
+*  ==============================================
+*/
+bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_BinLinearMap &solution, const string &equivalence_type);
+
+class PPExitCondition
+{
+public:
+    virtual bool is_valid(const cpp_BinLinearMap &solution) = 0;
+};
+
+class PPExitConditionTrivial : public virtual PPExitCondition
+{
+public:
+  bool is_valid(const cpp_BinLinearMap &solution) {return true;}
+};
+
+class PPExitConditionLinearOrEL : public virtual PPExitCondition
+{
+private:
+    cpp_S_box *sbox1, *sbox2;
+    string equivalence_type;
+
+public:
+    PPExitConditionLinearOrEL(cpp_S_box *_sbox1, cpp_S_box *_sbox2, string _equivalence_type) : 
+    sbox1(_sbox1), sbox2(_sbox2), equivalence_type(_equivalence_type) {}
+
+    bool is_valid(const cpp_BinLinearMap &solution) {
+        return cpp_verify_linear_or_el_equivalence(*sbox1, *sbox2, solution, equivalence_type);
+    }
+};
+
+
+// ======================
+class PPEarlyAbortCondition
+{
+public:
+    virtual bool is_valid(const BinWord &x, const BinWord &y, const uint64_t &n) = 0;
+};
+
+class PPEarlyAbortConditionTrivial : public virtual PPEarlyAbortCondition
+{
+public:
+    bool is_valid(const BinWord &x, const BinWord &y, const uint64_t &n) {return true;}
+};
+
+class PPEarlyAbortConditionEL : public virtual PPEarlyAbortCondition
+{
+public:
+    bool is_valid(const BinWord &pre_image, const BinWord &image, const uint64_t &n) {
+        BinWord mask = 0;
+        for (int i = 0; i < n; ++i)
+            mask |= ((BinWord)1) << i;
+
+        BinWord pre_image_y = (pre_image >> n) & mask;
+        BinWord image_y = (image >> n) & mask;
+
+        if(pre_image_y)
+            return true;
+        else{
+            if(!image_y)
+                return true;
+            else {
+                return false;
+            }
+        }
+    }
+};
+
+
 /*
  * ===========================================
  * The PartitionPreservingLinearMappings class
@@ -148,38 +220,50 @@ private:
     uint64_t dimension;
     Partition<keyType> *partition_in;
     Partition<keyType> *partition_out;
+    PPExitCondition *exit_condition;
+    PPEarlyAbortCondition *early_abort;
 
 public:
-    vector<vector<BinWord>> found_mappings;
+    vector<cpp_BinLinearMap> found_mappings;
 
-    PartitionPreservingLinearMappings(Partition<keyType> *_partition_in, Partition<keyType> *_partition_out, bool _single_non_trivial_answer, unsigned int _number_of_threads) :
+    PartitionPreservingLinearMappings(Partition<keyType> *_partition_in, Partition<keyType> *_partition_out, PPExitCondition *_exit_condition, PPEarlyAbortCondition *_early_abort, bool _single_non_trivial_answer, unsigned int _number_of_threads) :
         single_non_trivial_answer(_single_non_trivial_answer),
         number_of_threads(_number_of_threads),
         partition_in(_partition_in),
-        partition_out(_partition_out) {
+        partition_out(_partition_out),
+        exit_condition(_exit_condition),
+        early_abort(_early_abort) {
         assert(_partition_in->dim() == _partition_out->dim());
         dimension = _partition_in->dim();
     }
 
-    vector<vector<BinWord>> recursive_search(vector<BinWord> basis_out) {
+    vector<cpp_BinLinearMap> recursive_search(vector<BinWord> basis_out) {
         unsigned int current_index = basis_out.size();
-        // End condition, return the found solution
+
+        // A leaf is reached
         if(current_index == dimension) {
-            if(single_non_trivial_answer && basis_out == partition_in->basis) // If a single solution is wanted but this one is the identity, returns nothing
-                return {};
-            else { // In any other case, return the LUT
-                vector<BinWord> lut(ONE << dimension);
-                BinWord x, y;
-                for(BinWord i = 0; i < (ONE << dimension); i++) {
-                    x = cpp_linear_combination(partition_in->basis, i);
+            // Computes the corresponding BinLinearMap
+            vector<BinWord> image_canonical_basis(dimension);
+            BinWord x, y;
+            for(BinWord i = 0; i < (ONE << dimension); i++) {
+                x = cpp_linear_combination(partition_in->basis, i);
+                if(popcount(x) == 1) { // if x is a vector of the canonical basis
                     y = cpp_linear_combination(basis_out, i);
-                    lut[x] = y;
+                    image_canonical_basis[countr_zero(x)] = y; // countr_zero provides the index of the first set bit.
                 }
-                return {lut};
             }
+            cpp_BinLinearMap solution(image_canonical_basis); 
+            solution = solution.transpose().inverse();// CAREFUL HERE
+
+
+            // If the exit condition is not valid or if a single solution is wanted but this one is the identity, returns nothing
+            if(!(*exit_condition).is_valid(solution) || (single_non_trivial_answer && basis_out == partition_in->basis)) 
+                return {};
+            else // otherwise, return the mapping
+                return {solution};
         }
 
-        vector<vector<BinWord>> solutions; // The list of the found solutions
+        vector<cpp_BinLinearMap> solutions; // The list of the found solutions
         BinWord x, y, v, w, image, pre_image, i;
         bool partition_preserving = true;
 
@@ -203,13 +287,13 @@ public:
                     pre_image = x ^ v;
                     image = y ^ w;
 
-                    if(partition_out->in_which_bucket(image) != partition_in->in_which_bucket(pre_image))
+                    if(partition_out->in_which_bucket(image) != partition_in->in_which_bucket(pre_image) || !(*early_abort).is_valid(pre_image, image, dimension >> 1))
                         partition_preserving = false;
                 }
 
                 // Recursive call if no contradiction for now
                 if(partition_preserving) {
-                    const vector<vector<BinWord>> recursive_solutions = recursive_search(basis_out);
+                    const vector<cpp_BinLinearMap> recursive_solutions = recursive_search(basis_out);
                     solutions.insert(solutions.end(), recursive_solutions.begin(), recursive_solutions.end());  // Adds the found mappings to the list
                 }
             }
@@ -233,13 +317,13 @@ public:
             const vector<BinWord> bucket = (*partition_out)[bucket_key];
 
             bool found = false;
-            vector<vector<vector<BinWord>>> thread_solutions(number_of_threads);
+            vector<vector<cpp_BinLinearMap>> thread_solutions(number_of_threads);
 
             omp_set_num_threads(number_of_threads);
 #pragma omp parallel for default(none) shared(bucket, found, thread_solutions, cout)
             for(unsigned int i = 0; i < bucket.size(); i++) {
                 if(!(single_non_trivial_answer && found)) {
-                    vector <vector<BinWord>> cur_solutions;
+                    vector<cpp_BinLinearMap> cur_solutions;
                     cur_solutions = recursive_search({bucket[i]});
                     if(single_non_trivial_answer && cur_solutions.size()) {
 #pragma omp critical
@@ -256,9 +340,9 @@ public:
     }
 };
 
-vector<vector<cpp_BinLinearMap>> cpp_equivalences_from_lat(
-    const vector<vector<Integer>> &lat1,
-    const vector<vector<Integer>> &lat2,
+vector<cpp_BinLinearMap> cpp_equivalences_from_lat(
+    cpp_S_box sbox1,
+    cpp_S_box sbox2,
     const bool &single_non_trivial_answer,
     const unsigned int &number_of_threads,
     const string equivalence_type);
