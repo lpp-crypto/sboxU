@@ -13,3 +13,4 @@ from .cython_functions import \
     are_linear_equivalent, are_extended_linear_equivalent, are_ccz_linear_equivalent
 from .affine_equivalence import *
 from .code_based_equivalence import are_code_equivalent
+from .tu_decompositions import TUdecomposition,thickness,tu_decomposition_from_space_basis,get_tu_decompositions,swap_Blm

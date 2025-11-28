@@ -147,7 +147,7 @@ cdef class S_box:
 
 
     def __ne__(self, s) -> bool:
-        return not self.__equal__(s)
+        return not self.__eq__(s)
 
         
     def __getitem__(self, BinWord x) -> BinWord:
@@ -291,7 +291,7 @@ cdef class S_box:
         return self.cpp_sb.input_space_size()
 
 
-    def input_space(self) -> int:
+    def input_space(self):
         return range(0, self.cpp_sb.input_space_size())
 
     
