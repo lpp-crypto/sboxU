@@ -14,6 +14,13 @@ public:
 
     cpp_BinLinearBasis(const std::vector<BinWord> & l) ;
 
+    // !TODO! destructor for BinLinearBasis 
+    // inline void destruct()
+    // {
+    //     for (auto it : basis)
+    //         delete basis.second;
+    // }
+
     bool add_to_span(BinWord x);
 
     bool is_in_span(BinWord x) const ;

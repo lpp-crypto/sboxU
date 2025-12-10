@@ -75,7 +75,7 @@ def F2_mul(coeff, field=None):
             i2f, f2i = i2f_and_f2i(field)
             c = i2f(coeff)
     else:
-        field = c.parent()
+        field = coeff.parent()
         i2f, f2i = i2f_and_f2i(field)
         c = coeff
     return Sb(

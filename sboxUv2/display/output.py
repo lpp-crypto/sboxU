@@ -2,6 +2,10 @@
 # !SECTION! General setup
 
 
+# !SUBSECTION! Importing classes needed for tests
+
+from collections import defaultdict
+
 # !SUBSECTION! Importing pretty printing utilities from Rich 
 
 from rich.console import Console
@@ -33,6 +37,11 @@ def pprint(*args):
     for x in args:
         if hasattr(x, "__rich_str__"):
             result += x.__rich_str__()
+        elif isinstance(x, (dict, defaultdict)):
+            result = "{ "
+            for k in sorted(x.keys()):
+                result += "[bold]{}[/bold]: {}, ".format(k, x[k])
+            result = result[:-2] + " }"
         else:
             result += str(x)
             all_pretty = False

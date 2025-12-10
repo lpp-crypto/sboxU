@@ -66,7 +66,31 @@ cdef extern from "../cpp/algorithms/binLinearBasis.cpp":
     pass
 
 
+
+# !SUBSECTION! The cpp_BinLinearBasis class
+    
+cdef extern from "../cpp/algorithms/linearSystem.hpp":
+    cppclass cpp_F2LinearSystem:
+        cpp_F2LinearSystem(const unsigned int _n_var)
+        unsigned int rank() const
+        bool add_equation(const std_vector[unsigned int] & var_indices)
+        void remove_solution(const std_vector[unsigned int] & sol)
+        std_vector[std_vector[BinWord]] kernel_as_BinWords()
+        string to_string() const
+
+        
+cdef extern from "../cpp/algorithms/linearSystem.cpp":
+    pass
+
+cdef extern from "../cpp/algorithms/bigvectors.hpp":
+    pass
+
+
 # !SECTION! Declaring cython code
 
 cdef class BinLinearBasis:
     cdef cpp_BinLinearBasis * cpp_lb
+
+
+cdef class F2LinearSystem:
+    cdef cpp_F2LinearSystem * cpp_ls

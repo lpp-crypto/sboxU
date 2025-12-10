@@ -68,10 +68,18 @@ def extract_affine_bases(
 # !SECTION! The BinLinearBasis class
 
 
+# !SUBSECTION! The class itself 
+
 cdef class BinLinearBasis:
     # !TODO! documentation of the BinLinearBasis class 
     def __init__(self, std_vector[BinWord] l):
         self.cpp_lb = new cpp_BinLinearBasis(l)
+
+
+    # !TODO! destructor for BinLinearBasis 
+    # def __dealloc__(self):
+    #     self.cpp_lb[0].destruct()
+    #     free(self.cpp_lb)
 
         
     def __iter__(self) -> BinWord:
@@ -111,7 +119,10 @@ cdef class BinLinearBasis:
 
     def __eq__(self, BinLinearBasis b) -> bool:
         return self.basis_vectors()==b.basis_vectors()
-  
+
+
+
+# !SUBSECTION! Using BinLinearBasis 
 
 def is_affine(l,give_basis=False):
     b = BinLinearBasis([])
@@ -180,3 +191,36 @@ def BinLinearMap_from_masks(masks, N,M)-> BinLinearMap:
 def BinLinearMap_from_range_and_image(inputs,outputs,N,M)-> BinLinearMap:
     return BinLinearMap_from_masks(outputs,M,N)*(generating_BinLinearMap(inputs,M).inverse())
     
+
+# !SECTION!  Solving Linear Systems
+
+
+cdef class F2LinearSystem:
+    """Implements a linear system of equation over F_2.
+
+    Is optimized for the specific case of large systems where equations are added one by one. The rank is evaluated in real time (i.e., every time an equation is added), while the solutions are only obtained once the system is fully known.
+
+    """
+
+    def __init__(self, n_variables: int):
+        self.cpp_ls = new cpp_F2LinearSystem(n_variables)
+
+
+    # !TODO! destructor for F2LinearSystem 
+    # def __dealloc__(self):
+    #     pass
+
+    def add_equation(self, variable_indices):
+        self.cpp_ls[0].add_equation(<std_vector[unsigned int]>variable_indices)
+
+    def remove_solution(self, sol):
+        self.cpp_ls[0].remove_solution(<std_vector[unsigned int]>sol)
+
+    def rank(self):
+        return self.cpp_ls[0].rank()
+
+    def kernel(self):
+        return self.cpp_ls[0].kernel_as_BinWords()
+    
+    def __str__(self) -> str:
+        return self.cpp_ls[0].to_string().decode("UTF-8")
