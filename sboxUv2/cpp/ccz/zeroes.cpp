@@ -31,7 +31,7 @@ cpp_WalshZeroesSpaces::cpp_WalshZeroesSpaces(
 }
 
 
-// !SECTION! Initiliazing the mappings
+// !SECTION! Initializing the mappings
 
 void cpp_WalshZeroesSpaces::init_mappings()
 {
@@ -88,6 +88,8 @@ void cpp_WalshZeroesSpaces::init_mappings(
             mappings.push_back(L.transpose());
         }
 }
+
+
 
 // !SECTION! Applying a linear permutation
 

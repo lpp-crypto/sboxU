@@ -91,17 +91,6 @@ public:
                 
         return ((content[cursor] >> pos) & 1);
     }
-
-
-    std::string to_string() const
-    {
-        std::stringstream result;
-        result << std::setw(2*sizeof(BinWord)) << std::hex ;
-        for(auto x_i : content)
-            result << x_i << "  ";
-        return result.str();
-    }
-    
     
     inline unsigned int get_msb() const
     {
@@ -117,6 +106,28 @@ public:
         return true;
     }
 
+
+    std::string to_string() const
+    {
+        std::stringstream result;
+        result << std::setw(2*sizeof(BinWord)) << std::hex ;
+        for(auto x_i : content)
+            result << x_i << "  ";
+        return result.str();
+    }
+    
+
+    Bytearray to_bytes() const
+    {
+        Bytearray result;
+        result.reserve(8*content.size());
+        for(auto v : content)
+            for(unsigned int i=0; i<BLOCK_SIZE; i+=8)
+                result.push_back((v >> i) & 0xFF);
+        return result;
+    }
+
+    
     // !SUBSECTION! modifying the state
 
     
@@ -129,7 +140,7 @@ public:
             unsigned int
                 cursor = index / BLOCK_SIZE,
                 pos    = index % BLOCK_SIZE;
-            content[cursor] |= (1L << pos);
+            content[cursor] |= ((BinWord)1 << pos);
             if ((index > msb) || (msb == MSB_OF_ZERO))
                 msb = index;
         }
@@ -159,7 +170,7 @@ inline cpp_BigF2Vector operator^(const cpp_BigF2Vector & x,
     else
     {
         std::vector<BinWord> result(x.content.begin(), x.content.end());
-        for(unsigned int i=0; i<x.n_blocks(); i++)
+        for(unsigned int i=0; i<result.size(); i++)
             result[i] ^= y.content[i];
         return cpp_BigF2Vector(result, x.size());
     }

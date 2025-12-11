@@ -143,12 +143,12 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
 } 
 
 
-std::vector<std::vector<BinWord> > cpp_F2LinearSystem::kernel_as_BinWords()
+std::vector<Bytearray> cpp_F2LinearSystem::kernel_as_bytes()
 {
     std::vector<cpp_BigF2Vector> ker = kernel();
-    std::vector<std::vector<BinWord> > result;
+    std::vector<Bytearray> result;
     for (auto v : ker)
-        result.push_back(v.content);
+        result.push_back(v.to_bytes());
     return result;
 }
 

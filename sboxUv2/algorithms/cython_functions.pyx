@@ -220,7 +220,7 @@ cdef class F2LinearSystem:
         return self.cpp_ls[0].rank()
 
     def kernel(self):
-        return self.cpp_ls[0].kernel_as_BinWords()
+        return self.cpp_ls[0].kernel_as_bytes()
     
     def __str__(self) -> str:
         return self.cpp_ls[0].to_string().decode("UTF-8")

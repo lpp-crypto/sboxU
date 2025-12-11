@@ -30,7 +30,7 @@ public:
     
     std::vector<cpp_BigF2Vector> kernel();
 
-    std::vector<std::vector<BinWord> > kernel_as_BinWords();
+    std::vector<Bytearray> kernel_as_bytes();
 
     std::string to_string() const;
     

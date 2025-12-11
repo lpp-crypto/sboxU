@@ -59,6 +59,18 @@ cdef class WalshZeroesSpaces:
             (<BinLinearMap>L).cpp_blm[0] = m
             self.mappings.append(L)
         
+    
+    # def init_mappings_using_automorphisms(
+    #         self,
+    #         std_vector[BinLinearMap] automorphisms
+    # ):
+    #     std_vector(
+    #     self.cpp_wzs[0].init_mappings()
+    #     for m in self.cpp_wzs[0].mappings:
+    #         L = BinLinearMap()
+    #         (<BinLinearMap>L).cpp_blm[0] = m
+    #         self.mappings.append(L)
+        
 
     def get_mappings(self):
         if len(self.mappings) == 0:

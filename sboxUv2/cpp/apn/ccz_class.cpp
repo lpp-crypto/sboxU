@@ -61,7 +61,6 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
 }
 
 
-// !TODO! finish the function  cpp_ea_mappings_from_ortho_derivative
 std::vector<cpp_BinLinearMap> cpp_ea_mappings_from_ortho_derivative(
     const cpp_S_box & s,
     const cpp_S_box & s_prime,

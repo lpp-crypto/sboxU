@@ -75,7 +75,7 @@ cdef extern from "../cpp/algorithms/linearSystem.hpp":
         unsigned int rank() const
         bool add_equation(const std_vector[unsigned int] & var_indices)
         void remove_solution(const std_vector[unsigned int] & sol)
-        std_vector[std_vector[BinWord]] kernel_as_BinWords()
+        std_vector[Bytearray] kernel_as_bytes()
         string to_string() const
 
         
