@@ -32,7 +32,10 @@ public:
         msb(MSB_OF_ZERO),
         total_length(_total_length)
     {
-        content.assign(1+total_length/BLOCK_SIZE, 0);
+        if ((total_length % BLOCK_SIZE) == 0)
+            content.assign(total_length/BLOCK_SIZE, 0);
+        else
+            content.assign(1+total_length/BLOCK_SIZE, 0);
     }
 
     
@@ -44,7 +47,7 @@ public:
         msb(MSB_OF_ZERO),
         total_length(_total_length)
     {
-        if (content.size() != (1+ total_length/BLOCK_SIZE))
+        if (content.size()*BLOCK_SIZE < total_length)
             throw std::runtime_error("mismatched length between inputs");
         set_msb();
     }
@@ -187,10 +190,26 @@ inline bool operator==(const cpp_BigF2Vector & x,
 inline bool operator<(const cpp_BigF2Vector & x,
                       const cpp_BigF2Vector & y)
 {
-    return std::lexicographical_compare(
-        x.content.begin(), x.content.end(),
-        y.content.begin(), y.content.end()
-        );
+    if (x.is_zero())
+        if (y.is_zero())
+            return false;
+        else
+            return true;
+    else if (y.is_zero())
+        return false;
+    else if (x.get_msb() < y.get_msb())
+        return true;
+    else if (x.get_msb() > y.get_msb())
+        return false;
+    else
+        for (int i=x.n_blocks()-1; i >= 0; i--)
+        {
+            if (x.content[i] < y.content[i])
+                return true;
+            else if (x.content[i] > y.content[i])
+                return false;
+        }
+    return false;
 }
 
 #endif

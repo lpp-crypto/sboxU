@@ -76,7 +76,7 @@ public:
                 unsigned int
                     cursor = ops[k].first / BLOCK_SIZE,
                     pos    = ops[k].first % BLOCK_SIZE;
-                result.content[cursor] ^= (1L << pos);
+                result.content[cursor] ^= ((BinWord)1 << pos);
             }
         }
         return result;

@@ -105,39 +105,22 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
         init_image_vectors(vectors);
         // we then move on to the elimination itself
         cpp_XorSequence seq(n_var);
-        std::vector<unsigned int> zero_preimages;
-        zero_preimages.reserve(n_var - equations.size());
         for (unsigned int i=0; i<vectors.size(); i++)
-        {
-            if (vectors[i].is_zero())
-                zero_preimages.push_back(i);
-            else
+            if (! vectors[i].is_zero())
                 for (unsigned int j=i+1; j<vectors.size(); j++)
                 {
-                    if ((vectors[i].get_msb() <= vectors[j].get_msb())
-                        &&
-                        (vectors[j].is_set(vectors[i].get_msb())))
+                    cpp_BigF2Vector x = vectors[i] ^ vectors[j];
+                    if (x < vectors[j])
                     {
-                        // case where we reduce vectors[j]
-                        vectors[j] ^= vectors[i];
-                        seq.push_back(i, j);
-                    }
-                    else if ((vectors[i].get_msb() > vectors[j].get_msb())
-                             &&
-                             (vectors[i].is_set(vectors[j].get_msb())))
-                    {
-                        // case where we reduce vectors[i]
-                        vectors[i] ^= vectors[j];
-                        seq.push_back(j, i);
+                        vectors[j] = x;
+                        seq.push_back(i,j);
                     }
                 }
-        }   
         // and then we rebuild the kernel vectors
         result.reserve(n_var - equations.size());
-        for (auto & z : zero_preimages)
-        {
-            result.push_back(seq.eval_canonical(z));
-        }
+        for (unsigned int z=0; z<vectors.size(); z++)
+            if (vectors[z].is_zero())            
+                result.push_back(seq.eval_canonical(z));
         return result;
     }
 } 
@@ -180,18 +163,20 @@ void cpp_F2LinearSystem::init_image_vectors(
         n_var,
         cpp_BigF2Vector(equations.size())
         );
-    unsigned int cursor = 0;
+    unsigned int cursor = 0, pos=0;
     BinWord mask = 1;
     for (auto eq : equations)
     {
         for (unsigned int i=0; i<n_var; i++)
             if (eq.second.is_set(i))
                 vectors[i].content[cursor] |= mask;
+        pos ++;
         mask <<= 1;
-        if (mask == 0)
+        if (pos == BLOCK_SIZE)
         {
             mask = 1;
             cursor ++;
+            pos = 0;
         }
     }
     for(unsigned int i=0; i<vectors.size(); i++)

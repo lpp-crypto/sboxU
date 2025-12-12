@@ -72,7 +72,7 @@ def from_vector(v, length):
         
 if __name__ == "__main__":
     with Experiment("using switching neighbourgs to test linear solving"):
-        n = 6
+        n = 7
         gf = GF(2**n)
 
         if n > 6:
@@ -89,19 +89,19 @@ if __name__ == "__main__":
     
             subsection("removing parasite solutions")
     
-            # for u in range(1, 2**n):
-            #     # constant function
-            #     E[u].remove_solution(to_lut_coordinates([1]*2**n))
-            #     # linear functions
-            #     for i in range(0, n):
-            #         E[u].remove_solution(to_lut_coordinates([
-            #             (x >> i) & 1 for x in range(0, 2**n)
-            #         ]))
+            for u in range(1, 2**n):
+                # constant function
+                E[u].remove_solution(to_lut_coordinates([1]*2**n))
+                # linear functions
+                for i in range(0, n):
+                    E[u].remove_solution(to_lut_coordinates([
+                        (x >> i) & 1 for x in range(0, 2**n)
+                    ]))
                 # # other coordinates
                 # basis = complete_basis([u], n)
                 # for b in basis[1:]:
                 #     E[u].remove_solution(to_lut_coordinates(
-                #         f.component(b) + f.component(u)
+                #         f.component(b) 
                 #     ))
     
                     
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     
             subsection("solving")
             counters = defaultdict(int)
-            for u in range(1, 2):
+            for u in range(1, 2**n):
 
                 k = E[u].kernel()
                 counters[len(k)] += 1
@@ -125,13 +125,11 @@ if __name__ == "__main__":
                     tot = []
                     for x in range(0, 2**n):
                         tot.append(oplus(u*g[x], f[x]))
-                    # print("\n", v)
                     # pprint(differential_spectrum(tot))
                     # print(algebraic_normal_form(g))
                     if not is_differential_uniformity_smaller_than(tot, 2):
+                        print("[FAIL]")
                         pprint(differential_spectrum(tot))
-                    else:
-                        print("Success!")
 
 
             subsection("summary")
