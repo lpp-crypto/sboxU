@@ -12,7 +12,7 @@ class cpp_F2LinearSystem
 {
 private:
     std::map<unsigned int, cpp_BigF2Vector> equations;
-    std::vector<cpp_BigF2Vector> forbidden_solutions;
+    std::map<unsigned int, cpp_BigF2Vector> forbidden_solutions;
     unsigned int n_var;
     
 public:
@@ -27,7 +27,7 @@ public:
     
     bool add_equation(const std::vector<unsigned int> & var_indices);
 
-    void remove_solution(const std::vector<unsigned int> & sol);
+    bool remove_solution(const std::vector<unsigned int> & sol);
     
     std::vector<cpp_BigF2Vector> kernel();
 

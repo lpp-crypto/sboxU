@@ -5,8 +5,11 @@
 
 // !SUBSECTION! Ensuring that only useful equations are kept
 
-bool cpp_F2LinearSystem::add_equation(
-    const std::vector<unsigned int> & var_indices
+
+bool maybe_add_vector(
+    std::map<unsigned int, cpp_BigF2Vector> & equations,
+    const std::vector<unsigned int> & var_indices,
+    unsigned int n_var
     )
 {
     // building new equation
@@ -57,44 +60,26 @@ bool cpp_F2LinearSystem::add_equation(
             if (eq.second.is_set(m))
                 equations[eq.first] ^= new_eq;
         }
-    return true;
+    return true;    
+}
+
+bool cpp_F2LinearSystem::add_equation(
+    const std::vector<unsigned int> & var_indices
+    )
+{
+    return maybe_add_vector(equations, var_indices, n_var);
 }
 
 
 // !SUBSECTION! Removing unwanted solutions
 
-void cpp_F2LinearSystem::remove_solution(
+bool cpp_F2LinearSystem::remove_solution(
     const std::vector<unsigned int> & sol
     )
 {
-
-    // !TODO! add logic to simplify this list using the same tricks as for equation addition 
-    if (sol.size() > 0)
-    {
-        cpp_BigF2Vector f(n_var);
-        for (auto ind : sol)
-        {
-            f.set_to_1(ind);
-        }
-        forbidden_solutions.push_back(f);
-    }
-    // if (sol.size() == 0)
-    //     return;
-    // else
-    // {
-    //     // if ((sol.size() % 2) == 1)
-    //     // {
-    //     //     // in this case, the scalar product sol*sol is 1, meaning that
-    //     //     // adding sol as a row of the system will prevent it from
-    //     //     // being a solution
-    //     //     add_equation(sol);
-    //     // }
-    //     else
-    //     {
-    //         // otherwise, we remove one entry
-    //         add_equation(std::vector<unsigned int>(sol.begin(), sol.end()-1));
-    //     }
-    // }
+    return maybe_add_vector(forbidden_solutions,
+                            sol,
+                            n_var);
 }
 
 
@@ -136,8 +121,9 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
         unsigned int n_added = forbidden_solutions.size();
         if (n_added > 0)
         {
-            std::vector<cpp_BigF2Vector> ker_prime(forbidden_solutions.begin(),
-                                                   forbidden_solutions.end());
+            std::vector<cpp_BigF2Vector> ker_prime;
+            for(auto &f : forbidden_solutions)
+                ker_prime.push_back(f.second);
             ker_prime.insert(ker_prime.end(), ker.begin(), ker.end());
             ker.clear();
             for (unsigned int i=0; i<ker_prime.size(); i++)
