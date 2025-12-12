@@ -110,6 +110,15 @@ public:
     }
 
 
+    inline bool is_non_zero() const
+    {
+        for (auto x_i : content)
+            if (x_i != 0)
+                return true;
+        return false;
+    }
+
+
     std::string to_string() const
     {
         std::stringstream result;

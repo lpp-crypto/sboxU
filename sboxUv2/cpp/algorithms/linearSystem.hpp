@@ -12,6 +12,7 @@ class cpp_F2LinearSystem
 {
 private:
     std::map<unsigned int, cpp_BigF2Vector> equations;
+    std::vector<cpp_BigF2Vector> forbidden_solutions;
     unsigned int n_var;
     
 public:

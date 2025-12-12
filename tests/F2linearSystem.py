@@ -72,13 +72,13 @@ def from_vector(v, length):
         
 if __name__ == "__main__":
     with Experiment("using switching neighbourgs to test linear solving"):
-        n = 7
+        n = 6
         gf = GF(2**n)
 
         if n > 6:
             ccz_class_representatives = [ monomial(3, GF(2**n)) ]
 
-        for f in ccz_class_representatives:
+        for f in ccz_class_representatives[0:1]:
             
             section("new function")
             pprint(differential_spectrum(ortho_derivative(f)))
@@ -98,11 +98,12 @@ if __name__ == "__main__":
                         (x >> i) & 1 for x in range(0, 2**n)
                     ]))
                 # # other coordinates
-                # basis = complete_basis([u], n)
-                # for b in basis[1:]:
-                #     E[u].remove_solution(to_lut_coordinates(
-                #         f.component(b) 
-                #     ))
+                L_u = generating_BinLinearMap([u], n)
+                f_prime = Sb(L_u)**-1 * f
+                for b in range(1, n):
+                    E[u].remove_solution(to_lut_coordinates(
+                        f_prime.coordinate(b) 
+                    ))
     
                     
             subsection("building system")

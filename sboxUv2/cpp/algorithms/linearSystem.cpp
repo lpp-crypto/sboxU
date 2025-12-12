@@ -67,23 +67,34 @@ void cpp_F2LinearSystem::remove_solution(
     const std::vector<unsigned int> & sol
     )
 {
-    if (sol.size() == 0)
-        return;
-    else
+
+    // !TODO! add logic to simplify this list using the same tricks as for equation addition 
+    if (sol.size() > 0)
     {
-        if ((sol.size() % 2) == 1)
+        cpp_BigF2Vector f(n_var);
+        for (auto ind : sol)
         {
-            // in this case, the scalar product sol*sol is 1, meaning that
-            // adding sol as a row of the system will prevent it from
-            // being a solution
-            add_equation(sol);
+            f.set_to_1(ind);
         }
-        else
-        {
-        // otherwise, we remove one entry
-            add_equation(std::vector<unsigned int>(sol.begin()+1, sol.end()));
-        }
+        forbidden_solutions.push_back(f);
     }
+    // if (sol.size() == 0)
+    //     return;
+    // else
+    // {
+    //     // if ((sol.size() % 2) == 1)
+    //     // {
+    //     //     // in this case, the scalar product sol*sol is 1, meaning that
+    //     //     // adding sol as a row of the system will prevent it from
+    //     //     // being a solution
+    //     //     add_equation(sol);
+    //     // }
+    //     else
+    //     {
+    //         // otherwise, we remove one entry
+    //         add_equation(std::vector<unsigned int>(sol.begin(), sol.end()-1));
+    //     }
+    // }
 }
 
 
@@ -106,7 +117,7 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
         // we then move on to the elimination itself
         cpp_XorSequence seq(n_var);
         for (unsigned int i=0; i<vectors.size(); i++)
-            if (! vectors[i].is_zero())
+            if (vectors[i].is_non_zero())
                 for (unsigned int j=i+1; j<vectors.size(); j++)
                 {
                     cpp_BigF2Vector x = vectors[i] ^ vectors[j];
@@ -117,11 +128,33 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
                     }
                 }
         // and then we rebuild the kernel vectors
-        result.reserve(n_var - equations.size());
+        std::vector<cpp_BigF2Vector> ker;
         for (unsigned int z=0; z<vectors.size(); z++)
             if (vectors[z].is_zero())            
-                result.push_back(seq.eval_canonical(z));
-        return result;
+                ker.push_back(seq.eval_canonical(z));
+        // finally, we remove the contribution of the forbidden solutions
+        unsigned int n_added = forbidden_solutions.size();
+        if (n_added > 0)
+        {
+            std::vector<cpp_BigF2Vector> ker_prime(forbidden_solutions.begin(),
+                                                   forbidden_solutions.end());
+            ker_prime.insert(ker_prime.end(), ker.begin(), ker.end());
+            ker.clear();
+            for (unsigned int i=0; i<ker_prime.size(); i++)
+                if (ker_prime[i].is_non_zero())
+                {
+                    if (i >= n_added)
+                        ker.push_back(ker_prime[i]);
+                    for (unsigned int j=i+1; j<ker_prime.size(); j++)
+                    {
+                        cpp_BigF2Vector x = ker_prime[i] ^ ker_prime[j];
+                        if (x < ker_prime[j])
+                            ker_prime[j] = x;
+                    }
+                }
+        }
+        // we finally build the result
+        return ker;
     }
 } 
 
