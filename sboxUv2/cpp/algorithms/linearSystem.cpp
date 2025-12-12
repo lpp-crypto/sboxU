@@ -83,7 +83,9 @@ bool cpp_F2LinearSystem::remove_solution(
 }
 
 
-// !SUBSECTION! Computing the kernel 
+// !SUBSECTION! Computing the kernel
+
+
 
 std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
 {
@@ -104,14 +106,13 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
         for (unsigned int i=0; i<vectors.size(); i++)
             if (vectors[i].is_non_zero())
                 for (unsigned int j=i+1; j<vectors.size(); j++)
-                {
-                    cpp_BigF2Vector x = vectors[i] ^ vectors[j];
-                    if (x < vectors[j])
+                    if ((vectors[i].get_msb() <= vectors[j].get_msb())
+                        &&
+                        (vectors[j].is_set(vectors[i].get_msb())))
                     {
-                        vectors[j] = x;
+                        vectors[j] ^= vectors[i];
                         seq.push_back(i,j);
                     }
-                }
         // and then we rebuild the kernel vectors
         std::vector<cpp_BigF2Vector> ker;
         for (unsigned int z=0; z<vectors.size(); z++)
@@ -132,11 +133,10 @@ std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
                     if (i >= n_added)
                         ker.push_back(ker_prime[i]);
                     for (unsigned int j=i+1; j<ker_prime.size(); j++)
-                    {
-                        cpp_BigF2Vector x = ker_prime[i] ^ ker_prime[j];
-                        if (x < ker_prime[j])
-                            ker_prime[j] = x;
-                    }
+                        if ((ker_prime[i].get_msb() <= ker_prime[j].get_msb())
+                            &&
+                            ker_prime[j].is_set(ker_prime[i].get_msb()))
+                        ker_prime[j] ^= ker_prime[i];
                 }
         }
         // we finally build the result
