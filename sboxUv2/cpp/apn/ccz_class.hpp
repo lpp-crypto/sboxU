@@ -6,6 +6,7 @@
 #include "../core/include.hpp"
 #include "../ccz/include.hpp"
 #include "./invariants.hpp"
+#include "./ortho_derivative.hpp"
 
 
 std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(

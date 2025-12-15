@@ -5,11 +5,10 @@
 #include "../core/include.hpp"
 #include "../statistics/include.hpp"
 #include "../ccz/include.hpp"
+#include "./ortho_derivative.hpp"
 
 
 // !SECTION! Invariants themselves
-
-cpp_S_box cpp_ortho_derivative(const cpp_S_box &s);
 
 cpp_Spectrum cpp_sigma_multiplicities(
     const cpp_S_box &f,

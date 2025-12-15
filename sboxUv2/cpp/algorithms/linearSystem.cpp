@@ -8,16 +8,10 @@
 
 bool maybe_add_vector(
     std::map<unsigned int, cpp_BigF2Vector> & equations,
-    const std::vector<unsigned int> & var_indices,
+    cpp_BigF2Vector & new_eq,
     unsigned int n_var
     )
 {
-    // building new equation
-    cpp_BigF2Vector new_eq(n_var);
-    for (auto ind : var_indices)
-    {
-        new_eq.set_to_1(ind);
-    }
     // adding the equation as a horizontal vector: we perform a
     // reduction on the rows in the process, which will *not* change the
     // structure of the right kernel of the matrix.
@@ -63,22 +57,48 @@ bool maybe_add_vector(
     return true;    
 }
 
+
 bool cpp_F2LinearSystem::add_equation(
     const std::vector<unsigned int> & var_indices
     )
 {
-    return maybe_add_vector(equations, var_indices, n_var);
+    cpp_BigF2Vector new_eq(n_var);
+    for (auto ind : var_indices)
+    {
+        new_eq.set_to_1(ind);
+    }
+    return maybe_add_vector(equations, new_eq, n_var);
+}
+
+
+bool cpp_F2LinearSystem::add_equation(cpp_BigF2Vector & eq)
+{
+    return maybe_add_vector(equations, eq, n_var);
 }
 
 
 // !SUBSECTION! Removing unwanted solutions
 
 bool cpp_F2LinearSystem::remove_solution(
-    const std::vector<unsigned int> & sol
+    const std::vector<unsigned int> & var_indices
     )
 {
+    // building new equation
+    cpp_BigF2Vector new_eq(n_var);
+    for (auto ind : var_indices)
+    {
+        new_eq.set_to_1(ind);
+    }
     return maybe_add_vector(forbidden_solutions,
-                            sol,
+                            new_eq,
+                            n_var);
+}
+
+
+bool cpp_F2LinearSystem::remove_solution(cpp_BigF2Vector & eq)
+{
+    return maybe_add_vector(forbidden_solutions,
+                            eq,
                             n_var);
 }
 

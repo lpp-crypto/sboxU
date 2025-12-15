@@ -26,9 +26,13 @@ public:
     }
     
     bool add_equation(const std::vector<unsigned int> & var_indices);
-
-    bool remove_solution(const std::vector<unsigned int> & sol);
     
+    bool add_equation(cpp_BigF2Vector & eq);
+
+    bool remove_solution(const std::vector<unsigned int> & var_indices);
+
+    bool remove_solution(cpp_BigF2Vector & eq);
+
     std::vector<cpp_BigF2Vector> kernel();
 
     std::vector<Bytearray> kernel_as_bytes();
