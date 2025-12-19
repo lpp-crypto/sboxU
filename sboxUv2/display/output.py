@@ -44,7 +44,8 @@ def pprint(*args):
             result = result[:-2] + " }"
         else:
             result += str(x)
-            all_pretty = False
+            if not isinstance(x, (str)):
+                all_pretty = False
         result += ", "
     result = result[:-2] # ditching superfluous ", " 
     if all_pretty:
@@ -57,7 +58,7 @@ def pprint(*args):
 # !SECTION! Handling sections in the output
 
 
-# !SUBSECTION! The Timer class
+# !SUBSECTION! The Chronograph class
 
 
 class Chronograph:
