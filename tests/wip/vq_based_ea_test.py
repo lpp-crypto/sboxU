@@ -77,17 +77,19 @@ with APNFunctions('apn6.db') as db:
         to_test = {}
 
         subsection("basic, unremarkable functions")
-        i = randint(0,716)
-        j = randint(0,716)
-        s1 = all_apn[i]["sbox"]
-        s2 =all_apn[j]["sbox"]
-        A = rand_linear_permutation(n)
-        B = rand_linear_permutation(n)
-        C = rand_linear_function(n, n)
-        s3 = Sb(B) * s1 * Sb(A) + Sb(C)
-        to_test[ "basic, unremarkable functions" ] = [s1, s2, s3]
-        
 
+        for t in range(0, 4):
+            i = randint(0,690) # we want a CCZ-quadratic function
+            j = randint(0,690)
+            s1 = all_apn[i]["sbox"]
+            s2 =all_apn[j]["sbox"]
+            A = rand_linear_permutation(n)
+            B = rand_linear_permutation(n)
+            C = rand_linear_function(n, n)
+            s3 = Sb(B) * s1 * Sb(A) + Sb(C)
+            to_test[ "basic, unremarkable functions (v{})".format(t) ] = [s1, s2, s3]
+            pprint({"i": i, "j": j})
+    
         subsection("the big automorphism group case")
         s1 = all_apn[0]["sbox"]
         s2 =all_apn[1]["sbox"]
@@ -106,21 +108,36 @@ with APNFunctions('apn6.db') as db:
             s1, s2, s3 = s[0], s[1], s[2]
 
             subsection("Testing a priori in-equivalent functions")
-            
-            c = Chronograph("using the new algorithm")
-            print(are_ea_equivalent_from_vq(s1,s2))
-            pprint(c)
-            
-            c = Chronograph("using *old* algorithm")
-            print(are_ea_equivalent(s1,s2))
-            pprint(c)
+
+            sub_exp_param = [
+                ("using the new algorithm", are_ea_equivalent_from_vq),
+                ("using *old* algorithm", are_ea_equivalent)
+            ]
+            answers = {}
+            for title, func in sub_exp_param:
+                c = Chronograph(title)
+                answers[func(s1, s2)] = 1
+                pprint(c)
+            if len(answers) > 1:
+                pprint("[bold][red]MISMATCHED RESULTS[/red][bold]")
+            else:
+                pprint("[green]result: {}[/green]".format(answers))
+                
             
             subsection("testing EA-equivalent functions")
-            c = Chronograph("using the new algorithm")
-            print(are_ea_equivalent_from_vq(s1,s3))
-            pprint(c)
+
+            sub_exp_param = [
+                ("using the new algorithm", are_ea_equivalent_from_vq),
+                ("using *old* algorithm", are_ea_equivalent)
+            ]
+            answers = {}
+            for title, func in sub_exp_param:
+                c = Chronograph(title)
+                answers[func(s1, s3)] = 1
+                pprint(c)
+            if len(answers) > 1:
+                pprint("[bold][red]MISMATCHED RESULTS[/red][bold]")
+            else:
+                pprint("[green]result: {}[/green]".format(answers))
+                
             
-            c = Chronograph("using *old* algorithm")
-            print(are_ea_equivalent(s1,s3))
-            pprint(c)
-    
