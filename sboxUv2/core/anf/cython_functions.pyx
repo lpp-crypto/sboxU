@@ -41,7 +41,14 @@ def algebraic_degree(s):
 # !SUBSECTION! Precise information on the degree
 
 def is_degree_bigger_than(s,d):
-    # !TODO! docstring for is_degree_bigger_than
+    """
+    Args :
+        s : an S_box-able object
+        d : the degree bound we want to test
+
+    Returns:
+        A boolean value, True if the algebraic degree of s is (strictly) bigger than d, False otherwise.
+    """
     sb=Sb(s)
     return cpp_is_degree_bigger_than((<S_box>sb).cpp_sb[0],d)
 
