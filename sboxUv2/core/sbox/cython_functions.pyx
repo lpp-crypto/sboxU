@@ -510,30 +510,50 @@ def Sb(s, name=None):
     Args:
         s: an object of a class that can be turned into an S_box.
         name: the name to give the object. If none is provided, one will be picked using `sboxU_SBOXES_COUNTER`.
-
     """
+
     if isinstance(s, S_box):
+        return s
+    elif isinstance(s, S_box_fp):
         return s
     else:
         result = S_box(name=name)
         if isinstance(s, list):
             if len(s) == 0:
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
-            elif isinstance(s[0], (int, sage_Integer)): # case of a lookup table
-                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
-            elif isinstance(s[0], (MPolynomial)): # case of an ANF
-                n_vars = len(s[0].parent().gens())
-                lut = [0 for x in range(0, 2**n_vars)]
-                for x in range(0, len(lut)):
-                    # duplicating the code from ..anf to prevent cross dependencies
-                    x_bin = to_bin(x, n_vars)
-                    y = 0
-                    for i in range(0, len(s)):
-                        y = (<int>(s[i](x_bin)) << i) | y
-                    lut[x] = y
-                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
-            else:
-                raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+            elif len(s)%2 == 0:
+                if isinstance(s[0], (int, sage_Integer)): # case of a lookup table
+                    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
+                elif isinstance(s[0], (MPolynomial)): # case of an ANF
+                    n_vars = len(s[0].parent().gens())
+                    lut = [0 for x in range(0, 2**n_vars)]
+                    for x in range(0, len(lut)):
+                        # duplicating the code from ..anf to prevent cross dependencies
+                        x_bin = to_bin(x, n_vars)
+                        y = 0
+                        for i in range(0, len(s)):
+                            y = (<int>(s[i](x_bin)) << i) | y
+                        lut[x] = y
+                    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+                else:
+                    raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+            elif len(s)%2 == 1:
+                if isinstance(s[0], (int, sage_Integer)): # case of a lookup table
+                    (<S_box>result).cpp_sb = new cpp_S_box_fp(<std_vector[FpWord]>s)
+                elif isinstance(s[0], (MPolynomial)): # case of an ANF
+                    n_vars = len(s[0].parent().gens())
+                    lut = [0 for x in range(0, 2**n_vars)]
+                    for x in range(0, len(lut)):
+                        # duplicating the code from ..anf to prevent cross dependencies
+                        x_bin = to_bin(x, n_vars)
+                        y = 0
+                        for i in range(0, len(s)):
+                            y = (<int>(s[i](x_bin)) << i) | y
+                        lut[x] = y
+                    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+                else:
+                    raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+
         elif isinstance(s, sage_SBox):
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
         elif isinstance(s, Polynomial):
