@@ -1,22 +1,84 @@
 # -*- python -*-
 
-from libc.stdint cimport uint64_t
-from libcpp.vector cimport vector
+from sboxUv2.cython_types cimport *
+from sboxUv2.core cimport *
+from sboxUv2.statistics cimport *
+from sboxUv2.ccz cimport *
 
-from sboxUv2.sbox.cython_functions cimport *
-from sboxUv2.statistics.cython_functions cimport *
 
-cdef extern from "../cpp/apn/invariants.hpp":
+# !SECTION! Declaring C++ code
+
+# !SUBSECTION! Invariants
+
+cdef extern from "../cpp/apn/ortho_derivative.hpp":
     cpp_S_box cpp_ortho_derivative(
-        const cpp_S_box q
+        const cpp_S_box &q
     )
 
+    cpp_S_box cpp_ortho_integral(
+        const cpp_S_box &s
+    )
+
+    
+cdef extern from "../cpp/apn/ortho_derivative.cpp":
+    pass
+
+
+# !SUBSECTION! Invariants
+
+cdef extern from "../cpp/apn/invariants.hpp":
+
     cpp_Spectrum cpp_sigma_multiplicities(
-        const cpp_S_box f,
+        const cpp_S_box &f,
         const int64_t k,
         const int64_t n_threads
     )
+
+    
+    string cpp_apn_ea_mugshot(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
+    
+    string cpp_apn_ea_mugshot(
+        const cpp_Spectrum &abs_walsh_spec,
+        const cpp_Spectrum &deg_spec,
+        const cpp_Spectrum &sig_mult,
+        const cpp_Spectrum &thk_spec
+    )
+
+
     
 cdef extern from "../cpp/apn/invariants.cpp":
     pass
 
+
+# !SUBSECTION! Exploring the CCZ class
+
+cdef extern from "../cpp/apn/ccz_class.hpp":
+    std_vector[cpp_BinLinearMap] cpp_automorphisms_from_ortho_derivative(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+
+    std_vector[cpp_BinLinearMap] cpp_ea_mappings_from_ortho_derivative(
+        const cpp_S_box & s,
+        const cpp_S_box & s_prime,
+        const unsigned int n_threads
+    )
+
+    std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
+    cpp_S_box cpp_ccz_equivalent_quadratic_function(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+
+
+
+cdef extern from "../cpp/apn/ccz_class.cpp":
+    pass

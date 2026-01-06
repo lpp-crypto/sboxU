@@ -10,6 +10,7 @@ from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
 from sage.all import Integer as sage_Integer
 from sage.all import ceil, floor
 
+
 # imports needed to test the input type in the Sb factory
 from sage.all import Polynomial 
 from sage.crypto.sboxes import SBox as sage_SBox
@@ -29,7 +30,7 @@ cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t):
     return s.mul(t)
 
 
-def new_sbox_name():
+def new_sbox_name() -> bytes:
     """Returns a unique name that can be given to an S-box.
 
     It uses the module variable `sboxU_SBOXES_COUNTER` to achieve this goal by incrementing it each time it is used.
@@ -61,13 +62,20 @@ cdef class S_box:
     """
                                  
     
-    # !SUBSECTION! Initialization
+    # !SUBSECTION! Initialization and destruction
 
  
     def __init__(self, name=None):
         self.rename(name)
+        self.input_cast = []
+        self.output_cast = []
 
+    
+    def __dealloc__(self):
+        self.cpp_sb[0].destruct()
+        free(self.cpp_sb)
 
+        
     # !SUBSECTION! Dealing with the name
     
     def rename(self, name):
@@ -83,7 +91,7 @@ cdef class S_box:
         
     # !SUBSECTION! Python built-in methods
     
-    def __add__(S_box self, _s):
+    def __add__(S_box self, _s) -> S_box:
         """Addition in F_2 (i.e., XOR).
 
         Args:
@@ -100,9 +108,35 @@ cdef class S_box:
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
-        
 
-    def __eq__(self, s):
+    
+    def __call__(self, x) -> BinWord:
+        """Querying the S-box on a specific input.
+
+        Unlike __getitem__, the input does not have to be an integer; however, it needs to be a of a type that this S_box isntance can cast to an integer. The integer obtained by querying the lookup is then cast to another type using `self.output_cast`.
+
+        Because of the logic related to casting, it is slower than __getitem__.
+        
+        Args:
+            x: a valid input for the cast `self.input_cast`.
+        
+        Returns:
+            The result of calling this S-box on the input of `x`, and then casting the result to the correct type.
+        """
+        if isinstance(x, (int, sage_Integer)):
+            return self.output_cast(self.cpp_sb.brackets(<BinWord>x))
+        elif self.input_cast != None:
+            for c in self.input_cast:
+                if c.is_valid_input(x):
+                    return self.output_cast[0](self.cpp_sb.brackets(c(x)))
+            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
+        else:
+            raise Exception("A cast able to process {} must be specified".format(type(x)))
+
+    # !CONTINUE! put basic casts to a dedicated file, and then add the logic to add those to S_boxes
+
+
+    def __eq__(self, s) -> bool:
         if len(s) != self.cpp_sb.size():
             return False
         else:
@@ -112,12 +146,12 @@ cdef class S_box:
         return True
 
 
-    def __ne__(self, s):
-        return not self.__equal__(s)
+    def __ne__(self, s) -> bool:
+        return not self.__eq__(s)
 
         
-    def __getitem__(self, BinWord x):
-        """Querying the S-box on a specific input.
+    def __getitem__(self, BinWord x) -> BinWord:
+        """Querying the S-box on a specific integer.
         
         Args:
             x: an integer whose binary representation corresponds to the input on which to query the S-box.
@@ -128,19 +162,18 @@ cdef class S_box:
         return self.cpp_sb.brackets(x)
 
 
-
-    def __len__(self):
+    def __len__(self) -> int:
         """Returns:
             The number of entries in the lookup table of this S_box.
         """
         return self.cpp_sb.size()
 
     
-    def __str__(self):
+    def __str__(self) -> str:
         return self.cpp_sb.content_string_repr().decode("UTF-8")
 
 
-    def __rich_str__(self):
+    def __rich_str__(self) -> str:
         if self.get_input_length() == 0:
             return "[bold][[/] [red]∅[/] [bold]][/]"
         else:
@@ -178,16 +211,16 @@ cdef class S_box:
             
 
     
-    def __iter__(self):
+    def __iter__(self) -> BinWord:
         for x in self.input_space():
             yield self[x]
 
     
     def __hash__(self):
-        return hash(self.cpp_sb.content_string_repr())
+        return hash(self.to_bytes())
 
 
-    def __pow__(self, d, modulo):
+    def __pow__(self, d, modulo) -> S_box:
         """Composing the S_box with itself (or with its inverse).
 
         Args:
@@ -228,7 +261,7 @@ cdef class S_box:
         return NotImplemented("Only right composition is implemented for objects of class S_box")
 
     
-    def __mul__(S_box self, _s):
+    def __mul__(S_box self, _s) -> S_box:
         """The composition operator.
 
         Args:
@@ -245,16 +278,16 @@ cdef class S_box:
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
-            
-        
+
+    
     # !SUBSECTION! Functions dealing with input/output sizes
 
     
-    def get_input_length(self):
+    def get_input_length(self) -> int:
         return self.cpp_sb.get_input_length()
 
     
-    def input_space_size(self):
+    def input_space_size(self) -> int:
         return self.cpp_sb.input_space_size()
 
 
@@ -262,11 +295,11 @@ cdef class S_box:
         return range(0, self.cpp_sb.input_space_size())
 
     
-    def get_output_length(self):
+    def get_output_length(self) -> int:
         return self.cpp_sb.get_output_length()
 
 
-    def output_space_size(self):
+    def output_space_size(self) -> int:
         return self.cpp_sb.output_space_size()
 
     
@@ -276,7 +309,7 @@ cdef class S_box:
     
     # !SUBSECTION! Basic accessors
     
-    def lut(self):
+    def lut(self) -> list:
         return self.cpp_sb.get_lut()
 
 
@@ -287,13 +320,17 @@ cdef class S_box:
         self.cpp_sb[0] = s
 
     
-    def name(self):
+    def to_bytes(self) -> bytes:
+        return bytes(self.cpp_sb.to_bytes())
+
+    
+    def name(self) -> bytes:
         return self.cpp_name
 
     
     # !SUBSUBSECTION! Components and coordinates
     
-    def coordinate(S_box self, BinWord i):
+    def coordinate(S_box self, BinWord i) -> S_box:
         """Args:
             i: the index of the coordinate, where 0 is the bit of lowest weight.
         
@@ -307,7 +344,7 @@ cdef class S_box:
         return result
         
     
-    def component(S_box self, BinWord a):
+    def component(S_box self, BinWord a) -> S_box:
         """Returns:
             An S_box instance mapping n bits to 1 corresponding to the component x \mapsto S(x) \cdot a, where \cdot is the standard scalar product.
         
@@ -319,7 +356,7 @@ cdef class S_box:
 
     # !SUBSUBSECTION! Derivatives
 
-    def derivative(S_box self, BinWord delta):
+    def derivative(S_box self, BinWord delta) -> S_box:
         """Returns:
             An S_box of the same dimension as S corresponding to its derivative in the direction delta, i.e. x \mapsto S(x+delta)+S(x).
         
@@ -332,14 +369,14 @@ cdef class S_box:
     
     # !SUBSECTION! Function composition
 
-    def is_invertible(self):
+    def is_invertible(self) -> bool:
         """Returns:
             True if the current S_box is a bijection, False otherwise.
         """
         return self.cpp_sb.is_invertible()
 
     
-    def inverse(self):
+    def inverse(self) -> S_box:
         """Returns:
             An S_box instance corresponding to the compositional inverse of the current S_box.
 
@@ -353,6 +390,8 @@ cdef class S_box:
 
     
 
+
+        
 # !SECTION! The S_box_fp class
 
 cdef class S_box_fp:
@@ -498,9 +537,9 @@ cdef class S_box_fp:
 
 # !SECTION! Generating S-boxes
 
-# !SUBSECTION! Main factory 
+# !SUBSECTION! Main factory
 
-def Sb(s, name=None):
+def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
     """Turns its input into an object of the S_box class.
 
     If it is already an S_box instance, simply returns its
@@ -510,6 +549,9 @@ def Sb(s, name=None):
     Args:
         s: an object of a class that can be turned into an S_box.
         name: the name to give the object. If none is provided, one will be picked using `sboxU_SBOXES_COUNTER`.
+        input_casts: a list of casts that are allowed for this S_box.
+        output_cast: the function to apply to the integer output when querying the LUT.
+
     """
 
     if isinstance(s, S_box):
@@ -518,7 +560,13 @@ def Sb(s, name=None):
         return s
     else:
         result = S_box(name=name)
-        if isinstance(s, list):
+
+        if isinstance(s, (bytes, bytearray)):
+            # case of a sequence of bytes
+            (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
+
+        elif isinstance(s, list):
+            # Case of a list of entries. Could be a list numbers or a list of polynomials
             if len(s) == 0:
                 (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
             elif len(s)%2 == 0:
@@ -555,8 +603,16 @@ def Sb(s, name=None):
                     raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
 
         elif isinstance(s, sage_SBox):
+            # case of a Sage-style SBox instance
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
+
+        elif isinstance(s, BinLinearMap):
+            # case of a BinLinearMap
+            (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
+            (<S_box>result).cpp_sb[0] = (<BinLinearMap>s).cpp_blm[0].get_cpp_S_box()
+
         elif isinstance(s, Polynomial):
+            # case of a univariate polynomial
             field = s.base_ring()
             if field.characteristic() == 2:
                 n = field.degree()
@@ -570,13 +626,20 @@ def Sb(s, name=None):
             try:
                 result = s.get_S_box()
             except:
-                raise NotImplemented("can't turn object of type '{}' into an S_box".format(type(s)))
-        return result
+                msg = "can't turn object of type '{}' into an S_box".format(type(s))
+                print(msg)
+                raise NotImplemented(msg)
+        (<S_box>result).input_cast = input_cast
+        if output_cast == None:
+            (<S_box>result).output_cast = [lambda x : x]
+        else:
+            (<S_box>result).output_cast = output_cast
+        return <S_box>result
 
 
 # !SUBSECTION! Other basic structures
 
-def identity_S_box(length):
+def identity_S_box(length) -> S_box:
     """Returns an S_box instance corresponding to the identity
     function, i.e. the one mapping x to itself.
 
@@ -592,7 +655,7 @@ cdef S_box pyx_F2_trans(BinWord k, n):
     return result
 
 
-def F2_trans(additive_cstte, field=None, bit_length=None):
+def F2_trans(BinWord additive_cstte, field=None, bit_length=None) -> S_box:
     """Returns an S_box containing the lookup table of a simple XOR over a given field extension of F_2.
 
     If additive_cstte is an integer, then either `field` or `bit_length` must be set. If it is a field element, both `field` and `bit_length` will be ignored.

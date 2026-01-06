@@ -18,4 +18,10 @@ std::vector<cpp_S_box> cpp_enumerate_ea_classes(
     const unsigned int n_threads
     );
 
+
+std::vector<cpp_S_box> cpp_enumerate_ea_classes(
+    const cpp_S_box & s,
+    const cpp_WalshZeroesSpaces &ws
+    );
+
 #endif

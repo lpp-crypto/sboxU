@@ -15,6 +15,11 @@ public:
     
     cpp_Spectrum() : content() {} ;
 
+    void destruct()
+    {
+        content.clear();
+    }
+
     Integer maximum() const;
 
     inline Integer size() const
@@ -62,6 +67,15 @@ public:
     }
 
     void incr_by_counting(const std::vector<Integer> & vector_to_count);
+
+    cpp_Spectrum absolute() const;
+
+    std::string content_string_repr() const;
+
+    bool contains(const Integer entry) const
+    {
+        return content.contains(entry);
+    }
 };
 
 #pragma omp declare reduction(aggregateSpectrum : cpp_Spectrum : omp_out+=omp_in)

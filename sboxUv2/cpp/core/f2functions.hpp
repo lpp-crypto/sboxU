@@ -45,6 +45,8 @@ inline BinWord cpp_oplus (const BinWord x, const BinWord y)
     return x ^ y;
 };
 
+BinWord cpp_circ_shift(const BinWord x, int n, int shift);
+
 // !SUBSECTION! tobin and frombin
 
 std::vector<int> cpp_to_bin(const BinWord x, int n);
@@ -54,7 +56,7 @@ BinWord cpp_from_bin(const std::vector<int>& v);
 
 std::vector<BinWord> cpp_transpose (const std::vector<BinWord> & l);
 
-BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask);
+BinWord cpp_linear_combination (const std::vector<BinWord> & l, const BinWord mask);
 
 Integer cpp_rank_of_vector_set(std::vector<BinWord> l);
 

@@ -3,7 +3,9 @@
 """
 
 from .output import \
-    pprint
+    pprint, \
+    Chronograph, \
+    Experiment, section, subsection
 
 from .pollock import \
     table_interactive_view, \

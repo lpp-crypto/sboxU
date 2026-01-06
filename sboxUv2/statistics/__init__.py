@@ -12,12 +12,12 @@ from .cython_functions import \
     differential_spectrum, ddt, differential_uniformity, is_differential_uniformity_smaller_than, \
     walsh_transform, walsh_spectrum, absolute_walsh_spectrum, lat, invert_lat, linearity, \
     boomerang_spectrum, bct, boomerang_uniformity, \
-    fbct_spectrum, fbct 
+    fbct_spectrum, fbct,xddt,yddt,zddt, linear_structures, linear_structures_vectorial, linear_structures_vectorial_spectrum
 
 
 from .anomalies import \
-    ddt_coeff_probability, expected_max_ddt, \
-    lat_coeff_probability_permutation, lat_coeff_probability_function, expected_max_lat, expected_max_lat_function, \
-    bct_coeff_probability, \
+    ddt_coeff_probability, expected_differential_uniformity_distribution_permutation, \
+    lat_coeff_probability_permutation, lat_coeff_probability_function, expected_linearity_distribution_permutation, expected_linearity_distribution_function, \
+    bct_coeff_probability, expected_boomerang_uniformity_distribution_permutation, \
     probability_of_max_and_occurrences, get_proba_func, \
     table_anomaly, table_negative_anomaly

@@ -26,6 +26,19 @@ public:
 
     cpp_S_box(std::vector<BinWord> _lut) ;
 
+    cpp_S_box(Bytearray bytes) ;
+
+    void destruct()
+    {
+        lut.clear();
+        lut.shrink_to_fit();
+    }
+    
+    ~cpp_S_box()
+    {
+        destruct();
+    }
+
     /** Returns the lookup table of the binary sum (XOR) of this S-box and `s`, the sum being done for each possible input.
         
         @param s The other S-box.
@@ -35,7 +48,11 @@ public:
 
     cpp_S_box operator* (const cpp_S_box &s) const;
 
+    bool operator==(const cpp_S_box & other_s) const;
+
     std::string content_string_repr() const;
+
+    Bytearray to_bytes() const;
 
     inline BinWord operator[] (const BinWord x) const
     {

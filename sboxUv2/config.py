@@ -2,7 +2,7 @@
 # !SECTION! Threads number
 
 """The maximum number of threads used in each function. """
-MAX_N_THREADS = 8
+MAX_N_THREADS = int(8)
 
 def n_threads_from_sbox_size(n):
     """Customize this function to adjust the number of threads used by multi-threaded functions.
@@ -29,9 +29,13 @@ def n_threads_from_sbox_size(n):
 """The number of bits of precision to use when performing high precision real arithmetic.
 
 """
-DEFAULT_HIGH_PRECISION = 80
+DEFAULT_HIGH_PRECISION = 120
 
 
+# !SECTION! Terminal output appearance 
 
-BOLD_START = "\033[1m"
-BOLD_END = "\033[0m"
+SECTION_TEMPLATES = [
+    "\n[bold underline]{}[/bold underline]\n\n",                   # title
+    "\n[bold underline purple]{:2d} {}[/bold underline purple]\n", # section
+    "[blue underline]{:2d}.{:2d}) {} [/blue underline]"            # subsection
+]

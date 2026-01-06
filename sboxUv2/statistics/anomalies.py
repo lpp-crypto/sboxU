@@ -4,7 +4,7 @@ This reasoning is based on the probabilities for the DDT and LAT given in [JMC:D
 
 """
 
-from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial, Infinity, Integer
+from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial, Infinity, Integer, floor
 import itertools
 
 from sboxUv2.core import Sb, is_permutation
@@ -18,18 +18,67 @@ from sboxUv2.config import DEFAULT_HIGH_PRECISION
 # !SECTION! Probability distributions
 
 
+# !SUBSECTION! Functions handling probability distributions
+
+
+def expected_maximum_distribution(
+        in_length,
+        out_length,
+        proba_func,
+        n_coeffs,
+        vmin=2,
+        vmax=100):
+    """Assuming that a table contains 2**in_length-1 non trivial rows of 2**out_length-1 non-trivial columns, returns the probability distribution of the maximum coefficient in the table as dictionary.
+    
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        proba_func (function): a function taking as input an input length, an output length and a coefficient, and which returns the probability that this coefficient occurs given the other parameters
+        n_coeffs (int): the total number of non-trivial coefficients
+        vmin (int): the minimum value of the differential uniformity to consider
+        vmax (int): the maximum value of the differential uniformity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that the maximum coefficient is equal to `i`.
+    
+    """
+    cumul = {}
+    m, n = in_length, out_length
+    power = RealNumber(n_coeffs)
+    for k in range(vmin, vmax+2):
+        to_add = sum(proba_func(m, n, z) for z in range(0, k+1))
+        to_add = to_add**power
+        if to_add > 0:
+            cumul[k] = to_add
+        elif k-1 in cumul.keys():
+            cumul[k] = cumul[k-1]
+    result = {}
+    for i, k in enumerate(sorted(cumul.keys())):
+        if i > 0:
+            result[k] = cumul[k] - cumul[k-1]
+    return result
+
 
 # !SUBSECTION! DDT
 
-def ddt_coeff_probability(in_length, out_length, c, precision=DEFAULT_HIGH_PRECISION):
-    """Returns the probability that a coefficient of the DDT of a S-Box
-    mapping `in_length` bits to `out_length` is equal to `c`.
+def ddt_coeff_probability(
+        in_length,
+        out_length,
+        c,
+        precision=DEFAULT_HIGH_PRECISION):
+    """The coefficients of the DDT of a random function can be modeled like independent and identically distributed random variables following a specific Poisson distribution [JMC:DaeRij07]. This function returns this probability.
 
-    This probability is identical for a random permutation and a
-    random non-bijective function.
+    This probability is identical for a random permutation and a random non-bijective function, and it corresponds to a Poisson distribution.
 
-    Ref: [JMC:DaeRij07]
+    Args:
+        in_length (int): the input bit-length
+        out_length (int): the output bit-length
+        c (int): the DDT coefficient value whose probability we want
+        precision (int): a facultative argument corresponding to the level of precision to use for the floating point arithmetic.
 
+    Returns:
+        RealNumber: The probability that a coefficient of the DDT of a function mapping `in_length` bits to `out_length` is equal to `coeff`.
+    
     """
     m, n = in_length, out_length
     big_precision = RealField(precision)
@@ -43,32 +92,55 @@ def ddt_coeff_probability(in_length, out_length, c, precision=DEFAULT_HIGH_PRECI
         else:
             return RealNumber(binomial(2**(m-1), d) * 2**(-n*d) * (1 - 2**-n)**(2**(m-1)-d))
 
-        
-def expected_max_ddt(m, n):
-    result = RealNumber(0.0)
-    cumul = [0]
-    for k in range(1, 15):
-        to_add = sum(ddt_coeff_probability(m, n, 2*z) for z in range(0, k+1))
-        to_add = to_add**RealNumber((2**m-1) * (2**n-1))
-        cumul.append(to_add)
-    result = []
-    for i in range(1, len(cumul)):
-        result.append(cumul[i] - cumul[i-1])
-    return result
+
+def expected_differential_uniformity_distribution_permutation(
+        in_length,
+        out_length,
+        vmin=2,
+        vmax=28):
+    """The coefficients of the DDT of a random function can be modeled like independent and identically distributed random variables following a specific Poisson distribution [JMC:DaeRij07]. As a consequence, we can estimate the value of the maximum coefficient.
+
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        vmin (int): the minimum value of the differential uniformity to consider
+        vmax (int): the maximum value of the differential uniformity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that an F_2 S-box mapping `in_length` bits to `out_length` has a differential uniformity equal to `i`.
+    
+    """
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        ddt_coeff_probability,
+        (2**in_length-1) * (2**out_length-1),
+        vmin=vmin,
+        vmax=vmax)
 
     
-# !SUBSECTION! LAT 
+# !SUBSECTION! LAT
+
+
+# !SUBSUBSECTION! Bijective case
 
 def lat_coeff_probability_permutation(
         in_length,
         out_length,
         c,
         precision=DEFAULT_HIGH_PRECISION):
-    """Returns the probability that a coefficient of the Walsh spectrum of
-    a random bijective permutation mapping m bits to n is equal, in
-    absolute value, to c.
+    """The non-trivial coefficients of the LAT of a permutation behave like samples from independent and identically distributed random variables following the same distribution, as explained in [JMC:DaeRij07] (where said distribution is also given). This distribution is not the same as in the case of non-bijective functions.
 
-    If m != n, raises an error.
+    If in_length != out_length, raises an error: a permutation cannot have a different input and output size.
+
+    Args:
+        in_length (int): the input bit-length
+        out_length (int): the output bit-length
+        c (int): the absolute value of the LAT coefficient value whose probability we want
+        precision (int): a facultative argument corresponding to the level of precision to use for the floating point arithmetic.
+
+    Returns:
+        RealNumber: The probability that a coefficient of the LAT of a permutation operating on `in_length` bits has an absolute value equal to `c`.
 
     """
     m, n = in_length, out_length
@@ -83,17 +155,50 @@ def lat_coeff_probability_permutation(
         c = c/2
         return 2 * big_precision(Integer(binomial(2**(n-1), 2**(n-2) + c/2))**2) / Integer(binomial(2**n, 2**(n-1)))
 
+
+def expected_linearity_distribution_permutation(
+        in_length,
+        out_length,
+        vmin=8,
+        vmax=100):
+    """The coefficients of the LAT of a random permutation can be modeled like independent and identically distributed random variables following a specific Poisson distribution [JMC:DaeRij07]. As a consequence, we can estimate the value of the maximum absolute coefficient of the LAT (i.e., the linearity).
+
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        vmin (int): the minimum value of the linearity to consider
+        vmax (int): the maximum value of the linearity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that a permutation operating on `in_length` bits has a linearity uniformity equal to `i`.
     
+    """
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        lat_coeff_probability_permutation,
+        (2**in_length-1) * (2**out_length-1),
+        vmin=vmin,
+        vmax=vmax)
+    
+
+# !SUBSUBSECTION! Non-bijective case
+
 def lat_coeff_probability_function(
         in_length,
         out_length,
         c,
         precision=DEFAULT_HIGH_PRECISION):
-    """Returns the probability that a coefficient of the Walsh spectrum of
-    a random function mapping m bits to n is equal, in absolute value, to
-    c.
+    """The non-trivial coefficients of the LAT of a function behave like samples from independent and identically distributed random variables following the same distribution, as explained in [JMC:DaeRij07] (where said distribution is also given). This distribution is not the same as in the case of permutations.
 
-    If m != n, raises an error.
+    Args:
+        in_length (int): the input bit-length
+        out_length (int): the output bit-length
+        c (int): the absolute value of the LAT coefficient value whose probability we want
+        precision (int): a facultative argument corresponding to the level of precision to use for the floating point arithmetic.
+
+    Returns:
+        RealNumber: The probability that a coefficient of the LAT of a function mapping `in_length` bits to `out_length` bits has an absolute value equal to `c`.
 
     """
     m, n = in_length, out_length
@@ -109,50 +214,60 @@ def lat_coeff_probability_function(
         return 2 * big_precision(2**(-2**n) * binomial(2**n, 2**(n-1)+c))
 
 
-def expected_max_lat(in_length, out_length):
-    m, n = in_length, out_length
-    result = RealNumber(0.0)
-    cumul = [0]
-    for k in range(1, 50):
-        to_add = sum(lat_coeff_probability_permutation(m, n, 2*z) for z in range(0, k+1))
-        to_add = to_add**RealNumber((2**m-1) * (2**n-1))
-        cumul.append(to_add)
-    result = []
-    for i in range(1, len(cumul)):
-        result.append(cumul[i] - cumul[i-1])
-    return result
 
+def expected_linearity_distribution_function(
+        in_length,
+        out_length,
+        vmin=8,
+        vmax=100):
+    """The coefficients of the LAT of a random function can be modeled like independent and identically distributed random variables following a specific Poisson distribution [JMC:DaeRij07]. As a consequence, we can estimate the value of the maximum absolute coefficient of the LAT (i.e., the linearity).
 
-def expected_max_lat_function(m, n):
-    result = RealNumber(0.0)
-    cumul = [0]
-    for k in range(1, 70):
-        to_add = sum(lat_coeff_probability_function(m, n, z) for z in range(0, k+1))
-        to_add = to_add**RealNumber((2**m) * (2**n))
-        cumul.append(to_add)
-    result = []
-    for i in range(1, len(cumul)):
-        result.append(cumul[i] - cumul[i-1])
-    return result
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        vmin (int): the minimum value of the linearity to consider
+        vmax (int): the maximum value of the linearity to consider
 
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that a permutation operating on `in_length` bits has a linearity uniformity equal to `i`.
+    
+    """
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        lat_coeff_probability_permutation,
+        (2**in_length-1) * 2**out_length,
+        vmin=vmin,
+        vmax=vmax)
+    
 
 # !SUBSECTION! BCT
+
+# !TODO! Write proper docstring for the BCT anomalies functions
 
 def bct_coeff_probability(
         in_length,
         out_length,
         c,
         precision=DEFAULT_HIGH_PRECISION):
-    """Returns the probability that a coefficient of the BCT of an S-Box
-    mapping m bits to n is equal to c.
+    """The non-trivial coefficients of the BCT of a permutation behave like samples from independent and identically distributed random variables following the same distribution, as explained in [AC:BonPerTia19] (where said distribution is also given). 
 
-    This probability is only defined for permutations. Thus, an error is raised if m != n.
+    If in_length != out_length, raises an error: the BCT is not defined in this case.
+
+    Args:
+        in_length (int): the input bit-length
+        out_length (int): the output bit-length
+        c (int): the absolute value of the BCT coefficient value whose probability we want
+        precision (int): a facultative argument corresponding to the level of precision to use for the floating point arithmetic.
+
+    Returns:
+        RealNumber: The probability that a coefficient of the BCT of a permutation operating on `in_length` bits has an absolute value equal to `c`.
 
     """
     m, n = in_length, out_length
     big_precision = RealField(precision)
     if m != n:
-        raise "the BCT is only defined when m==n"
+        raise "the BCT is only defined when in_length == out_length"
     if c % 2 == 1:
         return RealNumber(0.0)
     B = big_precision(2**(n-1))
@@ -168,8 +283,34 @@ def bct_coeff_probability(
             result += added / base
     return result
 
+
+def expected_boomerang_uniformity_distribution_permutation(
+        in_length,
+        out_length,
+        vmin=2,
+        vmax=28):
+    """The coefficients of the BCT of a random function can be modeled like independent and identically distributed random variables following a specific Poisson distribution [AC:BonPerTia19]. As a consequence, we can estimate the value of the maximum coefficient.
+
+    Args:
+        in_length (int): the number of bits in the input
+        out_length (int): the number of bits in the output
+        vmin (int): the minimum value of the differential uniformity to consider
+        vmax (int): the maximum value of the differential uniformity to consider
+
+    Returns:
+        dict: A dictionary `d` such that `d[i]` is the probability that an F_2 S-box mapping `in_length` bits to `out_length` has a boomerang uniformity equal to `i`.
+    
+    """
+    return expected_maximum_distribution(
+        in_length,
+        out_length,
+        bct_coeff_probability,
+        (2**in_length-1) * (2**out_length-1),
+        vmin=vmin,
+        vmax=vmax)
     
 # !SECTION! Aggregated information from the tables
+# !TODO! Write proper docstring for the high level anomalies functions
 
 
 # !SUBSECTION! Helper functions 
@@ -223,12 +364,19 @@ def get_proba_func(s, table):
 
 # !SUBSECTION! Anomaly computations
 
-def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
-    """Computes the positive anomaly (in the sense of [AC:BonPerTia19]) of the S_box `s` that corresponds to its DDT, LAT or BCT.
+def table_anomaly(
+        s,
+        table,
+        spec=None,
+        precision=DEFAULT_HIGH_PRECISION):
+    """Computes the positive anomaly (in the sense of [AC:BonPerTia19]) of the S-boxable object `s` that corresponds to its DDT, LAT or BCT.
 
     Args:
-        - s: the S_boxable object you want the anomaly of.
-        - table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+        s: the S_boxable object you want the anomaly of.
+        table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+
+    Returns:
+        RealNumber: the positive anomaly associated to the given table for the S-box corresponding to `s`.
     
     """
     if table not in ["DDT", "LAT", "BCT"]:
@@ -266,12 +414,19 @@ def table_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
         return -p.log2()
 
     
-def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION):
+def table_negative_anomaly(
+        s,
+        table,
+        spec=None,
+        precision=DEFAULT_HIGH_PRECISION):
     """Computes the negative anomaly (in the sense of [AC:BonPerTia19]) of the S_box `s` that corresponds to its DDT, LAT or BCT.
 
     Args:
-        - s: the S_boxable object you want the anomaly of.
-        - table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+        s: the S_boxable object you want the anomaly of.
+        table: the name of the table for which the anomaly must be computed. Must be either "DDT", "LAT" or "BCT".
+
+    Returns:
+        RealNumber: the negative anomaly associated to the given table for the S-box corresponding to `s`.
     
     """
     if table not in ["DDT", "LAT", "BCT"]:
@@ -286,7 +441,6 @@ def table_negative_anomaly(s, table, spec=None, precision=DEFAULT_HIGH_PRECISION
         elif table == "LAT":
             if spec == None:
                 spec = walsh_spectrum(s)
-                print(spec)
         else:
             if spec == None:
                 spec = boomerang_spectrum(s)

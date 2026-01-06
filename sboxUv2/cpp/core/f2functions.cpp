@@ -19,20 +19,23 @@ std::vector<BinWord> cpp_transpose (const std::vector<BinWord> & l)
     for (BinWord i=0; i<biggest_msb; i++)
     {
         for (BinWord j=0; j<l.size(); j++)
-            result[i] |= ((l[j] >> i) & 1) << j;
+            if ((l[j] >> i) & 1)
+                result[i] |= 1 << j;
     }
     return result;
 }
 
 
-BinWord cpp_linear_combination (const std::vector<BinWord> & l, BinWord mask)
+BinWord cpp_linear_combination (const std::vector<BinWord> & l, const BinWord mask)
 {
-    BinWord result = 0;
+    BinWord
+        result = 0,
+        bit_selector = 1;
     for(auto &x : l)
     {
-        if (mask & 1)
+        if (mask & bit_selector)
             result ^= x;
-        mask >>= 1;
+        bit_selector <<= 1;
     }
     return result;
 }
@@ -74,4 +77,9 @@ BinWord cpp_from_bin(const std::vector<int>& v) {
     return y;
 }
 
+BinWord cpp_circ_shift(const BinWord x, int n, int shift){
+    shift = ((shift % n) + n) % n;
+    BinWord mask =  (1<<n) - 1;
+    return (x >> shift) | ((x << (n - shift))& mask ); 
+}
 

@@ -17,6 +17,7 @@ documentation for details.
 
    ./modules.rst
    ./apn-study.rst
+   ./bibliography.rst
 
 Indices and tables
 ==================

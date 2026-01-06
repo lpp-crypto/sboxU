@@ -22,7 +22,7 @@ public:
     
     
     inline cpp_BinLinearMap(const std::vector<BinWord> & _image_vectors) :
-        image_vectors(_image_vectors),
+        image_vectors(_image_vectors.cbegin(), _image_vectors.cend()),
         input_length(_image_vectors.size()),
         output_length(0)
     {
@@ -48,6 +48,17 @@ public:
 
     
     cpp_BinLinearMap(const cpp_S_box & lut) ;
+
+    void destruct()
+    {
+        image_vectors.clear();
+        image_vectors.shrink_to_fit();
+    }
+
+    ~cpp_BinLinearMap()
+    {
+        destruct();
+    }
 
     
     inline Integer get_input_length() const
@@ -76,14 +87,7 @@ public:
     cpp_BinLinearMap inverse() const;
 
     
-    inline cpp_BinLinearMap transpose() const
-    {
-        return cpp_BinLinearMap(
-            cpp_transpose(image_vectors),
-            output_length,
-            input_length
-            );
-    };
+    cpp_BinLinearMap transpose() const;
 
 
     inline BinWord rank() const
@@ -115,5 +119,10 @@ cpp_BinLinearMap cpp_BinLinearMap_from_lut(Lut & s);
 
 cpp_BinLinearMap cpp_BinLinearMap_from_lut(cpp_S_box & s);
 
+cpp_BinLinearMap cpp_block_diagonal_BinLinearMap(
+    const cpp_BinLinearMap &A,
+    const cpp_BinLinearMap &B
+    );
 
+    
 #endif

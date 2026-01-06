@@ -1,4 +1,5 @@
 #include "boomerang.hpp"
+#include <array>
 
 
 
@@ -93,6 +94,7 @@ cpp_Spectrum cpp_fbct_spectrum(const cpp_S_box & s, const unsigned int n_threads
 #pragma omp parallel for reduction(aggregateSpectrum:count) num_threads(threads)
     for( unsigned int a = 1; a < s.input_space_size(); a++)
         count.incr_by_counting(cpp_fbct_row(s,a));
+    count.incr_by_amount(0,-s.input_space_size()*2+2);
     return count;
 }
 
@@ -104,30 +106,29 @@ std::vector< std::vector<Integer>> cpp_fbct(
     result[0] = std::vector<Integer>(s.input_space_size(), s.input_space_size());
     result[1][0] = s.input_space_size();
     result[1][1] = s.input_space_size();
-    for( BinWord a = 2; a < s.input_space_size(); a+=2)
+    for( BinWord a = 2; a < s.input_space_size(); a++)
     {
         result[a][0] = s.input_space_size();
         result[a][a] = s.input_space_size();
-        result[a+1][0] = s.input_space_size();
-        result[a+1][a+1] = s.input_space_size();
         for(BinWord x = 0, _max = s.input_space_size(), _msb = 1 << cpp_msb(a) ; x < _max; x+=_msb)
         {
-            std::vector<std::vector<BinWord> > xor_list(_msb, std::vector<BinWord>(0));
+            std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
             for(BinWord _ceil = x + _msb; x < _ceil; x++)
             {
                 BinWord z = s[x] ^ s[x^a];
-                BinWord low = x % _msb;
-                for(auto x2 : xor_list[low]){
+                for(auto x2 : xor_list[z]){
                     BinWord b = x ^ x2;
                     BinWord c = b ^ a;
-                    result[a][b] += 4;
-                    result[a][c] += 4;
-                    result[b][a] += 4;
-                    result[b][c] += 4;
-                    result[c][a] += 4;
-                    result[c][b] += 4;
+                    if (c < a) {// Couldn't find a way to leverage this symetry :(
+                        result[a][b] += 4;
+                        result[a][c] += 4;
+                        result[b][a] += 4;
+                        result[b][c] += 4;
+                        result[c][a] += 4;
+                        result[c][b] += 4;
+                    }
                 }
-                xor_list[low].push_back(x);
+                xor_list[z].push_back(x);
             }
         }
     }

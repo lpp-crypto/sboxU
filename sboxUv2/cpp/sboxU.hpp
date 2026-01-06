@@ -8,6 +8,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <utility>
 
 // mathematics
 #include <cmath>
@@ -15,6 +16,7 @@
 
 // Input/Outputs
 #include <iostream>
+#include <sstream>
 #include <iomanip>
 
 // Exceptions
@@ -29,12 +31,18 @@
 
 // !SECTION! Special types 
 
+// bytearray
+typedef std::vector<uint8_t> Bytearray;
+
 // signed
 typedef int64_t Integer;
 typedef std::vector<Integer> Row;
+
 // unsigned
 typedef uint64_t BinWord;
 typedef std::vector<BinWord> Lut;
+
+typedef std::vector< std::vector<std::vector<BinWord>>> Xtable;
 
 typedef std::vector<Integer> FpWord;
 

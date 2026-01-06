@@ -56,7 +56,7 @@ else:
             gf: the finite field with which we want to interact. Could have been obtained using e.g. GF(q)
 
         """
-        return gf.from_integer, lambda x : x.to_integer()
+        return gf.from_integer, lambda x : int(0) if x == 0 else int(1) if x == 1 else x.to_integer() 
 
 
     def ffe_from_int(x, gf):
@@ -64,5 +64,10 @@ else:
 
     
     def ffe_to_int(x):
-        return x.to_integer()
+        if x == 0:
+            return 0
+        elif x == 1:
+            return 1
+        else:
+            return x.to_integer()
 

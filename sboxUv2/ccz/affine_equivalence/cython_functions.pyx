@@ -1,11 +1,34 @@
 # -*- python -*-
 
 
-from sboxUv2.core import Sb
+from sboxUv2.core import Sb, oplus
 from sboxUv2.core.sbox import F2_trans
 from sboxUv2.config import MAX_N_THREADS
 from collections import defaultdict
 
+
+
+# !SECTION! XOR equivalence
+
+def xor_equivalence(s, s_prime, all_pairs=True):
+    sb, sb_prime = Sb(s), Sb(s_prime)
+    if sb.get_input_length() != s_prime.get_input_length():
+        return []
+    else:
+        result = []
+        for a in sb.input_space():
+            offset = oplus(sb[a], sb_prime[0])
+            valid_pair = True
+            for x in sb.input_space():
+                if (s[oplus(x, a)] != oplus(offset, sb_prime[x])):
+                    valid_pair = False
+                    break
+            if valid_pair:
+                result.append([a, offset])
+                if not all_pairs:
+                    return result
+        return result
+        
 
 # !SECTION! Linear equivalence
 
@@ -81,7 +104,7 @@ def linear_equivalence_permutations(f, g, all_mappings=False):
     
 
 
-# # !SECTION! Affine equivalence
+# !SECTION! Affine equivalence
 
 
 

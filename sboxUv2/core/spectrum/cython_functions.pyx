@@ -12,6 +12,11 @@ cdef class Spectrum:
         self.name = name
         self.cpp_sp = new cpp_Spectrum()
 
+        
+    def __dealloc__(self):
+        self.cpp_sp[0].destruct()
+        del self.cpp_sp
+        
 
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp):
         self.cpp_sp[0] = sp
@@ -60,8 +65,7 @@ cdef class Spectrum:
 
     def absolute(self):
         result = Spectrum(name=b"|" + self.name + b"|")
-        for k in self.keys():
-            result.incr_by_amount(abs(k), self.cpp_sp.brackets(k))
+        result.set_inner_sp(self.cpp_sp.absolute())
         return result
         
     
