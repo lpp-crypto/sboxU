@@ -70,6 +70,8 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
         cpp_S_box_fp coordinate(const BinWord i) const 
 
         @staticmethod
+        std_vector[cpp_Integer] iterated_powers(cpp_Integer p, cpp_Integer n)
+        @staticmethod
         std_vector[FpWord] build_input_space(cpp_Integer p, BinWord inputsize)
         @staticmethod 
         FpWord int_to_vec(cpp_Integer i, const std_vector[FpWord]& lookup)
@@ -79,6 +81,8 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 # !SECTION! Declaring cython functions and classes
 
 # !SUBSECTION! The S_box class
+
+### TODO : rename as S_box_bin
 
 cdef class S_box:
     cdef cpp_S_box * cpp_sb
