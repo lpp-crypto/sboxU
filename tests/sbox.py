@@ -5,6 +5,7 @@ from sage.crypto.sboxes import sboxes
 from sage.all import *
 
 if __name__ == "__main__":
+    print(isinstance(list(range(0,16)),list))
     u = Sb(list(range(0, 16)))
     s = random_permutation_S_box(4)
     t = random_function_S_box(4, 2, name="t")
