@@ -71,10 +71,10 @@ cdef extern from "../cpp/algorithms/binLinearBasis.cpp":
     
 cdef extern from "../cpp/algorithms/linearSystem.hpp":
     cppclass cpp_F2LinearSystem:
-        cpp_F2LinearSystem(const unsigned int _n_var)
-        unsigned int rank() const
-        bool add_equation(const std_vector[unsigned int] & var_indices)
-        void remove_solution(const std_vector[unsigned int] & sol)
+        cpp_F2LinearSystem(const BinWord _n_var)
+        BinWord rank() const
+        bool add_equation(const std_vector[BinWord] & var_indices)
+        void remove_solution(const std_vector[BinWord] & sol)
         std_vector[Bytearray] kernel_as_bytes()
         string to_string() const
 

@@ -55,6 +55,7 @@ all_cython_extensions = [ declare_cython(name) for name in [
     "sboxUv2.ccz.cython_functions",
     "sboxUv2.ccz.affine_equivalence.cython_functions",
     "sboxUv2.apn.cython_functions",
+    "sboxUv2.exploration.cython_functions",
 ]]
 
 

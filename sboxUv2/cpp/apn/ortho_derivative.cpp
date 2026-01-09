@@ -91,14 +91,14 @@ cpp_S_box cpp_S_box_from_bits(const cpp_BigF2Vector & v)
 
 cpp_S_box cpp_ortho_integral(const cpp_S_box & s)
 {
-    unsigned int n = s.get_input_length();
+    BinWord n = s.get_input_length();
     cpp_F2LinearSystem eqs(n*(1 << n));
     // ensuring that the solution F is such that F(0)=0
-    for(unsigned int i=0; i<n; i++)
-        eqs.add_equation(std::vector<unsigned int>(1, i));
+    for(BinWord i=0; i<n; i++)
+        eqs.add_equation(std::vector<BinWord>(1, i));
     // removing linear solutions
-    for(unsigned int i=0; i<n; i++)
-        for(unsigned int j=0; j<n; j++)
+    for(BinWord i=0; i<n; i++)
+        for(BinWord j=0; j<n; j++)
         {
             cpp_BigF2Vector L_ij(n*(1 << n));
             for (BinWord x=0; x<s.input_space_size(); x++)
@@ -112,8 +112,8 @@ cpp_S_box cpp_ortho_integral(const cpp_S_box & s)
         for(BinWord x=0; x<s.input_space_size(); x++)
             if (x != a)
             {
-                std::vector<unsigned int> positions;
-                for(unsigned int i=0; i<n; i++)
+                std::vector<BinWord> positions;
+                for(BinWord i=0; i<n; i++)
                     if (((s[x] >> i) & 1) == 1)
                     {
                         positions.push_back(i + n*cpp_oplus(x, a)); // F_i(x+a)

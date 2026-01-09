@@ -211,10 +211,10 @@ cdef class F2LinearSystem:
     #     pass
 
     def add_equation(self, variable_indices):
-        self.cpp_ls[0].add_equation(<std_vector[unsigned int]>variable_indices)
+        self.cpp_ls[0].add_equation(<std_vector[BinWord]>variable_indices)
 
     def remove_solution(self, sol):
-        self.cpp_ls[0].remove_solution(<std_vector[unsigned int]>sol)
+        self.cpp_ls[0].remove_solution(<std_vector[BinWord]>sol)
 
     def rank(self):
         return self.cpp_ls[0].rank()
