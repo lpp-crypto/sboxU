@@ -9,6 +9,6 @@ from libc.stdint cimport int64_t, uint8_t
 from libcpp.utility cimport pair
 from libc.stdlib cimport free
 
-ctypedef std_vector[uint64_t] FpWord
+ctypedef std_vector[BinWord] FpWord
 ctypedef std_vector[uint8_t] Bytearray
 ctypedef int64_t cpp_Integer

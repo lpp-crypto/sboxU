@@ -554,28 +554,49 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
         output_cast: the function to apply to the integer output when querying the LUT.
 
     """
+    # Used for the Fp case
+    cdef std_vector[FpWord] lut_cpp
+    cdef std_vector[FpWord] input_space
+    cdef FpWord x_vec
+    cdef FpWord out
 
     if isinstance(s, S_box):
         return s
     elif isinstance(s, S_box_fp):
         return s
     else:
-        result = S_box(name=name)
-
         if isinstance(s, (bytes, bytearray)):
+            result = S_box(name=name)
             # case of a sequence of bytes
             (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
 
         elif isinstance(s, list):
-            # Case of a list of entries. Could be a list numbers or a list of polynomials
+            # Case of a list of entries. Could be a list of numbers or a list of polynomials
             if len(s) == 0:
-                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
+                raise NotImplementedError("Cannot turn a list of length zero into an SBox")
             # Case SBox over a binary field
             elif len(s)%2 == 0:
+                result = S_box(name=name)
                 if isinstance(s[0], (int, sage_Integer, IntegerMod_int)): # case of a lookup table
                     (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
-                elif isinstance(s[0], (MPolynomial)): # case of an ANF
-                    n_vars = len(s[0].parent().gens())
+            # Case SBox over F_q where q = p^n
+            elif len(s)%2 == 1:
+                result = S_box_fp(name=name)
+                if isinstance(s[0], (list)): # case of a lookup table. The only supported type is a list of list of IntegerMod_int, 
+                # each s[i][j] being the value of the j-th branch on input i
+                    if not isinstance(s[0][0], (IntegerMod_int)):
+                        raise TypeError(
+                            """If the characteristic is odd and the SBox is passed as a look-up-table,
+                        the look-up-table entries need to be a list of list of sage.rings.finite_rings.integer_mod.IntegerMod_int,
+                        each entry of the list being one output branch""")
+                    p = s[0][0].parent.cardinality()
+                    (<S_box_fp>result).cpp_sb = new cpp_S_box_fp(p,<std_vector[FpWord]>s)
+            elif isinstance(s[0], (MPolynomial)): # case of an ANF
+                n_vars = len(s[0].parent().gens())
+                p = s[0].parent().base_ring().cardinality()
+                ## ANF over F2
+                if p%2 == 0:
+                    result = S_box(name=name)
                     lut = [0 for x in range(0, 2**n_vars)]
                     for x in range(0, len(lut)):
                         # duplicating the code from ..anf to prevent cross dependencies
@@ -585,37 +606,31 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
                             y = (<BinWord>(s[i](x_bin)) << i) | y
                         lut[x] = y
                     (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
-                else:
-                    raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
-            # Case SBox over F_q where q = p^n
-            elif len(s)%2 == 1:
-                if isinstance(s[0], (list)): # case of a lookup table. The only supported type is a list of list of IntegerMod_int, 
-                # each s[i][j] being the value of the j-th branch on input i
-                    if not isinstance(s[0][0], (IntegerMod_int)):
-                        raise TypeError(
-                            """If the characteristic is odd and the SBox is passed as a look-up-table,
-                        the look-up-table entries need to be a list of list of sage.rings.finite_rings.integer_mod.IntegerMod_int,
-                        each entry of the list being one output branch""")
-                    p = s[0][0].parent.cardinality()
-                    (<S_box>result).cpp_sb = new cpp_S_box_fp(p,<std_vector[FpWord]>s)
-                elif isinstance(s[0], (MPolynomial)): # case of an ANF
-                    n_vars = len(s[0].parent().gens())
-                    # Get the size of the base ring over which the SBox is defined
-                    p = s[0].parent().base_ring().cardinality()
-                    cdef std_vector[FpWord] lut = std_vector[FpWord](pow(p,n_vars))
-                    cdef std_vector[FpWord] input_space = cpp_S_box_fp.build_input_space(p,n_vars)
-                    for x in range(0, len(lut)):
+                ## ANF over Fp
+                else :
+                    result = S_box_fp(name=name)
+                    lut_cpp = std_vector[FpWord](<BinWord>p**n_vars)
+                    input_space = cpp_S_box_fp.build_input_space(p,n_vars)
+                    for x in range(0, len(lut_cpp)):
                         ## TODO : evaluer le polynome
-                        cdef FpWord x_vec = cpp_S_box_fp.int_to_vec(x, input_space)
-                        cdef FpWord out = FpWord(len(s))
+                        x_vec = cpp_S_box_fp.int_to_vec(x, input_space)
+                        out = FpWord(len(s))
                         for i in range(0, len(s)):
                             out.push_back(<BinWord>s[i](x_vec))
-                        lut[x] = out
-                    (<S_box>result).cpp_sb = new cpp_S_box_fp(<cpp_Integer>p,lut)
-                else:
-                    raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+                        lut_cpp[x] = out
+                    (<S_box_fp>result).cpp_sb = new cpp_S_box_fp(<cpp_Integer>p,lut_cpp)
+            else:
+                raise NotImplemented("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
+            
+        else : 
+            result = S_box(name=name)
+            (<S_box>result).input_cast = input_cast
+            if output_cast == None:
+                (<S_box>result).output_cast = [lambda x : x]
+            else:
+                (<S_box>result).output_cast = output_cast
 
-        elif isinstance(s, sage_SBox):
+        if isinstance(s, sage_SBox):
             # case of a Sage-style SBox instance
             (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
 
@@ -636,18 +651,13 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
             else:
                 raise NotImplemented("we don't yet support polynomials over fields of characteristic >2")
         else:
-            try:
+            try:                
                 result = s.get_S_box()
             except:
                 msg = "can't turn object of type '{}' into an S_box".format(type(s))
                 print(msg)
                 raise NotImplemented(msg)
-        (<S_box>result).input_cast = input_cast
-        if output_cast == None:
-            (<S_box>result).output_cast = [lambda x : x]
-        else:
-            (<S_box>result).output_cast = output_cast
-        return <S_box>result
+        return result
 
 
 # !SUBSECTION! Other basic structures

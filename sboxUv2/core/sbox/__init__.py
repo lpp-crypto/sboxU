@@ -15,4 +15,3 @@ from .misc import \
     random_permutation_S_box, random_function_S_box, \
     F2_mul, monomial, inverse, \
     is_permutation
-
