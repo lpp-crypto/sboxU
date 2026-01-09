@@ -39,15 +39,8 @@ class cpp_S_box_fp {
             input_size = std::ceil(std::log(lut.size())/std::log(p));
             output_size = std::ceil(std::log(lut[0].size())/std::log(p));
 
-            powers_in = FpWord(input_size,1);
-            for (int i = 1 ; i < powers_in.size(); i++) {
-                powers_in[i] = powers_in[i-1]*p;
-            }
-
-            powers_out = FpWord(output_size,1);
-            for (int i = 1 ; i < powers_out.size(); i++) {
-                powers_out[i] = powers_out[i-1]*p;
-            }
+            powers_in = iterated_powers(p,input_size);
+            powers_out = iterated_powers(p,output_size);
             
             input_space = build_input_space(p,input_size);
             output_space = build_input_space(p,output_size);
@@ -180,6 +173,15 @@ class cpp_S_box_fp {
                 new_lut[i] = new_out;
             }
             return cpp_S_box_fp(p,new_lut);
+        }
+
+        static std::vector<Integer> iterated_powers(Integer p, Integer n){
+            std::vector<Integer> res(n);
+            res[0] = 1;
+            for (int i = 1; i < n; i++){
+                res[i] = res[i-1]*p;
+            }
+            return res;
         }
 
 

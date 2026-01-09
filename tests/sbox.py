@@ -5,6 +5,7 @@ from sage.crypto.sboxes import sboxes
 from sage.all import *
 
 if __name__ == "__main__":
+    print(isinstance(list(range(0,16)),list))
     u = Sb(list(range(0, 16)))
     s = random_permutation_S_box(4)
     t = random_function_S_box(4, 2, name="t")
@@ -87,3 +88,11 @@ if __name__ == "__main__":
                 b,
                 s,
                 Sb(b)))
+            
+    ### Fp testing session
+    p = 3
+    Fp = GF(p)
+    ## Build an SBox from F_3^2 to itself, invertible
+    lut = [[0,1],[1,0],[0,2],[0,0],[2,0],[2,2],[1,2],[2,1],[1,1]]
+    lut = [[Fp(x),Fp(y)] for x,y in lut]
+    u = Sb(lut)

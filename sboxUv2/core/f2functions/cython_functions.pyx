@@ -151,7 +151,7 @@ cdef class BinLinearMap:
     
     def __add__(self, BinLinearMap L) -> BinLinearMap:
         result = BinLinearMap()
-        result.cpp_blm[0] = self.cpp_blm[0].add(L.cpp_blm[0])
+        result.cpp_blm[0] = (<cpp_BinLinearMap>self.cpp_blm[0]).add(<cpp_BinLinearMap>(L.cpp_blm[0]))
         return result
 
     def __hash__(self):
@@ -161,7 +161,7 @@ cdef class BinLinearMap:
     
     def __mul__(self, BinLinearMap L) -> BinLinearMap:
         result = BinLinearMap()
-        result.cpp_blm[0] = self.cpp_blm[0].mul(L.cpp_blm[0])
+        result.cpp_blm[0] = (<cpp_BinLinearMap>self.cpp_blm[0]).mul(<cpp_BinLinearMap>(L.cpp_blm[0]))
         return result
 
     

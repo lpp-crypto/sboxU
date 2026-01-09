@@ -118,5 +118,3 @@ cdef extern from "../../cpp/core/binLinearMap.cpp":
 
 cdef class BinLinearMap:
     cdef cpp_BinLinearMap * cpp_blm
-
-    

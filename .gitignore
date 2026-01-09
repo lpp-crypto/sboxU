@@ -3,3 +3,6 @@
 *.so
 *__pycache__
 *docs/source/sboxUv2*
+.vscode*
+*.egg-info
+build
