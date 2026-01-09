@@ -393,53 +393,53 @@ cdef class S_box:
 
 
         
-# # !SECTION! The S_box_fp class
+# !SECTION! The S_box_fp class
 
-# cdef class S_box_fp:
+cdef class S_box_fp:
     
-#     # !SUBSECTION! Initialization
+    # !SUBSECTION! Initialization
 
-#     def __init__(self,name=None):
-#         self.rename(name)
+    def __init__(self,name=None):
+        self.rename(name)
 
-#     # !SUBSECTION! Dealing with the name
+    # !SUBSECTION! Dealing with the name
 
-#     def rename(self,name):
-#         if name == None:
-#             self.cpp_name = new_sbox_name()
-#         elif isinstance(name, bytes):
-#             self.cpp_name = name
-#         elif isinstance(name, str):
-#             self.cpp_name = name.encode("UTF-8")
-#         else:
-#             raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+    def rename(self,name):
+        if name == None:
+            self.cpp_name = new_sbox_name()
+        elif isinstance(name, bytes):
+            self.cpp_name = name
+        elif isinstance(name, str):
+            self.cpp_name = name.encode("UTF-8")
+        else:
+            raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
 
-#     # !SUBSECTION! Python built-in methods
+    # !SUBSECTION! Python built-in methods
 
-#     def __add__(self, _s):
-#         """Pointwise addition in F_p (i.e., modular addition mod p).
+    def __add__(self, _s):
+        """Pointwise addition in F_p (i.e., modular addition mod p).
 
-#         Args:
-#             _s: the S_box to add to the current one. Must be an S_boxable type.
+        Args:
+            _s: the S_box to add to the current one. Must be an S_boxable type.
 
-#         Returns:
-#             An `S_box_fp` instance whose output is the modular addition of `self` and `_s`.
+        Returns:
+            An `S_box_fp` instance whose output is the modular addition of `self` and `_s`.
 
-#         """
-#         s = Sb(_s)
-#         if len(s) != len(self):
-#             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
-#         name = self.cpp_name + b"+" + s.name()
-#         result = S_box_fp(name)
-#         (<S_box_fp>result).set_inner_sbox((<S_box_fp>self).cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
-#         return result
+        """
+        s = Sb(_s)
+        if len(s) != len(self):
+            raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
+        name = self.cpp_name + b"+" + s.name()
+        result = S_box_fp(name)
+        (<S_box_fp>result).set_inner_sbox((<S_box_fp>self).cpp_sb[0]+(<S_box_fp>s).cpp_sb[0])
+        return result
 
 
-#     def __mul__(self,_s):
-#         """Composition of S-Boxes in F_p
+    def __mul__(self,_s):
+        """Composition of S-Boxes in F_p
 
-#         Args:
-#             _s (_type_): the S_box to be composed to the right to the current one. Output size and input size must match.
+        Args:
+            _s (_type_): the S_box to be composed to the right to the current one. Output size and input size must match.
         
         Returns:
             An `S_box_fp` instance whose output is the composition of `self`and `_s`.
@@ -451,90 +451,90 @@ cdef class S_box:
         return result
       
 
-#     def __getitem__(self, FpWord x):
-#         """Querying the S-box on a specific input.
+    def __getitem__(self, FpWord x):
+        """Querying the S-box on a specific input.
 
-#         Args:
-#             x (FpWord): a vector of integers representing where the S-box is queried.
+        Args:
+            x (FpWord): a vector of integers representing where the S-box is queried.
 
-#         Returns:
-#             The result of calling this S-box on the input of `x`.
-#         """      
-#         return self.cpp_sb[0][x]
+        Returns:
+            The result of calling this S-box on the input of `x`.
+        """      
+        return self.cpp_sb[0][x]
 
-#     def __len__(self):
-#         """Returns:
-#             The number of entries in the lookup table of this S_box.
-#         """        
-#         return self.cpp_sb.get_lut().size()
+    def __len__(self):
+        """Returns:
+            The number of entries in the lookup table of this S_box.
+        """        
+        return self.cpp_sb.get_lut().size()
 
-#     def __str__(self):
-#         return f"""S-box over F{self.cpp_sb.get_p()} \n 
-#         Name : {self.cpp_name} \n 
-#         Input size : {self.cpp_sb.get_input_size()} \n 
-#         Output size" : {self.cpp_sb.get_output_size()}"""
+    def __str__(self):
+        return f"""S-box over F{self.cpp_sb.get_p()} \n 
+        Name : {self.cpp_name} \n 
+        Input size : {self.cpp_sb.get_input_size()} \n 
+        Output size" : {self.cpp_sb.get_output_size()}"""
 
-#     #! SUBSECTION! Getters dealing with the underlying cpp object
+    #! SUBSECTION! Getters dealing with the underlying cpp object
 
-#     def get_p(self):
-#         return self.cpp_sb.get_p()
+    def get_p(self):
+        return self.cpp_sb.get_p()
 
-#     def get_input_size(self):
-#         return self.cpp_sb.get_input_size()
+    def get_input_size(self):
+        return self.cpp_sb.get_input_size()
 
-#     def get_output_size(self):
-#         return self.cpp_sb.get_output_size()
+    def get_output_size(self):
+        return self.cpp_sb.get_output_size()
 
-#     def input_space_size(self):
-#         return pow(self.get_p(),self.get_input_size())
+    def input_space_size(self):
+        return pow(self.get_p(),self.get_input_size())
 
-#     def output_space_size(self):
-#         return pow(self.get_p(),self.get_output_size())
+    def output_space_size(self):
+        return pow(self.get_p(),self.get_output_size())
 
-#     def input_space(self):
-#         return range(0,self.get_input_size())
+    def input_space(self):
+        return range(0,self.get_input_size())
 
-#     def output_space(self):
-#         return range(0,self.get_output_size())
+    def output_space(self):
+        return range(0,self.get_output_size())
 
-#     def get_name(self):
-#         return self.cpp_name
+    def get_name(self):
+        return self.cpp_name
 
-#     def lut(self):
-#         return self.cpp_sb.get_lut()
+    def lut(self):
+        return self.cpp_sb.get_lut()
 
-#     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
-#         if self.cpp_sb:
-#             del self.cpp_sb
-#         self.cpp_sb = new cpp_S_box_fp()
-#         self.cpp_sb[0] = s
+    cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
+        if self.cpp_sb:
+            del self.cpp_sb
+        self.cpp_sb = new cpp_S_box_fp()
+        self.cpp_sb[0] = s
 
-# # !SUBSECTION! Functions from the SBox
+# !SUBSECTION! Functions from the SBox
 
-#     def coordinate(S_box_fp self, BinWord i):
-#         """Args:
-#             i: the index of the coordinate, where 0 is the Fp word of lowest weight.
+    def coordinate(S_box_fp self, BinWord i):
+        """Args:
+            i: the index of the coordinate, where 0 is the Fp word of lowest weight.
         
-#         Returns:
-#             An S_box instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
+        Returns:
+            An S_box instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
         
-#         """
-#         assert i < self.cpp_sb.get_output_size()
-#         result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
-#         (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.coordinate(<BinWord>i))
-#         return result
+        """
+        assert i < self.cpp_sb.get_output_size()
+        result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
+        (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.coordinate(<BinWord>i))
+        return result
 
-#     def derivative(S_box_fp self, FpWord delta):
-#         """Args:
-#             i: the index of the coordinate, where 0 is the bit of lowest weight.
+    def derivative(S_box_fp self, FpWord delta):
+        """Args:
+            i: the index of the coordinate, where 0 is the bit of lowest weight.
         
-#         Returns:
-#             An S_box_fp instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
+        Returns:
+            An S_box_fp instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
         
-#         """
-#         result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.cpp_name)
-#         (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.derivative(delta))
-#         return result
+        """
+        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.cpp_name)
+        (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.derivative(delta))
+        return result
 
 # !SECTION! Generating S-boxes
 
