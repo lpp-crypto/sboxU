@@ -114,7 +114,7 @@ std::vector<BinWord> cpp_from_vector( Bytearray  v){
     
     int n = f.get_input_length();
     std::vector<std::vector<cpp_S_box>> result((1<<n)-1);
-    std::vector<cpp_F2LinearSystem> E((1<<n)-1,cpp_F2LinearSystem(1<<n));
+    std::vector<cpp_F2LinearSystem> E((1<<n)-1, cpp_F2LinearSystem(1<<n, false)); 
 
     bool valve = 1;
     while(valve){

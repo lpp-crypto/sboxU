@@ -11,8 +11,13 @@
 
 bool maybe_add_vector(
     std::map<BinWord, cpp_BigF2Vector> & equations,
-    cpp_BigF2Vector & new_eq,
-    BinWord n_var
+    cpp_BigF2Vector & new_eq
+    );
+
+
+bool surely_add_vector(
+    std::vector<cpp_BigF2Vector> & equations,
+    cpp_BigF2Vector & new_eq
     );
 
 
@@ -21,18 +26,27 @@ bool maybe_add_vector(
 class cpp_F2LinearSystem
 {
 private:
-    std::map<BinWord, cpp_BigF2Vector> equations;
-    std::map<BinWord, cpp_BigF2Vector> forbidden_solutions;
     BinWord n_var;
+    bool echelonize;
+    std::vector<cpp_BigF2Vector> all_equations;
+    std::map<BinWord, cpp_BigF2Vector> echelonized_equations;
+    std::map<BinWord, cpp_BigF2Vector> forbidden_solutions;
     
 public:
-    cpp_F2LinearSystem(const BinWord _n_var) :
-        n_var(_n_var) 
+    cpp_F2LinearSystem(
+        const BinWord _n_var,
+        const bool _echelonize
+        ) :
+        n_var(_n_var),
+        echelonize(_echelonize)
     {}
     
-    inline BinWord rank() const
+    inline int rank() const
     {
-        return equations.size();
+        if (echelonize)
+            return echelonized_equations.size();
+        else
+            return -1;
     }
     
     inline bool add_equation(const std::vector<BinWord> & var_indices)
@@ -42,13 +56,19 @@ public:
         {
             new_eq.set_to_1(ind);
         }
-        return maybe_add_vector(equations, new_eq, n_var);
+        return add_equation(new_eq);
     }
 
     
     inline bool add_equation(cpp_BigF2Vector & eq)
     {
-        return maybe_add_vector(equations, eq, n_var);
+        if (echelonize)
+            return maybe_add_vector(echelonized_equations, eq);
+        else
+        {
+            all_equations.push_back(eq);
+            return true;
+        }
     }
 
 
@@ -56,9 +76,7 @@ public:
 
     bool remove_solution(cpp_BigF2Vector & eq)
     {
-        return maybe_add_vector(forbidden_solutions,
-                                eq,
-                                n_var);
+        return maybe_add_vector(forbidden_solutions, eq);
     }
 
 

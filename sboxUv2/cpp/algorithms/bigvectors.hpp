@@ -1,9 +1,15 @@
 #ifndef _BIG_VECTORS_
 #define _BIG_VECTORS_
 
-#define MSB_OF_ZERO 0xffffffff // 2**32-1
-#define BLOCK_SIZE (sizeof(BinWord)*8)
+#define MSB_OF_ZERO -1
 
+#define BoolBlock uint64_t
+#define BLOCK_SIZE (sizeof(BoolBlock) * 8)
+#define BLOCK_INDEX(x) ((x) >> 6)
+#define BLOCK_POS(x) ((x) & 0x3F)
+
+
+#include <valarray>
 
 // !SECTION! Big vectors themselves
 
@@ -11,11 +17,11 @@
 class cpp_BigF2Vector
 {
 private:
-    unsigned int msb;
+    int msb;
     unsigned int total_length;
     
 public:
-    std::vector<BinWord> content;
+    std::valarray<BoolBlock> content;
 
     
     // !SUBSECTION! constructors 
@@ -33,36 +39,36 @@ public:
         total_length(_total_length)
     {
         if ((total_length % BLOCK_SIZE) == 0)
-            content.assign(total_length/BLOCK_SIZE, 0);
+            content = std::valarray<BoolBlock>(total_length/BLOCK_SIZE);
         else
-            content.assign(1+total_length/BLOCK_SIZE, 0);
+            content = std::valarray<BoolBlock>(total_length/BLOCK_SIZE+1);
     }
 
     
     cpp_BigF2Vector(
-        std::vector<BinWord> _content,
+        std::valarray<BoolBlock> _content,
         unsigned int _total_length
         ) :
-        content(_content.begin(), _content.end()),
+        content(_content),
         msb(MSB_OF_ZERO),
         total_length(_total_length)
     {
-        if (content.size()*BLOCK_SIZE < total_length)
-            throw std::runtime_error("mismatched length between inputs");
         set_msb();
     }
 
     
     void set_msb()
     {
-        unsigned int cursor = 0;
-        for (unsigned int i=0; i<content.size(); i++)
-        {
-            BinWord x_i = content[i];
-            if (x_i != 0)
-                msb = cursor + cpp_msb(x_i);
-            cursor += BLOCK_SIZE;
-        }
+        for(unsigned int i=content.size()-1; i>0; i--)
+            if (content[i])
+            {
+                msb = i*BLOCK_SIZE + cpp_msb(content[i]);
+                return;
+            }
+        if (content[0])
+            msb = cpp_msb(content[0]);
+        else
+            msb = MSB_OF_ZERO;
     }
 
     
@@ -80,19 +86,15 @@ public:
         return content.size();
     }
 
-    
+    /** Returns 1 if the bit at position index is set to 1, 0 otherwise.
+
+        @param index The position at which the bit must be set to 1.
+
+        @return true if and only if the bit at position index is set to 1.
+     */
     inline bool is_set(const unsigned int index) const
     {
-        unsigned int
-            cursor = index / BLOCK_SIZE,
-            pos    = index % BLOCK_SIZE;
-
-        // std::cout << std::dec << index << std::endl;
-        // std::cout << std::dec << BLOCK_SIZE << std::endl;
-        // std::cout << cursor << " " << pos << std::endl;
-        // std::cout << "val: " << ((content[cursor] >> pos) & 1) << std::endl;
-                
-        return ((content[cursor] >> pos) & 1);
+        return (content[BLOCK_INDEX(index)] >> BLOCK_POS(index)) & 1;
     }
     
     inline unsigned int get_msb() const
@@ -103,26 +105,20 @@ public:
 
     inline bool is_zero() const
     {
-        for (auto x_i : content)
-            if (x_i != 0)
-                return false;
-        return true;
+        return (msb == MSB_OF_ZERO);
     }
 
 
     inline bool is_non_zero() const
     {
-        for (auto x_i : content)
-            if (x_i != 0)
-                return true;
-        return false;
+        return (msb != MSB_OF_ZERO);
     }
 
 
     std::string to_string() const
     {
         std::stringstream result;
-        result << std::setw(2*sizeof(BinWord)) << std::hex ;
+        result << std::setw(2*sizeof(BoolBlock)) << std::hex ;
         for(auto x_i : content)
             result << x_i << "  ";
         return result.str();
@@ -142,32 +138,31 @@ public:
     
     // !SUBSECTION! modifying the state
 
-    
+    /** Ensures that the bit at position index is set to 1.
+
+        Like is_set, its implementation relies on bit-fiddling.
+
+        @param index The position at which the bit must be set to 1.
+     */
     inline void set_to_1(const unsigned int index)
     {
-        if (index >= total_length)
-            throw std::runtime_error("trying to set a bit with an index too high");
+        if (msb == MSB_OF_ZERO)
+        {
+            content[BLOCK_INDEX(index)] = ((BoolBlock)1 << (BLOCK_POS(index)));
+            msb = index;
+        }
         else
         {
-            unsigned int
-                cursor = index / BLOCK_SIZE,
-                pos    = index % BLOCK_SIZE;
-            content[cursor] |= ((BinWord)1 << pos);
-            if ((index > msb) || (msb == MSB_OF_ZERO))
+            content[BLOCK_INDEX(index)] |= ((BoolBlock)1 << (BLOCK_POS(index)));
+            if (index > msb)
                 msb = index;
         }
     }
 
     inline void operator^=(const cpp_BigF2Vector & x)
     {
-        if (total_length != x.size())
-            throw std::runtime_error("xoring vectors of different size");
-        else
-        {
-            for (unsigned int i=0; i<content.size(); i++)
-                content[i] ^= x.content[i];
-            set_msb();
-        }
+        content ^= x.content;
+        set_msb();
     }
 };
 
@@ -177,40 +172,35 @@ public:
 inline cpp_BigF2Vector operator^(const cpp_BigF2Vector & x,
                                  const cpp_BigF2Vector & y)
 {
-    if (x.size() != y.size())
-        throw std::runtime_error("xoring vectors of different size");
-    else
-    {
-        std::vector<BinWord> result(x.content.begin(), x.content.end());
-        for(unsigned int i=0; i<result.size(); i++)
-            result[i] ^= y.content[i];
-        return cpp_BigF2Vector(result, x.size());
-    }
+    return cpp_BigF2Vector(x.content ^ y.content, x.size());
 }
 
 
 inline bool operator==(const cpp_BigF2Vector & x,
                        const cpp_BigF2Vector & y)
 {
-    return (x.content == y.content);
+    if (x.get_msb() == y.get_msb())
+        if (x.is_zero())
+            return true;
+        else
+        {
+            for(unsigned int i=0; i<=BLOCK_INDEX(x.get_msb()); i++)
+                if (x.content[i] ^ y.content[i])
+                    return false;
+            return true;
+        }
+    else
+        return false;
 }
 
 
 inline bool operator<(const cpp_BigF2Vector & x,
                       const cpp_BigF2Vector & y)
 {
-    if (x.is_zero())
-        if (y.is_zero())
-            return false;
-        else
-            return true;
-    else if (y.is_zero())
-        return false;
-    else if (x.get_msb() < y.get_msb())
-        return true;
-    else if (x.get_msb() > y.get_msb())
-        return false;
+    if (x.get_msb() != y.get_msb())
+        return (x.get_msb() < y.get_msb());
     else
+    {
         for (int i=x.n_blocks()-1; i >= 0; i--)
         {
             if (x.content[i] < y.content[i])
@@ -218,7 +208,10 @@ inline bool operator<(const cpp_BigF2Vector & x,
             else if (x.content[i] > y.content[i])
                 return false;
         }
-    return false;
+        // if we reach this point, then they are equal. Thus, the
+        // strict comparison is false.
+        return false;
+    }
 }
 
 #endif
