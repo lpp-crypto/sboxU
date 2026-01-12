@@ -1,4 +1,5 @@
 #include "./linearSystem.hpp"
+#include "bigvectors.hpp"
 
 
 // !SECTION! Implementation of the cpp_F2LinearSystem class
@@ -12,69 +13,77 @@ bool maybe_add_vector(
     BinWord n_var
     )
 {
-    // adding the equation as a horizontal vector: we perform a
-    // reduction on the rows in the process, which will *not* change the
-    // structure of the right kernel of the matrix.
-    // -- reduction step
-    for (auto  eq : equations)
-    {        
-        if (new_eq.get_msb() > eq.first)
+    while (true)
+    {
+        BinWord m = new_eq.get_msb();
+        if (not equations.contains(m))
         {
-            // we reduce the current equation by the previous one
-            if (new_eq.is_set(eq.first))
-                new_eq ^= eq.second;
-        }
-        else if (new_eq.get_msb() == eq.first)
-        {
-            if (new_eq == eq.second)
-            {
-                // the new equation was already in the span: we stop
-                // trying to add it
-                return false;
-            }
-            else
-            {
-                cpp_BigF2Vector x = new_eq ^ eq.second;
-                if (x < new_eq)
-                    new_eq = x;
-            }
+            equations[m] = new_eq;
+            return true;
         }
         else
-            break;
-    }
-    // -- adding the equation
-    BinWord m = new_eq.get_msb();
-    equations[m] = new_eq;
-    // -- reducing the remaining equations
-    for (auto eq : equations)
-        if (eq.first > new_eq.get_msb())
         {
-            // we reduce the old equation by the new one if the MSB of
-            // the new equation is active in it
-            if (eq.second.is_set(m))
-                equations[eq.first] ^= new_eq;
+            cpp_BigF2Vector diff = new_eq ^ equations[m];
+            if (diff.is_zero())
+                return false;
+            else
+            {
+                if (equations[m].is_set(diff.get_msb()))
+                    equations[m] = new_eq;
+                new_eq = diff;
+            }
         }
-    return true;    
-}
-
-
-bool cpp_F2LinearSystem::add_equation(
-    const std::vector<BinWord> & var_indices
-    )
-{
-    cpp_BigF2Vector new_eq(n_var);
-    for (auto ind : var_indices)
-    {
-        new_eq.set_to_1(ind);
     }
-    return maybe_add_vector(equations, new_eq, n_var);
 }
 
 
-bool cpp_F2LinearSystem::add_equation(cpp_BigF2Vector & eq)
-{
-    return maybe_add_vector(equations, eq, n_var);
-}
+// 
+// {
+//     // adding the equation as a horizontal vector: we perform a
+//     // reduction on the rows in the process, which will *not* change the
+//     // structure of the right kernel of the matrix.
+//     // -- reduction step
+//     for (auto  eq : equations)
+//     {        
+//         if (new_eq.get_msb() > eq.first)
+//         {
+//             // we reduce the current equation by the previous one
+//             if (new_eq.is_set(eq.first))
+//                 new_eq ^= eq.second;
+//         }
+//         else if (new_eq.get_msb() == eq.first)
+//         {
+//             if (new_eq == eq.second)
+//             {
+//                 // the new equation was already in the span: we stop
+//                 // trying to add it
+//                 return false;
+//             }
+//             else
+//             {
+//                 cpp_BigF2Vector x = new_eq ^ eq.second;
+//                 if (x < new_eq)
+//                     new_eq = x;
+//             }
+//         }
+//         else
+//             break;
+//     }
+//     // -- adding the equation
+//     BinWord m = new_eq.get_msb();
+//     equations[m] = new_eq;
+//     // -- reducing the remaining equations
+//     for (auto eq : equations)
+//         if (eq.first > new_eq.get_msb())
+//         {
+//             // we reduce the old equation by the new one if the MSB of
+//             // the new equation is active in it
+//             if (eq.second.is_set(m))
+//                 equations[eq.first] ^= new_eq;
+//         }
+//     return true;    
+// }
+
 
 
 // !SUBSECTION! Removing unwanted solutions
@@ -91,14 +100,6 @@ bool cpp_F2LinearSystem::remove_solution(
     }
     return maybe_add_vector(forbidden_solutions,
                             new_eq,
-                            n_var);
-}
-
-
-bool cpp_F2LinearSystem::remove_solution(cpp_BigF2Vector & eq)
-{
-    return maybe_add_vector(forbidden_solutions,
-                            eq,
                             n_var);
 }
 

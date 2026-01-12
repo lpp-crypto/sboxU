@@ -6,6 +6,16 @@
 #include "./bigvectors.hpp"
 
 
+// !SECTION! Helper functions
+
+
+bool maybe_add_vector(
+    std::map<BinWord, cpp_BigF2Vector> & equations,
+    cpp_BigF2Vector & new_eq,
+    BinWord n_var
+    );
+
+
 // !SECTION! The linear system itself 
 
 class cpp_F2LinearSystem
@@ -25,13 +35,32 @@ public:
         return equations.size();
     }
     
-    bool add_equation(const std::vector<BinWord> & var_indices);
+    inline bool add_equation(const std::vector<BinWord> & var_indices)
+    {
+        cpp_BigF2Vector new_eq(n_var);
+        for (auto ind : var_indices)
+        {
+            new_eq.set_to_1(ind);
+        }
+        return maybe_add_vector(equations, new_eq, n_var);
+    }
+
     
-    bool add_equation(cpp_BigF2Vector & eq);
+    inline bool add_equation(cpp_BigF2Vector & eq)
+    {
+        return maybe_add_vector(equations, eq, n_var);
+    }
+
 
     bool remove_solution(const std::vector<BinWord> & var_indices);
 
-    bool remove_solution(cpp_BigF2Vector & eq);
+    bool remove_solution(cpp_BigF2Vector & eq)
+    {
+        return maybe_add_vector(forbidden_solutions,
+                                eq,
+                                n_var);
+    }
+
 
     std::vector<cpp_BigF2Vector> kernel();
 
