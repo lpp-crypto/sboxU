@@ -101,6 +101,43 @@ std::vector<BinWord> cpp_from_vector( Bytearray  v){
     return(result);
 }
 
+void cpp_sn_add_equations(cpp_S_box f, std::vector<cpp_F2LinearSystem>& E, std::vector<BinWord> indices, uint64_t n_add_eq){
+
+    std::vector<uint64_t> size_vector(E.size(),0);
+    BinWord target_u;
+    std::vector<BinWord> samples;
+    int n = f.get_input_length();
+    std::vector<BinWord> temp(4);
+
+    uint64_t valve = 0;
+    while(valve != indices.size())
+    {
+        samples  = batch_rand_int_cpp(n,3);
+        // Computing corresponding u
+        target_u = cpp_oplus(cpp_diff_for_sn(f.get_lut(),samples[0],samples[1]),cpp_diff_for_sn(f.get_lut(),samples[0],samples[2]));
+        // As long as we don't have enough equations we add a new one to the corresponding constraint_list
+        if (size_vector[target_u -1] < n_add_eq and target_u != 0){
+            // Due f being APN, u = 0 means that y=x or y=x+a, so we don't have 4 '1' on the matrix   
+            if (samples[1] != samples[2] and samples[1]!=cpp_oplus(samples[2],samples[0]) and samples[0]!=0 and target_u !=0){
+                temp[0] = cpp_oplus(samples[1],samples[0]);
+                temp[1] = samples[1];
+                temp[2] = cpp_oplus(samples[2],samples[0]);
+                temp[3] = samples[2];
+                E[target_u-1].add_equation(temp);
+                size_vector[target_u-1] +=1;
+            }
+        }
+        // If the list has enough equations, we increment the counter c and increase size_vector[u] so it is never modified again
+        if (size_vector[target_u] == n_add_eq){
+            valve +=1;
+        }
+    }
+}
+
+
+
+
+
 /**
 * Returns the value of the differential in a of f in x
 * @param mode 'DEFAULT' or 'CUSTOM'. 'DEFAULT' uses hardcoded parameters n_eq and n_samples, while 'CUSTOM' allows to change them. 
@@ -109,104 +146,116 @@ std::vector<BinWord> cpp_from_vector( Bytearray  v){
 * @param n_samples A uint64_t represneting the total maximum number of equations to reach 
 * @return Returns the vector of vectors of cpp_S_box representing the non-trivial switching neighbours of f
 */
- std::vector<std::vector<cpp_S_box>> cpp_non_trivial_sn (uint64_t mode,cpp_S_box f, uint64_t n_eq, uint64_t n_samples){
+ std::vector<std::vector<cpp_S_box>> cpp_non_trivial_sn (uint64_t mode,cpp_S_box f, uint64_t n_add_eq, uint64_t n_step){
 
     
     int n = f.get_input_length();
     std::vector<std::vector<cpp_S_box>> result((1<<n)-1);
     std::vector<cpp_F2LinearSystem> E((1<<n)-1,cpp_F2LinearSystem(1<<n));
 
-    bool valve = 1;
-    while(valve){
-        // We will retry until all the neighbours are APN
-        bool good_neighbors = 0;
+    ///////////////////////////////////
+    // Initializing with Constraints //
+    ///////////////////////////////////
 
-        // Adding Constraints To Remove Trivial Neighbours 
-        std::vector<BinWord> temp((1<<n),0);
-        for(int u = 0; u < (1<<n)-1; u++){
-            // Constant Function
-            temp.assign((1<<n),1);
-
+    // Adding Constraints To Remove Trivial Neighbours 
+    std::vector<BinWord> temp((1<<n),0);
+    for(int u = 0; u < (1<<n)-1; u++){
+        // Constant Function
+        temp.assign((1<<n),1);
+        E[u].remove_solution(cpp_to_lut_coordinate(temp));
+        // Linear functions
+        for(BinWord i = 0; i < (1<<n); i++){
+            // Computing an element of the linear basis
+            for(BinWord x = 0; x < (1<<n); x++){
+                temp[x] = 1ULL & (x>>i);
+            }
             E[u].remove_solution(cpp_to_lut_coordinate(temp));
-            // Linear functions
-            for(BinWord i = 0; i < (1<<n); i++){
-                // Computing an element of the linear basis
-                for(BinWord x = 0; x < (1<<n); x++){
-                    temp[x] = 1ULL & (x>>i);
-                }
-                E[u].remove_solution(cpp_to_lut_coordinate(temp));
-            }
-            // Removing Coordinates
-            // ! TODO !
         }
+        // Removing Coordinates
+        // ! TODO !
+    }
 
-        // Building The SN System
-        BinWord target_u;
-        std::vector<BinWord> list_sizes((f.get_lut()).size(),0);
-        std::vector<BinWord> samples;
-        std::vector<BinWord> ttemp(4);
-        uint64_t f_size = (f.get_lut()).size();
-        int c = 0;
-        int c_total = 0;
-        while(c < f_size-1 and c_total< n_samples){
+    ////////////////////////////
+    // Building The SN System //
+    ////////////////////////////
 
-            // Sampling 3  n bits integers by batch
-            samples  = batch_rand_int_cpp(n,3);
-            c_total += 1;
+    std::vector<uint64_t> indices;
+    for(BinWord i = 0; i < (1<<n)-1; i++)
+    {
+        indices.push_back(i);
+    }
+    // We add n_add_eq random equations to each system
+    cpp_sn_add_equations(f, E, indices, n_add_eq);
 
-            // This section could be improved using tables of the differential by fixing u and finding preimages for y,y' such that y + y' = u. However, since the add_equation part seems to take the most time we leave it out for future work.
+    printf("First Equations Done\n");
+    /////////////////////
+    // Check and Retry //
+    /////////////////////
 
-            // Computing corresponding u
-            target_u = cpp_oplus(cpp_diff_for_sn(f.get_lut(),samples[0],samples[1]),cpp_diff_for_sn(f.get_lut(),samples[0],samples[2]));
-            // As long as we don't have enough equations we add a new one to the corresponding constraint_list
-            if (list_sizes[target_u] < n_eq){
-                // Due f being APN, u = 0 means that y=x or y=x+a, so we don't have 4 '1' on the matrix   
-                if (samples[1] != samples[2] and samples[1]!=cpp_oplus(samples[2],samples[0]) and samples[0]!=0 and target_u !=0){
-                  ttemp[0] = cpp_oplus(samples[1],samples[0]);
-                  ttemp[1] = samples[1];
-                  ttemp[2] = cpp_oplus(samples[2],samples[0]);
-                  ttemp[3] = samples[2];
-                  E[target_u-1].add_equation(ttemp);
-                list_sizes[target_u] +=1;
-                }
-            }
-          // If the list has enough equations, we increment the counter c and increase list_size[u] so it is never modified again
-          if (list_sizes[target_u] == n_eq){
-              list_sizes[target_u] +=1;
-              c +=1;
-          }
-        }
+    std::vector<cpp_S_box> sn_u; 
+    std::vector<uint64_t> indices_temp;
+    std::vector<Bytearray> Ker;
+    std::vector<BinWord> sw; 
+    BinWord u; 
+    std::vector<BinWord> neighbour(1<<n,0);
+    int bad_neighbors = 0;
 
-        // Computing SN
-        std::vector<Bytearray> Ker;
-        std::vector<BinWord> sw; 
-        std::vector<BinWord> neighbour(1<<n,0);
+    int c = 0;
+    // We repeat until all the functions are APN, i.e there are no more indices to modify
+    while (indices.size() != 0)
+    {
+        printf("Attempt %d \n", c);
+        c += 1;
 
-        for(BinWord u = 1; u < (1<<n); u++){
-            Ker = E[u-1].kernel_as_bytes();
+        for (auto v : indices)
+        std::cout << v << " ";
+        std::cout << "\n";
+
+        // We check the indices for which Kernels contain non APN functions
+        for(BinWord k = 0; k < indices.size(); k++){
+
+            // We count the number of non APN neighbours
+            bad_neighbors = 0;
+            // The index u correspond to the system index, i.e. the field element for switching is u+1
+            u = indices[k];
+            //printf("u: %ld \n", u);
+            Ker = E[u].kernel_as_bytes();
+            //printf("ker dim: %ld \n", Ker.size());
             for(BinWord i = 0; i < BinWord(Ker.size()); i++){
-
                 sw = cpp_from_vector(Ker[i]);
                 // Computing the neighbour's table
-                for(int k = 0; k < (1<<n); k++){
-                    neighbour[k] = cpp_oplus(BinWord(u) * BinWord(sw[k]), f.get_lut()[k]) ;
-
+                for(int x = 0; x < (1<<n); x++){
+                    neighbour[x] = cpp_oplus(BinWord(u+1) * BinWord(sw[x]), f.get_lut()[x]) ;
                 }
+                sn_u.push_back(cpp_S_box(neighbour));
+               // If a neighbor is not APN, we flag this index as a bad_neighbor
                 if(not(cpp_is_differential_uniformity_smaller_than(neighbour,2))){
-                    good_neighbors = 1;
-                 }
-                result[u-1].push_back(cpp_S_box(neighbour));
-
+                bad_neighbors += 1;
+                }
             }
 
-        
-        }
-        // If alll functions are APN neighbours, we exit the loop
-        if(not(good_neighbors)){
-            valve = 0;
-        }
+            if (bad_neighbors)
+            {
+                indices_temp.push_back(u);
+            }
+            // Otherwise, we add the good neighbors 
+            else{
+                result[u] = sn_u;
+                sn_u.clear();
+            }
+            }
 
+        // For the bad indices, we add n_step equations
+        indices.clear();
+        for(BinWord i = 0; i < indices_temp.size(); i++)
+        {
+            indices.push_back(indices_temp[i]);
+        }
+        indices_temp.clear();
+        printf("indices length %ld \n",indices.size());
+        cpp_sn_add_equations(f, E, indices, n_step);
     }
     return(result);
  }
+
 
