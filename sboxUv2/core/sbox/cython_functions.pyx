@@ -607,7 +607,6 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
                     (<S_box_fp>result).cpp_sb = new cpp_S_box_fp(<cpp_Integer>p,lut_cpp)
             # Case SBox over a binary field
             elif len(s)%2 == 0:
-                print('coucou')
                 result = S_box(name=name)
                 if isinstance(s[0], (int, sage_Integer, IntegerMod_int)): # case of a lookup table
                     (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
