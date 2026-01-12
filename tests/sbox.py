@@ -40,7 +40,8 @@ if __name__ == "__main__":
     print("s+t is invertible", (s+t).is_invertible())
     print("can we invert s+t?")
     try:
-        print((s+t).inverse())
+        inv = (s+t).inverse()
+        print(inv)
     except:
         print("no, it indeed threw an exception")
 

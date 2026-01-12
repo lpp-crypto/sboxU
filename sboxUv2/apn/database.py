@@ -213,8 +213,7 @@ class APNFunctions(FunctionsDB):
                 sigma_mult,
                 thk_spec
             )
-        # query = {"mugshot" : mug}
-        query = {}
+        query = {"mugshot" : mug}
         if ccz_id != None:
             query["ccz_id"] = ccz_id
         candidates = self.query_functions(query)
