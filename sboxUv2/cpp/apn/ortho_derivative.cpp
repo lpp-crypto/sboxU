@@ -92,7 +92,8 @@ cpp_S_box cpp_S_box_from_bits(const cpp_BigF2Vector & v)
 cpp_S_box cpp_ortho_integral(const cpp_S_box & s)
 {
     BinWord n = s.get_input_length();
-    cpp_F2LinearSystem eqs(n*(1 << n));
+    // the system is expected to be big so we echelonize it to save space
+    cpp_F2LinearSystem eqs(n*(1 << n), true); 
     // ensuring that the solution F is such that F(0)=0
     for(BinWord i=0; i<n; i++)
         eqs.add_equation(std::vector<BinWord>(1, i));

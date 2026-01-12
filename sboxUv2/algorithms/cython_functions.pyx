@@ -198,28 +198,47 @@ def BinLinearMap_from_range_and_image(inputs,outputs,N,M)-> BinLinearMap:
 cdef class F2LinearSystem:
     """Implements a linear system of equation over F_2.
 
-    Is optimized for the specific case of large systems where equations are added one by one. The rank is evaluated in real time (i.e., every time an equation is added), while the solutions are only obtained once the system is fully known.
+    Is optimized for the specific case of large systems where equations are added one by one.
+
+    It has two modes, the selection being made during initialization.
+
+    If `self.echelonize` is set to True, then only a set of independent equations is kept in memory, which can lead to a significant memory saving: instead of adding a redundant equation, it simply does nothing. However, it also means that the addition of new equations has a time complexity which is at worst linear in the total number of (independent) equations currently in the system. Since the rank is evaluated in real time (i.e., every time an equation is added), it could be used during the higher computation itself.
+
+    If `self.echelonize` is set to False, then equations are simply appended to the system without any further consideration. Redundant equations will not be simplified, but each addition is added in a constant (and small) time.
+    
+    Regardless of the value of `self.echelonize`, the solutions can only be obtained once the system is fully known.
 
     """
 
-    def __init__(self, n_variables: int):
-        self.cpp_ls = new cpp_F2LinearSystem(n_variables)
+    def __init__(self, n_variables: int, echelonize: bool = False):
+        """Initializes an F2LinearSystem instance.
+
+
+        Args:
+            n_variables(int): the number of variables that will intervene in the system
+            echelonize(bool): whether the system should be echelonized on the fly
+        """
+        self.echelonize = echelonize
+        self.cpp_ls = new cpp_F2LinearSystem(n_variables, echelonize)
 
 
     # !TODO! destructor for F2LinearSystem 
     # def __dealloc__(self):
     #     pass
 
-    def add_equation(self, variable_indices):
-        self.cpp_ls[0].add_equation(<std_vector[BinWord]>variable_indices)
+    def add_equation(self, variable_indices: list[BinWord]) -> bool:
+        return self.cpp_ls[0].add_equation(<std_vector[BinWord]>variable_indices)
 
-    def remove_solution(self, sol):
+    def remove_solution(self, sol: list[BinWord]) -> None:
         self.cpp_ls[0].remove_solution(<std_vector[BinWord]>sol)
 
-    def rank(self):
-        return self.cpp_ls[0].rank()
+    def rank(self) -> int:
+        if self.echelonize:
+            return self.cpp_ls[0].rank()
+        else:
+            raise Exception("Trying to get the rank of a non_echelonized system of equations")
 
-    def kernel(self):
+    def kernel(self) -> list:
         return self.cpp_ls[0].kernel_as_bytes()
     
     def __str__(self) -> str:

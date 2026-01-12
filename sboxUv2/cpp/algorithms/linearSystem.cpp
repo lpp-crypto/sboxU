@@ -7,10 +7,9 @@
 // !SUBSECTION! Ensuring that only useful equations are kept
 
 
-bool maybe_add_vector(
+inline bool maybe_add_vector(
     std::map<BinWord, cpp_BigF2Vector> & equations,
-    cpp_BigF2Vector & new_eq,
-    BinWord n_var
+    cpp_BigF2Vector & new_eq
     )
 {
     while (true)
@@ -21,69 +20,17 @@ bool maybe_add_vector(
             equations[m] = new_eq;
             return true;
         }
+        else if (new_eq == equations[m])
+            return false;
         else
         {
             cpp_BigF2Vector diff = new_eq ^ equations[m];
-            if (diff.is_zero())
-                return false;
-            else
-            {
-                if (equations[m].is_set(diff.get_msb()))
-                    equations[m] = new_eq;
-                new_eq = diff;
-            }
+            if (equations[m].is_set(diff.get_msb()))
+                equations[m] = new_eq;
+            new_eq = diff;
         }
     }
 }
-
-
-// 
-// {
-//     // adding the equation as a horizontal vector: we perform a
-//     // reduction on the rows in the process, which will *not* change the
-//     // structure of the right kernel of the matrix.
-//     // -- reduction step
-//     for (auto  eq : equations)
-//     {        
-//         if (new_eq.get_msb() > eq.first)
-//         {
-//             // we reduce the current equation by the previous one
-//             if (new_eq.is_set(eq.first))
-//                 new_eq ^= eq.second;
-//         }
-//         else if (new_eq.get_msb() == eq.first)
-//         {
-//             if (new_eq == eq.second)
-//             {
-//                 // the new equation was already in the span: we stop
-//                 // trying to add it
-//                 return false;
-//             }
-//             else
-//             {
-//                 cpp_BigF2Vector x = new_eq ^ eq.second;
-//                 if (x < new_eq)
-//                     new_eq = x;
-//             }
-//         }
-//         else
-//             break;
-//     }
-//     // -- adding the equation
-//     BinWord m = new_eq.get_msb();
-//     equations[m] = new_eq;
-//     // -- reducing the remaining equations
-//     for (auto eq : equations)
-//         if (eq.first > new_eq.get_msb())
-//         {
-//             // we reduce the old equation by the new one if the MSB of
-//             // the new equation is active in it
-//             if (eq.second.is_set(m))
-//                 equations[eq.first] ^= new_eq;
-//         }
-//     return true;    
-// }
-
 
 
 // !SUBSECTION! Removing unwanted solutions
@@ -92,15 +39,12 @@ bool cpp_F2LinearSystem::remove_solution(
     const std::vector<BinWord> & var_indices
     )
 {
-    // building new equation
     cpp_BigF2Vector new_eq(n_var);
     for (auto ind : var_indices)
     {
         new_eq.set_to_1(ind);
     }
-    return maybe_add_vector(forbidden_solutions,
-                            new_eq,
-                            n_var);
+    return maybe_add_vector(forbidden_solutions, new_eq);
 }
 
 
@@ -111,7 +55,7 @@ bool cpp_F2LinearSystem::remove_solution(
 std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
 {
     std::vector<cpp_BigF2Vector> result;
-    if (equations.size() == n_var)
+    if (echelonized_equations.size() == n_var)
         // the equations are linearly independent by construction, so
         // if there are as many as variables then the kernel is
         // trivial
@@ -181,7 +125,7 @@ std::vector<Bytearray> cpp_F2LinearSystem::kernel_as_bytes()
 std::string cpp_F2LinearSystem::to_string() const
 {
     std::stringstream result;
-    for(auto & eq : equations)
+    for(auto & eq : echelonized_equations)
     {
         result << std::setw(5) << std::dec << eq.first << " | ";
         for (BinWord i=0; i<n_var; i++)
@@ -199,26 +143,56 @@ void cpp_F2LinearSystem::init_image_vectors(
     std::vector<cpp_BigF2Vector> & vectors
     ) const
 {
-    vectors = std::vector<cpp_BigF2Vector> (
-        n_var,
-        cpp_BigF2Vector(equations.size())
-        );
-    BinWord cursor = 0, pos=0;
-    BinWord mask = 1;
-    for (auto eq : equations)
+    if (echelonize)
     {
-        for (BinWord i=0; i<n_var; i++)
-            if (eq.second.is_set(i))
-                vectors[i].content[cursor] |= mask;
-        pos ++;
-        mask <<= 1;
-        if (pos == BLOCK_SIZE)
+        // case where the equations are already echelonized
+        vectors = std::vector<cpp_BigF2Vector> (
+            n_var,
+            cpp_BigF2Vector(echelonized_equations.size())
+            );
+        BinWord cursor = 0, pos=0;
+        BinWord mask = 1;
+        for (auto eq : echelonized_equations)
         {
-            mask = 1;
-            cursor ++;
-            pos = 0;
+            for (BinWord i=0; i<n_var; i++)
+                if (eq.second.is_set(i))
+                    vectors[i].content[cursor] |= mask;
+            pos ++;
+            mask <<= 1;
+            if (pos == BLOCK_SIZE)
+            {
+                mask = 1;
+                cursor ++;
+                pos = 0;
+            }
         }
-    }
-    for(BinWord i=0; i<vectors.size(); i++)
+        for(BinWord i=0; i<vectors.size(); i++)
         vectors[i].set_msb();
+    }
+    else
+    {
+        // case where the equations are already echelonized
+        vectors = std::vector<cpp_BigF2Vector> (
+            n_var,
+            cpp_BigF2Vector(all_equations.size())
+            );
+        BinWord cursor = 0, pos=0;
+        BinWord mask = 1;
+        for (auto eq : all_equations)
+        {
+            for (BinWord i=0; i<n_var; i++)
+                if (eq.is_set(i))
+                    vectors[i].content[cursor] |= mask;
+            pos ++;
+            mask <<= 1;
+            if (pos == BLOCK_SIZE)
+            {
+                mask = 1;
+                cursor ++;
+                pos = 0;
+            }
+        }
+        for(BinWord i=0; i<vectors.size(); i++)
+        vectors[i].set_msb();
+    }
 }
