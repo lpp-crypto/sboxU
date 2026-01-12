@@ -11,25 +11,25 @@
 class cpp_F2LinearSystem
 {
 private:
-    std::map<unsigned int, cpp_BigF2Vector> equations;
-    std::map<unsigned int, cpp_BigF2Vector> forbidden_solutions;
-    unsigned int n_var;
+    std::map<BinWord, cpp_BigF2Vector> equations;
+    std::map<BinWord, cpp_BigF2Vector> forbidden_solutions;
+    BinWord n_var;
     
 public:
-    cpp_F2LinearSystem(const unsigned int _n_var) :
+    cpp_F2LinearSystem(const BinWord _n_var) :
         n_var(_n_var) 
     {}
     
-    inline unsigned int rank() const
+    inline BinWord rank() const
     {
         return equations.size();
     }
     
-    bool add_equation(const std::vector<unsigned int> & var_indices);
+    bool add_equation(const std::vector<BinWord> & var_indices);
     
     bool add_equation(cpp_BigF2Vector & eq);
 
-    bool remove_solution(const std::vector<unsigned int> & var_indices);
+    bool remove_solution(const std::vector<BinWord> & var_indices);
 
     bool remove_solution(cpp_BigF2Vector & eq);
 
@@ -52,18 +52,18 @@ public:
 class cpp_XorSequence
 {
 private:
-    unsigned int n_var;
-    std::vector<std::pair<unsigned int, unsigned int> > ops;
+    BinWord n_var;
+    std::vector<std::pair<BinWord, BinWord> > ops;
     
 public:
-    cpp_XorSequence(unsigned int _n_var) :
+    cpp_XorSequence(BinWord _n_var) :
         n_var(_n_var),
         ops()
     {} ;
 
     inline void push_back(
-        const unsigned int origin,
-        const unsigned int destination
+        const BinWord origin,
+        const BinWord destination
         )
     {
         ops.emplace_back(std::make_pair(origin, destination));
@@ -78,7 +78,7 @@ public:
         {
             if (result.is_set(ops[k].second))
             {
-                unsigned int
+                BinWord
                     cursor = ops[k].first / BLOCK_SIZE,
                     pos    = ops[k].first % BLOCK_SIZE;
                 result.content[cursor] ^= ((BinWord)1 << pos);

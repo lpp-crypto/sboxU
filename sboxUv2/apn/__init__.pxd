@@ -1,3 +1,3 @@
 # -*- python -*-
 
-from .cython_functions cimport *
+from sboxUv2.apn.cython_functions cimport *

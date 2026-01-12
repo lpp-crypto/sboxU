@@ -44,6 +44,6 @@ typedef std::vector<BinWord> Lut;
 
 typedef std::vector< std::vector<std::vector<BinWord>>> Xtable;
 
-typedef std::vector<Integer> FpWord;
+typedef std::vector<uint64_t> FpWord;
 
 #endif

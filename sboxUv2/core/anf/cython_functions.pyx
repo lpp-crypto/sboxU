@@ -38,6 +38,20 @@ def algebraic_degree(s):
     sb = Sb(s)
     return cpp_algebraic_degree((<S_box>sb).cpp_sb[0])
 
+# !SUBSECTION! Precise information on the degree
+
+def is_degree_bigger_than(s,d):
+    """
+    Args :
+        s : an S_box-able object
+        d : the degree bound we want to test
+
+    Returns:
+        A boolean value, True if the algebraic degree of s is (strictly) bigger than d, False otherwise.
+    """
+    sb=Sb(s)
+    return cpp_is_degree_bigger_than((<S_box>sb).cpp_sb[0],d)
+
 
 # !SUBSECTION! The ANF itself
 
@@ -94,6 +108,40 @@ def algebraic_normal_form(s, polynomial_vars=None):
     return [algebraic_normal_form_coordinate(sb.coordinate(i),
                                              polynomial_vars=polynomial_vars)
             for i in range(sb.get_output_length())]
+
+
+def anf_component(s):
+    sb = Sb(s)
+    plop = cpp_anf_component((<S_box>sb).cpp_sb[0])
+    return(plop)
+
+def quadratic_compact_representation(s):
+
+    """
+    Args:
+        s: an S_box-able object 
+
+    Returns:
+        A list of elements representing a compact representation of a quadratic function
+    """
+    
+    sb = Sb(s)
+    plop = cpp_quadratic_compact_representation((<S_box>sb).cpp_sb[0])
+    return(plop)
+
+
+def quadratic_sbox_from_compact_representation(repr,n,m):
+
+    """
+    Args:
+        repr: a quadratic compact representation
+        n: input size
+        m: output size
+
+    Returns:
+        The quadratic S box corresponding to the compact representation
+    """
+    return(cpp_quadratic_sbox_from_compact_representation(repr,n,m))
 
 
 # !SECTION! Evaluating ANFs
