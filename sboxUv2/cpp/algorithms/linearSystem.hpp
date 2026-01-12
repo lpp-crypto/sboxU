@@ -70,7 +70,7 @@ public:
     };
 
     
-    cpp_BigF2Vector eval_canonical(const unsigned int i) const
+    inline cpp_BigF2Vector eval_canonical(const unsigned int i) const
     {
         cpp_BigF2Vector result(n_var);
         result.set_to_1(i);
