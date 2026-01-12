@@ -19,7 +19,19 @@ private:
 
 public:
     inline cpp_S_box() : lut(0), input_length(0), output_length(0) {} ;
-    
+
+    inline cpp_S_box(const cpp_S_box & s) :
+        lut(s.get_lut()),
+        input_length(s.get_input_length()),
+        output_length(s.get_output_length())
+    {} ;
+
+    inline cpp_S_box(cpp_S_box * s) :
+        lut(s->get_lut()),
+        input_length(s->get_input_length()),
+        output_length(s->get_output_length())
+    {} ;
+
     cpp_S_box(std::vector<BinWord> _lut,
             Integer _input_length,
             Integer _output_length) ;
@@ -93,6 +105,13 @@ public:
 
     bool is_invertible() const;
 
+    /** Returns a cpp_S_box implementing the compositional inverse of this one.
+
+        If this S-box is not invertible, returns an empty
+        S-box. Throwing an exception might appear cleaner, but in
+        practice we couldn't convince cython to properly catch C++
+        exceptions.
+     */
     cpp_S_box inverse() const;
 
     cpp_S_box coordinate(BinWord i) const;

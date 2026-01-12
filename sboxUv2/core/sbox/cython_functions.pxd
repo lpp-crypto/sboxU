@@ -5,12 +5,14 @@ from sboxUv2.cython_types cimport *
 
 # !SECTION! Declaring the C++ Code
 
+
 cdef extern from "../../cpp/core/s_box.hpp":
 
     # !SUBSECTION! The cpp_S_box class
     
     cppclass cpp_S_box:
         cpp_S_box()
+        cpp_S_box(const cpp_S_box s)
         cpp_S_box(std_vector[BinWord] lut)
         cpp_S_box(Bytearray b)
         cpp_S_box(std_vector[BinWord] lut, int64_t input_length, int64_t output_length)
@@ -27,7 +29,7 @@ cdef extern from "../../cpp/core/s_box.hpp":
         int64_t get_output_length()
         int64_t output_space_size()
         bool is_invertible()
-        cpp_S_box inverse() except +
+        cpp_S_box inverse()
         cpp_S_box component(BinWord a)
         cpp_S_box coordinate(BinWord a)
         cpp_S_box derivative(BinWord delta)
@@ -92,7 +94,8 @@ cdef class S_box:
 cdef cpp_S_box pyx_add_sboxes(cpp_S_box s, cpp_S_box t)
 cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t)
 
-# # !SUBSECTION! The S_Box_fp class
+
+# !SUBSECTION! The S_Box_fp class
 
 cdef class S_box_fp:
     cdef cpp_S_box_fp * cpp_sb 

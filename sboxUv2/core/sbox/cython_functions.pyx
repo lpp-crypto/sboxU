@@ -369,25 +369,27 @@ cdef class S_box:
     
     # !SUBSECTION! Function composition
 
-    def is_invertible(self) -> bool:
+    def is_invertible(S_box self) -> bool:
         """Returns:
             True if the current S_box is a bijection, False otherwise.
         """
         return self.cpp_sb.is_invertible()
 
     
-    def inverse(self) -> S_box:
+    def inverse(S_box self) -> S_box | Exception:
         """Returns:
             An S_box instance corresponding to the compositional inverse of the current S_box.
 
         If the current S_box is not invertible, will probably crash.
         """
-        name = self.cpp_name + b"^-1"
-        result = S_box(name=name)
-        (<S_box>result).set_inner_sbox(<cpp_S_box>(self.cpp_sb.inverse()))
-        return result
-
-
+        inv = (<cpp_S_box>self.cpp_sb).inverse()
+        if inv.get_input_length() == 0:
+            raise Exception("inversion failed: S-box is not invertible")
+        else:
+            name = self.cpp_name + b"^-1"
+            result = S_box(name=name)
+            <S_box>result.set_inner_sbox(<cpp_S_box>inv)
+            return result
     
 
 
