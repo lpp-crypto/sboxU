@@ -41,6 +41,7 @@ public:
         echelonize(_echelonize)
     {}
     
+
     inline int rank() const
     {
         if (echelonize)
@@ -48,6 +49,16 @@ public:
         else
             return -1;
     }
+
+    
+    inline unsigned int size() const
+    {
+        if (echelonize)
+            return echelonized_equations.size();
+        else
+            return all_equations.size();
+    }
+    
     
     inline bool add_equation(const std::vector<BinWord> & var_indices)
     {
@@ -106,7 +117,9 @@ public:
     cpp_XorSequence(BinWord _n_var) :
         n_var(_n_var),
         ops()
-    {} ;
+    {
+        ops.reserve(n_var * n_var);
+    } 
 
     inline void push_back(
         const BinWord origin,
@@ -114,7 +127,7 @@ public:
         )
     {
         ops.emplace_back(std::make_pair(origin, destination));
-    };
+    }
 
     
     inline cpp_BigF2Vector eval_canonical(const unsigned int i) const
@@ -124,15 +137,10 @@ public:
         for (int k=ops.size()-1; k>=0; k--)
         {
             if (result.is_set(ops[k].second))
-            {
-                BinWord
-                    cursor = ops[k].first / BLOCK_SIZE,
-                    pos    = ops[k].first % BLOCK_SIZE;
-                result.content[cursor] ^= ((BinWord)1 << pos);
-            }
+                result.content[BLOCK_INDEX(ops[k].first)] ^= ((BinWord)1 << BLOCK_POS(ops[k].first));
         }
         return result;
-    };
+    }
 
     
     std::string to_string() const

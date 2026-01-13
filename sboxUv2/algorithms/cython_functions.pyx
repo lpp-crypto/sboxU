@@ -232,13 +232,16 @@ cdef class F2LinearSystem:
     def remove_solution(self, sol: list[BinWord]) -> None:
         self.cpp_ls[0].remove_solution(<std_vector[BinWord]>sol)
 
+    def __len__(self) -> int:
+        return self.cpp_ls[0].size()
+
     def rank(self) -> int:
         if self.echelonize:
             return self.cpp_ls[0].rank()
         else:
             raise Exception("Trying to get the rank of a non_echelonized system of equations")
 
-    def kernel(self) -> list:
+    def kernel(self) -> list[bytes]:
         return self.cpp_ls[0].kernel_as_bytes()
     
     def __str__(self) -> str:
