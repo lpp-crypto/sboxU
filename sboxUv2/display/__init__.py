@@ -4,6 +4,7 @@
 
 from .output import \
     pprint, \
+    Chronograph, \
     Experiment, section, subsection
 
 from .pollock import \

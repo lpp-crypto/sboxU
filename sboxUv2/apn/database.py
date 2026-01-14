@@ -9,14 +9,19 @@ from sboxUv2.statistics import \
 from sboxUv2.ccz import \
     thickness_spectrum, \
     get_WalshZeroesSpaces, \
-    ccz_equivalent_function, are_ea_equivalent
+    ccz_equivalent_function, \
+    are_ea_equivalent, \
+    are_ccz_equivalent
 
 from sboxUv2.apn import \
     get_WalshZeroesSpaces_quadratic_apn, \
     sigma_multiplicities, \
-    apn_ea_mugshot, apn_ea_mugshot_from_spectra
+    apn_ea_mugshot, apn_ea_mugshot_from_spectra, ccz_equivalent_quadratic_function
 
 from sboxUv2.databases import *
+#from sage.all import *
+from sboxUv2 import *
+import hashlib
 
                  
 
@@ -213,8 +218,7 @@ class APNFunctions(FunctionsDB):
                 sigma_mult,
                 thk_spec
             )
-        # query = {"mugshot" : mug}
-        query = {}
+        query = {"mugshot" : mug}
         if ccz_id != None:
             query["ccz_id"] = ccz_id
         candidates = self.query_functions(query)

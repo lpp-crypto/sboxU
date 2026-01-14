@@ -1,7 +1,8 @@
 # -*- python -*-
 
-from sboxUv2.cython_types cimport *
 from sboxUv2.core cimport *
+from sboxUv2.cython_types cimport *
+
 
 
 # !SECTION! Declaring C++ code
@@ -67,15 +68,17 @@ cdef extern from "../cpp/algorithms/binLinearBasis.cpp":
 
 
 
-# !SUBSECTION! The cpp_BinLinearBasis class
+# !SUBSECTION! The cpp_F2LinearSystem class
     
 cdef extern from "../cpp/algorithms/linearSystem.hpp":
     cppclass cpp_F2LinearSystem:
-        cpp_F2LinearSystem(const unsigned int _n_var)
-        unsigned int rank() const
-        bool add_equation(const std_vector[unsigned int] & var_indices)
-        void remove_solution(const std_vector[unsigned int] & sol)
+        cpp_F2LinearSystem(const BinWord _n_var, const bool echelonize)
+        unsigned int size() const
+        BinWord rank() const
+        bool add_equation(const std_vector[BinWord] & var_indices)
+        void remove_solution(const std_vector[BinWord] & sol)
         std_vector[Bytearray] kernel_as_bytes()
+        std_vector[Bytearray] kernel_as_bits()
         string to_string() const
 
         
@@ -89,8 +92,10 @@ cdef extern from "../cpp/algorithms/bigvectors.hpp":
 # !SECTION! Declaring cython code
 
 cdef class BinLinearBasis:
-    cdef cpp_BinLinearBasis * cpp_lb
+    cdef unique_ptr[cpp_BinLinearBasis] cpp_lb
 
 
 cdef class F2LinearSystem:
-    cdef cpp_F2LinearSystem * cpp_ls
+    cdef bool echelonize
+    cdef unique_ptr[cpp_F2LinearSystem] cpp_ls
+

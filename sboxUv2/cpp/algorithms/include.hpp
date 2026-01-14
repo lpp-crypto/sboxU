@@ -3,5 +3,7 @@
 
 #include "spaceSearch.hpp"
 #include "binLinearBasis.hpp"
+#include "linearSystem.hpp"
+#include "bigvectors.hpp"
 
 #endif

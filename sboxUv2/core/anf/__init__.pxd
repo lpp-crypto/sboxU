@@ -7,4 +7,4 @@
 # -*- python -*-
 
 
-from .cython_functions cimport *
+from sboxUv2.core.anf.cython_functions cimport *

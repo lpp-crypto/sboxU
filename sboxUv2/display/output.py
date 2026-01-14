@@ -44,7 +44,8 @@ def pprint(*args):
             result = result[:-2] + " }"
         else:
             result += str(x)
-            all_pretty = False
+            if not isinstance(x, (str)):
+                all_pretty = False
         result += ", "
     result = result[:-2] # ditching superfluous ", " 
     if all_pretty:
@@ -57,7 +58,7 @@ def pprint(*args):
 # !SECTION! Handling sections in the output
 
 
-# !SUBSECTION! The Timer class
+# !SUBSECTION! The Chronograph class
 
 
 class Chronograph:
@@ -178,3 +179,9 @@ def subsection(title : str) -> None:
     if ONGOING_EXPERIMENT == None:
         raise Exception("subsections can only be used within an Experiment")
     ONGOING_EXPERIMENT.subsection(title)
+
+# !TODO!  Write a function that uses python functions' __name__ attribute and the Chronograph object to easily compare the time efficiency different functions on the same input. For example, we want to write
+# !
+# !compare_execution_time([f1, f2], common_inputs)
+# !
+# ! If x=(x0, x1) and f has two inputs, then f(*x) is the same as f(x0, x1)

@@ -4,9 +4,9 @@ from sboxUv2.core import Sb
 from sboxUv2.config import MAX_N_THREADS
 
 
-# !SECTION! Invariants
 
-# !SUBSECTION! Invariants themselves
+# !SECTION! Ortho-derivatives and friends
+
 
 def ortho_derivative(q):
     """Returns the ortho-derivative of the function corresponding to the S_boxable object `q`, as defined e.g. in [TiT:CanCouPer22].
@@ -25,6 +25,29 @@ def ortho_derivative(q):
     )
     return result
 
+
+def ortho_integral(s):
+    """Returns the ortho-integral of the function corresponding to the S_boxable object `s`, as defined in a paper that is yet to be put anywhere (work in progress).
+
+    Args:
+        `s`: an S_boxable object.
+
+    Returns:
+        An S_box instance containing the ortho-integral of `s`, that is, to a quadratic APN function that has `s` as its ortho-derivative. If there is no such function, returns the empty S-box.
+    
+    """
+    sb = Sb(s)
+    result = S_box(name="∫_{".encode("UTF-8") + sb.name() + b"}")
+    (<S_box>result).set_inner_sbox(
+        cpp_ortho_integral((<S_box>sb).cpp_sb[0])
+    )
+    return result
+
+
+
+# !SECTION! Invariants
+
+# !SUBSECTION! Invariants themselves
 
 def sigma_multiplicities(s, k=4):
     # !TODO! docstring for sigma_multiplicities 

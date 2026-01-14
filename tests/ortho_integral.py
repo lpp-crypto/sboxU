@@ -28,42 +28,13 @@ ccz_class_representatives = [
 ]
 
 
-def func_to_vec(s):
-    sb = Sb(s)
-    result = []
-    for x in sb.input_space():
-        result += to_bin(sb[x], sb.get_output_length())
-    return result
-
-
 if __name__ == "__main__":
-    with Experiment("implementing ortho-integration"):
+    with Experiment("Testing ortho-integration"):
         for q in ccz_class_representatives:
             o = ortho_derivative(q)
-            E = F2LinearSystem(n*2**n)
-            # ensuring pi(0) = 0 (thus removing constant addition)
-            for i in range(0, n):
-                E.add_equation([i])
-            for i in range(0, n):
-                L_vec = func_to_vec(g**i*X)
-                E.remove_solution([x for x in range(0, n*2**n)
-                                   if L_vec[x] == 1])
-            for i in range(1, n):
-                L_vec = func_to_vec(X**(2**i))
-                E.remove_solution([x for x in range(0, n*2**n)
-                                   if L_vec[x] == 1])
-                
-            for x, a in itertools.product(range(0, 2**n), range(1, 2**n)):
-                if x != a:
-                    eq = []
-                    b = to_bin(o[a], n)
-                    for i in range(0, n):
-                        if b[i] == 1:
-                            eq += [
-                                i + n * x,          # F_i(x)
-                                i + n * a,          # F_i(a)
-                                i,                  # F_i(0)
-                                i + n * oplus(x,a), # F_i(x+a)
-                            ]
-                    E.add_equation(eq)
-            print(len(E.kernel()))
+            s = ortho_integral(o)
+            pprint(s)
+            for f in [s, q]:
+                pprint(differential_spectrum(f),
+                       absolute_walsh_spectrum(f),
+                       thickness_spectrum(f))

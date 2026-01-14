@@ -10,10 +10,23 @@ from sboxUv2.ccz cimport *
 
 # !SUBSECTION! Invariants
 
-cdef extern from "../cpp/apn/invariants.hpp":
+cdef extern from "../cpp/apn/ortho_derivative.hpp":
     cpp_S_box cpp_ortho_derivative(
         const cpp_S_box &q
     )
+
+    cpp_S_box cpp_ortho_integral(
+        const cpp_S_box &s
+    )
+
+    
+cdef extern from "../cpp/apn/ortho_derivative.cpp":
+    pass
+
+
+# !SUBSECTION! Invariants
+
+cdef extern from "../cpp/apn/invariants.hpp":
 
     cpp_Spectrum cpp_sigma_multiplicities(
         const cpp_S_box &f,
