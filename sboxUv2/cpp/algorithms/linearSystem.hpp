@@ -8,17 +8,22 @@
 
 // !SECTION! Helper functions
 
+/** Adds a cpp_BigF2Vector to a set of equations, ensuring that only vectors that are actually linearly independent from the current content of this set are actually added.
 
+    Said set is a std::map indexed by the most significant bit of the vectors in it. If new_eq is indeed linearly independent from the previous equations, then it is added to the std::map, and it content is updated to ensure that it remains simplified.
+
+    @param equations is a std::map containing linearly independent equations, indexed by their most significant bit position, and simplified so that at most a single equation has a given MSB.
+
+    @param new_eq is a vector such that its bit with index i is set to 1 if x_i is intended to appear in the equation.
+    
+    @return true if new_eq is linearly independent from the content of equations (and thus if it was indeed added), false if nothing was done.
+    
+ */
 bool maybe_add_vector(
     std::map<BinWord, cpp_BigF2Vector> & equations,
     cpp_BigF2Vector & new_eq
     );
 
-
-bool surely_add_vector(
-    std::vector<cpp_BigF2Vector> & equations,
-    cpp_BigF2Vector & new_eq
-    );
 
 
 // !SECTION! The linear system itself 
@@ -91,9 +96,11 @@ public:
     }
 
 
-    std::vector<cpp_BigF2Vector> kernel();
+    std::vector<cpp_BigF2Vector> kernel() const;
 
     std::vector<Bytearray> kernel_as_bytes();
+    
+    std::vector<Bytearray> kernel_as_bits();
 
     std::string to_string() const;
     

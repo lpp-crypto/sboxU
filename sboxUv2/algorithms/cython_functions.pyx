@@ -6,6 +6,9 @@ from sboxUv2.core.f2functions import Blm,rank_of_vector_set
 from math import log
 from random import randint
 
+from cython.operator cimport dereference as ampersand
+
+
 
 # !SECTION! Extracting spaces contained in a set
 
@@ -73,49 +76,43 @@ def extract_affine_bases(
 cdef class BinLinearBasis:
     # !TODO! documentation of the BinLinearBasis class 
     def __init__(self, std_vector[BinWord] l):
-        self.cpp_lb = new cpp_BinLinearBasis(l)
-
-
-    # !TODO! destructor for BinLinearBasis 
-    # def __dealloc__(self):
-    #     self.cpp_lb[0].destruct()
-    #     free(self.cpp_lb)
+        self.cpp_lb = make_unique[cpp_BinLinearBasis](<std_vector[BinWord]> l)
 
         
     def __iter__(self) -> BinWord:
-        for x in self.cpp_lb[0].get_basis():
+        for x in ampersand(self.cpp_lb).get_basis():
             yield x
 
             
     def __len__(self) -> int:
-        return self.cpp_lb[0].rank()
+        return ampersand(self.cpp_lb).rank()
 
 
     def __str__(self) -> str:
         result = "("
-        for x in self.cpp_lb[0].get_basis():
+        for x in ampersand(self.cpp_lb).get_basis():
             result += "{:x}, ".format(x)
         return result[:-2] + ")"
 
     
     def basis_vectors(self) -> list:
-        return [x for x in self.cpp_lb[0].get_basis()]
+        return [x for x in ampersand(self.cpp_lb).get_basis()]
 
     
     def rank(self) -> int:
-        return self.cpp_lb[0].rank()
+        return ampersand(self.cpp_lb).rank()
 
     
     def add_to_span(self, BinWord x) -> bool:
-        return self.cpp_lb[0].add_to_span(x)
+        return ampersand(self.cpp_lb).add_to_span(x)
         
 
     def span(self) -> std_vector[BinWord]:
-        return self.cpp_lb[0].span()
+        return ampersand(self.cpp_lb).span()
     
 
     def is_in_span(self, BinWord x) -> bool:
-        return self.cpp_lb[0].is_in_span(x)
+        return ampersand(self.cpp_lb).is_in_span(x)
 
     def __eq__(self, BinLinearBasis b) -> bool:
         return self.basis_vectors()==b.basis_vectors()
@@ -202,7 +199,7 @@ cdef class F2LinearSystem:
 
     It has two modes, the selection being made during initialization.
 
-    If `self.echelonize` is set to True, then only a set of independent equations is kept in memory, which can lead to a significant memory saving: instead of adding a redundant equation, it simply does nothing. However, it also means that the addition of new equations has a time complexity which is at worst linear in the total number of (independent) equations currently in the system. Since the rank is evaluated in real time (i.e., every time an equation is added), it could be used during the higher computation itself.
+    If `self.echelonize` is set to True, then only a set of independent equations is kept in memory, which can lead to a significant memory saving: instead of adding a redundant equation, it simply does nothing. However, it also means that the addition of new equations has a time complexity which is at worst linear in the total number of (independent) equations currently in the system. Since the rank is evaluated in real time (i.e., every time an equation is added), it could be used during the higher level computation itself.
 
     If `self.echelonize` is set to False, then equations are simply appended to the system without any further consideration. Redundant equations will not be simplified, but each addition is added in a constant (and small) time.
     
@@ -213,36 +210,88 @@ cdef class F2LinearSystem:
     def __init__(self, n_variables: int, echelonize: bool = False):
         """Initializes an F2LinearSystem instance.
 
-
         Args:
             n_variables(int): the number of variables that will intervene in the system
             echelonize(bool): whether the system should be echelonized on the fly
+        
         """
         self.echelonize = echelonize
-        self.cpp_ls = new cpp_F2LinearSystem(n_variables, echelonize)
+        self.cpp_ls = make_unique[cpp_F2LinearSystem](<int>n_variables, <bool>echelonize)
 
-
-    # !TODO! destructor for F2LinearSystem 
-    # def __dealloc__(self):
-    #     pass
-
+    
     def add_equation(self, variable_indices: list[BinWord]) -> bool:
-        return self.cpp_ls[0].add_equation(<std_vector[BinWord]>variable_indices)
+        """Adds an equation to the system corresponding to the sum of the variables with the given indices. If the input is a list [0, 1, 3], then the equation x_0+x_1+x_3=0 is added to the system.
 
-    def remove_solution(self, sol: list[BinWord]) -> None:
-        self.cpp_ls[0].remove_solution(<std_vector[BinWord]>sol)
+        If the system was initialized with `echelonize` set to True, then the running time is at worst proportional wit the rank of the current system as the system will get re-echelonized. If it was set to False, then the run time is constant.
 
+        Args:
+            variable_indices(list): a list containing the indices of the variables involved in the linear equation to be added to the system.
+
+        Returns:
+            If `echelonize` is False, then always returns True. Otherwise, returns True if the equation has increased the rank of the system, and False if the new equation was already in the span of the previous equations.
+        
+        """
+        return ampersand(self.cpp_ls).add_equation(<std_vector[BinWord]>variable_indices)
+
+    
+    def remove_solution(self, solution_indices: list[BinWord]) -> None:
+        """Ensures that the space spanned by the Kernel of the system does not contain a specific value. If said value was indeed in the kernel, then the kernel dimension is decreased. If it actually was not in it, then nothing it will have no impact.
+
+        The input describes the indices where the unwanted solution is set to 1. For example, if the input is [0, 1, 3], and if the system has 5 variables, then the solution (1,1,0,1,0) will be removed from the Kernel.
+
+        In practice, this does not change the system of equations. Instead, a post-processing step is performed once the kernel is known to remove the (potential) contributions of all the solutions that have been removed using this method.
+
+        Args:
+           solution_indices(list): A list of indices corresponding to the positions set to 1 in the unwanted solution.
+        
+        """
+        ampersand(self.cpp_ls).remove_solution(<std_vector[BinWord]>solution_indices)
+
+        
     def __len__(self) -> int:
-        return self.cpp_ls[0].size()
+        """Returns the number of equations currently in the system. If `self.echelonize`, then it is equal to the rank, otherwise, it directly corresponds to the number of equations that were added.
 
+        Returns:
+            An integer corresponding to the number of equations currently in the system.
+        """
+        return ampersand(self.cpp_ls).size()
+
+    
     def rank(self) -> int:
+        """The current rank of the system, if it is known. If it isn't, throws an Exception.
+
+        If you want to know the rank of a system that is not echelonized, you need to compute it by hand using the size of the kernel.
+        
+        Returns:
+            If `self. echelonize` is set to True, then returns the current rank of the system. Otherwise, throws an Exception.
+        """
         if self.echelonize:
-            return self.cpp_ls[0].rank()
+            return ampersand(self.cpp_ls).rank()
         else:
             raise Exception("Trying to get the rank of a non_echelonized system of equations")
 
-    def kernel(self) -> list[bytes]:
-        return self.cpp_ls[0].kernel_as_bytes()
+        
+    def kernel_as_bytes(self) -> list[bytes]:
+        """Solves the system, removes unwanted solutions, and returns a basis of its kernel as list of `bytes` (each `bytes` being essentially a list of 8-bit unsigned char).
+
+        Returns:
+            A list where each entry is of type `bytes`. The bit with index i then corresponds to the value of x_i, and it can be obtained by computing e.g. `(y[i >> 3] >> (i & 0x7)) & 1`, where y is one of `bytes` contained in the output list.
+        
+        """
+        return ampersand(self.cpp_ls).kernel_as_bytes()
+
+
+    def kernel_as_bits(self) -> list[bytes]:
+        """Solves the system, removes unwanted solutions, and returns a basis of its kernel as list of `bytes` (each `bytes` being a list of that contains either 0 or 1.
+
+        This method is less space-efficient than `kernel_as_bytes` because each bit needs a full byte of space; however, it means that the conversion between bits and bytes is done in the C++ world instead of the python world.
+
+        Returns:
+            A list where each entry is of type `bytes`. The bit with index i then corresponds to the value of x_i, and is simply equal to y[i], where y is one of `bytes` contained in the output list.
+        
+        """
+        return ampersand(self.cpp_ls).kernel_as_bits()
+    
     
     def __str__(self) -> str:
-        return self.cpp_ls[0].to_string().decode("UTF-8")
+        return ampersand(self.cpp_ls).to_string().decode("UTF-8")

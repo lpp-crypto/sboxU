@@ -128,10 +128,21 @@ public:
     Bytearray to_bytes() const
     {
         Bytearray result;
-        result.reserve(8*content.size());
+        result.reserve(sizeof(BoolBlock) * content.size());
         for(auto v : content)
             for(unsigned int i=0; i<BLOCK_SIZE; i+=8)
                 result.push_back((v >> i) & 0xFF);
+        return result;
+    }
+
+    
+    Bytearray to_bits() const
+    {
+        Bytearray result;
+        result.reserve(8 * sizeof(BoolBlock) * content.size());
+        for(auto v : content)
+            for(unsigned int i=0; i<BLOCK_SIZE; i++)
+                result.push_back((v >> i) & 1);
         return result;
     }
 
