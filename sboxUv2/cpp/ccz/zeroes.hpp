@@ -1,7 +1,7 @@
 #ifndef _CCZ_ZEROES_
 #define _CCZ_ZEROES_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 #include "../statistics/include.hpp"
 #include "../algorithms/include.hpp"

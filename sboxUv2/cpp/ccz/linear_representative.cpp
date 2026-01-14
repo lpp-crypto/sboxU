@@ -1202,7 +1202,7 @@ cpp_S_box cpp_le_class_representative(
     for(unsigned int i = 0; i < f.size(); i++){
         ff.push_back(f[i]);
     }
-    std::array<std::vector<u64>,3> result;
+    std::array<std::vector<BinWord>,3> result;
     if(f.size() == 512)
          result = compute_linear_representative<std::array<u64,8>,u64>(ff); // Could be faster with AVX512
     else if(f.size() == 1024)

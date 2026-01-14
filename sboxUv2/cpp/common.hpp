@@ -4,6 +4,8 @@
 
 // !SECTION! Standard libraries
 
+#include <cstdint>
+
 // STL containers
 #include <vector>
 #include <map>
@@ -21,13 +23,15 @@
 
 // Exceptions
 #include <exception>
+#include <stdexcept>
+
 
 // Multi-threading
 #include <thread>
 
 // Standard algorithms
 #include <algorithm>
-
+#include <random>
 
 // !SECTION! Special types 
 

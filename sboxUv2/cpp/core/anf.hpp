@@ -2,7 +2,7 @@
 #define _ANF_HPP_
 
 #include "s_box.hpp"
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "f2functions.hpp"
 #include "spectrum.hpp"
 

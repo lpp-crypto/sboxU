@@ -1,7 +1,7 @@
 #ifndef _STAT_SPECTRUM_
 #define _STAT_SPECTRUM_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "include.hpp"
 
 

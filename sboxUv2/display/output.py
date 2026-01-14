@@ -123,7 +123,7 @@ class Experiment:
     The runtime of each section and subsection is also displayed at the end of each of these.
     
     """
-    def __init__(self, title):
+    def __init__(self, title : str):
         self.title = title
         self.sections_counters = [0]
         self.section_timer = None
@@ -131,7 +131,7 @@ class Experiment:
         self.global_timer = Chronograph("[bold]{}[/bold]".format(self.title))
 
         
-    def section(self, title):
+    def section(self, title : str) -> None:
         if self.sections_counters[0] > 0:
             pprint(self.section_timer)
         self.sections_counters = [self.sections_counters[0] + 1]
@@ -141,7 +141,7 @@ class Experiment:
             title))
 
         
-    def subsection(self, title):
+    def subsection(self, title : str) -> None:
         if len(self.sections_counters) == 1:
             self.sections_counters.append(1)
         else:
@@ -166,14 +166,14 @@ class Experiment:
         pprint(self.global_timer)
         
 
-def section(title):
+def section(title : str) -> None:
     global ONGOING_EXPERIMENT
     if ONGOING_EXPERIMENT == None:
         raise Exception("sections can only be used within an Experiment")
     ONGOING_EXPERIMENT.section(title)
 
     
-def subsection(title):
+def subsection(title : str) -> None:
     global ONGOING_EXPERIMENT
     if ONGOING_EXPERIMENT == None:
         raise Exception("subsections can only be used within an Experiment")

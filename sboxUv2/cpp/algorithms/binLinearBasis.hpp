@@ -1,7 +1,7 @@
 #ifndef _ALGOS_LINEAR_BASIS_
 #define _ALGOS_LINEAR_BASIS_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 
 

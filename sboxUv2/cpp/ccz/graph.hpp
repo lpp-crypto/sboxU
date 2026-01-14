@@ -1,7 +1,7 @@
 #ifndef _CCZ_GRAPH_
 #define _CCZ_GRAPH_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 
 

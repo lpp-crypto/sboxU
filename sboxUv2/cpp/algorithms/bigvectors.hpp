@@ -5,6 +5,8 @@
 #define BLOCK_SIZE (sizeof(BinWord)*8)
 
 
+#include "../common.hpp"
+
 // !SECTION! Big vectors themselves
 
 

@@ -1,7 +1,7 @@
 #ifndef _S_BOX_FP_
 #define _S_BOX_FP_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 
 class cpp_S_box_fp {
 
