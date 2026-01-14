@@ -69,5 +69,7 @@ setup( # names and others are specified in the pyproject.toml file
     ext_modules=cythonize(
         all_cython_extensions,
         language_level = "3",
+        compiler_directives = {'embedsignature': True,
+                               'embedsignature.format' : "python"} # !modif!
     ),
 )

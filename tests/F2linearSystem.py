@@ -106,7 +106,7 @@ if __name__ == "__main__":
                     ))
     
                     
-            subsection("building system")
+            subsection("building systems")
             for a in range(1, 2**n):
                 for x,y in itertools.combinations(range(0, 2**n), r=2):
                     if (y != oplus(x, a)):

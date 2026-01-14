@@ -1,7 +1,7 @@
 #ifndef _STAT_DIFFERENTIAL_
 #define _STAT_DIFFERENTIAL_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 
 

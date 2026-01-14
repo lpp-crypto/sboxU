@@ -1,7 +1,7 @@
 #ifndef _LINEAR_SYSTEM_
 #define _LINEAR_SYSTEM_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 #include "./bigvectors.hpp"
 

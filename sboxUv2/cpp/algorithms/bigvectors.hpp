@@ -11,6 +11,8 @@
 
 #include <valarray>
 
+#include "../common.hpp"
+
 // !SECTION! Big vectors themselves
 
 

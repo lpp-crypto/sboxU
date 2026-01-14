@@ -1,7 +1,7 @@
 #ifndef _f2_funcs_
 #define _f2_funcs_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 
 
 // !SECTION! Bit-fiddling

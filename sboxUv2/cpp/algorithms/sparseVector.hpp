@@ -1,7 +1,7 @@
 #ifndef _BIG_VECTOR_
 #define _BIG_VECTOR_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 
 class cpp_SparseVector
 {
