@@ -78,7 +78,7 @@ if __name__ == "__main__":
         if n > 6:
             ccz_class_representatives = [ monomial(3, GF(2**n)) ]
 
-        for f in ccz_class_representatives[0:1]:
+        for f in ccz_class_representatives:
             
             section("new function")
             pprint(differential_spectrum(ortho_derivative(f)))
@@ -106,7 +106,7 @@ if __name__ == "__main__":
                     ))
     
                     
-            subsection("building system")
+            subsection("building systems")
             for a in range(1, 2**n):
                 for x,y in itertools.combinations(range(0, 2**n), r=2):
                     if (y != oplus(x, a)):
