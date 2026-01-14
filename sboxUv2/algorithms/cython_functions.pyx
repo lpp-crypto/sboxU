@@ -74,18 +74,116 @@ def extract_affine_bases(
 # !SUBSECTION! The class itself 
 
 cdef class BinLinearBasis:
-    # !TODO! documentation of the BinLinearBasis class 
+    """Stores the Gauss-Jordan basis of a vector space.
+
+    For a given vector space, this basis is uniquely defined (it is for example the smallest one if you were to rank all the basis of a vector space in lexicographic order), meaning that testing the equality of the BinLinearBasis of two vector spaces is enough to test their equality.
+
+    It provides efficient method to add a new dimension to the span of the corresponding vector space, and to test if an element is the corresponding vector space.
+
+    It is a thin wrapper for the `cpp_BinLinearBasis` C++ class. Check out its documentation for more information.
+
+    It only supports vectors of length at most 64 since, under the hood, it stores each vector in a `uint64_t`.
+    
+    """
+    
     def __init__(self, std_vector[BinWord] l):
+        """Creates a BinLinearBasis instance that corresponds to the smallest vector space containing all the vectors in `l`.
+
+        Args:
+            l: a list of integers interpreted as a list of binary vectors.
+        
+        """
         self.cpp_lb = make_unique[cpp_BinLinearBasis](<std_vector[BinWord]> l)
 
         
     def __iter__(self) -> BinWord:
+        """An iterator for the basis elements.
+
+        For example, for the following snippet::
+
+        >>> print([x  for x in BinLinearBasis([1, 2])])
+        [1, 2]
+
+         3 will not appear.
+
+        Yields:
+            The next element in the basis.
+        
+        """
         for x in ampersand(self.cpp_lb).get_basis():
             yield x
 
             
     def __len__(self) -> int:
+        """Returns:
+            The number of elements in the basis, i.e., the rank of the set of vectors constituting this BinLinearBasis.
+        
+        """
         return ampersand(self.cpp_lb).rank()
+
+    
+    def rank(self) -> int:
+        """Returns:
+            The rank of the set of vectors constituting this BinLinearBasis, i.e., the number of elements in the basis.
+        
+        """
+        return ampersand(self.cpp_lb).rank()
+
+
+    def basis_vectors(self) -> list[BinWord]:
+        """Returns:
+            An ordered list containing the integers corresponding to the vectors forming the basis of the vector space corresponding to this BinLinearBasis instance.
+        
+        """
+        return [x for x in ampersand(self.cpp_lb).get_basis()]
+
+    
+    def add_to_span(self, BinWord x) -> bool:
+        """Adds a vector to the vector space spanned by this BinLinearBasis. If `x` is actually already in said space, i.e., if it is spanned by the current basis vectors, then does nothing. Otherwise, builds a new echelonized basis that will contain one more element, this new basis spanning the previous space V as well as x+V.
+
+        The echelonizing step means that this function has a run time that is proportional to the current size of the basis.
+
+        Args:
+            x: The integer representing the binary vector to add to the vector space corresponding to this BinLinearBasis.
+        
+        Returns:
+            True if adding the element has indeed increased the dimension of the vector space, False if the BinLinearBasis is actually left unchanged by this operation (i.e. if the element was already in the vector space it spans. This output is equal to `self.is_in_span(x)`.
+        
+        """
+        return ampersand(self.cpp_lb).add_to_span(x)
+        
+
+    def span(self) -> std_vector[BinWord]:
+        """Computes the full vector space spanned by the vectors in the basis.
+
+        Returns:
+            An ordered list of integers, one per vector in the vector space spanned by this basis.
+        """
+        return ampersand(self.cpp_lb).span()
+    
+
+    def is_in_span(self, BinWord x) -> bool:
+        """Tests if a vector is contained in the vector space spanned by this basis.
+
+        Args:
+            x: the integer representation of the binary vector to test.
+
+        Returns:
+            True if the binary vector corresponding to `x` is spanned by the vectors in this basis (or, equivalently, if it is in the vector space that has this basis as its Guss-Jordan basis), False otherwise.
+        """
+        return ampersand(self.cpp_lb).is_in_span(x)
+
+    
+    def __eq__(self, BinLinearBasis b) -> bool:
+        """An equality test between two BinLinearBasis.
+
+        Args:
+            b: a BinLinearBasis to test
+
+        Returns:
+            True if `b` contains the same vectors as this BinLinearBasis instance, False otherwise. Equivalently, returns True if and only if the vector spaces spanned by `b` and by this basis are the same.
+        """
+        return self.basis_vectors()==b.basis_vectors()
 
 
     def __str__(self) -> str:
@@ -95,33 +193,11 @@ cdef class BinLinearBasis:
         return result[:-2] + ")"
 
     
-    def basis_vectors(self) -> list:
-        return [x for x in ampersand(self.cpp_lb).get_basis()]
-
-    
-    def rank(self) -> int:
-        return ampersand(self.cpp_lb).rank()
-
-    
-    def add_to_span(self, BinWord x) -> bool:
-        return ampersand(self.cpp_lb).add_to_span(x)
-        
-
-    def span(self) -> std_vector[BinWord]:
-        return ampersand(self.cpp_lb).span()
-    
-
-    def is_in_span(self, BinWord x) -> bool:
-        return ampersand(self.cpp_lb).is_in_span(x)
-
-    def __eq__(self, BinLinearBasis b) -> bool:
-        return self.basis_vectors()==b.basis_vectors()
-
-
 
 # !SUBSECTION! Using BinLinearBasis 
 
-def is_affine(l,give_basis=False):
+def is_affine(l: list[BinWord], give_basis=False):
+    # !TODO! docstring for algorithm.is_affine
     b = BinLinearBasis([])
     V = [oplus(l[0], x) for x in l] 
     n = round(log(len(V), 2))
@@ -141,7 +217,8 @@ def is_affine(l,give_basis=False):
         return b.rank()==n
 
 
-def complete_basis(basis,N):
+def complete_basis(basis: list[BinWord], N: int) -> list[BinWord]:
+    # !TODO! docstring for algorithm.complete_basis 
     if rank_of_vector_set(basis)!=len(basis): 
         raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
     r = len(basis)
@@ -156,7 +233,9 @@ def complete_basis(basis,N):
         e_i += 1
     return res
 
-def complete_basis_reversed(basis,N): 
+
+def complete_basis_reversed(basis: list[BinWord], N: int) -> list[BinWord]: 
+    # !TODO! docstring for algorithm.complete_basis_reversed
     if rank_of_vector_set(basis) != len(basis):
         raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
     r = len(basis)
@@ -170,22 +249,43 @@ def complete_basis_reversed(basis,N):
         e_i += 1
     return basis
 
-def generating_BinLinearMap_r(basis,N)-> BinLinearMap:
+
+def generating_BinLinearMap_r(basis: list[BinWord], N: int) -> BinLinearMap:
+    # !TODO! docstring for algorithm.generating_BinLinearMap_r
     return Blm(complete_basis_reversed(basis,N),N,N)
 
-def generating_BinLinearMap(basis, N)-> BinLinearMap:
-    """Returns a BinLinearMap L from N bits to N bits such that L(1 << i) = basis[i] for
-    all i < len(basis) and such that L is a bijection .
+
+def generating_BinLinearMap(basis: list[BinWord], N: int) -> BinLinearMap:
+    """Builds a full rank BinLinearMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis.
+
+    Args:
+        basis: a list containing the integer representation of the binary vectors in the basis
+        N: the intended input dimension for the output. It is assumed that the elements in basis are of length at most N.
+    
+    Returns
+        A BinLinearMap L from N bits to N bits such that L(1 << i) = basis[i] for all i < len(basis) and such that L is a bijection.
+    
     """
     return Blm(complete_basis(basis,N),N,N)
 
-def BinLinearMap_from_masks(masks, N,M)-> BinLinearMap:
-    """Returns a BinLinearMap L from N bits to M bits such that L(1 << i) = basis[i] for
-    all i < len(basis) and L(1<<i)=0 for all i >= len(basis).
-    """
-    return Blm(masks + [0 for _ in range(len(masks),N)],N,M)
 
-def BinLinearMap_from_range_and_image(inputs,outputs,N,M)-> BinLinearMap:
+def BinLinearMap_from_masks(masks: list[BinWord], N: int, M: int) -> BinLinearMap:
+    """Builds a BinLinearMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis, and such that the other inputs are mapped to 0.
+
+    Args:
+        masks: a list containing the integer representation of the target binary vectors
+        N: the intended input dimension for the output.
+        M: the length of the output. It is assumed that the elements in basis are of length at most M.
+
+    Returns:
+        A BinLinearMap L from N bits to M bits such that L(1 << i) = basis[i] for all i < len(basis) and L(1<<i)=0 for all i >= len(basis).
+    
+    """
+    return Blm(masks + [0 for _ in range(len(masks), N)], N, M)
+
+
+def BinLinearMap_from_range_and_image(inputs: list[BinWord], outputs: list[BinWord], N:int, M: int) -> BinLinearMap:
+    # !TODO! doctstring for algorithm.BinLinearMap_from_range_and_image
     return BinLinearMap_from_masks(outputs,M,N)*(generating_BinLinearMap(inputs,M).inverse())
     
 
@@ -205,6 +305,8 @@ cdef class F2LinearSystem:
     
     Regardless of the value of `self.echelonize`, the solutions can only be obtained once the system is fully known.
 
+    Under the hood, it uses the `cpp_F2LinearSystem` C++ class. Checks its documentation for more information.
+    
     """
 
     def __init__(self, n_variables: int, echelonize: bool = False):
