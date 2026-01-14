@@ -23,7 +23,7 @@ def basic_test():
         E.add_equation([1,2,3, 4, 5])
         print(E)
         print(E.rank())
-        print(E.kernel())    
+        print(E.kernel_as_bytes())    
 
 
 field = GF(2**6)
@@ -62,12 +62,12 @@ def to_lut_coordinates(s):
     return result
 
 
-def from_vector(v, length):
-    result = []
-    for v_i in v:
-        for j in range(0, 8):
-            result.append((v_i >> j) & 1)
-    return result[:length]
+# def from_vector(v, length):
+#     result = []
+#     for v_i in v:
+#         for j in range(0, 8):
+#             result.append((v_i >> j) & 1)
+#     return result[:length]
 
         
 if __name__ == "__main__":
@@ -119,10 +119,9 @@ if __name__ == "__main__":
             counters = defaultdict(int)
             for u in range(1, 2**n):
 
-                k = E[u].kernel()
+                k = E[u].kernel_as_bits()
                 counters[len(k)] += 1
-                for v in k:
-                    g = from_vector(v, 2**n)
+                for g in k:
                     tot = []
                     for x in range(0, 2**n):
                         tot.append(oplus(u*g[x], f[x]))
@@ -135,4 +134,4 @@ if __name__ == "__main__":
 
             subsection("summary")
             pprint(counters)
-    
+        
