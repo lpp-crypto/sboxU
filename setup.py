@@ -78,7 +78,7 @@ setup( # names and others are specified in the pyproject.toml file
         "sboxUv2.databases",
         "sboxUv2.random_objects",
         "sboxUv2.exploration",
-        ]
+        ],
     ext_modules=cythonize(
         all_cython_extensions,
         language_level = "3",
