@@ -60,31 +60,12 @@ all_cython_extensions = [ declare_cython(name) for name in [
 ]]
 
 
-
-# !SECTION! Declaring all python modules
-all_modules = [
-    "sboxUv2.apn",
-    "sboxUv2.apn.knownFunctions",
-    "sboxUv2.algorithms",
-    "sboxUv2.ccz.affine_equivalence",
-    "sboxUv2.ccz",
-    "sboxUv2.core.anf",
-    "sboxUv2.core.sbox",
-    "sboxUv2.core.spectrum",
-    "sboxUv2.core.f2functions",
-    "sboxUv2.core.building_blocks",
-    "sboxUv2.display",
-    "sboxUv2.scripts",
-    "sboxUv2.scripts.apnDB",
-    "sboxUv2.databases",
-    "sboxUv2.biblio",
-]
-
     
 # !SECTION! Final setup 
     
 setup( # names and others are specified in the pyproject.toml file
-    packages = all_modules,
+    packages=find_packages(),
+    py_modules=["sboxUv2.apn", "sboxUv2.apn.knownFunctions", "sboxUv2.algorithms", "sboxUv2.ccz.affine_equivalence", "sboxUv2.ccz", "sboxUv2.core.anf", "sboxUv2.core.sbox", "sboxUv2.core.spectrum", "sboxUv2.core.f2functions", "sboxUv2.core.building_blocks", "sboxUv2.display", "sboxUv2.scripts", "sboxUv2.scripts.apnDB", "sboxUv2.databases", "sboxUv2.biblio"],
     ext_modules=cythonize(
         all_cython_extensions,
         language_level = "3",
