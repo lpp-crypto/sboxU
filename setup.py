@@ -50,6 +50,7 @@ all_cython_extensions = [ declare_cython(name) for name in [
     "sboxUv2.core.spectrum.cython_functions",
     "sboxUv2.core.sbox.cython_functions",
     "sboxUv2.core.anf.cython_functions",
+    "sboxUv2.core.building_blocks.cython_functions",
     "sboxUv2.algorithms.cython_functions",
     "sboxUv2.statistics.cython_functions",
     "sboxUv2.ccz.cython_functions",
