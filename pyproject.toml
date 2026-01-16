@@ -13,5 +13,6 @@ requires = [ "setuptools", "wheel", "cython" ]
 build-backend = "setuptools.build_meta"
 
 
-[tool.setuptools]
-packages = ["sboxUv2", "sboxUv2.core", "sboxUv2.display", "sboxUv2.algorithms", "sboxUv2.biblio", "sboxUv2.statistics", "sboxUv2.ccz", "sboxUv2.apn", "sboxUv2.databases", "sboxUv2.random_objects", "sboxUv2.exploration", "sboxUv2.scripts"]
+[tool.setuptools.packages]
+exclude = ["cpp"]
+find = {}  
