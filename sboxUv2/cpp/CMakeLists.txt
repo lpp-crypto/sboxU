@@ -20,6 +20,7 @@ add_library(
   ./core/binLinearMap.cpp
   ./core/spectrum.cpp
   ./core/f2functions.cpp
+  ./core/prng.cpp
 )
 
 # !SUBSECTION! the STATISTICS library
