@@ -66,7 +66,19 @@ all_cython_extensions = [ declare_cython(name) for name in [
 # !SECTION! Final setup 
     
 setup( # names and others are specified in the pyproject.toml file
-    packages = find_packages(),
+    packages = [
+        "sboxUv2",
+        "sboxUv2.core",
+        "sboxUv2.display",
+        "sboxUv2.algorithms",
+        "sboxUv2.biblio",
+        "sboxUv2.statistics",
+        "sboxUv2.ccz",
+        "sboxUv2.apn",
+        "sboxUv2.databases",
+        "sboxUv2.random_objects",
+        "sboxUv2.exploration",
+        ]
     ext_modules=cythonize(
         all_cython_extensions,
         language_level = "3",
