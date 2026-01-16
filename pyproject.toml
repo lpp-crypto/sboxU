@@ -13,5 +13,5 @@ requires = [ "setuptools", "wheel", "cython" ]
 build-backend = "setuptools.build_meta"
 
 
-# [tool.setuptools]
-# packages = []
+[tool.setuptools]
+packages = ["sboxUv2"]
