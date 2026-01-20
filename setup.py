@@ -17,6 +17,7 @@ else:
     os.environ["CC"] = "g++"
     os.environ["CXX"] = "g++"
 extra_compile_args = ["-O3", "-march=native", "-std=c++20", "-pthread", "-Wno-narrowing"]	#narrowing warnings in fp_lat when calling shape_t{p}
+
 extra_link_args=[]
 
 if sys.platform == 'darwin':
@@ -55,7 +56,6 @@ all_cython_extensions = [ declare_cython(name) for name in [
     "sboxUv2.ccz.cython_functions",
     "sboxUv2.ccz.affine_equivalence.cython_functions",
     "sboxUv2.apn.cython_functions",
-    "sboxUv2.exploration.cython_functions",
 ]]
 
 

@@ -15,3 +15,4 @@ from .cython_functions import \
 from .affine_equivalence import *
 from .tu_decompositions import TUdecomposition,thickness,tu_decomposition_from_space_basis,get_tu_decompositions,swap_Blm
 from .equivalences_from_code import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
+from .equivalence_from_vq import are_ea_equivalent_from_vq
