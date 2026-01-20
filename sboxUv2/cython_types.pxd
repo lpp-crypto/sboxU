@@ -11,4 +11,7 @@ from libc.stdlib cimport free
 
 ctypedef std_vector[BinWord] FpWord
 ctypedef std_vector[uint8_t] Bytearray
+ctypedef std_vector[BinWord] Lut
 ctypedef int64_t cpp_Integer
+
+from libcpp.memory cimport unique_ptr, make_unique

@@ -1,7 +1,7 @@
 #ifndef _ALGO_SP_SEARCH
 #define _ALGO_SP_SEARCH
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "./binLinearBasis.hpp"
 
 std::vector<BinWord> cpp_extract_vector(

@@ -37,6 +37,10 @@ cdef extern from "../../cpp/core/s_box.hpp":
     # !SUBSECTION!  S_box generating functions
     
     cpp_S_box cpp_translation(const BinWord a, const int64_t input_bit_length)
+    # cpp_S_box cpp_rand_S_box(
+    #     cpp_PRNG & alea,
+    #     unsigned int input_length,
+    #     unsigned int output_length)
 
 
 # !SUBSECTION! Loading the cpp file 

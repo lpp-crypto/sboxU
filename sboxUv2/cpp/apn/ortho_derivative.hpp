@@ -1,7 +1,7 @@
 #ifndef _ORTHO_DERIVATIVE_
 #define _ORTHO_DERIVATIVE_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 #include "../algorithms/include.hpp"
 

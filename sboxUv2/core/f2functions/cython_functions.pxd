@@ -106,8 +106,6 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
         const cpp_BinLinearMap &B,
     )
 
-
-
     
 cdef extern from "../../cpp/core/binLinearMap.cpp":
     pass
@@ -118,3 +116,5 @@ cdef extern from "../../cpp/core/binLinearMap.cpp":
 
 cdef class BinLinearMap:
     cdef cpp_BinLinearMap * cpp_blm
+
+    

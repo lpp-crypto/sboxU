@@ -18,6 +18,7 @@
 #include <cassert>
 #include <stdexcept>
 
+#include "../graph.hpp"
 #include "../../core/include.hpp"
 #include "../../statistics/include.hpp"
 

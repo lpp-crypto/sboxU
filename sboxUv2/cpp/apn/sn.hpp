@@ -1,4 +1,4 @@
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/s_box.hpp"
 #include "../algorithms/include.hpp"
 #include "../statistics/differential.hpp"

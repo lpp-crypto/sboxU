@@ -55,13 +55,12 @@ cdef BinWord sboxU_SBOXES_COUNTER = 0
 # !SECTION! The S_box class
 
 cdef class S_box:
-    # "cdef" attributes are declared in the .pxd file
     """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
 
     Objects of this class should be initialized using the :py:func:Sb function.
 
     """
-                                 
+    # "cdef" attributes are declared in the .pxd file
     
     # !SUBSECTION! Initialization and destruction
 

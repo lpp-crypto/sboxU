@@ -248,6 +248,8 @@ cpp_S_box cpp_empty_S_box()
     return cpp_S_box(std::vector<BinWord>(0), 0, 0);
 }
 
+
+
 // !SECTION! Basic helper functions
 
 Lut cpp_inverse(Lut & s)

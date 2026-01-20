@@ -51,6 +51,7 @@ all_cython_extensions = [ declare_cython(name) for name in [
     "sboxUv2.core.spectrum.cython_functions",
     "sboxUv2.core.sbox.cython_functions",
     "sboxUv2.core.anf.cython_functions",
+    "sboxUv2.core.building_blocks.cython_functions",
     "sboxUv2.algorithms.cython_functions",
     "sboxUv2.statistics.cython_functions",
     "sboxUv2.ccz.cython_functions",
@@ -59,15 +60,15 @@ all_cython_extensions = [ declare_cython(name) for name in [
 ]]
 
 
-
-
     
 # !SECTION! Final setup 
     
 setup( # names and others are specified in the pyproject.toml file
-    packages = find_packages(),
+    packages=find_packages(),
     ext_modules=cythonize(
         all_cython_extensions,
         language_level = "3",
+        compiler_directives = {'embedsignature': True,
+                               'embedsignature.format' : "python"} # !modif!
     ),
 )

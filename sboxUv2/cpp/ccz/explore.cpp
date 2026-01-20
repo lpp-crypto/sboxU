@@ -9,7 +9,6 @@ cpp_S_box cpp_ccz_equivalent_function(
     return cpp_FunctionGraph(s).get_ccz_equivalent_function(mapping);
 }
 
-
 std::vector<cpp_S_box> cpp_enumerate_ea_classes(
     const cpp_S_box & s,
     const unsigned int n_threads

@@ -52,7 +52,7 @@ bool cpp_F2LinearSystem::remove_solution(
 
 
 
-std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel()
+std::vector<cpp_BigF2Vector> cpp_F2LinearSystem::kernel() const
 {
     std::vector<cpp_BigF2Vector> result;
     if (echelonized_equations.size() == n_var)
@@ -116,6 +116,16 @@ std::vector<Bytearray> cpp_F2LinearSystem::kernel_as_bytes()
     std::vector<Bytearray> result;
     for (auto v : ker)
         result.push_back(v.to_bytes());
+    return result;
+}
+
+
+std::vector<Bytearray> cpp_F2LinearSystem::kernel_as_bits()
+{
+    std::vector<cpp_BigF2Vector> ker = kernel();
+    std::vector<Bytearray> result;
+    for (auto v : ker)
+        result.push_back(v.to_bits());
     return result;
 }
 

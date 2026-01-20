@@ -1,24 +1,29 @@
 #ifndef _LINEAR_SYSTEM_
 #define _LINEAR_SYSTEM_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 #include "./bigvectors.hpp"
 
 
 // !SECTION! Helper functions
 
+/** Adds a cpp_BigF2Vector to a set of equations, ensuring that only vectors that are actually linearly independent from the current content of this set are actually added.
 
+    Said set is a std::map indexed by the most significant bit of the vectors in it. If new_eq is indeed linearly independent from the previous equations, then it is added to the std::map, and it content is updated to ensure that it remains simplified.
+
+    @param equations is a std::map containing linearly independent equations, indexed by their most significant bit position, and simplified so that at most a single equation has a given MSB.
+
+    @param new_eq is a vector such that its bit with index i is set to 1 if x_i is intended to appear in the equation.
+    
+    @return true if new_eq is linearly independent from the content of equations (and thus if it was indeed added), false if nothing was done.
+    
+ */
 bool maybe_add_vector(
     std::map<BinWord, cpp_BigF2Vector> & equations,
     cpp_BigF2Vector & new_eq
     );
 
-
-bool surely_add_vector(
-    std::vector<cpp_BigF2Vector> & equations,
-    cpp_BigF2Vector & new_eq
-    );
 
 
 // !SECTION! The linear system itself 
@@ -41,6 +46,7 @@ public:
         echelonize(_echelonize)
     {}
     
+
     inline int rank() const
     {
         if (echelonize)
@@ -48,6 +54,16 @@ public:
         else
             return -1;
     }
+
+    
+    inline unsigned int size() const
+    {
+        if (echelonize)
+            return echelonized_equations.size();
+        else
+            return all_equations.size();
+    }
+    
     
     inline bool add_equation(const std::vector<BinWord> & var_indices)
     {
@@ -80,9 +96,11 @@ public:
     }
 
 
-    std::vector<cpp_BigF2Vector> kernel();
+    std::vector<cpp_BigF2Vector> kernel() const;
 
     std::vector<Bytearray> kernel_as_bytes();
+    
+    std::vector<Bytearray> kernel_as_bits();
 
     std::string to_string() const;
     
@@ -106,7 +124,9 @@ public:
     cpp_XorSequence(BinWord _n_var) :
         n_var(_n_var),
         ops()
-    {} ;
+    {
+        ops.reserve(n_var * n_var);
+    } 
 
     inline void push_back(
         const BinWord origin,
@@ -114,7 +134,7 @@ public:
         )
     {
         ops.emplace_back(std::make_pair(origin, destination));
-    };
+    }
 
     
     inline cpp_BigF2Vector eval_canonical(const unsigned int i) const
@@ -124,15 +144,10 @@ public:
         for (int k=ops.size()-1; k>=0; k--)
         {
             if (result.is_set(ops[k].second))
-            {
-                BinWord
-                    cursor = ops[k].first / BLOCK_SIZE,
-                    pos    = ops[k].first % BLOCK_SIZE;
-                result.content[cursor] ^= ((BinWord)1 << pos);
-            }
+                result.content[BLOCK_INDEX(ops[k].first)] ^= ((BinWord)1 << BLOCK_POS(ops[k].first));
         }
         return result;
-    };
+    }
 
     
     std::string to_string() const

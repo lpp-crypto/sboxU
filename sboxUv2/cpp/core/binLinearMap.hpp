@@ -1,7 +1,7 @@
 #ifndef _CORE_BINLINEARMAP_
 #define _CORE_BINLINEARMAP_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "./f2functions.hpp"
 #include "./s_box.hpp"
 

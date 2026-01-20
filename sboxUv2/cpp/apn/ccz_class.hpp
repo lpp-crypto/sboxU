@@ -2,7 +2,7 @@
 #define _APN_CCZ_CLASS_
 
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 #include "../ccz/include.hpp"
 #include "./invariants.hpp"
