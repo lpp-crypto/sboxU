@@ -567,7 +567,7 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
     #     return s
     else:
         if isinstance(s, (bytes, bytearray)):
-            print("a")
+
             result = S_box(name=name)
             # case of a sequence of bytes
             (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
