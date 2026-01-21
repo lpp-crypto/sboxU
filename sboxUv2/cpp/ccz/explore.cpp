@@ -1,6 +1,9 @@
 #include "explore.hpp"
 
 
+// !SECTION! Basic functions
+
+
 cpp_S_box cpp_ccz_equivalent_function(
     const cpp_S_box & s,
     const cpp_BinLinearMap & mapping
@@ -31,3 +34,38 @@ std::vector<cpp_S_box> cpp_enumerate_ea_classes(
         result.push_back(g.get_ccz_equivalent_function(L));
     return result;
 }
+
+
+// !SECTION! CCZ-equivalence to a permutation
+
+
+// !SUBSECTION! The general case
+
+std::vector<cpp_S_box> cpp_enumerate_permutations_in_ccz_class(
+    const cpp_S_box &s,
+    const cpp_WalshZeroesSpaces &ws
+    )
+{
+    // !TODO! implement cpp_enumerate_permutations_in_ccz_class
+    std::vector<cpp_S_box> result;
+    throw std::runtime_error("cpp_enumerate_permutations_in_ccz_class is not implemented yet!");
+    return result;
+}
+
+
+std::vector<cpp_S_box> cpp_enumerate_permutations_in_ccz_class(
+    const cpp_S_box & s,
+    const unsigned int n_threads
+    )
+{
+    cpp_WalshZeroesSpaces ws(s, n_threads);
+    ws.init_mappings();
+    return cpp_enumerate_permutations_in_ccz_class(s, ws);
+}
+   
+
+
+// !SUBSECTION! The particular case of EA-equivalence
+
+
+// !TODO! implement functions for EA-equivalence to a permutation 
