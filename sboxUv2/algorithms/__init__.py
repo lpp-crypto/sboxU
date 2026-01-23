@@ -14,5 +14,5 @@ from .cython_functions import \
     BinLinearBasis, is_affine, \
     complete_basis, complete_basis_reversed, \
     generating_BinLinearMap_r,generating_BinLinearMap, BinLinearMap_from_masks,BinLinearMap_from_range_and_image, \
-    F2LinearSystem
+    F2LinearSystem,BinLinearBigBasis
 

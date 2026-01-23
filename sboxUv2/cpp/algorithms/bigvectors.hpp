@@ -54,6 +54,17 @@ public:
         content(_content),
         msb(MSB_OF_ZERO),
         total_length(_total_length)
+    {   
+        set_msb();
+    }
+
+    cpp_BigF2Vector(
+        std::vector<BoolBlock> _content,
+        unsigned int _total_length
+        ) :
+        content(_content.data(),_content.size()),
+        msb(MSB_OF_ZERO),
+        total_length(_total_length)
     {
         set_msb();
     }
@@ -147,6 +158,18 @@ public:
                 result.push_back((v >> i) & 1);
         return result;
     }
+
+    Bytearray to_bits_merlin() const
+{   
+    Bytearray result;
+    result.reserve(total_length);
+
+    for (unsigned int i = 0; i < total_length; ++i)
+        result.push_back(is_set(i) ? 1 : 0);
+
+    return result;
+}
+
 
     
     // !SUBSECTION! modifying the state
