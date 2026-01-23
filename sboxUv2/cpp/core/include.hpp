@@ -8,5 +8,6 @@
 #include "./multithread.hpp"
 #include "./spectrum.hpp"
 #include "./anf.hpp"
+#include "./componentsGeneration.hpp"
 
 #endif

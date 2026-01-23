@@ -21,6 +21,7 @@ add_library(
   ./core/spectrum.cpp
   ./core/f2functions.cpp
   ./core/prng.cpp
+  ./core/componentsGeneration.cpp
 )
 
 # !SUBSECTION! the STATISTICS library
