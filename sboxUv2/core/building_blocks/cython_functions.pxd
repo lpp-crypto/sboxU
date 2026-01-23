@@ -27,6 +27,7 @@ cdef extern from "../../cpp/core/prng.cpp":
 
 cdef extern from "../../cpp/core/componentsGeneration.hpp":
     cdef cpp_S_box cpp_rand_invertible_S_box(cpp_PRNG alea, unsigned int n)
+    cdef cpp_S_box cpp_rand_S_box(cpp_PRNG alea, unsigned int input_length, unsigned int output_length)
     
 
 cdef extern from "../../cpp/core/componentsGeneration.cpp":

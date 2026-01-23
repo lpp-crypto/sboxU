@@ -40,3 +40,14 @@ def rand_invertible_S_box(prng : UnsafePRNG, input_length : int|SAGE_INTEGER) ->
         <int>input_length
     ))
     return result
+
+
+def rand_S_box(prng : UnsafePRNG, input_length : int|SAGE_INTEGER, output_length : int|SAGE_INTEGER) -> S_box:
+    result = S_box(name=b"rand_perm")
+    (<S_box>result).set_inner_sbox(<cpp_S_box>cpp_rand_S_box(
+        ampersand(prng.cpp_p),
+        <int>input_length,
+        <int>output_length
+    ))
+    return result
+    

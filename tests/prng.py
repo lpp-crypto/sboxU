@@ -17,8 +17,19 @@ if __name__ == "__main__":
         section("Random S-boxes")
 
         for i in range(0, 10):
-            subsection("new random S-box {}".format(i))
+            subsection("new random S-boxes {}".format(i))
+
+            print("bijection")
+            
             s = rand_invertible_S_box(p, 5)
+            pprint(s)
+            pprint(differential_spectrum(s))
+            pprint(absolute_walsh_spectrum(s))
+            print("")
+
+            print("non-bijection")
+            
+            s = rand_S_box(p, 5, p(4,7))
             pprint(s)
             pprint(differential_spectrum(s))
             pprint(absolute_walsh_spectrum(s))
