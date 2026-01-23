@@ -16,3 +16,5 @@ from .cython_functions import \
     generating_BinLinearMap_r,generating_BinLinearMap, BinLinearMap_from_masks,BinLinearMap_from_range_and_image, \
     F2LinearSystem,BinLinearBigBasis
 
+
+from .invariants import all_invariants_up_to_degree
