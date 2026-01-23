@@ -1,6 +1,12 @@
 #include "./binLinearBasis.hpp"
 
 
+// !SECTION! cpp_BinLinearBasis
+
+
+// !SUBSECTION! Simple methods
+// ! The functions in this subsection correspond essentially to basic
+// ! setters and getters; nothing deep is happening.
 
 cpp_BinLinearBasis::cpp_BinLinearBasis(const std::vector<BinWord> & l) :
     basis()
@@ -9,6 +15,58 @@ cpp_BinLinearBasis::cpp_BinLinearBasis(const std::vector<BinWord> & l) :
         add_to_span(v);
 }
 
+
+bool cpp_BinLinearBasis::is_in_span(BinWord x) const
+{
+    Integer m = cpp_msb(x);    
+    for(auto b : basis)
+    {
+        BinWord y = x ^ b.second;
+        if (y == 0)
+            return true; 
+        else if ((b.first <= m) and (y < x))
+            x = y;   // if b is smaller than x, then we extract it from x
+        else if ((b.first > m))
+            return false;
+    }
+    return (x == 0);
+}
+
+
+std::vector<BinWord> cpp_BinLinearBasis::get_basis() const
+{
+    std::vector<BinWord> result;
+    result.reserve(basis.size());
+    for (auto b : basis)
+        result.push_back(b.second);
+    return result;
+}
+
+
+std::vector<BinWord> cpp_BinLinearBasis::span() const
+{
+    unsigned int total_size = 1 << basis.size();
+    std::vector<BinWord>
+        result(total_size, 0),
+        vects = get_basis();
+    for(BinWord mask=1; mask<total_size; mask++) // no need to modify the entry in 0
+        result[mask] = cpp_linear_combination(vects, mask);
+    return result;
+}
+
+cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) const
+{
+    cpp_BinLinearBasis result;
+    for (auto &b : basis)
+        result.add_to_span(L(b.second));
+    return result;
+}
+
+
+// !SUBSECTION! add_to_span: where the main difficulty lies
+// ! add_to_span is the main method that modifies the state of a
+// ! cpp_BinLinearBasis, it implements an algorithm that is
+// ! non-trivial.
 
 bool cpp_BinLinearBasis::add_to_span(BinWord x)
 /** The content of basis is corresponds to binary vectors indexed by
@@ -69,43 +127,8 @@ bool cpp_BinLinearBasis::add_to_span(BinWord x)
 }
 
 
-bool cpp_BinLinearBasis::is_in_span(BinWord x) const
-{
-    Integer m = cpp_msb(x);    
-    for(auto b : basis)
-    {
-        BinWord y = x ^ b.second;
-        if (y == 0)
-            return true; 
-        else if ((b.first <= m) and (y < x))
-            x = y;   // if b is smaller than x, then we extract it from x
-        else if ((b.first > m))
-            return false;
-    }
-    return (x == 0);
-}
 
-
-std::vector<BinWord> cpp_BinLinearBasis::get_basis() const
-{
-    std::vector<BinWord> result;
-    result.reserve(basis.size());
-    for (auto b : basis)
-        result.push_back(b.second);
-    return result;
-}
-
-
-std::vector<BinWord> cpp_BinLinearBasis::span() const
-{
-    unsigned int total_size = 1 << basis.size();
-    std::vector<BinWord>
-        result(total_size, 0),
-        vects = get_basis();
-    for(BinWord mask=1; mask<total_size; mask++) // no need to modify the entry in 0
-        result[mask] = cpp_linear_combination(vects, mask);
-    return result;
-}
+// !SECTION! Helper functions 
 
 std::vector<BinWord> cpp_complete_basis(
     const cpp_BinLinearBasis & basis,
@@ -120,15 +143,6 @@ std::vector<BinWord> cpp_complete_basis(
         if (lb.add_to_span(x))
             result.push_back(x);
     }
-    return result;
-}
-
-
-cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) const
-{
-    cpp_BinLinearBasis result;
-    for (auto &b : basis)
-        result.add_to_span(L(b.second));
     return result;
 }
 
