@@ -67,6 +67,7 @@ add_library(
   libapn
   ./apn/invariants.cpp
   ./apn/ccz_class.cpp
+  ./apn/sn.cpp
 )
 target_link_libraries(libapn PRIVATE libcore libstatistics libalgorithms libccz)
 
@@ -74,8 +75,8 @@ target_link_libraries(libapn PRIVATE libcore libstatistics libalgorithms libccz)
 
 # !SUBSECTION! the main sboxU-CPP library
 
-add_library(sboxU_CPP core statistics algorithms ccz) # these are folder names, not libary names!
-Target_link_libraries(sboxU_CPP PRIVATE libcore libstatistics  libalgorithms libccz)
+add_library(sboxU_CPP core statistics algorithms ccz apn) # these are folder names, not libary names!
+target_link_libraries(sboxU_CPP PRIVATE libcore libstatistics  libalgorithms libccz libapn)
 
 
 # !SECTION! Building tests
@@ -85,3 +86,6 @@ target_link_libraries(test_f2Sbox PRIVATE sboxU_CPP)
 
 add_executable(test_prng ./tests/prng.cpp)
 target_link_libraries(test_prng PRIVATE sboxU_CPP) 
+
+add_executable(test_sn ./tests/test_sn.cpp)
+target_link_libraries(test_sn PRIVATE sboxU_CPP) 

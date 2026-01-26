@@ -14,7 +14,7 @@ PYTHONPATH="$PYTHONPATH:.."
 sphinx-apidoc ../sboxUv2 -o source -M
 
 # -- generating the bibliography
-sage ./biblio.py "gen"
+#sage ./biblio.py "gen"
 
 # -- generating the HTML
 sphinx-build -M html source build

@@ -1,3 +1,7 @@
+#ifndef _APN_SN_
+#define _APN_SN_
+
+
 #include "../common.hpp"
 #include "../core/s_box.hpp"
 #include "../algorithms/include.hpp"
@@ -30,10 +34,4 @@ std::vector<BinWord> cpp_complete_basis(std::vector<BinWord> start_basis, int n)
 void cpp_sn_add_equations(cpp_S_box f, std::vector<cpp_F2LinearSystem>& E, std::vector<BinWord> indices, uint64_t n_add_eq);
 std::vector<std::vector<cpp_S_box>> cpp_non_trivial_sn (cpp_S_box f, uint64_t n_eq, uint64_t n_step);
 
-
-
-
-
-
-
-
+#endif

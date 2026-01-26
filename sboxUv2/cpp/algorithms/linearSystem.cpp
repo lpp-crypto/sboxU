@@ -7,7 +7,7 @@
 // !SUBSECTION! Ensuring that only useful equations are kept
 
 
-inline bool maybe_add_vector(
+bool maybe_add_vector(
     std::map<BinWord, cpp_BigF2Vector> & equations,
     cpp_BigF2Vector & new_eq
     )
