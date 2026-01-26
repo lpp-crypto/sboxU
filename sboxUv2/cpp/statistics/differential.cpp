@@ -110,7 +110,7 @@ std::vector< std::vector<BinWord>> cpp_zddt_row(const cpp_S_box & s, const BinWo
 
     std::vector<std::vector<BinWord>> first_row(s.input_space_size()); 
     for (BinWord x = 0; x < s.input_space_size(); x++) {
-        first_row[0].push_back(x);
+        first_row[0].push_back(x|(s[x]<< s.get_input_length()));
     }
     table.push_back(first_row);
     for (BinWord delta = 1; delta < s.input_space_size(); delta++) {

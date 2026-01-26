@@ -21,6 +21,21 @@ cdef extern from "../../cpp/core/prng.hpp":
 cdef extern from "../../cpp/core/prng.cpp":
     pass
 
+
+
+# !SUBSECTION! Random Component Generation
+
+cdef extern from "../../cpp/core/componentsGeneration.hpp":
+    cdef cpp_S_box cpp_rand_invertible_S_box(cpp_PRNG alea, unsigned int n)
+    cdef cpp_S_box cpp_rand_S_box(cpp_PRNG alea, unsigned int input_length, unsigned int output_length)
+    
+
+cdef extern from "../../cpp/core/componentsGeneration.cpp":
+    pass
+
+
+
+
 # !SECTION! Declaring cython code
 
     

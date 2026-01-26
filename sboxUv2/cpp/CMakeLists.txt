@@ -21,6 +21,7 @@ add_library(
   ./core/spectrum.cpp
   ./core/f2functions.cpp
   ./core/prng.cpp
+  ./core/componentsGeneration.cpp
 )
 
 # !SUBSECTION! the STATISTICS library
@@ -34,7 +35,8 @@ add_library(
 )
 target_link_libraries(libstatistics PRIVATE libcore)
 
-# !Subsection! the ALGORITHMS library
+
+# !SUBSECTION! the ALGORITHMS library
 
 add_library(
   libalgorithms
