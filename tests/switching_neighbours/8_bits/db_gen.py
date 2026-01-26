@@ -12,6 +12,7 @@ if __name__ == "__main__":
     # Run : sboxU_apn_db_generation -n 8 -p apn8.db -mode ccz_compact 
     n = 8
     with APNQuadraticFunctions_ccz_only('apn8.db') as db:
+
         for k in range(38):
             print("{}th Batch".format(k))
             path = "/home/pg/code/APN/databases/8_bit_3m_apn/8_bit_3m_apn_"+str(k)
@@ -31,6 +32,7 @@ if __name__ == "__main__":
                 h.update(mug)
                 mug = h.digest()
                 temp["mugshot"] = mug
+                temp["linearity"] = linearity(functions[i])
                 functions_entries.append(temp)
             db.insert_many_functions(functions_entries)
             print('Added {} functions'.format(len(functions_entries)))

@@ -413,7 +413,7 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
             to_insert.append(e_tuple)
         try:
             #self.cursor.executemany(self.function_insertion_query,to_insert)
-            self.cursor.executemany( "INSERT INTO functions(id, mugshot, qcr, linearity) VALUES (?,?,?,?)",to_insert)
+            self.cursor.executemany( "INSERT INTO functions(id, linearity, mugshot, qcr) VALUES (?,?,?,?)",to_insert)
             self.number_of_functions = end_id
             return list(range(start_id,end_id+1))
         except:

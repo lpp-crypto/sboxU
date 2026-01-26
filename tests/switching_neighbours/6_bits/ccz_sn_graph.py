@@ -15,7 +15,6 @@ def spectrify(sn_f):
     spec = {}
     for u in range(len(sn_f)):
         sn_fu_size = log(len(sn_f[u])+1,2)
-        #sn_fu_size = len(sn_f[u])
         if sn_fu_size in spec.keys():
             spec[sn_fu_size] += 1
         else:
