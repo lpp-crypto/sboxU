@@ -33,10 +33,3 @@ void cpp_sn_add_equations(cpp_S_box f, std::vector<cpp_F2LinearSystem>& E, std::
 std::vector<std::vector<cpp_S_box>> cpp_non_trivial_sn (cpp_S_box f, uint64_t n_eq, uint64_t n_step);
 
 #endif
-
-
-
-
-
-
-

@@ -90,3 +90,6 @@ target_link_libraries(test_test PRIVATE sboxU_CPP)
 
 add_executable(test_prng ./tests/prng.cpp)
 target_link_libraries(test_prng PRIVATE sboxU_CPP) 
+
+add_executable(test_sn ./tests/test_sn.cpp)
+target_link_libraries(test_sn PRIVATE sboxU_CPP) 
