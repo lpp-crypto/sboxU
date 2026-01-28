@@ -398,13 +398,14 @@ cdef class S_box:
 cdef class S_box_fp:
     
     # !SUBSECTION! Initialization
+    def __cinit__(self):
+        self.cpp_sb = new cpp_S_box_fp()
 
     def __init__(self,name=None):
         self.rename(name)
 
     def __dealloc__(self):
-        self.cpp_sb[0].destruct()
-        free(self.cpp_sb)
+        del self.cpp_sb
 
     # !SUBSECTION! Dealing with the name
 

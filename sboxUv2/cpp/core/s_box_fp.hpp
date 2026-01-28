@@ -33,10 +33,7 @@ class cpp_S_box_fp {
             std::vector<FpWord> _lut) :
             input_size(_input_size), output_size(_output_size), p(_p), powers_in(_powers_in), powers_out(_powers_out), input_space(_input_space), output_space(_output_space), lut(_lut) 
             {}
-        void destruct(){
-            lut.clear();
-            lut.shrink_to_fit();
-        }
+        ~cpp_S_box_fp(){}
         // This is the minimal arguments that it can take, without that it doesn't specify a SBox over Fp
         cpp_S_box_fp(Integer _p, std::vector<FpWord> _lut) : p(_p), lut(_lut) {
 
