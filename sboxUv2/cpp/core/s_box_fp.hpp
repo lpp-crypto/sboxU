@@ -33,10 +33,10 @@ class cpp_S_box_fp {
             std::vector<FpWord> _lut) :
             input_size(_input_size), output_size(_output_size), p(_p), powers_in(_powers_in), powers_out(_powers_out), input_space(_input_space), output_space(_output_space), lut(_lut) 
             {}
+        cpp_S_box_fp(const cpp_S_box_fp& s) = default;
         ~cpp_S_box_fp(){}
         // This is the minimal arguments that it can take, without that it doesn't specify a SBox over Fp
         cpp_S_box_fp(Integer _p, std::vector<FpWord> _lut) : p(_p), lut(_lut) {
-
             input_size = std::ceil(std::log(lut.size())/std::log(p));
             output_size = std::ceil(lut[0].size());
 
@@ -82,10 +82,10 @@ class cpp_S_box_fp {
             else {
                 std::vector<FpWord> new_lut((Integer)pow((float)p,(float)input_size));
                 const std::vector<FpWord>& lut1 = get_lut(); const std::vector<FpWord>& lut2 = s.get_lut();
-                for (int i = 0; i < lut.size();i++) {
+                for (int i = 0; i < new_lut.size();i++) {
                     new_lut[i] = FpWord(input_size);
                     for (int j = 0; j < input_size; j++){
-                        new_lut[i][j] = (lut1[i][j]+lut1[i][j])%p;
+                        new_lut[i][j] = (lut1[i][j]+lut2[i][j])%p;
                     } 
                 }
                 return cpp_S_box_fp(p,new_lut); 
@@ -101,7 +101,7 @@ class cpp_S_box_fp {
             else {
                 std::vector<FpWord> new_lut((Integer)pow((float)p,(float)s.get_input_size()));
                 const std::vector<FpWord>& lut1 = get_lut(); const std::vector<FpWord>& lut2 = s.get_lut();
-                for (int i = 0; i<lut2.size();i++){
+                for (int i = 0; i<new_lut.size();i++){
                     new_lut[i] = lut1[std::inner_product(lut2[i].begin(),lut2[i].end(),s.get_powers_in().begin(),0)];
                 }
                 return cpp_S_box_fp(p,new_lut);
