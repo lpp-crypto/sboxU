@@ -39,11 +39,11 @@ if __name__ == "__main__":
     print("s**-1: ", s**-1)
     print("s**-1 == s.inverse(): ", s.inverse() == s**-1)
     print("s+t is invertible", (s+t).is_invertible())
-    print("can we invert s+t?")
-    try:
-        print((s+t).inverse())
-    except:
-        print("no, it indeed threw an exception")
+    # print("can we invert s+t?")
+    # try:
+    #     print((s+t).inverse())
+    # except:
+    #     print("no, it indeed threw an exception")
 
     print("t o s", t * s)
 
@@ -69,14 +69,14 @@ if __name__ == "__main__":
     for delta in sb0.input_space():
         print(sb0.derivative(delta))
 
-    c     = CastFromF2Product([2, 3])
-    c_inv = CastToF2Product([2, 3])
-    s_prod = Sb(random_permutation_S_box(5).lut(),
-                input_cast=[c],
-                output_cast=[c_inv]
-                )
-    for x in c.structure([2, "*"]):
-        print(x, s_prod(x))
+    # c     = CastFromF2Product([2, 3])
+    # c_inv = CastToF2Product([2, 3])
+    # s_prod = Sb(random_permutation_S_box(5).lut(),
+    #             input_cast=[c],
+    #             output_cast=[c_inv]
+    #             )
+    # for x in c.structure([2, "*"]):
+    #     print(x, s_prod(x))
 
 
     for n in range(3, 11):
@@ -96,3 +96,4 @@ if __name__ == "__main__":
     lut = [[0,1],[1,0],[0,2],[0,0],[2,0],[2,2],[1,2],[2,1],[1,1]]
     lut = [[Fp(x),Fp(y)] for x,y in lut]
     u = Sb(lut)
+    print(u[(Fp(0),Fp(1))])

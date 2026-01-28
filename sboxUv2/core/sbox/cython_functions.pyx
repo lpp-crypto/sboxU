@@ -402,6 +402,10 @@ cdef class S_box_fp:
     def __init__(self,name=None):
         self.rename(name)
 
+    def __dealloc__(self):
+        self.cpp_sb[0].destruct()
+        free(self.cpp_sb)
+
     # !SUBSECTION! Dealing with the name
 
     def rename(self,name):
@@ -540,7 +544,7 @@ cdef class S_box_fp:
 
 # !SUBSECTION! Main factory
 
-def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
+def Sb(s, name=None, input_cast=[], output_cast=None) :
     """Turns its input into an object of the S_box class.
 
     If it is already an S_box instance, simply returns its
@@ -604,7 +608,6 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
                     (<S_box_fp>result).cpp_sb = new cpp_S_box_fp(<cpp_Integer>p,lut_cpp)
             # Case SBox over a binary field
             elif len(s)%2 == 0:
-                print('coucou')
                 result = S_box(name=name)
                 if isinstance(s[0], (int, sage_Integer, IntegerMod_int)): # case of a lookup table
                     (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
@@ -620,9 +623,8 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
                             """If the characteristic is odd and the SBox is passed as a look-up-table,
                         the look-up-table entries need to be a list of list of sage.rings.finite_rings.integer_mod.IntegerMod_int,
                         each entry of the list being one output branch""")
-                    p = s[0][0].parent.cardinality()
-                    (<S_box_fp>result).cpp_sb = new cpp_S_box_fp(p,<std_vector[FpWord]>s)
-            
+                    p = s[0][0].parent().cardinality()
+                    (<S_box_fp>result).cpp_sb = new cpp_S_box_fp(p,<std_vector[FpWord]>s)            
         else : 
             result = S_box(name=name)
             (<S_box>result).input_cast = input_cast
@@ -658,6 +660,7 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> S_box:
                     msg = "can't turn object of type '{}' into an S_box".format(type(s))
                     print(msg)
                     raise NotImplemented(msg)
+        print(result)
         return result
 
 
