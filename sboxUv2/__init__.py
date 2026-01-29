@@ -10,7 +10,7 @@ A particular focus is put on efficiency: large parts of this library are written
 
 from sboxUv2.core import *
 
-from sboxUv2.display import *
+#from sboxUv2.display import *
 
 from sboxUv2.algorithms import *
 

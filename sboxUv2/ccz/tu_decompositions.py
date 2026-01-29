@@ -2,8 +2,6 @@ from sage.all import log
 from sboxUv2.core import is_permutation,identity_BinLinearMap,zero_BinLinearMap,oplus,block_diagonal_BinLinearMap,rank_of_vector_set, Sb, Blm,BinLinearMap
 from sboxUv2.ccz import get_WalshZeroesSpaces
 from sboxUv2.algorithms import generating_BinLinearMap_r,generating_BinLinearMap, BinLinearMap_from_range_and_image
-from sboxUv2.display import pprint
-from sboxUv2.statistics import lat
 
 
 class TUdecomposition:
