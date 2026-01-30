@@ -80,10 +80,13 @@ public:
     };
 
     
-    cpp_BinLinearMap operator*(const cpp_BinLinearMap l) const;
+    cpp_BinLinearMap operator*(const cpp_BinLinearMap & l) const;
     
-    cpp_BinLinearMap operator+(const cpp_BinLinearMap l) const;
+    cpp_BinLinearMap operator+(const cpp_BinLinearMap & l) const;
 
+    cpp_BinLinearMap operator|(const cpp_BinLinearMap & l) const;
+
+    
     cpp_BinLinearMap inverse() const;
 
     

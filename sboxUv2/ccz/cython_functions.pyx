@@ -154,6 +154,20 @@ def enumerate_ea_classes(s):
         i += 1
     return result
 
+
+def enumerate_permutations_in_ccz_class(s):
+    sb = Sb(s)
+    result = []
+    i = 0
+    for new_s in cpp_enumerate_permutations_in_ccz_class(
+        (<S_box>sb).cpp_sb[0],
+        MAX_N_THREADS):
+        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb.set_inner_sbox(<cpp_S_box>new_s)
+        result.append(new_sb)
+        i += 1
+    return result
+
     
 
 def EA_mapping(A, B, C):

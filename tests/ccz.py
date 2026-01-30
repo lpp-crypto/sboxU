@@ -95,14 +95,10 @@ def test_ccz_equivalence_to_permutation(verbose=False):
         alpha = field.gen()
         X = PolynomialRing(field, "X").gen()
         kim_mapping = Sb(X**3 + alpha*X**24 + X**10)
-        ws = get_WalshZeroesSpaces_quadratic_apn(kim_mapping)
-        spaces_pairs = []
-        i = 0
-        for v0 in ws:
-            for v1 in ws:
-                if is_sum_full_rank(v0, v1):
-                    print((v0 + v1).rank())
-        
+        # ws = get_WalshZeroesSpaces_quadratic_apn(kim_mapping)
+        for p in enumerate_permutations_in_ccz_class(kim_mapping):
+            print(is_permutation(p))
+            pprint(thickness_spectrum(p), degree_spectrum(p))
         
 
 # !SECTION! Main function 

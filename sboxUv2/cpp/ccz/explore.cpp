@@ -46,9 +46,20 @@ std::vector<cpp_S_box> cpp_enumerate_permutations_in_ccz_class(
     const cpp_WalshZeroesSpaces &ws
     )
 {
-    // !TODO! implement cpp_enumerate_permutations_in_ccz_class
     std::vector<cpp_S_box> result;
-    throw std::runtime_error("cpp_enumerate_permutations_in_ccz_class is not implemented yet!");
+    cpp_FunctionGraph g(s);
+    for(auto &b1 : ws.bases)
+        for (auto &b2 : ws.bases)
+            if (cpp_is_sum_full_rank(b1, b2))
+            {
+                std::vector<BinWord>
+                    first_img = b1.get_basis(),
+                    second_img= b2.get_basis();
+                first_img.insert(first_img.end(), second_img.begin(), second_img.end());
+                cpp_BinLinearMap L = cpp_BinLinearMap(first_img).transpose();
+                if (L.rank() == (s.get_input_length() + s.get_output_length()))
+                    result.push_back(g.get_ccz_equivalent_function(L));
+            }
     return result;
 }
 
@@ -62,10 +73,12 @@ std::vector<cpp_S_box> cpp_enumerate_permutations_in_ccz_class(
     ws.init_mappings();
     return cpp_enumerate_permutations_in_ccz_class(s, ws);
 }
-   
+
 
 
 // !SUBSECTION! The particular case of EA-equivalence
 
 
 // !TODO! implement functions for EA-equivalence to a permutation 
+
+// !TODO! implement finding permutations in EA-equivalence class

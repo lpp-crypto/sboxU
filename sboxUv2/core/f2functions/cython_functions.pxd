@@ -84,11 +84,11 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
         ) 
     
         cpp_BinLinearMap mul "operator*"(
-           const cpp_BinLinearMap l
+           const cpp_BinLinearMap & l
         ) 
         
         cpp_BinLinearMap add "operator+"(
-            const cpp_BinLinearMap l
+            const cpp_BinLinearMap & l
         ) 
     
         cpp_BinLinearMap inverse() 
