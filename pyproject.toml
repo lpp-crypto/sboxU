@@ -14,4 +14,8 @@ build-backend = "setuptools.build_meta"
 
 
 [tool.setuptools]
-packages = ["sboxUv2"]
+include-package-data = false
+
+[tool.setuptools.packages.find]
+include = ["sboxUv2*"] 
+namespaces = false

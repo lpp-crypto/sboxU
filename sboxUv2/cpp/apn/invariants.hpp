@@ -1,5 +1,5 @@
-#ifndef _APN_
-#define _APN_
+#ifndef _APN_INVARIANTS_
+#define _APN_INVARIANTS_
 
 #include "../common.hpp"
 #include "../core/include.hpp"
