@@ -662,7 +662,6 @@ def Sb(s, name=None, input_cast=[], output_cast=None) :
                     msg = "can't turn object of type '{}' into an S_box".format(type(s))
                     print(msg)
                     raise NotImplemented(msg)
-        print(result)
         return result
 
 

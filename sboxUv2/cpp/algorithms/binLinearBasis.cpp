@@ -63,6 +63,20 @@ cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) cons
 }
 
 
+// !SUBSECTION! Combining bases
+
+cpp_BinLinearBasis cpp_BinLinearBasis::operator+(const cpp_BinLinearBasis & L) const
+{
+    cpp_BinLinearBasis result;
+    for(auto & b: basis)
+        result.add_to_span(b.second);
+    for(auto & b: L.get_basis())
+        result.add_to_span(b);
+    return result;
+}
+
+
+
 // !SUBSECTION! add_to_span: where the main difficulty lies
 // ! add_to_span is the main method that modifies the state of a
 // ! cpp_BinLinearBasis, it implements an algorithm that is
@@ -138,7 +152,7 @@ std::vector<BinWord> cpp_complete_basis(
     cpp_BinLinearBasis lb = basis;
     std::vector<BinWord> result = basis.get_basis();
     result.reserve(n);
-    for(BinWord x=1; result.size() < n; x*=2)
+    for(BinWord x=1; result.size() < n; x<<=1)
     {
         if (lb.add_to_span(x))
             result.push_back(x);
@@ -146,3 +160,15 @@ std::vector<BinWord> cpp_complete_basis(
     return result;
 }
 
+
+bool cpp_is_sum_full_rank(
+    const cpp_BinLinearBasis & b1,
+    const cpp_BinLinearBasis & b2
+    )
+{
+    cpp_BinLinearBasis total = b1;
+    for (auto & v : b2.get_basis())
+        if (not total.add_to_span(v))
+            return false;
+    return true;
+}

@@ -94,8 +94,13 @@ cdef class WalshZeroesSpaces:
             (<WalshZeroesSpaces>self).cpp_wzs[0].thickness_spectrum()
         )
         return result
-        
 
+    
+    def __iter__(self):
+        for b in self.cpp_wzs[0].bases:
+            yield BinLinearBasis(b.get_basis())
+        return
+        
 
 def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)

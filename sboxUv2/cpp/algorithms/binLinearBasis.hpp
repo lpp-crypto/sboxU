@@ -5,6 +5,9 @@
 #include "../core/include.hpp"
 
 
+// !SECTION!The cpp_BinLinearBasis class 
+
+
 class cpp_BinLinearBasis
 {
 private:
@@ -13,13 +16,6 @@ public:
     cpp_BinLinearBasis() : basis() {} ;
 
     cpp_BinLinearBasis(const std::vector<BinWord> & l) ;
-
-    // !TODO! destructor for BinLinearBasis 
-    // inline void destruct()
-    // {
-    //     for (auto it : basis)
-    //         delete basis.second;
-    // }
 
     bool add_to_span(BinWord x);
 
@@ -37,6 +33,14 @@ public:
     cpp_BinLinearBasis image_by(const cpp_BinLinearMap & L) const;
 
 
+    // !SUBSECTION! Combining bases
+
+    cpp_BinLinearBasis operator+(const cpp_BinLinearBasis & L) const;
+
+    
+
+    // !SUBSECTION! Iterators
+    
     inline std::map<Integer, BinWord>::const_iterator begin() const
     {
         return basis.cbegin();
@@ -96,10 +100,17 @@ public:
 };
 
 
+
+// !SECTION! Helper functions 
+
 std::vector<BinWord> cpp_complete_basis(
     const cpp_BinLinearBasis & basis,
     const unsigned int n
     );
 
+bool cpp_is_sum_full_rank(
+    const cpp_BinLinearBasis & b1,
+    const cpp_BinLinearBasis & b2
+    );
 
 #endif

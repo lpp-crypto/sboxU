@@ -6,7 +6,7 @@ from sboxUv2.core.f2functions import Blm,rank_of_vector_set
 from math import log
 from random import randint
 
-from cython.operator cimport dereference as ampersand
+from cython.operator cimport dereference
 
 
 
@@ -110,7 +110,7 @@ cdef class BinLinearBasis:
             The next element in the basis.
         
         """
-        for x in ampersand(self.cpp_lb).get_basis():
+        for x in dereference(self.cpp_lb).get_basis():
             yield x
 
             
@@ -119,15 +119,35 @@ cdef class BinLinearBasis:
             The number of elements in the basis, i.e., the rank of the set of vectors constituting this BinLinearBasis.
         
         """
-        return ampersand(self.cpp_lb).rank()
+        return dereference(self.cpp_lb).rank()
 
+
+    def __add__(self, b : BinLinearBasis | list[BinWord]) -> BinLinearBasis:
+        """Combine two BinLinearBasis instances.
+
+        Args:
+            b: either a BinLinearBasis, or a list of BinWord that corresponds to the content of a BinLinearBasis.
+
+        Returns:
+            A BinLinearBasis spanning the content of both of the inputs bases. The dimension of the result is at least the maximum of the dimensions of the inputs, and at most the sum of their dimensions.
+        """
+        if isinstance(b, BinLinearBasis):
+            x = b
+        elif isinstance(b, list):
+            x = BinLinearBasis(b)
+        else:
+            raise NotImplemented
+        return BinLinearBasis(
+            dereference((<BinLinearBasis>self).cpp_lb).add(dereference((<BinLinearBasis>x).cpp_lb)).get_basis()
+        )
+        
     
     def rank(self) -> int:
         """Returns:
             The rank of the set of vectors constituting this BinLinearBasis, i.e., the number of elements in the basis.
         
         """
-        return ampersand(self.cpp_lb).rank()
+        return dereference(self.cpp_lb).rank()
 
 
     def basis_vectors(self) -> list[BinWord]:
@@ -135,7 +155,7 @@ cdef class BinLinearBasis:
             An ordered list containing the integers corresponding to the vectors forming the basis of the vector space corresponding to this BinLinearBasis instance.
         
         """
-        return [x for x in ampersand(self.cpp_lb).get_basis()]
+        return [x for x in dereference(self.cpp_lb).get_basis()]
 
     
     def add_to_span(self, BinWord x) -> bool:
@@ -150,7 +170,7 @@ cdef class BinLinearBasis:
             True if adding the element has indeed increased the dimension of the vector space, False if the BinLinearBasis is actually left unchanged by this operation (i.e. if the element was already in the vector space it spans. This output is equal to `self.is_in_span(x)`.
         
         """
-        return ampersand(self.cpp_lb).add_to_span(x)
+        return dereference(self.cpp_lb).add_to_span(x)
         
 
     def span(self) -> std_vector[BinWord]:
@@ -159,7 +179,7 @@ cdef class BinLinearBasis:
         Returns:
             An ordered list of integers, one per vector in the vector space spanned by this basis.
         """
-        return ampersand(self.cpp_lb).span()
+        return dereference(self.cpp_lb).span()
     
 
     def is_in_span(self, BinWord x) -> bool:
@@ -171,7 +191,7 @@ cdef class BinLinearBasis:
         Returns:
             True if the binary vector corresponding to `x` is spanned by the vectors in this basis (or, equivalently, if it is in the vector space that has this basis as its Guss-Jordan basis), False otherwise.
         """
-        return ampersand(self.cpp_lb).is_in_span(x)
+        return dereference(self.cpp_lb).is_in_span(x)
 
     
     def __eq__(self, BinLinearBasis b) -> bool:
@@ -188,13 +208,35 @@ cdef class BinLinearBasis:
 
     def __str__(self) -> str:
         result = "("
-        for x in ampersand(self.cpp_lb).get_basis():
+        for x in dereference(self.cpp_lb).get_basis():
             result += "{:x}, ".format(x)
         return result[:-2] + ")"
 
     
 
-# !SUBSECTION! Using BinLinearBasis 
+# !SUBSECTION! Using BinLinearBasis
+
+def is_sum_full_rank(b0: list[BinWord] | BinLinearBasis, b1: list[BinWord] | BinLinearBasis) -> bool:
+    # checking b0
+    if isinstance(b0, list):
+        x0 = BinLinearBasis(<std_vector[BinWord]> b0)
+    elif isinstance(b0, BinLinearBasis):
+        x0 = b0
+    else:
+        raise Exception("wrong input type for is_sum_full_rank, expected list[BinWord] or BinLinearBasis, got {}".format(type(b0)))
+    # checking b1
+    if isinstance(b1, list):
+        x1 = BinLinearBasis(<std_vector[BinWord]> b1)
+    elif isinstance(b1, BinLinearBasis):
+        x1 = b1
+    else:
+        raise Exception("wrong input type for is_sum_full_rank, expected list[BinWord] or BinLinearBasis, got {}".format(type(b1)))
+    # actual call
+    return cpp_is_sum_full_rank(
+        dereference((<BinLinearBasis>x0).cpp_lb),
+        dereference((<BinLinearBasis>x1).cpp_lb)
+    )
+    
 
 def is_affine(l: list[BinWord], give_basis=False):
     # !TODO! docstring for algorithm.is_affine
@@ -218,9 +260,10 @@ def is_affine(l: list[BinWord], give_basis=False):
 
 
 def complete_basis(basis: list[BinWord], N: int) -> list[BinWord]:
-    # !TODO! docstring for algorithm.complete_basis 
+    # !TODO! docstring for algorithm.complete_basis
+    # !TODO! replace cython complete_basis by a wrapper for cpp_complete_basis 
     if rank_of_vector_set(basis)!=len(basis): 
-        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
+        raise Exception("in complete_basis: the inputs must be independent! input={}".format(basis))
     r = len(basis)
     e_i = 1
     res=basis
@@ -237,7 +280,7 @@ def complete_basis(basis: list[BinWord], N: int) -> list[BinWord]:
 def complete_basis_reversed(basis: list[BinWord], N: int) -> list[BinWord]: 
     # !TODO! docstring for algorithm.complete_basis_reversed
     if rank_of_vector_set(basis) != len(basis):
-        raise Exception("in complete_basis: the input must be independent! input={}".format(basis))
+        raise Exception("in complete_basis: the inputs must be independent! input={}".format(basis))
     r = len(basis)
     e_i = 1
     while r < N:
@@ -289,7 +332,7 @@ def BinLinearMap_from_range_and_image(inputs: list[BinWord], outputs: list[BinWo
     return BinLinearMap_from_masks(outputs,M,N)*(generating_BinLinearMap(inputs,M).inverse())
     
 
-# !SECTION!  Solving Linear Systems
+# !SECTION! Solving Linear Systems
 
 
 cdef class F2LinearSystem:
@@ -333,7 +376,7 @@ cdef class F2LinearSystem:
             If `echelonize` is False, then always returns True. Otherwise, returns True if the equation has increased the rank of the system, and False if the new equation was already in the span of the previous equations.
         
         """
-        return ampersand(self.cpp_ls).add_equation(<std_vector[BinWord]>variable_indices)
+        return dereference(self.cpp_ls).add_equation(<std_vector[BinWord]>variable_indices)
 
     
     def remove_solution(self, solution_indices: list[BinWord]) -> None:
@@ -347,7 +390,7 @@ cdef class F2LinearSystem:
            solution_indices(list): A list of indices corresponding to the positions set to 1 in the unwanted solution.
         
         """
-        ampersand(self.cpp_ls).remove_solution(<std_vector[BinWord]>solution_indices)
+        dereference(self.cpp_ls).remove_solution(<std_vector[BinWord]>solution_indices)
 
         
     def __len__(self) -> int:
@@ -356,7 +399,7 @@ cdef class F2LinearSystem:
         Returns:
             An integer corresponding to the number of equations currently in the system.
         """
-        return ampersand(self.cpp_ls).size()
+        return dereference(self.cpp_ls).size()
 
     
     def rank(self) -> int:
@@ -368,7 +411,7 @@ cdef class F2LinearSystem:
             If `self. echelonize` is set to True, then returns the current rank of the system. Otherwise, throws an Exception.
         """
         if self.echelonize:
-            return ampersand(self.cpp_ls).rank()
+            return dereference(self.cpp_ls).rank()
         else:
             raise Exception("Trying to get the rank of a non_echelonized system of equations")
 
@@ -380,7 +423,7 @@ cdef class F2LinearSystem:
             A list where each entry is of type `bytes`. The bit with index i then corresponds to the value of x_i, and it can be obtained by computing e.g. `(y[i >> 3] >> (i & 0x7)) & 1`, where y is one of `bytes` contained in the output list.
         
         """
-        return ampersand(self.cpp_ls).kernel_as_bytes()
+        return dereference(self.cpp_ls).kernel_as_bytes()
 
 
     def kernel_as_bits(self) -> list[bytes]:
@@ -392,8 +435,8 @@ cdef class F2LinearSystem:
             A list where each entry is of type `bytes`. The bit with index i then corresponds to the value of x_i, and is simply equal to y[i], where y is one of `bytes` contained in the output list.
         
         """
-        return ampersand(self.cpp_ls).kernel_as_bits()
+        return dereference(self.cpp_ls).kernel_as_bits()
     
     
     def __str__(self) -> str:
-        return ampersand(self.cpp_ls).to_string().decode("UTF-8")
+        return dereference(self.cpp_ls).to_string().decode("UTF-8")
