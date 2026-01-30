@@ -43,6 +43,18 @@ std::vector< std::vector<BinWord>> cpp_xddt_row(const cpp_S_box & s, const BinWo
     return result;
 }
 
+std::vector<BinWord> cpp_xddt_entry(const cpp_S_box &s, const BinWord a, const BinWord b)
+{   
+    std::vector<BinWord> result;
+    FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size()){
+        if ((s[x]^s[x^a])==b){
+            result.push_back(x);
+            result.push_back(x^a);
+        }
+    }
+    return result;
+}
+
  Xtable cpp_xddt(const cpp_S_box & s){
     Xtable table; 
     table.reserve(s.input_space_size());

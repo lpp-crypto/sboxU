@@ -24,7 +24,10 @@ std::vector< std::vector<Integer> > cpp_ddt(const cpp_S_box & s) ;
 
 
 std::vector< std::vector<BinWord>> cpp_xddt_row(const cpp_S_box & s, const BinWord delta);
+
 Xtable cpp_xddt(const cpp_S_box & s);
+
+std::vector<BinWord> cpp_xddt_entry(const cpp_S_box &s, const BinWord a, const BinWord b);
 
 
 std::vector< std::vector<BinWord>> cpp_yddt_row(const cpp_S_box & s, const BinWord delta);
