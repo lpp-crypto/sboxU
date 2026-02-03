@@ -1,7 +1,5 @@
 # -*- python -*-
 
-
-
 from sboxUv2.core.f2functions cimport *
 
 from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
@@ -502,12 +500,11 @@ cdef class S_box_fp:
     def output_space(self):
         return range(0,self.get_output_size())
 
-    def get_name(self):
+    def name(self):
         return self.cpp_name
 
     def lut(self):
         return dereference(self.cpp_sb).get_lut()
-
 
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
         self.cpp_sb = make_unique[cpp_S_box_fp](s)
@@ -537,6 +534,25 @@ cdef class S_box_fp:
         """
         result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.cpp_name)
         (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).derivative(delta))
+        return result
+
+    def is_invertible(self) -> bool:
+        """Returns:
+            True if the current S_box is a bijection, False otherwise.
+        """
+        return dereference(self.cpp_sb).is_invertible()
+
+    
+    def inverse(self) -> S_box_fp:
+        """Returns:
+            An S_box instance corresponding to the compositional inverse of the current S_box.
+        If the current S_box is not invertible, will throw an error.
+        """
+        if not self.is_invertible():
+            raise Exception(f"SBox {self}\n is not invertible, can not invert it")
+        name = self.cpp_name + b"^-1"
+        result = S_box_fp(name=name)
+        (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>(dereference(self.cpp_sb).get_inverse()))
         return result
 
 # !SECTION! Generating S-boxes
