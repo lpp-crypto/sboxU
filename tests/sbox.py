@@ -91,9 +91,14 @@ if __name__ == "__main__":
     ### Fp testing session
     p = 3
     Fp = GF(p)
-    ## Build an SBox from F_3^2 to itself, invertible
+    # Build an SBox from F_3^2 to itself, invertible
     lut = [[0,1],[1,0],[0,2],[0,0],[2,0],[2,2],[1,2],[2,1],[1,1]]
     lut = [[Fp(x),Fp(y)] for x,y in lut]
     u = Sb(lut)
-    print(u)
     print(u[(Fp(0),Fp(1))]) 
+  
+    R = PolynomialRing(Fp,2,"x")
+    x1, x2 = R.gens()
+    P1 = x1**3 + x2**5 + x1*x2
+    P2 = x2
+    v = Sb([P1,P2])

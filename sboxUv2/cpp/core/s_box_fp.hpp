@@ -38,7 +38,7 @@ class cpp_S_box_fp {
         // This is the minimal arguments that it can take, without that it doesn't specify a SBox over Fp
         cpp_S_box_fp(Integer _p, std::vector<FpWord> _lut) : p(_p), lut(_lut) {
             input_size = std::ceil(std::log(lut.size())/std::log(p));
-            output_size = std::ceil(lut[0].size());
+            output_size = lut[0].size();
 
             powers_in = iterated_powers(p,input_size);
             powers_out = iterated_powers(p,output_size);
@@ -195,7 +195,7 @@ class cpp_S_box_fp {
                 // Increment the previous integer vector
                 FpWord prev = res[i-1];
                 int j = 0;
-                while (prev[j]==1){
+                while (prev[j]==p-1){
                     prev[j]=0;
                     j++;
                 }

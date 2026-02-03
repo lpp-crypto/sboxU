@@ -510,7 +510,6 @@ cdef class S_box_fp:
 
 
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
-        print("on tente de set la inner sboite")
         self.cpp_sb = make_unique[cpp_S_box_fp](s)
 
 # !SUBSECTION! Functions from the SBox
@@ -559,10 +558,8 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
         output_cast: the function to apply to the integer output when querying the LUT.
 
     """
-    # Used for the Fp case
-    cdef std_vector[FpWord] lut_cpp
     cdef std_vector[FpWord] input_space
-    cdef FpWord x_vec
+    cdef std_vector[FpWord] lut_cpp
     cdef FpWord out
 
     if isinstance(s, S_box):
@@ -582,7 +579,7 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
                 raise NotImplementedError("Cannot turn a list of length zero into an SBox")
             elif isinstance(s[0], (MPolynomial)): # case of an ANF
                 n_vars = len(s[0].parent().gens())
-                p = s[0].parent().base_ring().cardinality()
+                p = int((s[0].parent().base_ring().cardinality()))
                 ## ANF over F2
                 if p%2 == 0:
                     result = S_box(name=name)
@@ -596,20 +593,20 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
                         lut[x] = y
                     (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
                     return result
-                ## ANF over Fp
+                # ANF over Fp
                 else :
                     result = S_box_fp(name=name)
-                    lut_cpp = std_vector[FpWord](<BinWord>p**n_vars)
-                    input_space = cpp_S_box_fp.build_input_space(p,n_vars)
-                    for x in range(0, len(lut_cpp)):
-                        ## TODO : evaluer le polynome
+                    lut_cpp = std_vector[FpWord]()
+                    input_space = cpp_S_box_fp.build_input_space(<cpp_Integer>p,<cpp_Integer>n_vars)
+                    for x in range(0, p**n_vars):
+                        out = FpWord()
                         x_vec = list(cpp_S_box_fp.int_to_vec(x, input_space))
-                        out = FpWord(len(s))
-                        for i in range(0, len(s)):
-                            out.push_back(<BinWord>int(s[i](x_vec)))
-                        lut_cpp[x] = out
-                    (<S_box_fp>result).cpp_sb = unique_ptr[cpp_S_box_fp](new cpp_S_box_fp(<cpp_Integer>p,lut_cpp))
+                        for i in range(len(s)):
+                            out.push_back(int(s[i](x_vec)))
+                        lut_cpp.push_back(out)
+                    (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<cpp_Integer>p,lut_cpp))
                     return result
+    
             # Case SBox over a binary field
             elif len(s)%2 == 0:
                 result = S_box(name=name)
@@ -629,8 +626,8 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
                         the look-up-table entries need to be a list of list of sage.rings.finite_rings.integer_mod.IntegerMod_int,
                         each entry of the list being one output branch""")
                     p = s[0][0].parent().cardinality()
-                    s = [[int(x) for x in y] for y in s]
-                    (<S_box_fp>result).cpp_sb = unique_ptr[cpp_S_box_fp](new cpp_S_box_fp(p,<std_vector[FpWord]>s))  
+                    s_conv = [[int(x) for x in y] for y in s]
+                    (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<cpp_Integer>p,<std_vector[FpWord]>s_conv))  
                     return result         
         else : 
             result = S_box(name=name)
