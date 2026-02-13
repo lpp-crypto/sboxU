@@ -3,7 +3,6 @@ from sboxUv2 import *
 
 from sage.crypto.sboxes import sboxes
 
-pprint(Sb([]))
 pprint(Sb(sboxes["AES"], name="AES"))
 
 f = random_function_S_box(5, 14)
@@ -22,7 +21,7 @@ pprint(thickness_spectrum(s))
 print("Testing interactive tables display")
 pi_prime = Sb(sboxes["Kuznyechik"])
 pi_prime.rename("Kuznyechik")
-fbct_interactive_view(pi_prime)
+lat_interactive_view(pi_prime)
 pprint(fbct_spectrum(pi_prime))
 
 F = Sb(sboxes["Skipjack"])
@@ -30,7 +29,7 @@ F.rename("Skipjack")
 interactive_distribution_comparison_lat(F)
 interactive_distribution_comparison_bct(F)
 interactive_distribution_comparison_ddt(F, y_log_scale=False)
-fbct_interactive_view(F)
+lat_interactive_view(F, with_sliders=False, with_cmap_choice=False)
 
 
 S = random_permutation_S_box(8)

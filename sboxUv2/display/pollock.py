@@ -2,6 +2,7 @@ from collections import defaultdict
 
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseEvent
+from matplotlib.widgets import Slider, RadioButtons
 
 from sboxUv2.core import Sb
 from sboxUv2.statistics import \
@@ -22,28 +23,89 @@ def table_interactive_view(
         table,
         title="Table",
         desc="v",
-        cmap="coolwarm",
+        cmap="viridis",
         vmin=0,
-        vmax=20
+        vmax=40,
+        with_sliders=True,
+        with_cmap_choice=True,
 ):
     """Stops the execution flow and displays a new window containing a Pollock-style (in the sense of [C:BirPer15]) representation of a table.
 
     The table is assumed to be a 2-dimensional array containing integers. We associate a color to each value using the colormap `cmap`. Then, a 2D picture is generated representing the content of the table.
 
     A cross-hair cursor is displayed where the mouse, and the values of the coordinates are displayed under the picture. To describe the value at a given position, you need to specify the `desc` input. The cursor is handled using the TableCursor class.
+
+    If `with_sliders` is set to True (the default case), the maximum value in the scale can be chosen with a slider.
+    
     """
     fig, ax = plt.subplots()
     ax.set_title(title)
-    ax.imshow(
+    im = ax.imshow(
         table,
         cmap=cmap,
         vmin=vmin,
-        vmax=vmax
+        vmax=vmax,
     )
+    plt.subplots_adjust(right=0.85, left=0.25, bottom=0.2) # making space for all the widgets
+    cbar = fig.colorbar(im,
+                        cax=fig.add_axes([0.3, 0.02, 0.45, 0.02]),
+                        orientation='horizontal')
+    
+    # setting up cursor
     cursor = TableCursor(ax,
-                         lambda a,b : table[a][b],
+                         lambda a,b : table[a][b] if a < len(table) and b < len(table[a]) else -1,
                          desc=desc)
     fig.canvas.mpl_connect('motion_notify_event', cursor.on_mouse_move)
+
+    # Create sliders
+    actual_max = 0
+    actual_min = 0
+    for row in table[1:]:
+        actual_max = max(actual_max, max(row))
+        actual_min = min(actual_max, min(row))
+    if with_sliders:
+        slider_max = Slider(
+            ax=plt.axes([0.95, 0.2, 0.02, 0.5]),
+            label='Scale max',
+            valmin=actual_min * 0.8,
+            valmax=actual_max * 1.2,
+            valinit=actual_max,
+            orientation="vertical",
+        )
+        slider_min = Slider(
+            ax=plt.axes([0.90, 0.2, 0.02, 0.5]),
+            label='Scale min',
+            valmin=actual_min * 0.8,
+            valmax=actual_max * 1.2,
+            valinit=actual_min,
+            orientation="vertical",
+        )
+
+        def update_from_sliders(val):
+            im.set_clim(vmin=slider_min.val,
+                        vmax=slider_max.val)
+            fig.canvas.draw_idle()
+
+        slider_max.on_changed(update_from_sliders)
+        slider_min.on_changed(update_from_sliders)
+
+    # Create cmap choice
+    if with_cmap_choice:
+        ax_radio = plt.axes([0.02, 0.3, 0.15, 0.4])
+        radio = RadioButtons(
+            ax_radio,
+            labels=["viridis", "inferno", "cividis",
+                    "coolwarm", "Spectral", "seismic", "berlin",
+                    "Paired", "tab10", "tab20",
+                    "gray"],
+            active=0  # viridis is selected by default
+        )
+
+        def update_cmap(label):
+            im.set_cmap(label)
+            fig.canvas.draw_idle()
+
+        radio.on_clicked(update_cmap)
     plt.show()
     
 
@@ -56,7 +118,10 @@ def lat_interactive_view(
         vmin=None,
         vmax=40,
         absolute=True,
-        show_only=None):
+        show_only=None,
+        with_sliders=True,
+        with_cmap_choice=True
+):
     sb = Sb(s)
     table = lat(sb)
     if absolute:
@@ -77,7 +142,9 @@ def lat_interactive_view(
                            desc="$\\sum_x (-1)^{ax +bS(x)}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax
+                           vmax=vmax,
+                           with_sliders=with_sliders,
+                           with_cmap_choice=with_cmap_choice
                            )
     
     
@@ -86,7 +153,9 @@ def ddt_interactive_view(
         cmap="coolwarm",
         vmin=0,
         vmax=10,
-        show_only=None
+        show_only=None,
+        with_sliders=True,
+        with_cmap_choice=True
 ):
     sb = Sb(s)
     t = ddt(sb)
@@ -99,7 +168,9 @@ def ddt_interactive_view(
                            desc="$\\#\\{x, S(x+a)+S(x)=b\\}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax
+                           vmax=vmax,
+                           with_sliders=with_sliders,
+                           with_cmap_choice=with_cmap_choice
                            )
     
     
@@ -109,7 +180,9 @@ def bct_interactive_view(
         vmin=0,
         vmax=32,
         absolute=True,
-        show_only=None
+        show_only=None,
+        with_sliders=True,
+        with_cmap_choice=True
 ):
     sb = Sb(s)
     t = bct(sb)
@@ -122,7 +195,9 @@ def bct_interactive_view(
                            desc="$\\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax
+                           vmax=vmax,
+                           with_sliders=with_sliders,
+                           with_cmap_choice=with_cmap_choice
                            )
 
     
@@ -132,7 +207,9 @@ def fbct_interactive_view(
         vmin=0,
         vmax=16,
         absolute=True,
-        show_only=None
+        show_only=None,
+        with_sliders=True,
+        with_cmap_choice=True
 ):
     sb = Sb(s)
     t = fbct(sb)
@@ -145,7 +222,9 @@ def fbct_interactive_view(
                            desc="$\\#\\{x, \\sum_{y \\in x+<a, b>}S(y)\\}$",
                            cmap=cmap,
                            vmin=vmin,
-                           vmax=vmax
+                           vmax=vmax,
+                           with_sliders=with_sliders,
+                           with_cmap_choice=with_cmap_choice
                            )
 
 
@@ -162,7 +241,7 @@ class TableCursor:
         self.horizontal_line = ax.axhline(color='k', lw=0.8, ls='--')
         self.vertical_line = ax.axvline(color='k', lw=0.8, ls='--')
         # text location in axes coordinates
-        self.text = ax.text(0.1, -0.1, '', transform=ax.transAxes)
+        self.text = ax.text(0.2, -0.12, '', transform=ax.transAxes)
         self.values_function = values_function
         self.desc = desc
 
