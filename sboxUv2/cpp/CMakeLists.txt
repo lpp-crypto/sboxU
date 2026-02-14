@@ -32,6 +32,7 @@ add_library(
   ./statistics/differential.cpp
   ./statistics/linear_structures.cpp
   ./statistics/boomerang.cpp
+  ./statistics/quasi_differential.cpp
 )
 target_link_libraries(libstatistics PRIVATE libcore)
 
@@ -85,11 +86,14 @@ add_executable(test_f2Sbox ./tests/F2Sbox.cpp)
 target_link_libraries(test_f2Sbox PRIVATE sboxU_CPP) 
 
 
-add_executable(test_test ./tests/test.cpp)
-target_link_libraries(test_test PRIVATE sboxU_CPP) 
+# add_executable(test_test ./tests/test.cpp)
+# target_link_libraries(test_test PRIVATE sboxU_CPP) 
 
 add_executable(test_prng ./tests/prng.cpp)
 target_link_libraries(test_prng PRIVATE sboxU_CPP) 
 
-add_executable(test_sn ./tests/test_sn.cpp)
-target_link_libraries(test_sn PRIVATE sboxU_CPP) 
+# add_executable(test_sn ./tests/test_sn.cpp)
+# target_link_libraries(test_sn PRIVATE sboxU_CPP) 
+
+add_executable(test_quasi_diffs ./tests/quasi_differential.cpp)
+target_link_libraries(test_quasi_diffs PRIVATE sboxU_CPP) 

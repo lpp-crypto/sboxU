@@ -5,6 +5,7 @@
 #include "./linear.hpp"
 #include "./boomerang.hpp"
 #include "./linear_structures.hpp"
+#include "./quasi_differential.hpp"
 
 
 #endif
