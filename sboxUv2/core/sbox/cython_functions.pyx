@@ -18,6 +18,7 @@ from sage.crypto.sboxes import SBox as sage_SBox
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
 
+
 # !SECTION! Helpers
 
 
@@ -106,7 +107,7 @@ cdef class S_box:
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self, s))
         # below, the [0] is used to follow the S_box.cpp_sb pointer
-        name = self.cpp_name + b"+" + s.name()
+        name = self.cpp_name + b"+" + s.get_name()
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
@@ -276,7 +277,7 @@ cdef class S_box:
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
         # below, the [0] is used to follow the S_box.cpp_sb pointer
-        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
+        name = self.cpp_name + "◦".encode("UTF-8") + s.get_name()
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
@@ -399,15 +400,15 @@ cdef class S_box:
 cdef class S_box_fp:
     
     # !SUBSECTION! Initialization
-    def __cinit__(self):
+    def __cinit__(S_box_fp self):
         self.cpp_sb = make_unique[cpp_S_box_fp]()
 
-    def __init__(self,name=None):
+    def __init__(S_box_fp self, name=None):
         self.rename(name)
 
     # !SUBSECTION! Dealing with the name
 
-    def rename(self,name):
+    def rename(S_box_fp self, name):
         if name == None:
             self.cpp_name = new_sbox_name()
         elif isinstance(name, bytes):
@@ -419,7 +420,7 @@ cdef class S_box_fp:
 
     # !SUBSECTION! Python built-in methods
 
-    def __add__(self, _s):
+    def __add__(S_box_fp self, S_box_fp _s):
         """Pointwise addition in F_p (i.e., modular addition mod p).
 
         Args:
@@ -432,13 +433,13 @@ cdef class S_box_fp:
         s = Sb(_s)
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
-        name = self.cpp_name + b"+" + s.name()
+        name = self.get_name() + b"+" + s.get_name()
         result = S_box_fp(name)
         (<S_box_fp>result).set_inner_sbox(dereference((<S_box_fp>self).cpp_sb)+dereference((<S_box_fp>s).cpp_sb))
         return result
 
 
-    def __mul__(self,_s):
+    def __mul__(S_box_fp self, S_box_fp _s):
         """Composition of S-Boxes in F_p
 
         Args:
@@ -448,13 +449,65 @@ cdef class S_box_fp:
             An `S_box_fp` instance whose output is the composition of `self`and `_s`.
         """      
         s = Sb(_s)
-        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
+        name = self.get_name() + "◦".encode("UTF-8") + s.get_name()
         result = S_box_fp(name)
         (<S_box_fp>result).set_inner_sbox(dereference((<S_box_fp>self).cpp_sb)*dereference((<S_box_fp>s).cpp_sb))
         return result
       
+    def __iter__(S_box_fp self) -> FpWord:
+        for x in self.get_input_space():
+            yield self[x]
 
-    def __getitem__(self, FpWord x):
+    ### TODO : implem from bytes/to_bytes (at the cpp level)
+    # def __hash__(self):
+    #     return hash(self.to_bytes())
+
+
+    def __pow__(S_box_fp self, int d, modulo) -> S_box_fp :
+        """Composing the S_box with itself (or with its inverse).
+
+        Args:
+            d: the number of times that the function should be iterated.
+
+        Returns:
+            If `d` is equal to 0, returns the identity S_Box. If it is a positive integer, returns the S_box corresponding to d iterations of the current S_box. If it is negative, does the same but for its inverse (throws an exception if the S_box is not invertible).
+        
+        The `modulo` argument is needed by the python syntax for the __pow__ function. An error will be thrown if it is set.
+        """
+        cdef cpp_S_box_fp temp
+        cdef cpp_S_box_fp inv
+
+        if modulo != None:
+            raise NotImplemented("why are you using a modulo (second pow argument) here?")
+        if self.get_input_size() != self.get_output_size():
+            raise Exception(f"Can not compose the SBox {self} with itself : its input size is :\
+             {self.get_input_size()} which is not equal to its output size : {self.get_output_size()}")
+        elif d == 0:
+            return self.identity_S_box(self.get_input_size(),self.get_p())
+        elif d == 1:
+            return self
+        elif d == -1:
+            return self.inverse()
+        else:
+            result = S_box_fp(name=self.get_name() + b"**" + str(d).encode("UTF-8"))
+            if d >= 0:
+                temp = dereference(self.cpp_sb)
+                for i in range(0, d-1):
+                    temp = temp*dereference(self.cpp_sb)
+                <S_box_fp>result.set_inner_sbox(temp)
+                return result
+            elif self.is_invertible():
+                temp = dereference(self.cpp_sb).get_inverse()
+                inv = dereference(self.cpp_sb).get_inverse()
+                for i in range(1, -d):
+                    temp = temp*inv
+                <S_box_fp>result.set_inner_sbox(temp)
+                return result
+            else:
+                raise Exception("Trying to compute the negative power of a non-bijective function")
+
+
+    def __getitem__(S_box_fp self, FpWord x) -> FpWord :
         """Querying the S-box on a specific input.
 
         Args:
@@ -465,13 +518,13 @@ cdef class S_box_fp:
         """      
         return dereference(self.cpp_sb)[x]
 
-    def __len__(self):
+    def __len__(S_box_fp self) -> int :
         """Returns:
             The number of entries in the lookup table of this S_box.
         """        
-        return dereference(self.cpp_sb).get_lut().size()
+        return self.get_input_space_size()
 
-    def __str__(self):
+    def __str__(S_box_fp self) -> str :
         return f"""S-box over F{dereference(self.cpp_sb).get_p()} \n 
         Name : {self.cpp_name} \n 
         Input size : {dereference(self.cpp_sb).get_input_size()} \n 
@@ -479,31 +532,31 @@ cdef class S_box_fp:
 
     #! SUBSECTION! Getters dealing with the underlying cpp object
 
-    def get_p(self):
+    def get_p(S_box_fp self) -> int :
         return dereference(self.cpp_sb).get_p()
 
-    def get_input_size(self):
+    def get_input_size(S_box_fp self) -> int :
         return dereference(self.cpp_sb).get_input_size()
 
-    def get_output_size(self):
+    def get_output_size(S_box_fp self) -> int :
         return dereference(self.cpp_sb).get_output_size()
 
-    def input_space_size(self):
+    def get_input_space_size(S_box_fp self) -> int :
         return pow(self.get_p(),self.get_input_size())
 
-    def output_space_size(self):
+    def get_output_space_size(S_box_fp self) -> int :
         return pow(self.get_p(),self.get_output_size())
 
-    def input_space(self):
-        return range(0,self.get_input_size())
+    def get_input_space(S_box_fp self) -> std_vector[FpWord] :
+        return dereference(self.cpp_sb).get_input_space()
 
-    def output_space(self):
-        return range(0,self.get_output_size())
+    def get_output_space(S_box_fp self) -> std_vector[FpWord] :
+        return dereference(self.cpp_sb).get_output_space()
 
-    def name(self):
+    def get_name(S_box_fp self) -> string :
         return self.cpp_name
 
-    def lut(self):
+    def get_lut(S_box_fp self) -> std_vector[FpWord]:
         return dereference(self.cpp_sb).get_lut()
 
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
@@ -511,7 +564,15 @@ cdef class S_box_fp:
 
 # !SUBSECTION! Functions from the SBox
 
-    def coordinate(S_box_fp self, BinWord i):
+    @staticmethod
+    def identity_S_box(cpp_Integer input_size, cpp_Integer p) -> S_box_fp :
+        name = f"Id_{int(input_size)} over F_{int(p)}"
+        result = S_box_fp(name=name)
+        cdef std_vector[FpWord] lut = cpp_S_box_fp.build_input_space(p,input_size)
+        (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(p,lut))
+        return result
+
+    def coordinate(S_box_fp self, BinWord i) -> S_box_fp :
         """Args:
             i: the index of the coordinate, where 0 is the Fp word of lowest weight.
         
@@ -524,7 +585,7 @@ cdef class S_box_fp:
         (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).coordinate(<BinWord>i))
         return result
 
-    def derivative(S_box_fp self, FpWord delta):
+    def derivative(S_box_fp self, FpWord delta) -> S_box_fp :
         """Args:
             i: the index of the coordinate, where 0 is the bit of lowest weight.
         
@@ -532,7 +593,7 @@ cdef class S_box_fp:
             An S_box_fp instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
         
         """
-        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.cpp_name)
+        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.get_name())
         (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).derivative(delta))
         return result
 
@@ -550,7 +611,7 @@ cdef class S_box_fp:
         """
         if not self.is_invertible():
             raise Exception(f"SBox {self}\n is not invertible, can not invert it")
-        name = self.cpp_name + b"^-1"
+        name = self.get_name() + b"^-1"
         result = S_box_fp(name=name)
         (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>(dereference(self.cpp_sb).get_inverse()))
         return result
