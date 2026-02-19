@@ -276,7 +276,7 @@ cdef class S_box:
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
         # below, the [0] is used to follow the S_box.cpp_sb pointer
-        name = self.cpp_name + "◦".encode("UTF-8") + s.get_name()
+        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result
@@ -642,8 +642,8 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
 
     if isinstance(s, S_box):
         return s
-    # elif isinstance(s, S_box_fp):
-    #     return s
+    elif isinstance(s, S_box_fp):
+        return s
     else:
         if isinstance(s, (bytes, bytearray)):
             result = S_box(name=name)
