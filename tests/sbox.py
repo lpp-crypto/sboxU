@@ -1,33 +1,32 @@
 # -*- python -*-
-
 from sboxUv2 import *
 from sage.crypto.sboxes import sboxes
 from sage.all import *
 
 if __name__ == "__main__":
-    print(isinstance(list(range(0,16)),list))
-    u = Sb(list(range(0, 16)))
-    s = random_permutation_S_box(4)
-    t = random_function_S_box(4, 2, name="t")
-    s_prime = Sb(list(s), name="S'")
-    print("u      |", u)
-    print("t      |", t)
-    print("s      |", s)
-    for i in range(0, s.get_input_length()):
-        print(s.coordinate(i))
-        print(s.component(1 << i))
+    # print(isinstance(list(range(0,16)),list))
+    # u = Sb(list(range(0, 16)))
+    # s = random_permutation_S_box(4)
+    # t = random_function_S_box(4, 2, name="t")
+    # s_prime = Sb(list(s), name="S'")
+    # print("u      |", u)
+    # print("t      |", t)
+    # print("s      |", s)
+    # for i in range(0, s.get_input_length()):
+    #     print(s.coordinate(i))
+    #     print(s.component(1 << i))
 
-    print("lut(s) |", s.lut())
-    print("t == u |", t == u)
-    print("t == s |", t == s)
-    print("s' == s|", s_prime == s)
+    # print("lut(s) |", s.lut())
+    # print("t == u |", t == u)
+    # print("t == s |", t == s)
+    # print("s' == s|", s_prime == s)
     
-    print("s[2] = {}, t[1] = {}, u[2] = {}".format(s[2], t[1], u[2]))
-    print("input space for u", list(u.input_space()))
+    # print("s[2] = {}, t[1] = {}, u[2] = {}".format(s[2], t[1], u[2]))
+    # print("input space for u", list(u.input_space()))
 
-    print("hash(s) =       |", hash(s))
-    print("t == [0,1,2,3]  |", t == [0,1,2,3])
-    print("t == list(t)    |", t == list(t))
+    # print("hash(s) =       |", hash(s))
+    # print("t == [0,1,2,3]  |", t == [0,1,2,3])
+    # print("t == list(t)    |", t == list(t))
 
 
     print("s + t           |", s + t)
@@ -94,8 +93,26 @@ if __name__ == "__main__":
     ### Fp testing session
     p = 3
     Fp = GF(p)
-    ## Build an SBox from F_3^2 to itself, invertible
+    # Build an SBox from F_3^2 to itself, invertible
     lut = [[0,1],[1,0],[0,2],[0,0],[2,0],[2,2],[1,2],[2,1],[1,1]]
     lut = [[Fp(x),Fp(y)] for x,y in lut]
     u = Sb(lut)
-    print(u[(Fp(0),Fp(1))])
+    print(u[(Fp(0),Fp(1))]) 
+  
+    R = PolynomialRing(Fp,2,"x")
+    x1, x2 = R.gens()
+    P1 = x1**3 + x2**5 + x1*x2
+    P2 = x2
+    v = Sb([P1,P2])
+
+    print(v+u)
+    print(v*u)
+    print(u.inverse())
+    try :
+        print((v*u).inverse())
+    except Exception as e :
+        pass
+    print(pow(u,-2).get_lut())
+
+    w = pow(u,0)
+    print(w[(0,1)])
