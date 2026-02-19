@@ -2,7 +2,6 @@
 
 from sboxUv2.cython_types cimport *
 
-from libcpp.memory cimport unique_ptr
 
 # !SECTION! Declaring the C++ Code
 
@@ -55,7 +54,6 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
         cpp_S_box_fp()
         cpp_S_box_fp(BinWord input_size, BinWord output_size, cpp_Integer p, std_vector[cpp_Integer] powers_in, std_vector[cpp_Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut)
         cpp_S_box_fp(cpp_Integer p, std_vector[FpWord] lut)
-        cpp_S_box_fp(const cpp_S_box_fp& s)
         BinWord get_input_size() const
         BinWord get_output_size() const
         cpp_Integer get_p() const
@@ -108,6 +106,6 @@ cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t)
 # !SUBSECTION! The S_Box_fp class
 
 cdef class S_box_fp:
-    cdef unique_ptr[cpp_S_box_fp] cpp_sb 
+    cdef cpp_S_box_fp * cpp_sb 
     cdef string cpp_name
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s)

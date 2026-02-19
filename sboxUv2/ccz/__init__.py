@@ -6,7 +6,7 @@
 
 from .cython_functions import \
     thickness_spectrum, WalshZeroesSpaces, get_WalshZeroesSpaces, \
-    ccz_equivalent_function, enumerate_ea_classes, EA_mapping, \
+    ccz_equivalent_function, enumerate_ea_classes, enumerate_permutations_in_ccz_class, EA_mapping, \
     linear_equivalences, el_equivalences, cczl_equivalences, \
     affine_equivalences, ea_equivalences, ccz_equivalences, \
     are_linear_equivalent, are_el_equivalent, are_cczl_equivalent, \
