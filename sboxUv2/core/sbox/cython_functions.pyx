@@ -106,7 +106,7 @@ cdef class S_box:
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self, s))
         # below, the [0] is used to follow the S_box.cpp_sb pointer
-        name = self.cpp_name + b"+" + s.get_name()
+        name = self.cpp_name + b"+" + s.name()
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(self.cpp_sb[0], (<S_box>s).cpp_sb[0]))
         return result

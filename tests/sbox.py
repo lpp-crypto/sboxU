@@ -4,29 +4,29 @@ from sage.crypto.sboxes import sboxes
 from sage.all import *
 
 if __name__ == "__main__":
-    # print(isinstance(list(range(0,16)),list))
-    # u = Sb(list(range(0, 16)))
-    # s = random_permutation_S_box(4)
-    # t = random_function_S_box(4, 2, name="t")
-    # s_prime = Sb(list(s), name="S'")
-    # print("u      |", u)
-    # print("t      |", t)
-    # print("s      |", s)
-    # for i in range(0, s.get_input_length()):
-    #     print(s.coordinate(i))
-    #     print(s.component(1 << i))
+    print(isinstance(list(range(0,16)),list))
+    u = Sb(list(range(0, 16)))
+    s = random_permutation_S_box(4)
+    t = random_function_S_box(4, 2, name="t")
+    s_prime = Sb(list(s), name="S'")
+    print("u      |", u)
+    print("t      |", t)
+    print("s      |", s)
+    for i in range(0, s.get_input_length()):
+        print(s.coordinate(i))
+        print(s.component(1 << i))
 
-    # print("lut(s) |", s.lut())
-    # print("t == u |", t == u)
-    # print("t == s |", t == s)
-    # print("s' == s|", s_prime == s)
+    print("lut(s) |", s.lut())
+    print("t == u |", t == u)
+    print("t == s |", t == s)
+    print("s' == s|", s_prime == s)
     
-    # print("s[2] = {}, t[1] = {}, u[2] = {}".format(s[2], t[1], u[2]))
-    # print("input space for u", list(u.input_space()))
+    print("s[2] = {}, t[1] = {}, u[2] = {}".format(s[2], t[1], u[2]))
+    print("input space for u", list(u.input_space()))
 
-    # print("hash(s) =       |", hash(s))
-    # print("t == [0,1,2,3]  |", t == [0,1,2,3])
-    # print("t == list(t)    |", t == list(t))
+    print("hash(s) =       |", hash(s))
+    print("t == [0,1,2,3]  |", t == [0,1,2,3])
+    print("t == list(t)    |", t == list(t))
 
 
     print("s + t           |", s + t)

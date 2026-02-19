@@ -19,16 +19,3 @@ include-package-data = false
 [tool.setuptools.packages.find]
 include = ["sboxUv2*"] 
 namespaces = false
-
-
-[build-system]
-requires = [ "setuptools", "wheel", "cython" ]
-build-backend = "setuptools.build_meta"
-
-
-[tool.setuptools]
-include-package-data = false
-
-[tool.setuptools.packages.find]
-include = ["sboxUv2*"] 
-namespaces = false
