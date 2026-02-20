@@ -4,6 +4,7 @@ from sboxUv2.core.f2functions cimport *
 
 from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
 
+from typing import Union
 
 from sage.all import Integer as sage_Integer
 from sage.all import ceil, floor
@@ -345,7 +346,7 @@ cdef class S_box:
         result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
         result.set_inner_sbox(<cpp_S_box>self.cpp_sb.coordinate(<BinWord>i))
         return result
-        
+    
     
     def component(S_box self, BinWord a) -> S_box:
         """Returns:
@@ -560,6 +561,9 @@ cdef class S_box_fp:
         return dereference(self.cpp_sb).get_lut()
 
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
+        """
+        Assigns a cpp_S_box_fp object into the Python wrapper, moving it safely.
+        """
         self.cpp_sb = make_unique[cpp_S_box_fp](s)
 
 # !SUBSECTION! Functions from the SBox
@@ -593,9 +597,10 @@ cdef class S_box_fp:
             An S_box_fp instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
         
         """
-        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8")+ self.get_name())
+        cdef cpp_S_box_fp cpp_sbox = dereference(self.cpp_sb)
+        result = S_box(name=("Δ_{:x} ".format(cpp_sbox.vec_to_int(delta,cpp_sbox.get_powers_in())).encode("UTF-8")+ self.get_name()))
         (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).derivative(delta))
-        return result
+        return (<S_box_fp>result)
 
     def is_invertible(self) -> bool:
         """Returns:
@@ -619,7 +624,6 @@ cdef class S_box_fp:
 # !SECTION! Generating S-boxes
 
 # !SUBSECTION! Main factory
-from typing import Union
 
 def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
     """Turns its input into an object of the S_box class.

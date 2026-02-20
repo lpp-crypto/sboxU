@@ -108,6 +108,8 @@ if __name__ == "__main__":
     v = Sb([P1,P2])
     print(u)
     print(v)
+    a = v.derivative([int(0),int(0)])
+    print(a)
 
     print(v+u)
     print(v*u)
@@ -116,10 +118,6 @@ if __name__ == "__main__":
         print((v*u).inverse())
     except Exception as e :
         pass
-    print(pow(u,-2).get_lut())
 
     w = pow(u,0)
     print(w[(0,1)])
-    s = [0]
-    v = Sb(s)
-    print(isinstance(s,list))

@@ -47,9 +47,9 @@ cdef extern from "../../cpp/core/s_box.cpp":
 cdef extern from "../../cpp/core/s_box_fp.hpp":
     cppclass cpp_S_box_fp:
         cpp_S_box_fp()
-        cpp_S_box_fp(BinWord input_size, BinWord output_size, cpp_Integer p, std_vector[cpp_Integer] powers_in, std_vector[cpp_Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut)
-        cpp_S_box_fp(cpp_Integer p, std_vector[FpWord] lut)
-        cpp_S_box_fp(const cpp_S_box_fp& s)
+        cpp_S_box_fp(BinWord input_size, BinWord output_size, cpp_Integer p, std_vector[cpp_Integer] powers_in, std_vector[cpp_Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut) except +
+        cpp_S_box_fp(cpp_Integer p, std_vector[FpWord] lut) except +
+        cpp_S_box_fp(const cpp_S_box_fp& s) except +
         BinWord get_input_size() const
         BinWord get_output_size() const
         cpp_Integer get_p() const
