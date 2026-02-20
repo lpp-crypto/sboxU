@@ -121,9 +121,5 @@ if __name__ == "__main__":
     w = pow(u,0)
     print(w[(0,1)])
     s = [0]
-    from sage.rings.polynomial.multi_polynomial_element import MPolynomial
-
-    print(isinstance(s[0],(MPolynomial)))
-    print(isinstance(s[0], (list)))
     v = Sb(s)
     print(isinstance(s,list))
