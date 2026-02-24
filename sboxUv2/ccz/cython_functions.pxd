@@ -80,6 +80,11 @@ cdef extern from "../cpp/ccz/explore.hpp":
         const cpp_BinLinearMap &C
         )
 
+    std_vector[cpp_S_box] cpp_enumerate_permutations_in_ccz_class(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+
     
 cdef extern from "../cpp/ccz/explore.cpp":
     pass

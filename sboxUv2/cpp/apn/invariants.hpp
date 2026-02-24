@@ -1,7 +1,7 @@
-#ifndef _APN_
-#define _APN_
+#ifndef _APN_INVARIANTS_
+#define _APN_INVARIANTS_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 #include "../statistics/include.hpp"
 #include "../ccz/include.hpp"

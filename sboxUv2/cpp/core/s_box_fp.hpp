@@ -1,7 +1,8 @@
 #ifndef _S_BOX_FP_
 #define _S_BOX_FP_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
+#include <assert.h>
 
 class cpp_S_box_fp {
 
@@ -46,7 +47,6 @@ class cpp_S_box_fp {
             input_space = build_input_space(p,input_size);
             output_space = build_input_space(p,output_size);
         }
-
         // Getters
         BinWord get_input_size() const {return input_size;}
 
@@ -149,9 +149,9 @@ class cpp_S_box_fp {
         }
 
         // Returns the derivative of the S-Box, namely x -> S(x+delta) - S(x)
-        cpp_S_box_fp derivative(const FpWord& delta) const {
+        const cpp_S_box_fp& derivative(const FpWord& delta) const {
             Integer delta_int = vec_to_int(delta,powers_in);
-            std::vector<FpWord> new_lut(pow((float)p,(float)input_size));
+            std::vector<FpWord> new_lut(input_space.size());
             for (int i = 0; i < input_space.size(); i++){
                 Integer j = (j+delta_int)%p;
                 const FpWord& out_i = lut[i];
@@ -166,12 +166,13 @@ class cpp_S_box_fp {
         }
 
         // Returns the i-th coordinate function of the SBox 
-        cpp_S_box_fp coordinate(const BinWord i) const {
-            std::vector<FpWord> new_lut(pow((float)p,(float)input_size));
+        const cpp_S_box_fp& coordinate(const BinWord i) const {
+            std::vector<FpWord> new_lut;
             for (int j = 0; j < input_space.size(); j++){
                 const FpWord& out = lut[j];
-                FpWord new_out{lut[j][i]};
-                new_lut[i] = new_out;
+                FpWord out_i;
+                out_i.push_back(out[i]);
+                new_lut.push_back(out_i);
             }
             return cpp_S_box_fp(p,new_lut);
         }

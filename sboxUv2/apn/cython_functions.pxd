@@ -82,3 +82,13 @@ cdef extern from "../cpp/apn/ccz_class.hpp":
 
 cdef extern from "../cpp/apn/ccz_class.cpp":
     pass
+
+
+# !SUBSECTION! Switching Neighbours
+
+cdef extern from "../../cpp/apn/sn.hpp":
+    
+    std_vector[std_vector[cpp_S_box]] cpp_non_trivial_sn (const cpp_S_box & f, cpp_Integer n_eq, cpp_Integer n_step)
+
+cdef extern from "../../cpp/apn/sn.cpp":
+    pass

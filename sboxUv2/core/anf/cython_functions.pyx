@@ -110,6 +110,40 @@ def algebraic_normal_form(s, polynomial_vars=None):
             for i in range(sb.get_output_length())]
 
 
+def anf_component(s):
+    sb = Sb(s)
+    plop = cpp_anf_component((<S_box>sb).cpp_sb[0])
+    return(plop)
+
+def quadratic_compact_representation(s):
+
+    """
+    Args:
+        s: an S_box-able object 
+
+    Returns:
+        A list of elements representing a compact representation of a quadratic function
+    """
+    
+    sb = Sb(s)
+    plop = cpp_quadratic_compact_representation((<S_box>sb).cpp_sb[0])
+    return(plop)
+
+
+def quadratic_sbox_from_compact_representation(repr,n,m):
+
+    """
+    Args:
+        repr: a quadratic compact representation
+        n: input size
+        m: output size
+
+    Returns:
+        The quadratic S box corresponding to the compact representation
+    """
+    return(cpp_quadratic_sbox_from_compact_representation(repr,n,m))
+
+
 # !SECTION! Evaluating ANFs
 
 def eval_anf(anf, x):

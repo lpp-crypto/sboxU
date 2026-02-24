@@ -3,10 +3,13 @@
 from sage.all import Matrix, GF, Polynomial
 from sboxUv2.core.f2functions.field_arithmetic import i2f_and_f2i
 
+from cython.operator cimport dereference as ampersand
 
-# !SECTION! Wrapped C++
 
-# !SUBSECTION! Bit-fiddling
+
+# !SECTION! Bit-fiddling
+
+# !SUBSECTION! Wrapped C++
 
 def oplus(BinWord x, BinWord y) -> BinWord:
     """Essentially a wrapper for the operation `^` in C++. Its purpose is to ensure that a XOR is performed regardless of the extension of the script.
@@ -83,9 +86,24 @@ def circ_shift(BinWord x, int n, int shift) -> BinWord:
     """
     return cpp_circ_shift(x,n,shift)
 
+# !SUBSECTION! Convenient XOR abstractions
+
+def xor(*args) -> BinWord:
+    result = 0
+    for x in args:
+        if isinstance(x, int):
+            result = oplus(x, result)
+        else:
+            for y in x:
+                if isinstance(y, int):
+                    result = oplus(y, result)
+                else:
+                    raise Exception("Trying to XOR a strange type ({})".format(type(x)))
+    return result
 
 
-# !SUBSECTION! Linear combinations and ranks 
+
+# !SECTION! Linear combinations and ranks 
 
  
 def linear_combination(std_vector[BinWord] v, BinWord mask) -> BinWord:
@@ -228,6 +246,8 @@ def circ_shift_BinLinearMap(int n, int shift) -> BinLinearMap:
     return Blm([circ_shift(1 <<i,n,shift) for i in range(0, n)],n,n)
 
     
+# !SUBSECTION! The main factory, Blm
+
 
 def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
     if isinstance(l, (BinLinearMap)):
@@ -277,24 +297,3 @@ def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
             raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))
         return result
 
-
-# !SECTION! Convenient XOR abstractions
-
-def xor(*args) -> BinWord:
-    result = 0
-    for x in args:
-        if isinstance(x, int):
-            result = oplus(x, result)
-        else:
-            for y in x:
-                if isinstance(y, int):
-                    result = oplus(y, result)
-                else:
-                    raise Exception("Trying to XOR a strange type ({})".format(type(x)))
-    return result
-
-            
-
-
-
-    

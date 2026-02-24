@@ -20,7 +20,7 @@ cpp_BinLinearMap::cpp_BinLinearMap(const cpp_S_box & lut) :
 }
 
 
-cpp_BinLinearMap cpp_BinLinearMap::operator*(const cpp_BinLinearMap l) const
+cpp_BinLinearMap cpp_BinLinearMap::operator*(const cpp_BinLinearMap & l) const
 {
     if (l.get_output_length() != input_length)
         throw std::runtime_error("mismatched input/output length when multiplying BinLinearMap:s");
@@ -34,7 +34,7 @@ cpp_BinLinearMap cpp_BinLinearMap::operator*(const cpp_BinLinearMap l) const
 };
 
 
-cpp_BinLinearMap cpp_BinLinearMap::operator+(const cpp_BinLinearMap l) const
+cpp_BinLinearMap cpp_BinLinearMap::operator+(const cpp_BinLinearMap & l) const
 {
     if (l.get_input_length() != input_length)
         throw std::runtime_error("mismatched input length when adding BinLinearMap:s");
@@ -46,8 +46,15 @@ cpp_BinLinearMap cpp_BinLinearMap::operator+(const cpp_BinLinearMap l) const
             images[i] ^= l.image_vectors[i];
         return cpp_BinLinearMap(images, input_length, output_length);
     }
-};
+}
 
+
+cpp_BinLinearMap cpp_BinLinearMap::operator|(const cpp_BinLinearMap & l) const
+{
+    std::vector new_image(image_vectors.begin(), image_vectors.end());
+    new_image.insert(new_image.end(), l.image_vectors.begin(), l.image_vectors.end());
+    return cpp_BinLinearMap(new_image);
+}
 
 
 cpp_BinLinearMap cpp_BinLinearMap::inverse() const

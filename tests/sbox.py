@@ -1,4 +1,6 @@
 # -*- python -*-
+
+
 from sboxUv2 import *
 from sage.crypto.sboxes import sboxes
 from sage.all import *
@@ -38,11 +40,13 @@ if __name__ == "__main__":
     print("s**-1: ", s**-1)
     print("s**-1 == s.inverse(): ", s.inverse() == s**-1)
     print("s+t is invertible", (s+t).is_invertible())
-    # print("can we invert s+t?")
-    # try:
-    #     print((s+t).inverse())
-    # except:
-    #     print("no, it indeed threw an exception")
+
+    print("can we invert s+t?")
+    try:
+        inv = (s+t).inverse()
+        print(inv)
+    except:
+        print("no, it indeed threw an exception")
 
     print("t o s", t * s)
 
@@ -78,15 +82,15 @@ if __name__ == "__main__":
     #     print(x, s_prod(x))
 
 
-    # for n in range(3, 11):
-    #     print("\n\n----\n", n)
-    #     for t in range(0, 3):
-    #         s = random_function_S_box(randint(2, 7), n)
-    #         b = s.to_bytes()
-    #         print("\n{}\n{}\n{}".format(
-    #             b,
-    #             s,
-    #             Sb(b)))
+    for n in range(3, 11):
+        print("\n\n----\n", n)
+        for t in range(0, 3):
+            s = random_function_S_box(randint(2, 7), n)
+            b = s.to_bytes()
+            print("\n{}\n{}\n{}".format(
+                b,
+                s,
+                Sb(b)))
             
     ### Fp testing session
     p = 3
@@ -102,8 +106,18 @@ if __name__ == "__main__":
     P1 = x1**3 + x2**5 + x1*x2
     P2 = x2
     v = Sb([P1,P2])
+    print(u)
+    print(v)
+    a = v.derivative([int(0),int(0)])
+    print(a)
 
     print(v+u)
     print(v*u)
     print(u.inverse())
-    print((v*u).inverse())
+    try :
+        print((v*u).inverse())
+    except Exception as e :
+        pass
+
+    w = pow(u,0)
+    print(w[(0,1)])

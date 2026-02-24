@@ -118,6 +118,8 @@ class FunctionsDB:
             raise Exception("Insertion failed for \n {}\n".format(entry))
 
 
+
+
     def __len__(self):
         return self.number_of_functions
     
@@ -130,3 +132,4 @@ class FunctionsDB:
     def __exit__(self, *args):
         self.connection.commit()
         self.connection.close()
+

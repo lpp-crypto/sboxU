@@ -1,7 +1,7 @@
-#ifndef _CCZ_LINEAR_EQUIV_
-#define _CCZ_LINEAR_EQUIV_
+#ifndef _CCZ_LINEAR_REPR_
+#define _CCZ_LINEAR_REPR_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 
 
@@ -17,14 +17,13 @@ cpp_S_box cpp_le_class_representative(
     );
 
 
-cpp_S_box cpp_le_class_representative(
+inline cpp_S_box cpp_le_class_representative(
     const cpp_S_box f
     )
-
 {
     cpp_BinLinearMap A, B;
     return cpp_le_class_representative(f, A, B);
 };
 
 
-#endif /* _SBOXU_CPP_EQUIV_H_ */
+#endif

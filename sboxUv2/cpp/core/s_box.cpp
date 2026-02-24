@@ -184,7 +184,7 @@ bool cpp_S_box::is_invertible() const
 cpp_S_box cpp_S_box::inverse() const
 {
     if (input_length != output_length)
-        throw std::runtime_error("The S_box is not invertible");
+        return cpp_empty_S_box();
     else
     {
         BinWord forbidden_value = 1 << (output_length + 1);
@@ -192,7 +192,7 @@ cpp_S_box cpp_S_box::inverse() const
         for(unsigned int x=0; x<input_space_size(); x++)
         {
             if (inverse_lut[lut[x]] != forbidden_value)
-                throw std::runtime_error("The S_box is not invertible");
+                return cpp_empty_S_box();
             else
                 inverse_lut[lut[x]] = x;
         }
@@ -247,6 +247,8 @@ cpp_S_box cpp_empty_S_box()
 {
     return cpp_S_box(std::vector<BinWord>(0), 0, 0);
 }
+
+
 
 // !SECTION! Basic helper functions
 

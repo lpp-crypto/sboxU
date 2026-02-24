@@ -11,6 +11,7 @@ This re-write is intended to:
 2. Support S-boxes with different input and output sizes.
 3. Make sure the `C++` code can talk to itself, instead of consisting of a myriad of independent functions that are just called from `python`. This will allow a cleanup of said `C++` code, and enable moving larger and larger parts of the logic to pure `C++`.
 
+## Installation/Compilation
 
 ## Install
 
@@ -30,4 +31,11 @@ Some tests are provided in the `tests` folder. You must compile and install `sbo
 See the `docs` folder for matters related to documentation. It is available online:
 - for SAGE and Python and cython, see [https://who.paris.inria.fr/Leo.Perrin/code/sboxU/sage/index.html](this sphinx documentation)
 - for C++, see [https://who.paris.inria.fr/Leo.Perrin/code/sboxU/cpp/index.html](this doxygen documentation)
+
+See the `docs` folder for matters related to documentation.
+
+
+## sboxU_CPP
+
+The `C++` component of `sboxU` can be used on its own, see [the relevant folder](./sboxUv2/cpp/README.md).
 

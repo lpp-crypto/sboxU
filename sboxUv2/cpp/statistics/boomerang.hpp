@@ -1,7 +1,7 @@
 #ifndef _STAT_BOOMERANG_
 #define _STAT_BOOMERANG_
 
-#include "../sboxU.hpp"
+#include "../common.hpp"
 #include "../core/include.hpp"
 
 cpp_Spectrum cpp_bct_spectrum(

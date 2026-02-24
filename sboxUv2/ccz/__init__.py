@@ -6,7 +6,7 @@
 
 from .cython_functions import \
     thickness_spectrum, WalshZeroesSpaces, get_WalshZeroesSpaces, \
-    ccz_equivalent_function, enumerate_ea_classes, EA_mapping, \
+    ccz_equivalent_function, enumerate_ea_classes, enumerate_permutations_in_ccz_class, EA_mapping, \
     linear_equivalences, el_equivalences, cczl_equivalences, \
     affine_equivalences, ea_equivalences, ccz_equivalences, \
     are_linear_equivalent, are_el_equivalent, are_cczl_equivalent, \
@@ -15,3 +15,4 @@ from .cython_functions import \
 from .affine_equivalence import *
 from .tu_decompositions import TUdecomposition,thickness,tu_decomposition_from_space_basis,get_tu_decompositions,swap_Blm
 from .equivalences_from_code import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
+from .equivalence_from_vq import are_ea_equivalent_from_vq

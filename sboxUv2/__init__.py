@@ -8,20 +8,21 @@ A particular focus is put on efficiency: large parts of this library are written
 
 
 
-from .core import *
+from sboxUv2.core import *
 
-from .display import *
+from sboxUv2.display import *
 
-from .algorithms import *
+from sboxUv2.algorithms import *
 
-from .biblio import *
+from sboxUv2.biblio import *
     
-from .statistics import *
+from sboxUv2.statistics import *
 
-from .ccz import *
+from sboxUv2.ccz import *
 
-from .apn import *
+from sboxUv2.apn import *
 
-from .databases import *
+from sboxUv2.databases import *
 
-from .random_objects import *
+from sboxUv2.random_objects import *
+

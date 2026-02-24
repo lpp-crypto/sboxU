@@ -2,8 +2,10 @@
 
 """
 
-from .sbox import *
-from .f2functions import * 
-from .building_blocks import *
-from .spectrum import *
-from .anf import *
+
+from sboxUv2.core.sbox import *
+from sboxUv2.core.f2functions import * 
+from sboxUv2.core.building_blocks import *
+from sboxUv2.core.spectrum import *
+from sboxUv2.core.anf import *
+

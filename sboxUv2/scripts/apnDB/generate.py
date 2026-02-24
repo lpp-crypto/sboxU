@@ -1,10 +1,12 @@
 from sboxUv2 import *
 from pathlib import Path
 import argparse
+import hashlib
 
 
-DEFAULT_APN_DB_NAME = "apnDB.db"
-
+########################################################
+#### !SECTION! Code For Generic EA Classes Database ####
+########################################################
 
 def generate_apn_ea_classes_database(
         ccz_class_representatives,
@@ -39,7 +41,7 @@ def generate_apn_ea_classes_database(
 
         with APNFunctions(db_path) as db:
     
-            section("filling the databse with CCZ-quadratic EA classes")
+            section("filling the database with CCZ-quadratic EA classes")
             
             for index, s in enumerate(quads):
                 inserted = db.insert_full_ccz_equivalence_class(
@@ -87,25 +89,98 @@ def process_arguments():
     parser.add_argument("-n", 
                         type=int,
                         help="The value of the bit length of the functions to process")
+    parser.add_argument("-mode", 
+                        type=str,
+                        help="The mode of database generation")
     return parser.parse_args()
 
+
+
+################################################################
+#### !SECTION! Code For CCZ only quadratic compact database ####
+################################################################
+
+
+
+
+
+
+def generate_apn_ccz_classes_database(
+        ccz_class_representatives,
+        db_path
+):
+    """!TODO! write docstring
+    """
+    with Experiment("Generating database"):
+        
+        section("Grabbing class representatives")
+
+        subsection("reading")
+        
+        # Generating the DB
+        print("path = ", db_path)
+        if Path(db_path).is_file():
+            print("[WARNING] file already exists, we are deleting it")
+            Path(db_path).unlink()
+        else:
+            print("DB will be stored in {}".format(db_path))
+        
+        print("using {} class representatives".format(len(ccz_class_representatives)))
+        with APNQuadraticFunctions_ccz_only(db_path) as db:
     
+            section("filling the database with CCZ-quadratic classes")
+            
+            for index, s in enumerate(ccz_class_representatives):
+                
+                #print("Trying {}th Function in Representative List".format(index))
+                
+                if algebraic_degree(s) == 2:
+                    inserted = db.insert_quadratic_ccz_representative(s)
+                    if inserted == None :
+                        print("- {}th Function is not New".format(index))
+                        print()
+                    #else:
+                    #    print("- {}th Function is New".format(index))
+                    #    print()
+                else:
+                    print("Non Quadratic Function, discarded")
+                    print()
+
+            print("generation finished")
+            print("{} CCZ classes found".format(db.number_of_ccz_classes))
+ 
+
+
+DEFAULT_APN_DB_NAME = "apnDB.db"
+
 def main_cli():
     args = process_arguments()
     n = args.n
     path = args.path
-    print(n, path)
+    mode = args.mode
+    print(n, path,mode)
     if n == 6:
         from .reprs6 import ccz_class_representatives
     elif n == 7:
         from .reprs7 import ccz_class_representatives
-    if n not in [6,7]:
-        print("n must be 6 or 7")
+    elif n == 8:
+        from .reprs8 import ccz_class_representatives
+    if n not in [6,7,8]:
+        print("n must be 6,7 or 8")
     else:
-        generate_apn_ea_classes_database(
-            ccz_class_representatives,
-            path
-        )
+
+        if mode == 'ccz_compact':
+
+            generate_apn_ccz_classes_database(
+                ccz_class_representatives,
+                path
+                    )
+        else:
+
+            generate_apn_ea_classes_database(
+                ccz_class_representatives,
+                path
+            )
 
 
 if __name__ == "__main__":

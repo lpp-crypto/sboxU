@@ -94,8 +94,13 @@ cdef class WalshZeroesSpaces:
             (<WalshZeroesSpaces>self).cpp_wzs[0].thickness_spectrum()
         )
         return result
-        
 
+    
+    def __iter__(self):
+        for b in self.cpp_wzs[0].bases:
+            yield BinLinearBasis(b.get_basis())
+        return
+        
 
 def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
@@ -141,6 +146,20 @@ def enumerate_ea_classes(s):
     result = []
     i = 0
     for new_s in cpp_enumerate_ea_classes(
+        (<S_box>sb).cpp_sb[0],
+        MAX_N_THREADS):
+        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb.set_inner_sbox(<cpp_S_box>new_s)
+        result.append(new_sb)
+        i += 1
+    return result
+
+
+def enumerate_permutations_in_ccz_class(s):
+    sb = Sb(s)
+    result = []
+    i = 0
+    for new_s in cpp_enumerate_permutations_in_ccz_class(
         (<S_box>sb).cpp_sb[0],
         MAX_N_THREADS):
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
