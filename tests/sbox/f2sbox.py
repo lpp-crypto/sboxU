@@ -7,10 +7,9 @@ from sage.all import *
 
 if __name__ == "__main__":
 
-    with Experiment("Testing S-box module"):
-        section("F2 case")
+    with Experiment("Testing S-boxes in F_2"):
+        section("Basic functionalities")
         
-        print(isinstance(list(range(0,16)),list))
         u = Sb(list(range(0, 16)))
         s = random_permutation_S_box(4)
         t = random_function_S_box(4, 2, name="t")
@@ -18,10 +17,8 @@ if __name__ == "__main__":
         print("u      |", u)
         print("t      |", t)
         print("s      |", s)
-        for i in range(0, s.get_input_length()):
-            print(s.coordinate(i))
-            print(s.component(1 << i))
-    
+
+
         print("lut(s) |", s.lut())
         print("t == u |", t == u)
         print("t == s |", t == s)
@@ -34,7 +31,14 @@ if __name__ == "__main__":
         print("t == [0,1,2,3]  |", t == [0,1,2,3])
         print("t == list(t)    |", t == list(t))
     
+        subsection("testing coordinates")
+        
+        for i in range(0, s.get_input_length()):
+            print(s.coordinate(i))
+            print(s.component(1 << i))
     
+        subsection("operations")
+        
         print("s + t           |", s + t)
         print("s is invertible |", s.is_invertible())
         print("inverse of s: ", s.inverse())
@@ -53,7 +57,8 @@ if __name__ == "__main__":
             print("no, it indeed threw an exception")
     
         print("t o s", t * s)
-    
+
+        section("finite field operations")
         mul = F2_mul(2, GF(16))
         print(mul)
         comp = s * mul
@@ -76,55 +81,9 @@ if __name__ == "__main__":
         for delta in sb0.input_space():
             print(sb0.derivative(delta))
     
-        # c     = CastFromF2Product([2, 3])
-        # c_inv = CastToF2Product([2, 3])
-        # s_prod = Sb(random_permutation_S_box(5).lut(),
-        #             input_cast=[c],
-        #             output_cast=[c_inv]
-        #             )
-        # for x in c.structure([2, "*"]):
-        #     print(x, s_prod(x))
-
-        
-        section("Fp case")
-        
-        for n in range(3, 11):
-            print("\n\n----\n", n)
-            for t in range(0, 3):
-                s = random_function_S_box(randint(2, 7), n)
-                b = s.to_bytes()
-                print("\n{}\n{}\n{}".format(
-                    b,
-                    s,
-                    Sb(b)))
-                
-        ### Fp testing session
-        p = 3
-        Fp = GF(p)
-        # Build an SBox from F_3^2 to itself, invertible
-        lut = [[0,1],[1,0],[0,2],[0,0],[2,0],[2,2],[1,2],[2,1],[1,1]]
-        lut = [[Fp(x),Fp(y)] for x,y in lut]
-        u = Sb(lut)
-        print(u[(Fp(0),Fp(1))]) 
-      
-        # R = PolynomialRing(Fp,2,"x")
-        # x1, x2 = R.gens()
-        # P1 = x1**3 + x2**5 + x1*x2
-        # P2 = x2
-        # v = Sb([P1,P2])
-        # print(u)
-        # print(v)
-        # a = v.derivative([int(0),int(0)])
-        # print(a)
-    
-        # print(v+u)
-        # print(v*u)
-        # print(u.inverse())
-        # try :
-        #     print((v*u).inverse())
-        # except Exception as e :
-        #     pass
-    
-        # w = pow(u,0)
-        # print(w[(0,1)])
-    
+        c     = CastFromF2Product([2, 3])
+        c_inv = CastToF2Product([2, 3])
+        s_prod = random_permutation_S_box(5)
+        s_prod.attach_casts_pair(c, c_inv)
+        for x in c.structure([2, "*"]):
+            print(x, s_prod(x))

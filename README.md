@@ -11,7 +11,6 @@ This re-write is intended to:
 2. Support S-boxes with different input and output sizes.
 3. Make sure the `C++` code can talk to itself, instead of consisting of a myriad of independent functions that are just called from `python`. This will allow a cleanup of said `C++` code, and enable moving larger and larger parts of the logic to pure `C++`.
 
-## Installation/Compilation
 
 ## Install
 

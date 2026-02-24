@@ -1,8 +1,8 @@
 # -*- python -*-
 
 from sboxUv2.core.f2functions cimport *
-
 from sboxUv2.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
+from sboxUv2.core.sbox.linearCasts import casts_from_field
 
 from typing import Union
 
@@ -69,10 +69,10 @@ cdef class S_box:
     # !SUBSECTION! Initialization and destruction
 
  
-    def __init__(self, name=None):
+    def __init__(self, name=None, input_casts : list=[], output_casts: list=[]):
         self.rename(name)
-        self.input_cast = []
-        self.output_cast = []
+        self.input_casts = input_casts
+        self.output_casts = output_casts
 
     
     def __dealloc__(self):
@@ -80,7 +80,7 @@ cdef class S_box:
         free(self.cpp_sb)
 
         
-    # !SUBSECTION! Dealing with the name
+    # !SUBSECTION! Dealing with basic attributes
     
     def rename(self, name):
         if name == None:
@@ -91,6 +91,11 @@ cdef class S_box:
             self.cpp_name = name.encode("UTF-8")
         else:
             raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+
+        
+    def attach_casts_pair(self, input_cast, output_cast) -> None:
+        self.input_casts.append(input_cast)
+        self.output_casts.append(output_cast)
 
         
     # !SUBSECTION! Python built-in methods
@@ -128,16 +133,12 @@ cdef class S_box:
             The result of calling this S-box on the input of `x`, and then casting the result to the correct type.
         """
         if isinstance(x, (int, sage_Integer)):
-            return self.output_cast(self.cpp_sb.brackets(<BinWord>x))
-        elif self.input_cast != None:
-            for c in self.input_cast:
-                if c.is_valid_input(x):
-                    return self.output_cast[0](self.cpp_sb.brackets(c(x)))
-            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
+            return self.cpp_sb.brackets(<BinWord>x)
         else:
-            raise Exception("A cast able to process {} must be specified".format(type(x)))
-
-    # !CONTINUE! put basic casts to a dedicated file, and then add the logic to add those to S_boxes
+            for i, c in enumerate(self.input_casts):
+                if c.is_valid_input(x):
+                    return self.output_casts[i](self.cpp_sb.brackets(c(x)))
+            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
 
 
     def __eq__(self, s) -> bool:
@@ -380,16 +381,19 @@ cdef class S_box:
         return self.cpp_sb.is_invertible()
 
     
-    def inverse(self) -> S_box:
+    def inverse(self) -> S_box | Exception:
         """Returns:
             An S_box instance corresponding to the compositional inverse of the current S_box.
 
         If the current S_box is not invertible, will probably crash.
         """
-        name = self.cpp_name + b"^-1"
-        result = S_box(name=name)
-        (<S_box>result).set_inner_sbox(<cpp_S_box>(self.cpp_sb.inverse()))
-        return result
+        if self.is_invertible():
+            name = self.cpp_name + b"^-1"
+            result = S_box(name=name) 
+            (<S_box>result).set_inner_sbox(<cpp_S_box>(self.cpp_sb.inverse()))
+            return result
+        else:
+            raise Exception("Trying to invert non-invertible S-box")
 
 
     
@@ -407,7 +411,7 @@ cdef class S_box_fp:
     def __init__(S_box_fp self, name=None):
         self.rename(name)
 
-    # !SUBSECTION! Dealing with the name
+    # !SUBSECTION! Dealing with basic attributes
 
     def rename(S_box_fp self, name):
         if name == None:
@@ -418,6 +422,8 @@ cdef class S_box_fp:
             self.cpp_name = name.encode("UTF-8")
         else:
             raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+        
+        
 
     # !SUBSECTION! Python built-in methods
 
@@ -623,9 +629,141 @@ cdef class S_box_fp:
 
 # !SECTION! Generating S-boxes
 
+
+# !SUBSECTION! Basic factories
+
+def get_Sbox_from_lut(s : list, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
+    cdef std_vector[FpWord] input_space
+    cdef std_vector[FpWord] lut_cpp
+    cdef FpWord out
+    
+    if len(s) % 2 == 0:
+        # case of F_2
+        result = S_box(name=name,
+                       input_casts=input_casts,
+                       output_casts=output_casts)
+        (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
+        return result
+    else:
+        # case of F_p
+        if isinstance(s[0], (list)): # case of a lookup table. The only supported type is a list of list of IntegerMod_int, 
+        # each s[i][j] being the value of the j-th branch on input i
+            if not isinstance(s[0][0], (IntegerMod_int)):
+                raise TypeError(
+                    """If the characteristic is odd and the SBox is passed as a look-up-table,
+                the look-up-table entries need to be a list of list of sage.rings.finite_rings.integer_mod.IntegerMod_int,
+                each entry of the list being one output branch""")
+            result = S_box_fp(name=name)
+            p = s[0][0].parent().cardinality()
+            s_conv = [[int(x) for x in y] for y in s]
+            (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<cpp_Integer>p,<std_vector[FpWord]>s_conv))  
+            return result      
+        else:
+            raise NotImplementedError("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))   
+    
+        
+
+
+def get_Sbox_from_bytes(s : bytes | bytearray, name, input_casts : list, output_casts: list) -> S_box:
+    result = S_box(name=name,
+                   input_casts=input_casts,
+                   output_casts=output_casts)
+    (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
+    return result
+
+
+def get_Sbox_from_multivariate_polynomials(s : list, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
+    result = S_box(name=name,
+                   input_casts=input_casts,
+                   output_casts=output_casts)
+    n_vars = len(s[0].parent().gens())
+    p = int((s[0].parent().base_ring().cardinality()))    
+    if p%2 == 0:
+        # ANF over F2
+        lut = [0 for x in range(0, 2**n_vars)]
+        for x in range(0, len(lut)):
+            # duplicating the code from ..anf to prevent cross dependencies
+            x_bin = to_bin(x, n_vars)
+            y = 0
+            for i in range(0, len(s)):
+                y = (<BinWord>(s[i](x_bin)) << i) | y
+            lut[x] = y
+        (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+        return result
+    else:
+        # ANF over Fp
+        lut_cpp = std_vector[FpWord]()
+        input_space = cpp_S_box_fp.build_input_space(<cpp_Integer>p,<cpp_Integer>n_vars)
+        for x in range(0, p**n_vars):
+            out = FpWord()
+            x_vec = list(cpp_S_box_fp.int_to_vec(x, input_space))
+            for i in range(len(s)):
+                out.push_back(int(s[i](x_vec)))
+            lut_cpp.push_back(out)
+        (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<cpp_Integer>p,lut_cpp))
+        return result
+
+    
+def get_Sbox_from_sage_SBox(s : sage_SBox, name, input_casts : list, output_casts: list) -> S_box:
+    result = S_box(name=name,
+                   input_casts=input_casts,
+                   output_casts=output_casts)
+    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
+    return result
+
+
+def get_Sbox_from_BinLinearMap(s : BinLinearMap, name, input_casts : list, output_casts: list) -> S_box:
+    result = S_box(name=name,
+                   input_casts=input_casts,
+                   output_casts=output_casts)
+    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
+    (<S_box>result).cpp_sb[0] = (<BinLinearMap>s).cpp_blm[0].get_cpp_S_box()
+    return result
+
+
+def get_Sbox_from_univariate_polynomial(s : Polynomial, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
+    result = S_box(name=name,
+                   input_casts=input_casts,
+                   output_casts=output_casts)
+    field = s.base_ring()
+    if field.characteristic() == 2:
+        n = field.degree()
+        i2f, f2i = i2f_and_f2i(field)
+        lut = [f2i(s(i2f(x))) for x in range(0, 2**n)]
+        c_in, c_out = casts_from_field(field)
+        result.attach_casts_pair(c_in, c_out)
+        (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
+        return result
+    else:
+        # !TODO! implement Fp case 
+        raise NotImplemented
+    
+
+
+def get_Sbox_from_list(s : list, name, input_casts : list, output_casts : list) -> S_box | S_box_fp:
+    if len(s) == 0:
+        raise NotImplementedError("Cannot turn a list of length zero into an SBox")
+
+    elif isinstance(s[0], (MPolynomial)):
+        # case of an ANF
+        return get_Sbox_from_multivariate_polynomials(s, name, input_casts, output_casts)
+        
+    elif isinstance(s[0], (int, sage_Integer, list)):
+        # case of a LUT
+        return get_Sbox_from_lut(s, name, input_casts, output_casts)
+    
+
 # !SUBSECTION! Main factory
 
-def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
+
+SBOXU_TYPE_TO_FACTORY = {
+    sage_SBox    : get_Sbox_from_sage_SBox,
+    Polynomial   : get_Sbox_from_univariate_polynomial,
+    BinLinearMap : get_Sbox_from_BinLinearMap,
+    list         : get_Sbox_from_list
+}
+
+def Sb(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
     """Turns its input into an object of the S_box class.
 
     If it is already an S_box instance, simply returns its
@@ -639,117 +777,21 @@ def Sb(s, name=None, input_cast=[], output_cast=None) -> Union[S_box, S_box_fp]:
         output_cast: the function to apply to the integer output when querying the LUT.
 
     """
-    cdef std_vector[FpWord] input_space
-    cdef std_vector[FpWord] lut_cpp
-    cdef FpWord out
 
-    if isinstance(s, S_box):
-        return s
-    elif isinstance(s, S_box_fp):
+    if isinstance(s, (S_box, S_box_fp)):
         return s
     else:
-        if isinstance(s, (bytes, bytearray)):
-            result = S_box(name=name)
-            # case of a sequence of bytes
-            (<S_box>result).cpp_sb = new cpp_S_box(<Bytearray>s)
-            return result
+        t = type(s)
+        if t in SBOXU_TYPE_TO_FACTORY.keys():
+            return SBOXU_TYPE_TO_FACTORY[t](s, name, input_casts, output_casts)
+        elif isinstance(s, Polynomial):
+            # this separate test is needed because `Polynomial` is not a real type, it is a collection of types
+            return SBOXU_TYPE_TO_FACTORY[Polynomial](s, name, input_casts, output_casts)
+        else:
+            raise NotImplementedError("Cannot build an Sbox from this input type")
+            
 
-        elif isinstance(s, list):
-            # Case of a list of entries. Could be a list of numbers or a list of polynomials
-            if len(s) == 0:
-                raise NotImplementedError("Cannot turn a list of length zero into an SBox")
-            elif isinstance(s[0], (MPolynomial)): # case of an ANF
-                n_vars = len(s[0].parent().gens())
-                p = int((s[0].parent().base_ring().cardinality()))
-                ## ANF over F2
-                if p%2 == 0:
-                    result = S_box(name=name)
-                    lut = [0 for x in range(0, 2**n_vars)]
-                    for x in range(0, len(lut)):
-                        # duplicating the code from ..anf to prevent cross dependencies
-                        x_bin = to_bin(x, n_vars)
-                        y = 0
-                        for i in range(0, len(s)):
-                            y = (<BinWord>(s[i](x_bin)) << i) | y
-                        lut[x] = y
-                    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
-                    return result
-                # ANF over Fp
-                else :
-                    result = S_box_fp(name=name)
-                    lut_cpp = std_vector[FpWord]()
-                    input_space = cpp_S_box_fp.build_input_space(<cpp_Integer>p,<cpp_Integer>n_vars)
-                    for x in range(0, p**n_vars):
-                        out = FpWord()
-                        x_vec = list(cpp_S_box_fp.int_to_vec(x, input_space))
-                        for i in range(len(s)):
-                            out.push_back(int(s[i](x_vec)))
-                        lut_cpp.push_back(out)
-                    (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<cpp_Integer>p,lut_cpp))
-                    return result
-    
-            # Case SBox over a binary field
-            elif len(s)%2 == 0:
-                result = S_box(name=name)
-                if isinstance(s[0], (int, sage_Integer, IntegerMod_int)): # case of a lookup table
-                    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>s)
-                    return result
-                else:
-                    raise NotImplementedError("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))
-            # Case SBox over F_q where q = p^n
-            elif len(s)%2 == 1:
-                if isinstance(s[0], (list)): # case of a lookup table. The only supported type is a list of list of IntegerMod_int, 
-                # each s[i][j] being the value of the j-th branch on input i
-                    if not isinstance(s[0][0], (IntegerMod_int)):
-                        raise TypeError(
-                            """If the characteristic is odd and the SBox is passed as a look-up-table,
-                        the look-up-table entries need to be a list of list of sage.rings.finite_rings.integer_mod.IntegerMod_int,
-                        each entry of the list being one output branch""")
-                    result = S_box_fp(name=name)
-                    p = s[0][0].parent().cardinality()
-                    s_conv = [[int(x) for x in y] for y in s]
-                    (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<cpp_Integer>p,<std_vector[FpWord]>s_conv))  
-                    return result      
-                else:
-                    raise NotImplementedError("can't turn list of objects of type '{}' into an S_box".format(type(s[0])))   
-        else : 
-            result = S_box(name=name)
-            (<S_box>result).input_cast = input_cast
-            if output_cast == None:
-                (<S_box>result).output_cast = [lambda x : x]
-            else:
-                (<S_box>result).output_cast = output_cast
-
-            if isinstance(s, sage_SBox):
-                # case of a Sage-style SBox instance
-                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>list(s))
-                return result
-            elif isinstance(s, BinLinearMap):
-                # case of a BinLinearMap
-                (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>[])
-                (<S_box>result).cpp_sb[0] = (<BinLinearMap>s).cpp_blm[0].get_cpp_S_box()
-                return result
-            elif isinstance(s, Polynomial):
-                # case of a univariate polynomial
-                field = s.base_ring()
-                if field.characteristic() == 2:
-                    n = field.degree()
-                    i2f, f2i = i2f_and_f2i(field)
-                    lut = [f2i(s(i2f(x))) 
-                        for x in range(0, 2**n)]
-                    (<S_box>result).cpp_sb = new cpp_S_box(<std_vector[BinWord]>lut)
-                    return result
-                else:
-                    raise NotImplementedError("we don't yet support polynomials over fields of characteristic >2")
-            else:
-                try:                
-                    result = s.get_S_box()
-                    return result
-                except:
-                    msg = "can't turn object of type '{}' into an S_box".format(type(s))
-                    print(msg)
-                    raise NotImplementedError(msg)
-
+        
 # !SUBSECTION! Other basic structures
 
 def identity_S_box(length) -> S_box:
