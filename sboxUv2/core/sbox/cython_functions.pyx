@@ -57,6 +57,7 @@ cdef BinWord sboxU_SBOXES_COUNTER = 0
 cdef class S_box:
     """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
 
+    
     Objects of this class should be initialized using the :py:func:Sb function.
 
     """
@@ -515,7 +516,7 @@ cdef class S_box_fp:
         self.cpp_sb = new cpp_S_box_fp()
         self.cpp_sb[0] = s
 
-# !SUBSECTION! Functions from the SBox
+    # !SUBSECTION! Functions from the SBox
 
     def coordinate(S_box_fp self, BinWord i):
         """Args:
@@ -530,6 +531,7 @@ cdef class S_box_fp:
         (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>self.cpp_sb.coordinate(<BinWord>i))
         return result
 
+    
     def derivative(S_box_fp self, FpWord delta):
         """Args:
             i: the index of the coordinate, where 0 is the bit of lowest weight.
