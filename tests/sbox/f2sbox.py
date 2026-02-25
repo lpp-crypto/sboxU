@@ -80,7 +80,8 @@ if __name__ == "__main__":
         
         for delta in sb0.input_space():
             print(sb0.derivative(delta))
-    
+
+            
         c     = CastFromF2Product([2, 3])
         c_inv = CastToF2Product([2, 3])
         s_prod = random_permutation_S_box(5)
