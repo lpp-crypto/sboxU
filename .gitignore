@@ -1,4 +1,5 @@
 *~
+*#
 *cython_functions.cpp
 *.so
 *__pycache__

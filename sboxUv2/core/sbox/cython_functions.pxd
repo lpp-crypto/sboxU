@@ -2,9 +2,9 @@
 
 from sboxUv2.cython_types cimport *
 
+from libcpp.memory cimport unique_ptr
 
 # !SECTION! Declaring the C++ Code
-
 
 cdef extern from "../../cpp/core/s_box.hpp":
 
@@ -12,7 +12,6 @@ cdef extern from "../../cpp/core/s_box.hpp":
     
     cppclass cpp_S_box:
         cpp_S_box()
-        cpp_S_box(const cpp_S_box s)
         cpp_S_box(std_vector[BinWord] lut)
         cpp_S_box(Bytearray b)
         cpp_S_box(std_vector[BinWord] lut, int64_t input_length, int64_t output_length)
@@ -29,7 +28,7 @@ cdef extern from "../../cpp/core/s_box.hpp":
         int64_t get_output_length()
         int64_t output_space_size()
         bool is_invertible()
-        cpp_S_box inverse()
+        cpp_S_box inverse() except +
         cpp_S_box component(BinWord a)
         cpp_S_box coordinate(BinWord a)
         cpp_S_box derivative(BinWord delta)
@@ -37,10 +36,6 @@ cdef extern from "../../cpp/core/s_box.hpp":
     # !SUBSECTION!  S_box generating functions
     
     cpp_S_box cpp_translation(const BinWord a, const int64_t input_bit_length)
-    # cpp_S_box cpp_rand_S_box(
-    #     cpp_PRNG & alea,
-    #     unsigned int input_length,
-    #     unsigned int output_length)
 
 
 # !SUBSECTION! Loading the cpp file 
@@ -52,8 +47,9 @@ cdef extern from "../../cpp/core/s_box.cpp":
 cdef extern from "../../cpp/core/s_box_fp.hpp":
     cppclass cpp_S_box_fp:
         cpp_S_box_fp()
-        cpp_S_box_fp(BinWord input_size, BinWord output_size, cpp_Integer p, std_vector[cpp_Integer] powers_in, std_vector[cpp_Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut)
-        cpp_S_box_fp(cpp_Integer p, std_vector[FpWord] lut)
+        cpp_S_box_fp(BinWord input_size, BinWord output_size, cpp_Integer p, std_vector[cpp_Integer] powers_in, std_vector[cpp_Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut) except +
+        cpp_S_box_fp(cpp_Integer p, std_vector[FpWord] lut) except +
+        cpp_S_box_fp(const cpp_S_box_fp& s) except +
         BinWord get_input_size() const
         BinWord get_output_size() const
         cpp_Integer get_p() const
@@ -93,8 +89,8 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 cdef class S_box:
     cdef cpp_S_box * cpp_sb
     cdef string cpp_name
-    cdef list input_cast
-    cdef list output_cast
+    cdef list input_casts
+    cdef list output_casts
     cdef set_inner_sbox(S_box self, cpp_S_box s)
 
 
@@ -102,10 +98,9 @@ cdef class S_box:
 cdef cpp_S_box pyx_add_sboxes(cpp_S_box s, cpp_S_box t)
 cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t)
 
-
-# !SUBSECTION! The S_Box_fp class
+# # !SUBSECTION! The S_Box_fp class
 
 cdef class S_box_fp:
-    cdef cpp_S_box_fp * cpp_sb 
+    cdef unique_ptr[cpp_S_box_fp] cpp_sb 
     cdef string cpp_name
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s)
