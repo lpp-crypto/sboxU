@@ -628,6 +628,8 @@ cdef class S_box_fp:
         (<S_box_fp>result).set_inner_sbox(<cpp_S_box_fp>(dereference(self.cpp_sb).get_inverse()))
         return result
 
+
+    
 # !SECTION! Generating S-boxes
 
 
@@ -759,9 +761,12 @@ def get_Sbox_from_list(s : list, name, input_casts : list, output_casts : list) 
 
 SBOXU_TYPE_TO_FACTORY = {
     sage_SBox    : get_Sbox_from_sage_SBox,
-    Polynomial   : get_Sbox_from_univariate_polynomial,
     BinLinearMap : get_Sbox_from_BinLinearMap,
-    list         : get_Sbox_from_list
+    list         : get_Sbox_from_list,
+    bytes        : get_Sbox_from_bytes,
+    bytearray    : get_Sbox_from_bytes,
+    
+    Polynomial   : get_Sbox_from_univariate_polynomial,
 }
 
 def Sb(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
