@@ -80,6 +80,8 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
         @staticmethod
         cpp_Integer vec_to_int(const FpWord& v, const std_vector[cpp_Integer]& powers)
 
+
+        
 # !SECTION! Declaring cython functions and classes
 
 # !SUBSECTION! The S_box class
@@ -87,7 +89,7 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 ### TODO : rename as S_box_bin
 
 cdef class S_box:
-    cdef cpp_S_box * cpp_sb
+    cdef unique_ptr[cpp_S_box] cpp_sb
     cdef string cpp_name
     cdef list input_casts
     cdef list output_casts

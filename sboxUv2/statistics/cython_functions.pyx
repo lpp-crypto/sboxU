@@ -7,6 +7,8 @@ from sboxUv2.core import Sb
 from sboxUv2.core cimport *
 
 
+from cython.operator cimport dereference
+
 
 
 # !SECTION! Differential properties
@@ -28,7 +30,7 @@ def differential_spectrum(s):
     result = Spectrum(name="Differential".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
-        cpp_differential_spectrum((<S_box>sb).cpp_sb[0],
+        cpp_differential_spectrum(dereference((<S_box>sb).cpp_sb),
                                   n_threads)
     )
     return result
@@ -45,7 +47,7 @@ def ddt(s):
     
     """
     sb = Sb(s)
-    result = cpp_ddt((<S_box>sb).cpp_sb[0])
+    result = cpp_ddt(dereference((<S_box>sb).cpp_sb))
     return result
 
 
@@ -76,7 +78,7 @@ def is_differential_uniformity_smaller_than(s, u):
     """
     sb = Sb(s)
     return cpp_is_differential_uniformity_smaller_than(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb),
         u
     )
 
@@ -102,7 +104,7 @@ def walsh_transform(s):
     if sb.get_output_length() != 1:
         raise Exception("Walsh transform takes as input a boolean function")
     else:
-        return cpp_walsh_transform((<S_box>sb).cpp_sb[0])
+        return cpp_walsh_transform(dereference((<S_box>sb).cpp_sb))
 
     
 def walsh_spectrum(s):
@@ -120,7 +122,7 @@ def walsh_spectrum(s):
     result = Spectrum(name="Walsh".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
-        cpp_walsh_spectrum((<S_box>sb).cpp_sb[0],
+        cpp_walsh_spectrum(dereference((<S_box>sb).cpp_sb),
                            n_threads)
     )
     return result
@@ -154,7 +156,7 @@ def lat(s):
         list: A list of list `l` such that `l[a][b]` = $W_{F}(a, b)$.
     """
     sb = Sb(s)
-    result = cpp_lat((<S_box>sb).cpp_sb[0])
+    result = cpp_lat(dereference((<S_box>sb).cpp_sb))
     return result
 
 
@@ -206,7 +208,7 @@ def boomerang_spectrum(s):
     result = Spectrum(name="BCT".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
-        cpp_boomerang_spectrum((<S_box>sb).cpp_sb[0],
+        cpp_boomerang_spectrum(dereference((<S_box>sb).cpp_sb),
                                n_threads)
     )
     return result
@@ -220,7 +222,7 @@ def bct(s):
     $B(a,b) = \\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$
     """
     sb = Sb(s)
-    result = cpp_bct((<S_box>sb).cpp_sb[0])
+    result = cpp_bct(dereference((<S_box>sb).cpp_sb))
     return result
 
 
@@ -238,7 +240,7 @@ def fbct_spectrum(s):
     result = Spectrum(name="F-BCT".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
-        cpp_fbct_spectrum((<S_box>sb).cpp_sb[0],
+        cpp_fbct_spectrum(dereference((<S_box>sb).cpp_sb),
                           n_threads)
     )
     return result
@@ -247,7 +249,7 @@ def fbct_spectrum(s):
 
 def fbct(s):
     sb = Sb(s)
-    result = cpp_fbct((<S_box>sb).cpp_sb[0])
+    result = cpp_fbct(dereference((<S_box>sb).cpp_sb))
     return result
 
 # SECTION xddt and co
@@ -263,7 +265,7 @@ def xddt(s):
         list: A list of lists of lists corresponding to a 3-dimensional array containing the XDDT of `s`.
     """
     sb=Sb(s)
-    result = cpp_xddt((<S_box>sb).cpp_sb[0])
+    result = cpp_xddt(dereference((<S_box>sb).cpp_sb))
     return result
 
 
@@ -278,7 +280,7 @@ def yddt(s):
         list: A list of lists of lists corresponding to a 3-dimensional array containing the YDDT of `s`.
     """
     sb=Sb(s)
-    result = cpp_yddt((<S_box>sb).cpp_sb[0])
+    result = cpp_yddt(dereference((<S_box>sb).cpp_sb))
     return result
 
 
@@ -293,7 +295,7 @@ def zddt(s):
         list: A list of lists of lists corresponding to a 3-dimensional array containing the ZDDT of `s`.
     """
     sb=Sb(s)
-    result = cpp_zddt((<S_box>sb).cpp_sb[0])
+    result = cpp_zddt(dereference((<S_box>sb).cpp_sb))
     return result
 
 # !SECTION! Linear structures
@@ -309,7 +311,7 @@ def linear_structures(s):
         for all x (where `+` corresponds to a XOR). 0 does not appear in `l_0` as it would always be present.
     """
     sb=Sb(s)
-    result=cpp_linear_structures((<S_box>sb).cpp_sb[0])
+    result=cpp_linear_structures(dereference((<S_box>sb).cpp_sb))
     return result
 
 def linear_structures_vectorial(s):
@@ -328,7 +330,7 @@ def linear_structures_vectorial(s):
 
     """
     sb=Sb(s)
-    result=cpp_linear_structures_vectorial((<S_box>sb).cpp_sb[0])
+    result=cpp_linear_structures_vectorial(dereference((<S_box>sb).cpp_sb))
     return result
 
 def linear_structures_vectorial_spectrum(s):
@@ -343,5 +345,5 @@ def linear_structures_vectorial_spectrum(s):
     """
     sb=Sb(s)
     result=Spectrum(name="Linear Structures".encode("UTF-8"))
-    result.set_inner_sp(cpp_linear_structures_vectorial_spectrum((<S_box>sb).cpp_sb[0]))
+    result.set_inner_sp(cpp_linear_structures_vectorial_spectrum(dereference((<S_box>sb).cpp_sb)))
     return result

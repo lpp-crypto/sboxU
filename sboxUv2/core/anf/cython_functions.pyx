@@ -8,6 +8,9 @@ from sboxUv2.core.f2functions import to_bin, from_bin
 from sboxUv2.core.sbox import Sb
 
 
+from cython.operator cimport dereference
+
+
 from sage.all import GF, PolynomialRing, prod
 
 
@@ -28,7 +31,7 @@ def degree_spectrum(s):
     sb = Sb(s)
     py_result = Spectrum(name=b"Degree")  
     py_result.set_inner_sp(
-        cpp_degree_spectrum((<S_box>sb).cpp_sb[0])
+        cpp_degree_spectrum(dereference((<S_box>sb).cpp_sb))
     )
     return py_result
 
@@ -36,7 +39,7 @@ def degree_spectrum(s):
 def algebraic_degree(s):
     # !TODO! docstring for algebraic_degree
     sb = Sb(s)
-    return cpp_algebraic_degree((<S_box>sb).cpp_sb[0])
+    return cpp_algebraic_degree(dereference((<S_box>sb).cpp_sb))
 
 # !SUBSECTION! Precise information on the degree
 
@@ -50,7 +53,7 @@ def is_degree_bigger_than(s,d):
         A boolean value, True if the algebraic degree of s is (strictly) bigger than d, False otherwise.
     """
     sb=Sb(s)
-    return cpp_is_degree_bigger_than((<S_box>sb).cpp_sb[0],d)
+    return cpp_is_degree_bigger_than(dereference((<S_box>sb).cpp_sb), d)
 
 
 # !SUBSECTION! The ANF itself
@@ -75,13 +78,13 @@ def algebraic_normal_form_coordinate(s, polynomial_vars=None):
         polynomial_vars = R.gens()
     elif (len(polynomial_vars) != s.get_input_length()):
         raise Exception("Wrong number of variables in `polynomial_vars`")
-    coeffs = cpp_anf_component((<S_box>sb).cpp_sb[0])
+    coeffs = cpp_anf_component(dereference((<S_box>sb).cpp_sb))
     P = polynomial_vars[0].parent()(0)
     for i, c in enumerate(coeffs):
         if c == 0:
             continue
         monomial = prod(var**b for var, b in zip(polynomial_vars,
-                                                 to_bin(i,sb.get_input_length())))
+                                                 to_bin(i, sb.get_input_length())))
         P += monomial
     return P
 
@@ -112,7 +115,7 @@ def algebraic_normal_form(s, polynomial_vars=None):
 
 def anf_component(s):
     sb = Sb(s)
-    plop = cpp_anf_component((<S_box>sb).cpp_sb[0])
+    plop = cpp_anf_component(dereference((<S_box>sb).cpp_sb))
     return(plop)
 
 def quadratic_compact_representation(s):
@@ -126,11 +129,11 @@ def quadratic_compact_representation(s):
     """
     
     sb = Sb(s)
-    plop = cpp_quadratic_compact_representation((<S_box>sb).cpp_sb[0])
+    plop = cpp_quadratic_compact_representation(dereference((<S_box>sb).cpp_sb))
     return(plop)
 
 
-def quadratic_sbox_from_compact_representation(repr,n,m):
+def quadratic_sbox_from_compact_representation(rep,n,m):
 
     """
     Args:
@@ -141,7 +144,8 @@ def quadratic_sbox_from_compact_representation(repr,n,m):
     Returns:
         The quadratic S box corresponding to the compact representation
     """
-    return(cpp_quadratic_sbox_from_compact_representation(repr,n,m))
+    return(cpp_quadratic_sbox_from_compact_representation(rep, n, m))
+
 
 
 # !SECTION! Evaluating ANFs
@@ -160,7 +164,7 @@ def eval_anf(anf, x):
     Returns:
         The evaluation of the polynomial at the assignment given by `x` (always 0 or 1).
     """
-    return anf(to_bin(x,len(anf.args())))
+    return anf(to_bin(x, len(anf.args())))
 
 
 def eval_vect_anf(anfs, x):
@@ -177,7 +181,7 @@ def eval_vect_anf(anfs, x):
     Returns:
         the integer `y` representing the vector of polynomial evaluations, where bit i of `y` is the output of `anfs[i](x)`.
     """
-    x_bin = to_bin(x,len(anfs[0].args()))
+    x_bin = to_bin(x, len(anfs[0].args()))
     y = 0
     for i in range(0, len(anfs)):
         y = (<int>(anfs[i](x_bin)) << i) | y

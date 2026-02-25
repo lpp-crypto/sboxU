@@ -3,7 +3,7 @@
 from sage.all import Matrix, GF, Polynomial
 from sboxUv2.core.f2functions.field_arithmetic import i2f_and_f2i
 
-from cython.operator cimport dereference as ampersand
+from cython.operator cimport dereference
 
 
 
@@ -199,8 +199,7 @@ cdef class BinLinearMap:
 
     def get_S_box(self) -> S_box:
         result = S_box(name="L")
-        (<S_box>result).cpp_sb = new cpp_S_box()
-        (<S_box>result).cpp_sb[0] = self.cpp_blm[0].get_cpp_S_box()
+        result.set_inner_sbox(self.cpp_blm[0].get_cpp_S_box())
         return result
     
     def get_image_vectors(self):
@@ -257,7 +256,7 @@ def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
         if isinstance(l, (list)):
             result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>l)
         elif isinstance(l, (S_box)):
-            result.cpp_blm[0] = cpp_BinLinearMap((<S_box>l).cpp_sb[0])
+            result.cpp_blm[0] = cpp_BinLinearMap(dereference((<S_box>l).cpp_sb))
         elif isinstance(l, Polynomial):
             # case of a univariate polynomial
             field = l.base_ring()
@@ -281,7 +280,7 @@ def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
         elif isinstance(l, (S_box)):
             if l.get_input_length()!=input_length or l.get_output_length()!= output_length:
                 raise Exception("You specified uncompatible input or output length")
-            result.cpp_blm[0] = cpp_BinLinearMap((<S_box>l).cpp_sb[0])
+            result.cpp_blm[0] = cpp_BinLinearMap(dereference((<S_box>l).cpp_sb))
         elif isinstance(l, Polynomial):
             # case of a univariate polynomial
             field = l.base_ring()
