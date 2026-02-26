@@ -5,6 +5,8 @@ from sboxUv2.core import Sb
 from sboxUv2.config import MAX_N_THREADS
 
 
+from cython.operator cimport dereference
+
 
 # !SECTION! Ortho-derivatives and friends
 
@@ -22,7 +24,7 @@ def ortho_derivative(q):
     sb = Sb(q)
     result = S_box(name="π_{".encode("UTF-8") + sb.name() + b"}")
     (<S_box>result).set_inner_sbox(
-        cpp_ortho_derivative((<S_box>sb).cpp_sb[0])
+        cpp_ortho_derivative((dereference((<S_box>sb).cpp_sb)))
     )
     return result
 
@@ -40,7 +42,7 @@ def ortho_integral(s):
     sb = Sb(s)
     result = S_box(name="∫_{".encode("UTF-8") + sb.name() + b"}")
     (<S_box>result).set_inner_sbox(
-        cpp_ortho_integral((<S_box>sb).cpp_sb[0])
+        cpp_ortho_integral(dereference((<S_box>sb).cpp_sb))
     )
     return result
 
@@ -55,7 +57,7 @@ def sigma_multiplicities(s, k=4):
     sb = Sb(s)
     result = Spectrum(name="σ-mult".encode("UTF-8"))
     result.set_inner_sp(
-        cpp_sigma_multiplicities((<S_box>sb).cpp_sb[0], k, MAX_N_THREADS)
+        cpp_sigma_multiplicities(dereference((<S_box>sb).cpp_sb), k, MAX_N_THREADS)
     )
     return result
 
@@ -64,7 +66,7 @@ def sigma_multiplicities(s, k=4):
 
 def apn_ea_mugshot(s):
     sb = Sb(s)
-    return cpp_apn_ea_mugshot((<S_box>sb).cpp_sb[0], MAX_N_THREADS)
+    return cpp_apn_ea_mugshot(dereference((<S_box>sb).cpp_sb), MAX_N_THREADS)
 
 
 def apn_ea_mugshot_from_spectra(
@@ -88,7 +90,7 @@ def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = []
     for L in cpp_automorphisms_from_ortho_derivative(
-            (<S_box>sb).cpp_sb[0],
+            dereference((<S_box>sb).cpp_sb),
             n_threads
     ):
         new_blm = BinLinearMap()
@@ -116,8 +118,8 @@ def ea_mappings_from_ortho_derivative(
     sb, sb_prime = Sb(s), Sb(s_prime)
     result = []
     for L in cpp_ea_mappings_from_ortho_derivative(
-            (<S_box>sb).cpp_sb[0],
-            (<S_box>sb_prime).cpp_sb[0],
+            dereference((<S_box>sb).cpp_sb),
+            dereference((<S_box>sb_prime).cpp_sb),
             n_threads
     ):
         new_blm = BinLinearMap()
@@ -134,7 +136,7 @@ def enumerate_ea_classes_apn_quadratic(
     result = []
     i = 0
     for new_s in cpp_enumerate_ea_classes_quadratic_apn(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb),
         n_threads
     ):
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
@@ -151,7 +153,7 @@ def ccz_equivalent_quadratic_function(
     sb = Sb(s)
     result = S_box(name=b"deg2-CCZ-" + sb.name())
     result.set_inner_sbox(cpp_ccz_equivalent_quadratic_function(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb),
         n_threads
     ))
     return result
@@ -161,12 +163,12 @@ def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = WalshZeroesSpaces()
     (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb),
         n_threads
     )
     # handling the initilization of the mappings by hand
     result.cpp_wzs[0].init_mappings(
-        cpp_automorphisms_from_ortho_derivative((<S_box>sb).cpp_sb[0],
+        cpp_automorphisms_from_ortho_derivative(dereference((<S_box>sb).cpp_sb),
                                                 n_threads)
     )
     for m in result.cpp_wzs[0].mappings:
@@ -183,7 +185,7 @@ def non_trivial_sn(s,ne,ns):
     sb = Sb(s)
     result = []
     i = 0
-    SW = cpp_non_trivial_sn((<S_box>sb).cpp_sb[0],<cpp_Integer> ne, <cpp_Integer> ns )
+    SW = cpp_non_trivial_sn(dereference((<S_box>sb).cpp_sb),<cpp_Integer> ne, <cpp_Integer> ns )
     for sw_u in SW: 
         res_u = []
         for new_s in sw_u:

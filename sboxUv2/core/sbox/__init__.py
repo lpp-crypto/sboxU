@@ -15,3 +15,6 @@ from sboxUv2.core.sbox.misc import \
     random_permutation_S_box, random_function_S_box, \
     F2_mul, monomial, inverse, \
     is_permutation
+
+from sboxUv2.core.sbox.linearCasts import \
+    CastToF2Product, CastFromF2Product, canonical_cast

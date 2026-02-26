@@ -5,6 +5,9 @@ from sboxUv2.core import Sb, Blm
 from sboxUv2.config import MAX_N_THREADS
 from sboxUv2.statistics import lat
 
+from cython.operator cimport dereference
+
+
 
 # !SECTION! Walsh zeroes and friends
 
@@ -25,7 +28,7 @@ def thickness_spectrum(s, spaces=None):
     sb = Sb(s)
     result = Spectrum(name=b"thickness")
     result.set_inner_sp(
-        cpp_thickness_spectrum((<S_box>sb).cpp_sb[0], MAX_N_THREADS)
+        cpp_thickness_spectrum(dereference((<S_box>sb).cpp_sb), MAX_N_THREADS)
     )
     return result
 
@@ -106,7 +109,7 @@ def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = WalshZeroesSpaces()
     (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb),
         n_threads
     )
     result.init_mappings()
@@ -134,7 +137,7 @@ def ccz_equivalent_function(s, L):
     result = S_box(name=b"CCZ-" + sb.name())
     result.set_inner_sbox(
         cpp_ccz_equivalent_function(
-            (<S_box>sb).cpp_sb[0],
+            dereference((<S_box>sb).cpp_sb),
             (<BinLinearMap>basis).cpp_blm[0]
             )
     )
@@ -146,7 +149,7 @@ def enumerate_ea_classes(s):
     result = []
     i = 0
     for new_s in cpp_enumerate_ea_classes(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb), 
         MAX_N_THREADS):
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
@@ -160,7 +163,7 @@ def enumerate_permutations_in_ccz_class(s):
     result = []
     i = 0
     for new_s in cpp_enumerate_permutations_in_ccz_class(
-        (<S_box>sb).cpp_sb[0],
+        dereference((<S_box>sb).cpp_sb), 
         MAX_N_THREADS):
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
@@ -218,7 +221,13 @@ def equivalences_from_lat(
 
     """
     res = []
-    for solution in cpp_equivalences_from_lat((<S_box>sbox1).cpp_sb[0], (<S_box>sbox2).cpp_sb[0], single_non_trivial_answer, n_threads, equivalence_type.encode('ascii')):
+    for solution in cpp_equivalences_from_lat(
+            dereference((<S_box>sbox1).cpp_sb), 
+            dereference((<S_box>sbox2).cpp_sb), 
+            single_non_trivial_answer,
+            n_threads,
+            equivalence_type.encode('ascii')
+    ):
         new_blm = BinLinearMap()
         new_blm.cpp_blm[0] = solution
         res.append(new_blm)
@@ -229,13 +238,34 @@ def equivalences_from_lat(
 # ! 2. wrap them in simpler tests with Boolean results
 
 def linear_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return equivalences_from_lat(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "linear", n_threads)
+    return equivalences_from_lat(
+        Sb(sbox1),
+        Sb(sbox2),
+        single_non_trivial_answer,
+        "linear",
+        n_threads
+    )
+
 
 def el_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return equivalences_from_lat(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "extended-linear", n_threads)
+    return equivalences_from_lat(
+        Sb(sbox1),
+        Sb(sbox2),
+        single_non_trivial_answer,
+        "extended-linear",
+        n_threads
+    )
+
 
 def cczl_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return equivalences_from_lat(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "ccz-linear", n_threads)
+    return equivalences_from_lat(
+        Sb(sbox1),
+        Sb(sbox2),
+        single_non_trivial_answer,
+        "ccz-linear",
+        n_threads
+    )
+
 
 # !SUBSECTION! All "affine" equivalences
 
@@ -245,21 +275,49 @@ def up_to_constant_equivalences(sbox1, sbox2, single_non_trivial_answer=False,  
     results = []
     for a in range(len(sbox1)):
         shifted_sbox2 = Sb([sbox2[x ^ a] ^ sbox2[a] for x in range(len(sbox2))])
-        res = equivalences_from_lat(shifted_sbox1, shifted_sbox2, False, equivalence_type, 8)
+        res = equivalences_from_lat(shifted_sbox1,
+                                    shifted_sbox2,
+                                    False,
+                                    equivalence_type,
+                                    8)
         for r in res:
-            verify_up_to_constant_equivalence(sbox1, sbox2, r, a, equivalence_type) # Sanity checks
+            verify_up_to_constant_equivalence(sbox1,
+                                              sbox2,
+                                              r,
+                                              a,
+                                              equivalence_type) # Sanity checks
             results.append((r, a))
     return results
 
 
 def affine_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return up_to_constant_equivalences(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "linear", n_threads)
+    return up_to_constant_equivalences(
+        Sb(sbox1),
+        Sb(sbox2),
+        single_non_trivial_answer,
+        "linear",
+        n_threads
+    )
+
 
 def ea_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return up_to_constant_equivalences(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "extended-linear", n_threads)
+    return up_to_constant_equivalences(
+        Sb(sbox1),
+        Sb(sbox2),
+        single_non_trivial_answer,
+        "extended-linear",
+        n_threads
+    )
+
 
 def ccz_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
-    return up_to_constant_equivalences(Sb(sbox1), Sb(sbox2), single_non_trivial_answer, "ccz-linear", n_threads)
+    return up_to_constant_equivalences(
+        Sb(sbox1),
+        Sb(sbox2),
+        single_non_trivial_answer,
+        "ccz-linear",
+        n_threads
+    )
 
 
 # !SUBSECTION! Boolean tests

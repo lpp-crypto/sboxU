@@ -7,6 +7,8 @@ from sboxUv2.config import MAX_N_THREADS
 from collections import defaultdict
 
 
+from cython.operator cimport dereference
+
 
 # !SECTION! XOR equivalence
 
@@ -49,7 +51,7 @@ def le_class_representative(s):
         result = S_box(name=b"LE(" + sb.name() + b")")
         result.set_inner_sbox(
             # we always try use the "fast" variant of cpp_le_class_representative
-            cpp_le_class_representative((<S_box>sb).cpp_sb[0])
+            cpp_le_class_representative(dereference((<S_box>sb).cpp_sb))
         )
         return result
     else:
@@ -88,8 +90,8 @@ def linear_equivalence_permutations(f, g, all_mappings=False):
     sf = Sb(f)
     sg = Sb(g)
     result = cpp_linear_equivalence_permutations(
-        (<S_box>sf).cpp_sb[0],
-        (<S_box>sg).cpp_sb[0],
+        dereference((<S_box>sf).cpp_sb),
+        dereference((<S_box>sg).cpp_sb),
         all_mappings
         )
     mappings = []
