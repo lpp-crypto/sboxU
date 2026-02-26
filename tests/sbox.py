@@ -100,6 +100,7 @@ if __name__ == "__main__":
     lut = [[Fp(x),Fp(y)] for x,y in lut]
     u = Sb(lut)
     print(u[(Fp(0),Fp(1))]) 
+    print(u.coordinate(0))
   
     R = PolynomialRing(Fp,2,"x")
     x1, x2 = R.gens()
@@ -108,7 +109,7 @@ if __name__ == "__main__":
     v = Sb([P1,P2])
     print(u)
     print(v)
-    a = v.derivative([int(0),int(0)])
+    a = v.coordinate(0)
     print(a)
 
     print(v+u)

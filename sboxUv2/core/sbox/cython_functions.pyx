@@ -10,7 +10,7 @@ from sage.all import Integer as sage_Integer
 from sage.all import ceil, floor
 
 from libcpp.memory cimport unique_ptr, make_unique
-
+from libcpp.utility cimport move
 from cython.operator cimport dereference
 
 # imports needed to test the input type in the Sb factory
@@ -584,9 +584,10 @@ cdef class S_box_fp:
             An S_box instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
         
         """
-        assert i < dereference(self.cpp_sb).get_output_size()
-        result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
-        (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).coordinate(<BinWord>i))
+        assert i < self.get_output_size()
+        name = self.cpp_name + ("_{:x}".format(i)).encode("UTF-8")
+        result = S_box_fp(name=name)
+        (<S_box_fp>result).set_inner_sbox((dereference(self.cpp_sb).coordinate(<BinWord>i)))
         return result
 
     def derivative(S_box_fp self, FpWord delta) -> S_box_fp :
@@ -598,7 +599,7 @@ cdef class S_box_fp:
         
         """
         cdef cpp_S_box_fp cpp_sbox = dereference(self.cpp_sb)
-        result = S_box(name=("Δ_{:x} ".format(cpp_sbox.vec_to_int(delta,cpp_sbox.get_powers_in())).encode("UTF-8")+ self.get_name()))
+        result = S_box_fp(name=("Δ_{:x} ".format(cpp_sbox.vec_to_int(delta,cpp_sbox.get_powers_in())).encode("UTF-8")+ self.get_name()))
         (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).derivative(delta))
         return (<S_box_fp>result)
 

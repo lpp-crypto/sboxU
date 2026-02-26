@@ -7,12 +7,12 @@ from setuptools import find_packages, setup
 from setuptools.extension import Extension
 from Cython.Build import cythonize
 
-
+DEBUG = os.environ.get("DEBUG", "0") == "1"
 # !SECTION! Setting up the compilation of the C++ part
 
 if sys.platform == 'darwin':	#macOs
     os.environ["CC"] = "clang"
-    os.environ["CXX"] = "clang"
+    os.environ["CXX"] = "clang++"
 else:
     os.environ["CC"] = "g++"
     os.environ["CXX"] = "g++"
@@ -21,13 +21,15 @@ extra_compile_args = ["-O3", "-march=native", "-std=c++20", "-pthread", "-Wno-na
 extra_link_args=[]
 
 if sys.platform == 'darwin':
-    extra_compile_args += ['-lomp', '-I/opt/homerew/opt/libomp/include']
+    extra_compile_args += ['-lomp', '-I/opt/homebrew/opt/libomp/include']
     extra_link_args += ['-lomp', '-L/opt/homebrew/opt/libomp/lib']
 else:
     extra_compile_args += ['-fopenmp']
     extra_link_args += ['-fopenmp']
 
-
+if DEBUG : 
+    extra_compile_args+=["-g", "-O1", "-fsanitize=address"]
+    extra_link_args+=["-fsanitize=address"]
 
 # !SECTION! Declaring cython extensions
 
@@ -68,5 +70,10 @@ setup( # names and others are specified in the pyproject.toml file
     ext_modules=cythonize(
         all_cython_extensions,
         language_level = "3",
+        gdb_debug=DEBUG,
+        compiler_directives={
+            "linetrace": DEBUG,
+            "binding": DEBUG,
+        },
     ),
 )
