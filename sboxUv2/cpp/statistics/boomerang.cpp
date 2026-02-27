@@ -25,8 +25,7 @@ std::vector<Integer> cpp_bct_row(
 
         for(auto z2 : xor_list[z]){
             result[ z1 ^ z2 ] += 4;
-            if (z > 0)
-                result[ z1 ^ z2 ^ z] += 4;
+            result[ z1 ^ z2 ^ z] += 4;
         }
         xor_list[z].push_back(z1);
         result[z] += 2;

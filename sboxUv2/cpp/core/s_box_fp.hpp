@@ -23,7 +23,7 @@ class cpp_S_box_fp {
     
     public :
         // CONSTRUCTORS
-        cpp_S_box_fp() : input_size(0), output_size(0), p(), powers_in(0), powers_out(0), input_space(0), lut(0) {}
+        cpp_S_box_fp() : input_size(0), output_size(0), p(), powers_in(0), powers_out(0), input_space(0), output_space(0), lut(0) {}
         cpp_S_box_fp(BinWord _input_size, 
             BinWord _output_size,
             Integer _p, 
@@ -32,12 +32,19 @@ class cpp_S_box_fp {
             std::vector<FpWord> _input_space, 
             std::vector<FpWord> _output_space,
             std::vector<FpWord> _lut) :
-            input_size(_input_size), output_size(_output_size), p(_p), powers_in(_powers_in), powers_out(_powers_out), input_space(_input_space), output_space(_output_space), lut(_lut) 
+            input_size(_input_size),
+            output_size(_output_size),
+            p(_p), 
+            powers_in(std::move(_powers_in)), 
+            powers_out(std::move(_powers_out)), 
+            input_space(std::move(_input_space)), 
+            output_space(std::move(_output_space)), 
+            lut(std::move(_lut)) 
             {}
         cpp_S_box_fp(const cpp_S_box_fp& s) = default;
         ~cpp_S_box_fp(){}
         // This is the minimal arguments that it can take, without that it doesn't specify a SBox over Fp
-        cpp_S_box_fp(Integer _p, std::vector<FpWord> _lut) : p(_p), lut(_lut) {
+        cpp_S_box_fp(Integer _p, std::vector<FpWord> _lut) : p(_p), lut(std::move(_lut)) {
             input_size = std::ceil(std::log(lut.size())/std::log(p));
             output_size = lut[0].size();
 
