@@ -87,11 +87,11 @@ class cpp_S_box_fp {
             else if (s.get_output_size() != output_size)
                 throw std::runtime_error("Trying to add S_Boxes of different output sizes");
             else {
-                std::vector<FpWord> new_lut((Integer)pow((float)p,(float)input_size));
+                std::vector<FpWord> new_lut(input_space.size());
                 const std::vector<FpWord>& lut1 = get_lut(); const std::vector<FpWord>& lut2 = s.get_lut();
                 for (int i = 0; i < new_lut.size();i++) {
-                    new_lut[i] = FpWord(input_size);
-                    for (int j = 0; j < input_size; j++){
+                    new_lut[i] = FpWord(output_size);
+                    for (int j = 0; j < output_size; j++){
                         new_lut[i][j] = (lut1[i][j]+lut2[i][j])%p;
                     } 
                 }
@@ -106,10 +106,10 @@ class cpp_S_box_fp {
             if (s.get_p() != p)
                 throw std::runtime_error("Trying to compose S_boxes over Fp with different characteristics");
             else {
-                std::vector<FpWord> new_lut((Integer)pow((float)p,(float)s.get_input_size()));
+                std::vector<FpWord> new_lut(s.get_input_space().size());
                 const std::vector<FpWord>& lut1 = get_lut(); const std::vector<FpWord>& lut2 = s.get_lut();
                 for (int i = 0; i<new_lut.size();i++){
-                    new_lut[i] = lut1[std::inner_product(lut2[i].begin(),lut2[i].end(),s.get_powers_in().begin(),0)];
+                    new_lut[i] = lut1[vec_to_int(lut2[i],get_powers_out())];
                 }
                 return cpp_S_box_fp(p,new_lut);
             }        
@@ -157,14 +157,20 @@ class cpp_S_box_fp {
 
         // Returns the derivative of the S-Box, namely x -> S(x+delta) - S(x)
         const cpp_S_box_fp& derivative(const FpWord& delta) const {
-            Integer delta_int = vec_to_int(delta,powers_in);
             std::vector<FpWord> new_lut(input_space.size());
             for (int i = 0; i < input_space.size(); i++){
-                Integer j = (j+delta_int)%p;
-                const FpWord& out_i = lut[i];
-                const FpWord& out_j = lut[j];
-                Integer out_i_int = vec_to_int(out_i,powers_out);
-                Integer out_j_int = vec_to_int(out_j,powers_out);
+                // x + delta
+                FpWord x_delta(input_size);
+                const FpWord& x = lut[i];
+                for (int j = 0; j < input_size; j++){
+                    x_delta[j] = x[j]+delta[j];
+                }
+                Integer x_delta_int = vec_to_int(x_delta,powers_in);
+                Integer x_int = vec_to_int(x,powers_in);
+                const FpWord& out_x_delta = lut[x_delta_int];
+                const FpWord& out_x = lut[x_int];
+                Integer out_i_int = vec_to_int(out_x_delta,powers_out);
+                Integer out_j_int = vec_to_int(out_x,powers_out);
                 Integer new_out_int = (out_j_int - out_i_int)% p;
                 FpWord new_out = int_to_vec(new_out_int,output_space);
                 new_lut[i] = new_out;
