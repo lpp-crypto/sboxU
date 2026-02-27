@@ -156,7 +156,7 @@ bool cpp_is_ddt_row_max_smaller_than_2(
     const cpp_S_box & s,
     const BinWord a)
 {
-    std::vector<uint64_t> row((s.input_space_size() + 63) >> 6,0);
+    std::vector<uint64_t> row((s.output_space_size() + 63) >> 6,0);
 
     FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
     {
@@ -177,7 +177,7 @@ bool cpp_is_ddt_row_max_smaller_than_u(
     const BinWord a,
     const Integer u)
 {
-    std::vector<Integer> row(s.input_space_size(), 0);
+    std::vector<Integer> row(s.output_space_size(), 0);
 
     FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
     {
