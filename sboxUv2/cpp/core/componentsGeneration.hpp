@@ -4,7 +4,7 @@
 #include "../common.hpp"
 #include "./s_box.hpp"
 #include "./f2functions.hpp"
-#include "./binLinearMap.hpp"
+#include "./f2affinemap.hpp"
 #include "./prng.hpp"
 
 
