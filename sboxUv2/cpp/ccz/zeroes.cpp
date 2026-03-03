@@ -40,14 +40,14 @@ void cpp_WalshZeroesSpaces::init_mappings()
     {
         std::vector<BinWord> img = cpp_complete_basis(b, total_size);
         std::reverse(img.begin(), img.end());
-        cpp_BinLinearMap L(img);
+        cpp_F2AffineMap L(img);
         mappings.push_back(L.transpose());
     }
 }
 
 
 void cpp_WalshZeroesSpaces::init_mappings(
-    const std::vector<cpp_BinLinearMap> & automorphisms
+    const std::vector<cpp_F2AffineMap> & automorphisms
     )
 {
     // computing the image of each basis
@@ -55,7 +55,7 @@ void cpp_WalshZeroesSpaces::init_mappings(
     for (unsigned int i=0; i<bases.size(); i++)
         preimages[bases[i]] = i;
     // initializing walsh zeroes automorphisms
-    std::vector<cpp_BinLinearMap> A;
+    std::vector<cpp_F2AffineMap> A;
     A.reserve(automorphisms.size());
     for(auto & a_i : automorphisms)
         A.push_back(a_i.transpose());
@@ -84,7 +84,7 @@ void cpp_WalshZeroesSpaces::init_mappings(
             std::vector<BinWord> img = cpp_complete_basis(bases[i],
                                                           total_size);
             std::reverse(img.begin(), img.end());
-            cpp_BinLinearMap L(img);
+            cpp_F2AffineMap L(img);
             mappings.push_back(L.transpose());
         }
 }
@@ -94,7 +94,7 @@ void cpp_WalshZeroesSpaces::init_mappings(
 // !SECTION! Applying a linear permutation
 
 cpp_WalshZeroesSpaces cpp_WalshZeroesSpaces::image_by(
-    const cpp_BinLinearMap & L
+    const cpp_F2AffineMap & L
     ) const
 {
     std::vector<cpp_BinLinearBasis> img_bases;

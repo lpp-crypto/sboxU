@@ -5,22 +5,22 @@
 //   - the current output of cpp_equivalences_from_lat is lower-triangular
 //   - the output of cpp_automorphisms_from_ortho_derivative is upper-triangular
 // !TODO! change this function into cpp_ea_equivalence_from_ortho_derivate ?
-std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
+std::vector<cpp_F2AffineMap> cpp_automorphisms_from_ortho_derivative(
     const cpp_S_box & s,
     const unsigned int n_threads
     )
 {
     cpp_S_box o = cpp_ortho_derivative(s);
-    std::vector<cpp_BinLinearMap> automorphisms_asd =
+    std::vector<cpp_F2AffineMap> automorphisms_asd =
         cpp_equivalences_from_lat(o, o, false, n_threads, "linear");
     BinWord pw_n = s.input_space_size();
-    std::vector<cpp_BinLinearMap> automorphisms;
+    std::vector<cpp_F2AffineMap> automorphisms;
     for(auto autom : automorphisms_asd)
     {   
         auto abcd = cpp_ccz_block_decomposition(autom);
-        cpp_BinLinearMap
-            L_A_inv = cpp_BinLinearMap(abcd[0]),
-            L_B = cpp_BinLinearMap(abcd[1]),
+        cpp_F2AffineMap
+            L_A_inv = cpp_F2AffineMap(abcd[0]),
+            L_B = cpp_F2AffineMap(abcd[1]),
             L_A = L_A_inv.inverse(),
             L_B_T = L_B.transpose();
         cpp_S_box
@@ -48,7 +48,7 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
                 img_L_C[i] = C_0 ^ s[e_i^delta] ^ L_B_T_sb[s[L_A_inv_sb[e_i]]];
             }
             // then we deduce what would be the linear part of an automorphism
-            cpp_BinLinearMap
+            cpp_F2AffineMap
                 L_C(img_L_C),
                 L = cpp_EA_mapping(L_A_inv, L_B_T, L_C);
             // and then we check if the resulting graphs are XOR-equivalent
@@ -61,7 +61,7 @@ std::vector<cpp_BinLinearMap> cpp_automorphisms_from_ortho_derivative(
 }
 
 
-std::vector<cpp_BinLinearMap> cpp_ea_mappings_from_ortho_derivative(
+std::vector<cpp_F2AffineMap> cpp_ea_mappings_from_ortho_derivative(
     const cpp_S_box & s,
     const cpp_S_box & s_prime,
     const unsigned int n_threads
@@ -70,16 +70,16 @@ std::vector<cpp_BinLinearMap> cpp_ea_mappings_from_ortho_derivative(
     cpp_S_box
         o = cpp_ortho_derivative(s),
         o_prime = cpp_ortho_derivative(s_prime);
-    std::vector<cpp_BinLinearMap> automorphisms_asd =
+    std::vector<cpp_F2AffineMap> automorphisms_asd =
         cpp_equivalences_from_lat(o, o_prime, false, n_threads, "linear");
     BinWord pw_n = s.input_space_size();
-    std::vector<cpp_BinLinearMap> automorphisms;
+    std::vector<cpp_F2AffineMap> automorphisms;
     for(auto autom : automorphisms_asd)
     {   
         auto abcd = cpp_ccz_block_decomposition(autom);
-        cpp_BinLinearMap
-            L_A_inv = cpp_BinLinearMap(abcd[0]),
-            L_B = cpp_BinLinearMap(abcd[1]),
+        cpp_F2AffineMap
+            L_A_inv = cpp_F2AffineMap(abcd[0]),
+            L_B = cpp_F2AffineMap(abcd[1]),
             L_A = L_A_inv.inverse(),
             L_B_T = L_B.transpose();
         cpp_S_box
@@ -105,7 +105,7 @@ std::vector<cpp_BinLinearMap> cpp_ea_mappings_from_ortho_derivative(
                 img_L_C[i] = C_0 ^ s[e_i^delta] ^ L_B_T_sb[s_prime[L_A_inv_sb[e_i]]];
             }
             // then we deduce what would be the linear part of an automorphism
-            cpp_BinLinearMap
+            cpp_F2AffineMap
                 L_C(img_L_C),
                 L = cpp_EA_mapping(L_A_inv, L_B_T, L_C);
             // and then we check if the resulting graphs are XOR-equivalent

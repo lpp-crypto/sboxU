@@ -23,11 +23,11 @@ public:
 
     cpp_S_box get_cpp_S_box() const;
 
-    cpp_S_box get_ccz_equivalent_function(const cpp_BinLinearMap &L) const;
+    cpp_S_box get_ccz_equivalent_function(const cpp_F2AffineMap &L) const;
 
     std::vector<BinWord> xor_equivalence(const cpp_FunctionGraph & G) const;
 
-    cpp_FunctionGraph image_by(const cpp_BinLinearMap & L) const;
+    cpp_FunctionGraph image_by(const cpp_F2AffineMap & L) const;
 
     inline bool contains(const BinWord x) const
     {
@@ -69,16 +69,16 @@ public:
 };
 
 
-/* Returns a BinLinearMap corresponding to the n+m bit linear application that must be applied to the graph of a function F in order to obtain the graph of the function BoFoA + C.
+/* Returns a F2AffineMap corresponding to the n+m bit linear application that must be applied to the graph of a function F in order to obtain the graph of the function BoFoA + C.
  */
-cpp_BinLinearMap cpp_EA_mapping(
-    const cpp_BinLinearMap &A,
-    const cpp_BinLinearMap &B,
-    const cpp_BinLinearMap &C
+cpp_F2AffineMap cpp_EA_mapping(
+    const cpp_F2AffineMap &A,
+    const cpp_F2AffineMap &B,
+    const cpp_F2AffineMap &C
     );
 
 
 // Returns the block decomposition of a 2n x 2n matrix into four n x n blocks.
-std::vector<cpp_BinLinearMap> cpp_ccz_block_decomposition(const cpp_BinLinearMap &L);
+std::vector<cpp_F2AffineMap> cpp_ccz_block_decomposition(const cpp_F2AffineMap &L);
 
 #endif

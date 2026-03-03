@@ -23,7 +23,7 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
     cppclass cpp_WalshZeroesSpaces:
         std_vector[cpp_BinLinearBasis] bases
         
-        std_vector[cpp_BinLinearMap] mappings
+        std_vector[cpp_F2AffineMap] mappings
     
         cpp_WalshZeroesSpaces()
 
@@ -42,9 +42,9 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
 
         void init_mappings()
 
-        void init_mappings(const std_vector[cpp_BinLinearMap] & automorphisms)
+        void init_mappings(const std_vector[cpp_F2AffineMap] & automorphisms)
 
-        cpp_WalshZeroesSpaces image_by(const cpp_BinLinearMap & L) const
+        cpp_WalshZeroesSpaces image_by(const cpp_F2AffineMap & L) const
 
         cpp_Spectrum thickness_spectrum() const
     
@@ -55,7 +55,7 @@ cdef extern from "../cpp/ccz/zeroes.cpp":
 # !SUBSUBSECTION! graph.[hc]pp
 
 cdef extern from "../cpp/ccz/graph.hpp":
-    cdef std_vector[cpp_BinLinearMap] cpp_ccz_block_decomposition(const cpp_BinLinearMap L)
+    cdef std_vector[cpp_F2AffineMap] cpp_ccz_block_decomposition(const cpp_F2AffineMap L)
 
 cdef extern from "../cpp/ccz/graph.cpp":
     pass
@@ -66,7 +66,7 @@ cdef extern from "../cpp/ccz/graph.cpp":
 cdef extern from "../cpp/ccz/explore.hpp":
     cpp_S_box cpp_ccz_equivalent_function(
         const cpp_S_box & s,
-        const cpp_BinLinearMap & L
+        const cpp_F2AffineMap & L
         )
 
     std_vector[cpp_S_box] cpp_enumerate_ea_classes(
@@ -74,10 +74,10 @@ cdef extern from "../cpp/ccz/explore.hpp":
         const unsigned int n_threads
         )
 
-    cpp_BinLinearMap cpp_EA_mapping(
-        const cpp_BinLinearMap &A,
-        const cpp_BinLinearMap &B,
-        const cpp_BinLinearMap &C
+    cpp_F2AffineMap cpp_EA_mapping(
+        const cpp_F2AffineMap &A,
+        const cpp_F2AffineMap &B,
+        const cpp_F2AffineMap &C
         )
 
     std_vector[cpp_S_box] cpp_enumerate_permutations_in_ccz_class(
@@ -93,7 +93,7 @@ cdef extern from "../cpp/ccz/explore.cpp":
 # !SUBSECTION!  Partition preserving mappings
 
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
-    cdef std_vector[cpp_BinLinearMap] cpp_equivalences_from_lat(
+    cdef std_vector[cpp_F2AffineMap] cpp_equivalences_from_lat(
         cpp_S_box sbox1,
         cpp_S_box sbox2,
         const bool single_non_trivial_answer,

@@ -2,7 +2,7 @@
 
 from sboxUv2.config import MAX_N_THREADS
 from sboxUv2.core import oplus
-from sboxUv2.core.f2functions import Blm,rank_of_vector_set
+from sboxUv2.core.f2functions import get_F2AffineMap,rank_of_vector_set
 from math import log
 from random import randint
 
@@ -293,27 +293,27 @@ def complete_basis_reversed(basis: list[BinWord], N: int) -> list[BinWord]:
     return basis
 
 
-def generating_BinLinearMap_r(basis: list[BinWord], N: int) -> BinLinearMap:
-    # !TODO! docstring for algorithm.generating_BinLinearMap_r
-    return Blm(complete_basis_reversed(basis,N),N,N)
+def generating_F2AffineMap_r(basis: list[BinWord], N: int) -> F2AffineMap:
+    # !TODO! docstring for algorithm.generating_F2AffineMap_r
+    return get_F2AffineMap(complete_basis_reversed(basis,N),N,N)
 
 
-def generating_BinLinearMap(basis: list[BinWord], N: int) -> BinLinearMap:
-    """Builds a full rank BinLinearMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis.
+def generating_F2AffineMap(basis: list[BinWord], N: int) -> F2AffineMap:
+    """Builds a full rank F2AffineMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis.
 
     Args:
         basis: a list containing the integer representation of the binary vectors in the basis
         N: the intended input dimension for the output. It is assumed that the elements in basis are of length at most N.
     
     Returns
-        A BinLinearMap L from N bits to N bits such that L(1 << i) = basis[i] for all i < len(basis) and such that L is a bijection.
+        A F2AffineMap L from N bits to N bits such that L(1 << i) = basis[i] for all i < len(basis) and such that L is a bijection.
     
     """
-    return Blm(complete_basis(basis,N),N,N)
+    return get_F2AffineMap(complete_basis(basis,N),N,N)
 
 
-def BinLinearMap_from_masks(masks: list[BinWord], N: int, M: int) -> BinLinearMap:
-    """Builds a BinLinearMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis, and such that the other inputs are mapped to 0.
+def F2AffineMap_from_masks(masks: list[BinWord], N: int, M: int) -> F2AffineMap:
+    """Builds a F2AffineMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis, and such that the other inputs are mapped to 0.
 
     Args:
         masks: a list containing the integer representation of the target binary vectors
@@ -321,15 +321,15 @@ def BinLinearMap_from_masks(masks: list[BinWord], N: int, M: int) -> BinLinearMa
         M: the length of the output. It is assumed that the elements in basis are of length at most M.
 
     Returns:
-        A BinLinearMap L from N bits to M bits such that L(1 << i) = basis[i] for all i < len(basis) and L(1<<i)=0 for all i >= len(basis).
+        A F2AffineMap L from N bits to M bits such that L(1 << i) = basis[i] for all i < len(basis) and L(1<<i)=0 for all i >= len(basis).
     
     """
-    return Blm(masks + [0 for _ in range(len(masks), N)], N, M)
+    return get_F2AffineMap(masks + [0 for _ in range(len(masks), N)], N, M)
 
 
-def BinLinearMap_from_range_and_image(inputs: list[BinWord], outputs: list[BinWord], N:int, M: int) -> BinLinearMap:
-    # !TODO! doctstring for algorithm.BinLinearMap_from_range_and_image
-    return BinLinearMap_from_masks(outputs,M,N)*(generating_BinLinearMap(inputs,M).inverse())
+def F2AffineMap_from_range_and_image(inputs: list[BinWord], outputs: list[BinWord], N:int, M: int) -> F2AffineMap:
+    # !TODO! docstring for algorithm.F2AffineMap_from_range_and_image
+    return F2AffineMap_from_masks(outputs,M,N)*(generating_F2AffineMap(inputs,M).inverse())
     
 
 # !SECTION! Solving Linear Systems

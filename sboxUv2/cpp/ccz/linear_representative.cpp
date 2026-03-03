@@ -1164,8 +1164,8 @@ template<typename set_t, typename int_type> std::array<std::vector<int_type>,3> 
 
 cpp_S_box cpp_le_class_representative(
     const cpp_S_box f,
-    cpp_BinLinearMap & A,
-    cpp_BinLinearMap & B)
+    cpp_F2AffineMap & A,
+    cpp_F2AffineMap & B)
 {
     if(f.size() <= 256){
         std::vector<u8> ff;
@@ -1194,8 +1194,8 @@ cpp_S_box cpp_le_class_representative(
             lut_A[i] = (BinWord)result[1][i];
             lut_B[i] = (BinWord)result[2][i];
         }
-        A = cpp_BinLinearMap_from_lut(lut_A);
-        B = cpp_BinLinearMap_from_lut(lut_B);
+        A = cpp_F2AffineMap_from_lut(lut_A);
+        B = cpp_F2AffineMap_from_lut(lut_B);
         return cpp_S_box(linear_representative);
     }
     std::vector<u64> ff;
@@ -1214,8 +1214,8 @@ cpp_S_box cpp_le_class_representative(
     else
         // Currently Set<std::vector<u64>, u64> does not support < 6 bit sboxes, due to simple init_full()
          result = compute_linear_representative<std::vector<u64>, u64>(ff);
-    A = cpp_BinLinearMap_from_lut(result[1]);
-    B = cpp_BinLinearMap_from_lut(result[2]);
+    A = cpp_F2AffineMap_from_lut(result[1]);
+    B = cpp_F2AffineMap_from_lut(result[2]);
     return cpp_S_box(result[0]);
 }
 

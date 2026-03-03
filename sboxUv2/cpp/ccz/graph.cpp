@@ -58,7 +58,7 @@ cpp_S_box cpp_FunctionGraph::get_cpp_S_box() const
 
 
 cpp_S_box cpp_FunctionGraph::get_ccz_equivalent_function(
-    const cpp_BinLinearMap &L
+    const cpp_F2AffineMap &L
     ) const
 {
     BinWord forbidden_value = 1 << (n + 1);
@@ -101,7 +101,7 @@ std::vector<BinWord> cpp_FunctionGraph::xor_equivalence(const cpp_FunctionGraph 
 }
 
 
-cpp_FunctionGraph cpp_FunctionGraph::image_by(const cpp_BinLinearMap & L) const
+cpp_FunctionGraph cpp_FunctionGraph::image_by(const cpp_F2AffineMap & L) const
 {
     BinWord forbidden_value = 1 << (n + 1);
     std::vector<BinWord> new_graph;
@@ -117,23 +117,23 @@ cpp_FunctionGraph cpp_FunctionGraph::image_by(const cpp_BinLinearMap & L) const
 // !SECTION! Helper functions 
 
 
-cpp_BinLinearMap cpp_EA_mapping(
-    const cpp_BinLinearMap &A,
-    const cpp_BinLinearMap &B,
-    const cpp_BinLinearMap &C
+cpp_F2AffineMap cpp_EA_mapping(
+    const cpp_F2AffineMap &A,
+    const cpp_F2AffineMap &B,
+    const cpp_F2AffineMap &C
     )
 {
     if (A.get_input_length() != A.get_output_length()) 
-        throw std::runtime_error("in cpp_EA_BinLinearMap: A cannot be invertible");
+        throw std::runtime_error("in cpp_EA_F2AffineMap: A cannot be invertible");
     else if (B.get_input_length() != B.get_output_length()) 
-        throw std::runtime_error("in cpp_EA_BinLinearMap: B cannot be invertible");
+        throw std::runtime_error("in cpp_EA_F2AffineMap: B cannot be invertible");
     else if (A.get_input_length() < C.get_input_length())
-        throw std::runtime_error("in cpp_EA_BinLinearMap: A and C have incompatible input length");
+        throw std::runtime_error("in cpp_EA_F2AffineMap: A and C have incompatible input length");
     else if (B.get_output_length() < C.get_output_length())
-        throw std::runtime_error("in cpp_EA_BinLinearMap: B and C have incompatible output length");
+        throw std::runtime_error("in cpp_EA_F2AffineMap: B and C have incompatible output length");
     else
     {
-        cpp_BinLinearMap
+        cpp_F2AffineMap
             A_inv = A.inverse(),
             C_prime = C * A_inv;
         std::vector<BinWord> images;
@@ -144,12 +144,12 @@ cpp_BinLinearMap cpp_EA_mapping(
             BinWord x = 1 << i;
             images.push_back((A_inv(x) << B.get_output_length()) | C_prime(x));
         }
-        return cpp_BinLinearMap(images);
+        return cpp_F2AffineMap(images);
     }
 }
 
 // Returns the block decomposition of a 2n x 2n matrix into four n x n blocks.
-std::vector<cpp_BinLinearMap> cpp_ccz_block_decomposition(const cpp_BinLinearMap &L) {
+std::vector<cpp_F2AffineMap> cpp_ccz_block_decomposition(const cpp_F2AffineMap &L) {
         if(L.get_input_length() != L.get_output_length() || L.get_input_length() & ((Integer) 1))
             return {};
 
@@ -172,9 +172,9 @@ std::vector<cpp_BinLinearMap> cpp_ccz_block_decomposition(const cpp_BinLinearMap
             images_of_each_block[1].push_back((w >> n) & mask); // B
         }
 
-        std::vector<cpp_BinLinearMap> block_decomposition;
+        std::vector<cpp_F2AffineMap> block_decomposition;
         for (int i = 0; i < images_of_each_block.size(); i++)
-            block_decomposition.push_back(cpp_BinLinearMap(images_of_each_block[i], n, n));
+            block_decomposition.push_back(cpp_F2AffineMap(images_of_each_block[i], n, n));
         return block_decomposition;
 }
 

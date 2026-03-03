@@ -12,8 +12,8 @@
  */
 cpp_S_box cpp_le_class_representative(
     const cpp_S_box f,
-    cpp_BinLinearMap & A,
-    cpp_BinLinearMap & B
+    cpp_F2AffineMap & A,
+    cpp_F2AffineMap & B
     );
 
 
@@ -21,7 +21,7 @@ inline cpp_S_box cpp_le_class_representative(
     const cpp_S_box f
     )
 {
-    cpp_BinLinearMap A, B;
+    cpp_F2AffineMap A, B;
     return cpp_le_class_representative(f, A, B);
 };
 

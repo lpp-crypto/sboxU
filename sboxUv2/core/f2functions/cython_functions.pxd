@@ -53,47 +53,47 @@ cdef extern from "../../cpp/core/f2functions.cpp":
     pass
 
 
-# !SUBSECTION! The cpp_BinLinearMap class
+# !SUBSECTION! The cpp_F2AffineMap class
 
-cdef extern from "../../cpp/core/binLinearMap.hpp":
-    cppclass cpp_BinLinearMap:
-        cpp_BinLinearMap()
+cdef extern from "../../cpp/core/f2affinemap.hpp":
+    cppclass cpp_F2AffineMap:
+        cpp_F2AffineMap()
     
-        cpp_BinLinearMap(
+        cpp_F2AffineMap(
             const std_vector[BinWord] & _image_vectors
         )
     
-        cpp_BinLinearMap(
+        cpp_F2AffineMap(
             const std_vector[BinWord] & _image_vectors,
             const int64_t _input_length,
             const int64_t _output_length
         )
 
-        cpp_BinLinearMap(
+        cpp_F2AffineMap(
             const cpp_S_box & lut
         )
-
-        void destruct()
 
         int64_t get_input_length()
     
         int64_t get_output_length()
     
-        BinWord call "operator()" (
+        BinWord operator() (
             const BinWord x
         ) 
     
-        cpp_BinLinearMap mul "operator*"(
-           const cpp_BinLinearMap & l
+        cpp_F2AffineMap operator*(
+           const cpp_F2AffineMap & l
         ) 
         
-        cpp_BinLinearMap add "operator+"(
-            const cpp_BinLinearMap & l
+        cpp_F2AffineMap operator+(
+            const cpp_F2AffineMap & l
         ) 
-    
-        cpp_BinLinearMap inverse() 
+
+        bool is_invertible() const
         
-        cpp_BinLinearMap transpose()
+        cpp_F2AffineMap inverse() 
+        
+        cpp_F2AffineMap transpose()
     
         BinWord rank() 
         
@@ -101,20 +101,21 @@ cdef extern from "../../cpp/core/binLinearMap.hpp":
 
         std_vector[BinWord] get_image_vectors()
     
-    cpp_BinLinearMap cpp_block_diagonal_BinLinearMap(
-        const cpp_BinLinearMap &A,
-        const cpp_BinLinearMap &B,
+    cpp_F2AffineMap cpp_block_diagonal_F2AffineMap(
+        const cpp_F2AffineMap &A,
+        const cpp_F2AffineMap &B,
     )
 
     
-cdef extern from "../../cpp/core/binLinearMap.cpp":
+cdef extern from "../../cpp/core/f2affinemap.cpp":
     pass
 
 
 # !SECTION! Declaring cython code
 
 
-cdef class BinLinearMap:
-    cdef cpp_BinLinearMap * cpp_blm
+cdef class F2AffineMap:
+    cdef unique_ptr[cpp_F2AffineMap] cpp_map
+    cdef set_inner_map(F2AffineMap self, cpp_F2AffineMap A)
 
     

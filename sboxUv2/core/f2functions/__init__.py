@@ -9,8 +9,8 @@ from .cython_functions import \
     hamming_weight, scal_prod, msb, lsb, \
     to_bin, from_bin, circ_shift, \
     linear_combination, rank_of_vector_set, \
-    BinLinearMap, Blm, \
-    identity_BinLinearMap, zero_BinLinearMap, block_diagonal_BinLinearMap,circ_shift_BinLinearMap
+    get_F2AffineMap, F2AffineMap, \
+    identity_F2AffineMap, zero_F2AffineMap, block_diagonal_F2AffineMap,circ_shift_F2AffineMap
 
             
 from .field_arithmetic import * 

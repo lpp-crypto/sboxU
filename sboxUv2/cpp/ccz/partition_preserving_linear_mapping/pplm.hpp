@@ -132,18 +132,18 @@ public:
 *    Sanity checks and early aborts
 *  ==============================================
 */
-bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_BinLinearMap &solution, const string &equivalence_type);
+bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_F2AffineMap &solution, const string &equivalence_type);
 
 class PPExitCondition
 {
 public:
-    virtual bool is_valid(const cpp_BinLinearMap &solution) = 0;
+    virtual bool is_valid(const cpp_F2AffineMap &solution) = 0;
 };
 
 class PPExitConditionTrivial : public virtual PPExitCondition
 {
 public:
-  bool is_valid(const cpp_BinLinearMap &solution) {return true;}
+  bool is_valid(const cpp_F2AffineMap &solution) {return true;}
 };
 
 class PPExitConditionLinearOrEL : public virtual PPExitCondition
@@ -156,7 +156,7 @@ public:
     PPExitConditionLinearOrEL(cpp_S_box *_sbox1, cpp_S_box *_sbox2, string _equivalence_type) : 
     sbox1(_sbox1), sbox2(_sbox2), equivalence_type(_equivalence_type) {}
 
-    bool is_valid(const cpp_BinLinearMap &solution) {
+    bool is_valid(const cpp_F2AffineMap &solution) {
         return cpp_verify_linear_or_el_equivalence(*sbox1, *sbox2, solution, equivalence_type);
     }
 };
@@ -225,7 +225,7 @@ private:
     PPEarlyAbortCondition *early_abort;
 
 public:
-    vector<cpp_BinLinearMap> found_mappings;
+    vector<cpp_F2AffineMap> found_mappings;
 
     PartitionPreservingLinearMappings(Partition<keyType> *_partition_in, Partition<keyType> *_partition_out, PPExitCondition *_exit_condition, PPEarlyAbortCondition *_early_abort, bool _single_non_trivial_answer, unsigned int _number_of_threads) :
         single_non_trivial_answer(_single_non_trivial_answer),
@@ -238,12 +238,12 @@ public:
         dimension = _partition_in->dim();
     }
 
-    vector<cpp_BinLinearMap> recursive_search(vector<BinWord> basis_out) {
+    vector<cpp_F2AffineMap> recursive_search(vector<BinWord> basis_out) {
         unsigned int current_index = basis_out.size();
 
         // A leaf is reached
         if(current_index == dimension) {
-            // Computes the corresponding BinLinearMap
+            // Computes the corresponding F2AffineMap
             vector<BinWord> image_canonical_basis(dimension);
             BinWord x, y;
             for(BinWord i = 0; i < (ONE << dimension); i++) {
@@ -253,7 +253,7 @@ public:
                     image_canonical_basis[countr_zero(x)] = y; // countr_zero provides the index of the first set bit.
                 }
             }
-            cpp_BinLinearMap solution(image_canonical_basis); 
+            cpp_F2AffineMap solution(image_canonical_basis); 
             solution = solution.transpose().inverse();// CAREFUL HERE
 
 
@@ -264,7 +264,7 @@ public:
                 return {solution};
         }
 
-        vector<cpp_BinLinearMap> solutions; // The list of the found solutions
+        vector<cpp_F2AffineMap> solutions; // The list of the found solutions
         BinWord x, y, v, w, image, pre_image, i;
         bool partition_preserving = true;
 
@@ -294,7 +294,7 @@ public:
 
                 // Recursive call if no contradiction for now
                 if(partition_preserving) {
-                    const vector<cpp_BinLinearMap> recursive_solutions = recursive_search(basis_out);
+                    const vector<cpp_F2AffineMap> recursive_solutions = recursive_search(basis_out);
                     solutions.insert(solutions.end(), recursive_solutions.begin(), recursive_solutions.end());  // Adds the found mappings to the list
                 }
             }
@@ -318,13 +318,13 @@ public:
             const vector<BinWord> bucket = (*partition_out)[bucket_key];
 
             bool found = false;
-            vector<vector<cpp_BinLinearMap>> thread_solutions(number_of_threads);
+            vector<vector<cpp_F2AffineMap>> thread_solutions(number_of_threads);
 
             omp_set_num_threads(number_of_threads);
 #pragma omp parallel for default(none) shared(bucket, found, thread_solutions, cout)
             for(unsigned int i = 0; i < bucket.size(); i++) {
                 if(!(single_non_trivial_answer && found)) {
-                    vector<cpp_BinLinearMap> cur_solutions;
+                    vector<cpp_F2AffineMap> cur_solutions;
                     cur_solutions = recursive_search({bucket[i]});
                     if(single_non_trivial_answer && cur_solutions.size()) {
 #pragma omp critical
@@ -341,7 +341,7 @@ public:
     }
 };
 
-vector<cpp_BinLinearMap> cpp_equivalences_from_lat(
+vector<cpp_F2AffineMap> cpp_equivalences_from_lat(
     cpp_S_box sbox1,
     cpp_S_box sbox2,
     const bool &single_non_trivial_answer,

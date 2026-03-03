@@ -17,7 +17,7 @@ add_library(
   libcore
   ./core/anf.cpp
   ./core/s_box.cpp
-  ./core/binLinearMap.cpp
+  ./core/f2affinemap.cpp
   ./core/spectrum.cpp
   ./core/f2functions.cpp
   ./core/prng.cpp
@@ -84,9 +84,8 @@ target_link_libraries(sboxU_CPP PRIVATE libcore libstatistics libalgorithms libc
 add_executable(test_f2Sbox ./tests/F2Sbox.cpp)
 target_link_libraries(test_f2Sbox PRIVATE sboxU_CPP) 
 
-
-add_executable(test_test ./tests/test.cpp)
-target_link_libraries(test_test PRIVATE sboxU_CPP) 
+# add_executable(test_test ./tests/test.cpp)
+# target_link_libraries(test_test PRIVATE sboxU_CPP) 
 
 add_executable(test_prng ./tests/prng.cpp)
 target_link_libraries(test_prng PRIVATE sboxU_CPP) 

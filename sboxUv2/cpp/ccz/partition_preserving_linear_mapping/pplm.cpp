@@ -5,8 +5,8 @@
 #include "pplm.hpp"
 
 
-bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_BinLinearMap &solution, const string &equivalence_type) {
-	vector<cpp_BinLinearMap> ABCD = cpp_ccz_block_decomposition(solution);
+bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_box &sbox2, const cpp_F2AffineMap &solution, const string &equivalence_type) {
+	vector<cpp_F2AffineMap> ABCD = cpp_ccz_block_decomposition(solution);
  	cpp_S_box A = ABCD[0].get_cpp_S_box();
     cpp_S_box B = ABCD[1].get_cpp_S_box();
     cpp_S_box C = ABCD[2].get_cpp_S_box();
@@ -29,7 +29,7 @@ bool cpp_verify_linear_or_el_equivalence(const cpp_S_box &sbox1,  const cpp_S_bo
     return test;
 }
 
-vector<cpp_BinLinearMap> cpp_equivalences_from_lat(
+vector<cpp_F2AffineMap> cpp_equivalences_from_lat(
     cpp_S_box sbox1,
     cpp_S_box sbox2,
     const bool &single_non_trivial_answer,

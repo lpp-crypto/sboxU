@@ -1,7 +1,7 @@
 from sage.all import log
-from sboxUv2.core import is_permutation,identity_BinLinearMap,zero_BinLinearMap,oplus,block_diagonal_BinLinearMap,rank_of_vector_set, Sb, Blm,BinLinearMap
+from sboxUv2.core import is_permutation,identity_F2AffineMap,zero_F2AffineMap,oplus,block_diagonal_F2AffineMap,rank_of_vector_set, Sb, get_F2AffineMap,F2AffineMap
 from sboxUv2.ccz import get_WalshZeroesSpaces
-from sboxUv2.algorithms import generating_BinLinearMap_r,generating_BinLinearMap, BinLinearMap_from_range_and_image
+from sboxUv2.algorithms import generating_F2AffineMap_r,generating_F2AffineMap, F2AffineMap_from_range_and_image
 from sboxUv2.display import pprint
 from sboxUv2.statistics import lat
 
@@ -26,24 +26,24 @@ class TUdecomposition:
 
         # setting linear components
         if A is None:
-            self.A = identity_BinLinearMap(self.n)
-        elif isinstance(A, BinLinearMap):
+            self.A = identity_F2AffineMap(self.n)
+        elif isinstance(A, F2AffineMap):
             self.A = A
         else:
-            self.A = Blm(A)  
+            self.A = get_F2AffineMap(A)  
 
         if B is None:
-            self.B = identity_BinLinearMap(self.m)
-        elif isinstance(B, BinLinearMap):
+            self.B = identity_F2AffineMap(self.m)
+        elif isinstance(B, F2AffineMap):
             self.B = B
         else:
-            self.B = Blm(B)
+            self.B = get_F2AffineMap(B)
         if C is None:
-            self.C = zero_BinLinearMap(self.n,self.m)
-        elif isinstance(C, BinLinearMap):
+            self.C = zero_F2AffineMap(self.n,self.m)
+        elif isinstance(C, F2AffineMap):
             self.C = C
         else:
-            self.C = Blm(C)
+            self.C = get_F2AffineMap(C)
         # setting mini-block ciphers
         self.T = T
         self.T_inv = []
@@ -104,7 +104,7 @@ class TUdecomposition:
         permutation *before* it is called.
 
         """
-        new_A = block_diagonal_BinLinearMap(alpha.inverse(),identity_BinLinearMap(self.n-self.t)) *self.A
+        new_A = block_diagonal_F2AffineMap(alpha.inverse(),identity_F2AffineMap(self.n-self.t)) *self.A
         alpha_sb=alpha.get_S_box()
         new_T = [row*alpha_sb for row in self.T]
         new_U = [self.U[alpha(y)] for y in range(0, 2**self.t)]
@@ -125,7 +125,7 @@ class TUdecomposition:
         permutation *after* it is called.
 
         """
-        new_B = self.B* block_diagonal_BinLinearMap(alpha.inverse(), identity_BinLinearMap(self.m-self.t)) 
+        new_B = self.B* block_diagonal_F2AffineMap(alpha.inverse(), identity_F2AffineMap(self.m-self.t)) 
         alpha_sb=alpha.get_S_box()
         new_T = [alpha_sb*row for row in self.T]
         return TUdecomposition(
@@ -146,7 +146,7 @@ class TUdecomposition:
         applied, *before* it is called.
 
         """
-        new_A = block_diagonal_BinLinearMap(identity_BinLinearMap(self.t),alpha.inverse() ) * self.A
+        new_A = block_diagonal_F2AffineMap(identity_F2AffineMap(self.t),alpha.inverse() ) * self.A
         alpha_sb=alpha.get_S_box()
         new_T = [self.T[alpha_sb[y]] for y in range(0, 2**(self.n - self.t))]
         new_U = [row *alpha_sb for row in self.U]
@@ -167,7 +167,7 @@ class TUdecomposition:
         applied, *after* it is called.
 
         """
-        new_B = self.B * block_diagonal_BinLinearMap(identity_BinLinearMap(self.t),alpha.inverse())
+        new_B = self.B * block_diagonal_F2AffineMap(identity_F2AffineMap(self.t),alpha.inverse())
         alpha_sb=alpha.get_S_box()
         new_U = [alpha_sb * row for row in self.U]
         return TUdecomposition(
@@ -272,9 +272,9 @@ def tu_decomposition_from_space_basis(s, basis,n,m):
     basis_A = [b >> m    for b in sanitized_basis[t:n]]
     basis_C = [b >> m   for b in sanitized_basis[0:t]]
     basis_B = [b & mask_m for b in sanitized_basis[0:t]]
-    A = generating_BinLinearMap_r(basis_A, n).transpose()
-    B = generating_BinLinearMap(basis_B, m).inverse().transpose()
-    C = B.inverse()*(BinLinearMap_from_range_and_image(basis_B,basis_C,n,m).transpose())*A.inverse()
+    A = generating_F2AffineMap_r(basis_A, n).transpose()
+    B = generating_F2AffineMap(basis_B, m).inverse().transpose()
+    C = B.inverse()*(F2AffineMap_from_range_and_image(basis_B,basis_C,n,m).transpose())*A.inverse()
     # recovering T and U
     s_prime = []
     for x in range(0, 2**n):
@@ -311,7 +311,7 @@ def get_tu_decompositions(s, walsh_zeroes=None):
             result.append(d)
     return result
 
-def swap_Blm(t,n,m):
+def swap_F2AffineMap(t,n,m):
     resultat=[]
     for i in range(t):
         resultat.append(1<<(n+i))
@@ -321,5 +321,5 @@ def swap_Blm(t,n,m):
         resultat.append((1<<i))
     for i in range(m-t):
         resultat.append(1<<(t+n+i))
-    return Blm(resultat,n+m,n+m)
+    return get_F2AffineMap(resultat,n+m,n+m)
     

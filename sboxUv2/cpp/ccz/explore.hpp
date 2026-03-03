@@ -29,13 +29,13 @@
    If the mapping is not actually admissible for s, returns the empty S-box. 
 
     @param s The cpp_S_box representing the function analysed.
-    @param L The cpp_BinLinearMap to apply to the graph of s
+    @param L The cpp_F2AffineMap to apply to the graph of s
 
     @return The function with graph L(G_s), where G_s is the graph of s. If L is not admissible for s, then returns the empty S-box.
  */
 cpp_S_box cpp_ccz_equivalent_function(
     const cpp_S_box & s,
-    const cpp_BinLinearMap & L
+    const cpp_F2AffineMap & L
     );
 
 

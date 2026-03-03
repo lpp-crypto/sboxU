@@ -709,11 +709,11 @@ def get_Sbox_from_sage_SBox(s : sage_SBox, name, input_casts : list, output_cast
     return result
 
 
-def get_Sbox_from_BinLinearMap(s : BinLinearMap, name, input_casts : list, output_casts: list) -> S_box:
+def get_Sbox_from_F2AffineMap(s : F2AffineMap, name, input_casts : list, output_casts: list) -> S_box:
     result = S_box(name=name,
                    input_casts=input_casts,
                    output_casts=output_casts)
-    (<S_box>result).set_inner_sbox((<BinLinearMap>s).cpp_blm[0].get_cpp_S_box())
+    (<S_box>result).set_inner_sbox(dereference((<F2AffineMap>s).cpp_map).get_cpp_S_box())
     return result
 
 
@@ -754,7 +754,7 @@ def get_Sbox_from_list(s : list, name, input_casts : list, output_casts : list) 
 
 SBOXU_TYPE_TO_FACTORY = {
     sage_SBox    : get_Sbox_from_sage_SBox,
-    BinLinearMap : get_Sbox_from_BinLinearMap,
+    F2AffineMap  : get_Sbox_from_F2AffineMap,
     list         : get_Sbox_from_list,
     bytes        : get_Sbox_from_bytes,
     bytearray    : get_Sbox_from_bytes,

@@ -96,9 +96,8 @@ def linear_equivalence_permutations(f, g, all_mappings=False):
         )
     mappings = []
     for cpp_A in result:
-        A = BinLinearMap()
-        (<BinLinearMap>A).cpp_blm = new cpp_BinLinearMap()
-        (<BinLinearMap>A).cpp_blm[0] = <cpp_BinLinearMap>cpp_A
+        A = F2AffineMap()
+        A.set_inner_map(<cpp_F2AffineMap>cpp_A)
         mappings.append(A)
     return [(mappings[i], mappings[i+1])
             for i in range(0, len(mappings), 2)]

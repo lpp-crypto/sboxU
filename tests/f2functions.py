@@ -32,19 +32,19 @@ if __name__ == "__main__":
     print(pretty_bin(xor(entries)) + " (tot)")
     print(pretty_bin(xor(entries, sum(1 << i for i in range(0, n)))) + " (not tot)")
             
-    tot_sum  = zero_BinLinearMap(n)
-    tot_prod = identity_BinLinearMap(n)
+    tot_sum  = zero_F2AffineMap(n)
+    tot_prod = identity_F2AffineMap(n)
     for t in range(0, 15):
         masks = [randint(1, 2**n-1) for i in range(0, randint(n-1, n+1))]
         print(masks)
-        L = Blm(masks)
+        L = get_F2AffineMap(masks)
         x = [randint(0, 2**n) for u in range(0, 15)]
         img = [L(x_i) for x_i in x]
         print(img)
         print([linear_combination(masks, x_i) for x_i in x])
         print(L.get_input_length(), rank_of_vector_set(img), L.rank())
         s = Sb(L)
-        print(Blm(s))
+        print(get_F2AffineMap(s))
         print(L)
         pprint(s)
         if L.get_input_length() == n and n == L.rank():
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 
     # testing diagonal maps
 
-    print(block_diagonal_BinLinearMap(
-        identity_BinLinearMap(3),
-        identity_BinLinearMap(4),
+    print(block_diagonal_F2AffineMap(
+        identity_F2AffineMap(3),
+        identity_F2AffineMap(4),
     ))

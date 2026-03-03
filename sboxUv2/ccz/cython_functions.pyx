@@ -1,7 +1,7 @@
 # -*- python -*-
 
 
-from sboxUv2.core import Sb, Blm
+from sboxUv2.core import Sb, get_F2AffineMap
 from sboxUv2.config import MAX_N_THREADS
 from sboxUv2.statistics import lat
 
@@ -47,10 +47,10 @@ cdef class WalshZeroesSpaces:
 
         
     def image_by(self, L):
-        Lm = Blm(L)
+        Lm = get_F2AffineMap(L)
         result = WalshZeroesSpaces()
         (<WalshZeroesSpaces>result).cpp_wzs[0] = (<WalshZeroesSpaces>self).cpp_wzs[0].image_by(
-            (<BinLinearMap>Lm).cpp_blm[0]
+            dereference((<F2AffineMap>Lm).cpp_map)
         )
         return result
 
@@ -58,20 +58,20 @@ cdef class WalshZeroesSpaces:
     def init_mappings(self):
         self.cpp_wzs[0].init_mappings()
         for m in self.cpp_wzs[0].mappings:
-            L = BinLinearMap()
-            (<BinLinearMap>L).cpp_blm[0] = m
+            L = F2AffineMap()
+            L.set_inner_map(m)
             self.mappings.append(L)
         
     
     # def init_mappings_using_automorphisms(
     #         self,
-    #         std_vector[BinLinearMap] automorphisms
+    #         std_vector[F2AffineMap] automorphisms
     # ):
     #     std_vector(
     #     self.cpp_wzs[0].init_mappings()
     #     for m in self.cpp_wzs[0].mappings:
-    #         L = BinLinearMap()
-    #         (<BinLinearMap>L).cpp_blm[0] = m
+    #         L = F2AffineMap()
+    #         (<F2AffineMap>L).cpp_blm[0] = m
     #         self.mappings.append(L)
         
 
@@ -126,19 +126,19 @@ def ccz_equivalent_function(s, L):
 
     Args:
         s: an S_box-able object
-        L: a BinLinearMap-able object
+        L: a F2AffineMap-able object
 
     Returns:
         If `L` is indeed admissible for `s`, then returns an `S_box` instance corresponding to the function whose graph is the image of that of `s` by `L`. Otherwise, returns an empty `S_box`.
     
     """
     sb = Sb(s)
-    basis = Blm(L)
+    basis = get_F2AffineMap(L)
     result = S_box(name=b"CCZ-" + sb.name())
     result.set_inner_sbox(
         cpp_ccz_equivalent_function(
             dereference((<S_box>sb).cpp_sb),
-            (<BinLinearMap>basis).cpp_blm[0]
+            dereference(((<F2AffineMap>basis).cpp_map))
             )
     )
     return result
@@ -177,23 +177,23 @@ def EA_mapping(A, B, C):
     """Assume that A and B are full-rank linear applications, and C another (maybe not-full rank) linear application. Given a function F, these can be used to define G as an extended affine equivalent function of F. This function helps expressing the relationship between F and G in terms of graph.
     
     Args:
-        A: a BinLinearMap-able object corresponding to a full rank linear application.
-        B: a BinLinearMap-able object corresponding to a full rank linear application.
-        C: a BinLinearMap-able object.
+        A: a F2AffineMap-able object corresponding to a full rank linear application.
+        B: a F2AffineMap-able object corresponding to a full rank linear application.
+        C: a F2AffineMap-able object.
 
     Returns:
-        A `BinLinearMap` corresponding to the linear permutation that must be applied to the graph of a function F in order to obtain the graph of the function B*F*A + C.
+        A `F2AffineMap` corresponding to the linear permutation that must be applied to the graph of a function F in order to obtain the graph of the function B*F*A + C.
     
     """
-    result = BinLinearMap()
-    Ablm = Blm(A)
-    Bblm = Blm(B)
-    Cblm = Blm(C)
-    result.cpp_blm[0] = cpp_EA_mapping(
-        (<BinLinearMap>Ablm).cpp_blm[0],
-        (<BinLinearMap>Bblm).cpp_blm[0],
-        (<BinLinearMap>Cblm).cpp_blm[0]
-    )
+    result = F2AffineMap()
+    Ablm = get_F2AffineMap(A)
+    Bblm = get_F2AffineMap(B)
+    Cblm = get_F2AffineMap(C)
+    result.set_inner_map(cpp_EA_mapping(
+        dereference((<F2AffineMap>Ablm).cpp_map),
+        dereference((<F2AffineMap>Bblm).cpp_map),
+        dereference((<F2AffineMap>Cblm).cpp_map),
+    ))
     return result
     
 
@@ -217,7 +217,7 @@ def equivalences_from_lat(
         If "ccz-linear", search for all *linear* bijection A such that A(graph(F)) = graph(G).
 
         Returns:
-            list: A list of pairs of BinLinearMaps corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
+            list: A list of pairs of F2AffineMaps corresponding to all pairs of linear bijections (A, B) satisfying B o F o A = F.
 
     """
     res = []
@@ -228,8 +228,8 @@ def equivalences_from_lat(
             n_threads,
             equivalence_type.encode('ascii')
     ):
-        new_blm = BinLinearMap()
-        new_blm.cpp_blm[0] = solution
+        new_blm = F2AffineMap()
+        (<F2AffineMap>new_blm).set_inner_map(solution)
         res.append(new_blm)
     return res
 
@@ -356,11 +356,11 @@ def are_ccz_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
 # !SUBSECTION! Some utils
 
 def ccz_block_decomposition(blm):
-    """ Decompose a 2n x 2n matrix (BinLinearMap) into the 4 corresponding n x n matrices (returned as BinLinearMap)."""
+    """ Decompose a 2n x 2n matrix (F2AffineMap) into the 4 corresponding n x n matrices (returned as F2AffineMap)."""
     abcd = []
-    for block in cpp_ccz_block_decomposition((<BinLinearMap>blm).cpp_blm[0]):
-        new_blm = BinLinearMap()
-        new_blm.cpp_blm[0] = block
+    for block in cpp_ccz_block_decomposition(dereference((<F2AffineMap>blm).cpp_map)):
+        new_blm = F2AffineMap()
+        new_blm.set_inner_map(block)
         abcd.append(new_blm)
     return abcd
 

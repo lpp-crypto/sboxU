@@ -129,134 +129,145 @@ def to_bin(BinWord x, int n) -> list:
 def from_bin(std_vector[int] l) -> BinWord:
     return cpp_from_bin(l)
 
-# !SUBSECTION! The BinLinearMap class
+# !SECTION! The F2AffineMap class
 
-cdef class BinLinearMap:
-    """This class models a linear mapping defined over F_2. It encapsulates a C++ class, `cpp_BinLinearMap`, for speed.
+cdef class F2AffineMap:
+    """This class models a linear mapping defined over F_2. It encapsulates a C++ class, `cpp_F2AffineMap`, for speed.
 
     While it implements methods corresponding to matrix operations, such as `transpose`, it does not rely on a matrix representation internally. Instead, it stores the vectors corresponding to the images of the canonical basis of F_2^n, and operates on these.
 
-    Unless you are working *on* (rather than *with* `sboxU`), do not use the constructor of this class. Instead, you should rely on the `Blm` factory.
+    Unless you are working *on* (rather than *with* `sboxU`), do not use the constructor of this class. Instead, you should rely on the `get_F2AffineMap` factory.
     
     """
     
     def __init__(self):
-        self.cpp_blm = new cpp_BinLinearMap(<std_vector[BinWord]>[ ])
+        pass
 
+    
+    cdef set_inner_map(self, A : cpp_F2AffineMap):
+        self.cpp_map = make_unique[cpp_F2AffineMap](A)
         
-    def __dealloc__(self):
-        self.cpp_blm[0].destruct()
-        free(self.cpp_blm)
         
-
     def get_input_length(self) -> int:
-        return self.cpp_blm[0].get_input_length()
+        return dereference(self.cpp_map).get_input_length()
 
     
     def get_output_length(self) -> int:
-        return self.cpp_blm[0].get_output_length()
+        return dereference(self.cpp_map).get_output_length()
 
     
-    def transpose(self) -> BinLinearMap:
-        result = BinLinearMap()
-        result.cpp_blm[0] = self.cpp_blm[0].transpose()
+    def __call__(self, x : BinWord) -> BinWord:
+        return dereference(self.cpp_map)(x)
+
+    
+    def __add__(self, L : F2AffineMap) -> F2AffineMap:
+        result = F2AffineMap()
+        result.set_inner_map( dereference(self.cpp_map)  + dereference(L.cpp_map))
         return result
 
     
-    def __call__(self, BinWord x) -> BinWord:
-        return self.cpp_blm[0].call(x)
-
-    
-    def __add__(self, BinLinearMap L) -> BinLinearMap:
-        result = BinLinearMap()
-        result.cpp_blm[0] = (<cpp_BinLinearMap>self.cpp_blm[0]).add(<cpp_BinLinearMap>(L.cpp_blm[0]))
-        return result
-
     def __hash__(self):
-        # !TODO! improve the implementation of BinLinearMap.__hash__() 
+        # !TODO! improve the implementation of F2AffineMap.__hash__() 
         return hash(self.get_S_box())
 
     
-    def __mul__(self, BinLinearMap L) -> BinLinearMap:
-        result = BinLinearMap()
-        result.cpp_blm[0] = (<cpp_BinLinearMap>self.cpp_blm[0]).mul(<cpp_BinLinearMap>(L.cpp_blm[0]))
+    def __mul__(self, F2AffineMap L) -> F2AffineMap:
+        result = F2AffineMap()
+        result.set_inner_map(dereference(self.cpp_map) * dereference(L.cpp_map))
         return result
 
     
-    def inverse(self) -> BinLinearMap:
-        result = BinLinearMap()
-        result.cpp_blm[0] = self.cpp_blm[0].inverse()
+    def inverse(self) -> F2AffineMap:
+        if (dereference(self.cpp_map).is_invertible()):
+            result = F2AffineMap()
+            self.set_inner_map(dereference(self.cpp_map).inverse())
+            return result
+        else:
+            raise Exception("Trying to invert a non-invertible F2AffineMap")
+
+    
+    def transpose(self) -> F2AffineMap:
+        result = F2AffineMap()
+        self.set_inner_map(dereference(self.cpp_map).transpose())
         return result
 
     
     def rank(self) -> int:
-        return self.cpp_blm[0].rank()
+        return dereference(self.cpp_map).rank()
 
 
     def __str__(self) -> str:
-        return str(Matrix(GF(2),[cpp_to_bin(x,self.get_output_length()) for x in self.cpp_blm[0].get_image_vectors()]).transpose())
+        return str(Matrix(
+            GF(2),
+            [cpp_to_bin(x, self.get_output_length())
+             for x in dereference(self.cpp_map).get_image_vectors()]
+        ).transpose())
 
 
     def get_S_box(self) -> S_box:
         result = S_box(name="L")
-        result.set_inner_sbox(self.cpp_blm[0].get_cpp_S_box())
+        result.set_inner_sbox(dereference(self.cpp_map).get_cpp_S_box())
         return result
     
+    
     def get_image_vectors(self):
-        return self.cpp_blm[0].get_image_vectors()
+        return dereference(self.cpp_map).get_image_vectors()
+
     
     # !TODO! __rich_repr__
 
     # !TODO! from_blob / to_blob
 
-    def __eq__(self,BinLinearMap L) -> bool:
-        return self.cpp_blm[0].get_image_vectors()==L.cpp_blm[0].get_image_vectors()
+    def __eq__(self,F2AffineMap L) -> bool:
+        return dereference(self.cpp_map).get_image_vectors() == dereference(L.cpp_map).get_image_vectors()
 
 
 # !SUBSECTION! Factories 
 
-def identity_BinLinearMap(int64_t n) -> BinLinearMap:
-    return Blm([(1 << i) for i in range(0, n)],n,n)
+def identity_F2AffineMap(int64_t n) -> F2AffineMap:
+    return get_F2AffineMap([(1 << i) for i in range(0, n)],n,n)
 
 
-def zero_BinLinearMap(int64_t n,int64_t m) -> BinLinearMap:
-    return Blm([0 for i in range(0, n)],n,m)
+def zero_F2AffineMap(n : BinWord, m : BinWord) -> F2AffineMap:
+    return get_F2AffineMap([0 for i in range(0, n)], n, m)
 
 
-def block_diagonal_BinLinearMap(A, B) -> BinLinearMap:
-    Ablm = Blm(A)
-    Bblm = Blm(B)
-    result = BinLinearMap()
-    result.cpp_blm[0] = cpp_block_diagonal_BinLinearMap(
-        (<BinLinearMap>Ablm).cpp_blm[0],
-        (<BinLinearMap>Bblm).cpp_blm[0],
-    )
+def block_diagonal_F2AffineMap(A, B) -> F2AffineMap:
+    Ablm = get_F2AffineMap(A)
+    Bblm = get_F2AffineMap(B)
+    result = F2AffineMap()
+    result.set_inner_map(cpp_block_diagonal_F2AffineMap(
+        dereference((<F2AffineMap>Ablm).cpp_map),
+        dereference((<F2AffineMap>Bblm).cpp_map),
+    ))
     return result
 
-def circ_shift_BinLinearMap(int n, int shift) -> BinLinearMap:
+
+def circ_shift_F2AffineMap(int n, int shift) -> F2AffineMap:
     """A circular shift is the operation of rearranging the entries in a vector, either by moving the final entry to the first position, while shifting all other entries to the next position, or by performing the inverse operation. 
 
     Args : 
         - n : a positive integer
         - shift : a signed integer
     Returns :
-        A BinLinearMap object which encodes the circular shift by 'shift' positions. This linear map is an automorphism of (F_2)^n. As for circ_shift, the LSB-first decomposition of a vector x is shifted to the left if shift is positive and to the right otherwise. 
+        A F2AffineMap object which encodes the circular shift by 'shift' positions. This linear map is an automorphism of (F_2)^n. As for circ_shift, the LSB-first decomposition of a vector x is shifted to the left if shift is positive and to the right otherwise. 
     """
-    return Blm([circ_shift(1 <<i,n,shift) for i in range(0, n)],n,n)
+    return get_F2AffineMap([circ_shift(1 <<i,n,shift) for i in range(0, n)], n, n)
+
 
     
-# !SUBSECTION! The main factory, Blm
+# !SUBSECTION! The main factory
 
 
-def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
-    if isinstance(l, (BinLinearMap)):
+def get_F2AffineMap(l,input_length=None,output_length=None) -> F2AffineMap:
+    if isinstance(l, (F2AffineMap)):
         return l
     elif input_length is None and output_length is None:
-        result = BinLinearMap()
+        result = F2AffineMap()
         if isinstance(l, (list)):
-            result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>l)
+            result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l))
         elif isinstance(l, (S_box)):
-            result.cpp_blm[0] = cpp_BinLinearMap(dereference((<S_box>l).cpp_sb))
+            result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
         elif isinstance(l, Polynomial):
             # case of a univariate polynomial
             field = l.base_ring()
@@ -264,9 +275,9 @@ def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
                 n = field.degree()
                 i2f, f2i = i2f_and_f2i(field)
                 imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
-                result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>imgs)
+                result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs))
             else:
-                raise Exception("A polynomial in characteristic 2 is needed for a BinLinearMap")
+                raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
         else:
             # !TODO! implement Blm processing of SAGE matrices 
             raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))
@@ -274,13 +285,15 @@ def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
     elif (input_length is None) or (output_length is None):
         raise NotImplemented("You must specify both input_length and output_length or none of them")
     else :
-        result = BinLinearMap()
+        result = F2AffineMap()
         if isinstance(l, (list)):
-            result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>l,input_length,output_length)
+            result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l,
+                                                 input_length,
+                                                 output_length))
         elif isinstance(l, (S_box)):
             if l.get_input_length()!=input_length or l.get_output_length()!= output_length:
                 raise Exception("You specified uncompatible input or output length")
-            result.cpp_blm[0] = cpp_BinLinearMap(dereference((<S_box>l).cpp_sb))
+            result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
         elif isinstance(l, Polynomial):
             # case of a univariate polynomial
             field = l.base_ring()
@@ -288,9 +301,11 @@ def Blm(l,input_length=None,output_length=None) -> BinLinearMap:
                 n = field.degree()
                 i2f, f2i = i2f_and_f2i(field)
                 imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
-                result.cpp_blm[0] = cpp_BinLinearMap(<std_vector[BinWord]>imgs,input_length,output_length)
+                result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs,
+                                                     input_length,
+                                                     output_length))
             else:
-                raise Exception("A polynomial in characteristic 2 is needed for a BinLinearMap")
+                raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
         else:
             # !TODO! implement Blm processing of SAGE matrices 
             raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))

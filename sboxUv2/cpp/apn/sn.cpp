@@ -233,7 +233,7 @@ std::vector<cpp_S_box> cpp_compute_non_trivial_space_without_zero(cpp_S_box f,st
         }
         // Removing Coordinates
         u_complete = cpp_complete_basis(cpp_BinLinearBasis({u+1}),n);
-        temp_s = (cpp_BinLinearMap(u_complete).get_cpp_S_box()).inverse() * f;
+        temp_s = (cpp_F2AffineMap(u_complete).get_cpp_S_box()).inverse() * f;
         for(BinWord i = 1; i < n; i++){
             another_temp = (temp_s.coordinate(i)).get_lut();
             E[u].remove_solution(cpp_to_lut_coordinate(another_temp));

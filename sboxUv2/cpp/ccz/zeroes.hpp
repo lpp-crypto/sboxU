@@ -16,7 +16,7 @@ private:
     unsigned int total_size;
 public:
     std::vector<cpp_BinLinearBasis> bases;
-    std::vector<cpp_BinLinearMap> mappings;
+    std::vector<cpp_F2AffineMap> mappings;
 
     cpp_WalshZeroesSpaces() : bases(0), mappings(0) {} ;
     
@@ -52,9 +52,9 @@ public:
 
     void init_mappings();
 
-    void init_mappings(const std::vector<cpp_BinLinearMap> & automorphisms);
+    void init_mappings(const std::vector<cpp_F2AffineMap> & automorphisms);
 
-    cpp_WalshZeroesSpaces image_by(const cpp_BinLinearMap & L) const;
+    cpp_WalshZeroesSpaces image_by(const cpp_F2AffineMap & L) const;
     
     cpp_Spectrum thickness_spectrum() const;
 };

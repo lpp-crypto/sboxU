@@ -4,7 +4,7 @@
 #include "./linear_representative.hpp"
 
 
-std::vector<cpp_BinLinearMap> cpp_linear_equivalence_permutations(
+std::vector<cpp_F2AffineMap> cpp_linear_equivalence_permutations(
     const cpp_S_box f,
     const cpp_S_box g,
     bool all_mappings);

@@ -179,12 +179,12 @@ LEguessIterator LEguessIterator::deeper_guess_gen()
 
 // !SUBSECTION! "Proper" Linear Equivalence
 
-std::vector<cpp_BinLinearMap> cpp_linear_equivalence_permutations(
+std::vector<cpp_F2AffineMap> cpp_linear_equivalence_permutations(
     const cpp_S_box f,
     const cpp_S_box g,
     bool all_mappings)
 {
-    std::vector<cpp_BinLinearMap> result;
+    std::vector<cpp_F2AffineMap> result;
     // if f(0) == 0 then it is necessary that g(0) == 0...
     if ((f[0] == 0) and (g[0] != 0))
         return result;
@@ -277,8 +277,8 @@ std::vector<cpp_BinLinearMap> cpp_linear_equivalence_permutations(
                     // A is rebuilt from scratch using that f = B o g o A
                     for (unsigned int x=0; x<B.size(); x++)
                         A[x] = g_inv[B_inv[f[x]]];
-                    result.push_back(cpp_BinLinearMap_from_lut(A));
-                    result.push_back(cpp_BinLinearMap_from_lut(B));
+                    result.push_back(cpp_F2AffineMap_from_lut(A));
+                    result.push_back(cpp_F2AffineMap_from_lut(B));
                     if (not all_mappings)
                         return result;
                 }

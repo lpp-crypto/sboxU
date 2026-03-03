@@ -93,8 +93,8 @@ def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
             dereference((<S_box>sb).cpp_sb),
             n_threads
     ):
-        new_blm = BinLinearMap()
-        (<BinLinearMap>new_blm).cpp_blm[0] = L
+        new_blm = F2AffineMap()
+        (<F2AffineMap>new_blm).set_inner_map(<cpp_F2AffineMap>L)
         result.append(new_blm)
     return result
 
@@ -112,7 +112,7 @@ def ea_mappings_from_ortho_derivative(
         n_threads: the number of threads to use. Defaults to `MAX_N_THREADS`.
 
     Returns:
-        A list of BinLinearMaps L_i such that the graph of s is, up to a constant addition, the same as the image of the graph of s_prime under the linear permutation L_i.
+        A list of F2AffineMaps L_i such that the graph of s is, up to a constant addition, the same as the image of the graph of s_prime under the linear permutation L_i.
     
     """
     sb, sb_prime = Sb(s), Sb(s_prime)
@@ -122,8 +122,8 @@ def ea_mappings_from_ortho_derivative(
             dereference((<S_box>sb_prime).cpp_sb),
             n_threads
     ):
-        new_blm = BinLinearMap()
-        (<BinLinearMap>new_blm).cpp_blm[0] = L
+        new_blm = F2AffineMap()
+        (<F2AffineMap>new_blm).set_inner_map(<cpp_F2AffineMap>L)
         result.append(new_blm)
     return result
 
@@ -172,8 +172,8 @@ def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
                                                 n_threads)
     )
     for m in result.cpp_wzs[0].mappings:
-        L = BinLinearMap()
-        (<BinLinearMap>L).cpp_blm[0] = m
+        L = F2AffineMap()
+        (<F2AffineMap>L).set_inner_map(<cpp_F2AffineMap>m)
         result.mappings.append(L)
     return result
 

@@ -6,7 +6,7 @@
 
 cpp_S_box cpp_ccz_equivalent_function(
     const cpp_S_box & s,
-    const cpp_BinLinearMap & mapping
+    const cpp_F2AffineMap & mapping
     )
 {
     return cpp_FunctionGraph(s).get_ccz_equivalent_function(mapping);
@@ -56,7 +56,7 @@ std::vector<cpp_S_box> cpp_enumerate_permutations_in_ccz_class(
                     first_img = b1.get_basis(),
                     second_img= b2.get_basis();
                 first_img.insert(first_img.end(), second_img.begin(), second_img.end());
-                cpp_BinLinearMap L = cpp_BinLinearMap(first_img).transpose();
+                cpp_F2AffineMap L = cpp_F2AffineMap(first_img).transpose();
                 if (L.rank() == (s.get_input_length() + s.get_output_length()))
                     result.push_back(g.get_ccz_equivalent_function(L));
             }

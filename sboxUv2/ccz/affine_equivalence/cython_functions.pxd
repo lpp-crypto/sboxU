@@ -11,8 +11,8 @@ from sboxUv2.algorithms cimport *
 cdef extern from "../../cpp/ccz/linear_representative.hpp":
     cpp_S_box cpp_le_class_representative(
         const cpp_S_box f,
-        cpp_BinLinearMap & A,
-        cpp_BinLinearMap & B
+        cpp_F2AffineMap & A,
+        cpp_F2AffineMap & B
     )
 
     cpp_S_box cpp_le_class_representative(
@@ -24,7 +24,7 @@ cdef extern from "../../cpp/ccz/linear_representative.cpp":
 
 
 cdef extern from "../../cpp/ccz/linear_equivalence.hpp":
-    std_vector[cpp_BinLinearMap] cpp_linear_equivalence_permutations(
+    std_vector[cpp_F2AffineMap] cpp_linear_equivalence_permutations(
         const cpp_S_box f,
         const cpp_S_box g,
         bool all_mappings
