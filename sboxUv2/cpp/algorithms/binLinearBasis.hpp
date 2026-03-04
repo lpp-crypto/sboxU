@@ -30,7 +30,7 @@ public:
     
     std::vector<BinWord> span() const;
 
-    cpp_BinLinearBasis image_by(const cpp_BinLinearMap & L) const;
+    cpp_BinLinearBasis image_by(const cpp_F2AffineMap & L) const;
 
 
     // !SUBSECTION! Combining bases

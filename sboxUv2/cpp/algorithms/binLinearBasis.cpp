@@ -54,12 +54,17 @@ std::vector<BinWord> cpp_BinLinearBasis::span() const
     return result;
 }
 
-cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_BinLinearMap & L) const
+cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_F2AffineMap & L) const
 {
-    cpp_BinLinearBasis result;
-    for (auto &b : basis)
-        result.add_to_span(L(b.second));
-    return result;
+    if (L.is_linear())
+    {
+        cpp_BinLinearBasis result;
+        for (auto &b : basis)
+            result.add_to_span(L(b.second));
+        return result;
+    }
+    else
+        throw std::runtime_error("A cpp_BinLinearBasis cannot be the input of a non-linear cpp_F2AffineMap");
 }
 
 
