@@ -142,6 +142,25 @@ cdef class BinLinearBasis:
         )
         
     
+    def intersection(self, b : BinLinearBasis | list[BinWord]) -> BinLinearBasis:
+        """Intersects two BinLinearBasis instances.
+
+        Args:
+            b: either a BinLinearBasis, or a list of BinWord that corresponds to the content of a BinLinearBasis.
+
+        Returns:
+            A BinLinearBasis spanning the content of the intersection of the vector spaces spanned by the input bases.
+        """
+        if isinstance(b, BinLinearBasis):
+            x = b
+        elif isinstance(b, list):
+            x = BinLinearBasis(b)
+        else:
+            raise NotImplemented
+        return BinLinearBasis(
+            dereference((<BinLinearBasis>self).cpp_lb).intersection(dereference((<BinLinearBasis>x).cpp_lb)).get_basis()
+        )
+    
     def rank(self) -> int:
         """Returns:
             The rank of the set of vectors constituting this BinLinearBasis, i.e., the number of elements in the basis.

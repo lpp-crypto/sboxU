@@ -32,13 +32,16 @@ public:
 
     cpp_BinLinearBasis image_by(const cpp_F2AffineMap & L) const;
 
+    inline BinWord msb() const{
+        return basis.rbegin()->first;
+    }
+
 
     // !SUBSECTION! Combining bases
 
     cpp_BinLinearBasis operator+(const cpp_BinLinearBasis & L) const;
 
-    
-
+    cpp_BinLinearBasis intersection(cpp_BinLinearBasis blb) const;
     // !SUBSECTION! Iterators
     
     inline std::map<Integer, BinWord>::const_iterator begin() const

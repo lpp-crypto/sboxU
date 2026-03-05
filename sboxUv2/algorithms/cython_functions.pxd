@@ -50,6 +50,10 @@ cdef extern from "../cpp/algorithms/binLinearBasis.hpp":
         cpp_BinLinearBasis add "operator+"(
             const cpp_BinLinearBasis & L
         ) const
+
+        cpp_BinLinearBasis intersection(
+            const cpp_BinLinearBasis & L
+        ) const
         
         bool add_to_span(
             BinWord x
@@ -64,6 +68,7 @@ cdef extern from "../cpp/algorithms/binLinearBasis.hpp":
         int64_t rank() const
 
         std_vector[BinWord] span() const
+
 
     std_vector[BinWord] cpp_complete_basis(
         const cpp_BinLinearBasis & basis,
