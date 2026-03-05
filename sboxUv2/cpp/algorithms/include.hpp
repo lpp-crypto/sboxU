@@ -5,5 +5,6 @@
 #include "binLinearBasis.hpp"
 #include "linearSystem.hpp"
 #include "bigvectors.hpp"
+#include "BinLinearBigBasis.hpp"
 
 #endif

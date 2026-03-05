@@ -84,6 +84,31 @@ cdef extern from "../cpp/algorithms/binLinearBasis.hpp":
 cdef extern from "../cpp/algorithms/binLinearBasis.cpp":
     pass
 
+cdef extern from "../cpp/algorithms/BinLinearBigBasis.hpp":
+    cppclass cpp_BinLinearBigBasis:
+
+        cpp_BinLinearBigBasis(unsigned int n)
+
+        cpp_BinLinearBigBasis(
+            const std_vector[std_vector[BinWord]] & l, unsigned int n
+        )
+        
+        bool add_to_span(
+            std_vector[BinWord] x
+        )
+        
+        bool is_in_span(
+            std_vector[BinWord] x
+        ) const
+        
+        std_vector[Bytearray] get_basis() const
+        
+        int64_t rank() const
+
+        unsigned int size() const
+
+cdef extern from "../cpp/algorithms/BinLinearBigBasis.cpp":
+    pass
 
 
 # !SUBSECTION! The cpp_F2LinearSystem class
@@ -116,4 +141,8 @@ cdef class BinLinearBasis:
 cdef class F2LinearSystem:
     cdef bool echelonize
     cdef unique_ptr[cpp_F2LinearSystem] cpp_ls
+
+cdef class BinLinearBigBasis:
+    cdef unique_ptr[cpp_BinLinearBigBasis] cpp_blb
+    cdef unsigned int dimension
 
