@@ -4,7 +4,7 @@ instances.
 """
 
 
-from .cython_functions import S_box, Sb
+from sboxUv2.core.sbox.cython_functions import S_box, Sb
 from sboxUv2.core.f2functions import i2f_and_f2i
 
 from random import shuffle, randint

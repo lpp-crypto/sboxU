@@ -8,7 +8,7 @@ When possible the functions are multi-threaded. In particular, computing "spectr
 
 """
 
-from .cython_functions import \
+from sboxUv2.statistics.cython_functions import \
     differential_spectrum, ddt, differential_uniformity, is_differential_uniformity_smaller_than, \
     walsh_transform, walsh_spectrum, absolute_walsh_spectrum, lat, invert_lat, linearity, \
     boomerang_spectrum, bct, boomerang_uniformity, \

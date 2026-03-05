@@ -3,8 +3,6 @@
 from sboxUv2.core cimport *
 from sboxUv2.cython_types cimport *
 
-
-
 # !SECTION! Declaring C++ code
 
 # !SUBSECTION! Subspace searches

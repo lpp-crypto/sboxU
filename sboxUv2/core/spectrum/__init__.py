@@ -2,5 +2,5 @@
 
 """
 
-from .cython_functions import \
+from sboxUv2.core.spectrum.cython_functions import \
     Spectrum, Spctr

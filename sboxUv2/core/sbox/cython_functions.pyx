@@ -781,6 +781,7 @@ def Sb(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
         return s
     else:
         t = type(s)
+        print(t)
         if t in SBOXU_TYPE_TO_FACTORY.keys():
             return SBOXU_TYPE_TO_FACTORY[t](s, name, input_casts, output_casts)
         elif isinstance(s, Polynomial):

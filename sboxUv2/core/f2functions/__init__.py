@@ -4,7 +4,7 @@
 
 """
 
-from .cython_functions import \
+from sboxUv2.core.f2functions.cython_functions import \
     xor, oplus, \
     hamming_weight, scal_prod, msb, lsb, \
     to_bin, from_bin, circ_shift, \

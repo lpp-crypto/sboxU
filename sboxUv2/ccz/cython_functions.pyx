@@ -148,9 +148,11 @@ def enumerate_ea_classes(s):
     sb = Sb(s)
     result = []
     i = 0
-    for new_s in cpp_enumerate_ea_classes(
+    cdef std_vector[cpp_S_box] ea_classes = cpp_enumerate_ea_classes(
         dereference((<S_box>sb).cpp_sb), 
-        MAX_N_THREADS):
+        MAX_N_THREADS
+    )
+    for new_s in ea_classes :
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
@@ -162,9 +164,11 @@ def enumerate_permutations_in_ccz_class(s):
     sb = Sb(s)
     result = []
     i = 0
-    for new_s in cpp_enumerate_permutations_in_ccz_class(
+    cdef std_vector[cpp_S_box] permuations_in_ccz_class = cpp_enumerate_permutations_in_ccz_class(
         dereference((<S_box>sb).cpp_sb), 
-        MAX_N_THREADS):
+        MAX_N_THREADS
+    )
+    for new_s in permuations_in_ccz_class :
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
@@ -221,13 +225,14 @@ def equivalences_from_lat(
 
     """
     res = []
-    for solution in cpp_equivalences_from_lat(
+    cdef std_vector[cpp_F2AffineMap] equivalences_from_lat = cpp_equivalences_from_lat(
             dereference((<S_box>sbox1).cpp_sb), 
             dereference((<S_box>sbox2).cpp_sb), 
             single_non_trivial_answer,
             n_threads,
             equivalence_type.encode('ascii')
-    ):
+    )
+    for solution in equivalences_from_lat :
         new_blm = F2AffineMap()
         (<F2AffineMap>new_blm).set_inner_map(solution)
         res.append(new_blm)
@@ -358,7 +363,8 @@ def are_ccz_equivalent(sbox1, sbox2, n_threads=MAX_N_THREADS):
 def ccz_block_decomposition(blm):
     """ Decompose a 2n x 2n matrix (F2AffineMap) into the 4 corresponding n x n matrices (returned as F2AffineMap)."""
     abcd = []
-    for block in cpp_ccz_block_decomposition(dereference((<F2AffineMap>blm).cpp_map)):
+    cdef std_vector[cpp_F2AffineMap] blocks = cpp_ccz_block_decomposition(dereference((<F2AffineMap>blm).cpp_map))
+    for block in blocks :
         new_blm = F2AffineMap()
         new_blm.set_inner_map(block)
         abcd.append(new_blm)
