@@ -6,6 +6,7 @@ from sboxUv2.core.f2functions import get_F2AffineMap,rank_of_vector_set
 from math import log
 from random import randint
 
+
 from cython.operator cimport dereference
 
 # from sage.all import Integer
@@ -124,7 +125,7 @@ cdef class BinLinearBasis:
         return dereference(self.cpp_lb).rank()
 
 
-    def __add__(self, b : BinLinearBasis | list[BinWord]) -> BinLinearBasis:
+    def __add__(self, b : BinLinearBasis | list[int]) -> BinLinearBasis:
         """Combine two BinLinearBasis instances.
 
         Args:
@@ -171,7 +172,7 @@ cdef class BinLinearBasis:
         return dereference(self.cpp_lb).rank()
 
 
-    def basis_vectors(self) -> list[BinWord]:
+    def basis_vectors(self) -> std_vector[BinWord]:
         """Returns:
             An ordered list containing the integers corresponding to the vectors forming the basis of the vector space corresponding to this BinLinearBasis instance.
         
@@ -237,21 +238,21 @@ cdef class BinLinearBasis:
 
 # !SUBSECTION! Using BinLinearBasis
 
-def is_sum_full_rank(b0: list[BinWord] | BinLinearBasis, b1: list[BinWord] | BinLinearBasis) -> bool:
+def is_sum_full_rank(b0: list[int] | BinLinearBasis, b1: list[int] | BinLinearBasis) -> bool:
     # checking b0
     if isinstance(b0, list):
         x0 = BinLinearBasis(<std_vector[BinWord]> b0)
     elif isinstance(b0, BinLinearBasis):
         x0 = b0
     else:
-        raise Exception("wrong input type for is_sum_full_rank, expected list[BinWord] or BinLinearBasis, got {}".format(type(b0)))
+        raise Exception("wrong input type for is_sum_full_rank, expected std_vector[BinWord] or BinLinearBasis, got {}".format(type(b0)))
     # checking b1
     if isinstance(b1, list):
         x1 = BinLinearBasis(<std_vector[BinWord]> b1)
     elif isinstance(b1, BinLinearBasis):
         x1 = b1
     else:
-        raise Exception("wrong input type for is_sum_full_rank, expected list[BinWord] or BinLinearBasis, got {}".format(type(b1)))
+        raise Exception("wrong input type for is_sum_full_rank, expected std_vector[BinWord] or BinLinearBasis, got {}".format(type(b1)))
     # actual call
     return cpp_is_sum_full_rank(
         dereference((<BinLinearBasis>x0).cpp_lb),
@@ -259,7 +260,7 @@ def is_sum_full_rank(b0: list[BinWord] | BinLinearBasis, b1: list[BinWord] | Bin
     )
     
 
-def is_affine(l: list[BinWord], give_basis=False):
+def is_affine(l: std_vector[BinWord], give_basis=False):
     # !TODO! docstring for algorithm.is_affine
     b = BinLinearBasis([])
     V = [oplus(l[0], x) for x in l] 
@@ -280,7 +281,7 @@ def is_affine(l: list[BinWord], give_basis=False):
         return b.rank()==n
 
 
-def complete_basis(basis: list[BinWord], N: int) -> list[BinWord]:
+def complete_basis(basis: std_vector[BinWord], N: int) -> std_vector[BinWord]:
     # !TODO! docstring for algorithm.complete_basis
     # !TODO! replace cython complete_basis by a wrapper for cpp_complete_basis 
     if rank_of_vector_set(basis)!=len(basis): 
@@ -298,7 +299,7 @@ def complete_basis(basis: list[BinWord], N: int) -> list[BinWord]:
     return res
 
 
-def complete_basis_reversed(basis: list[BinWord], N: int) -> list[BinWord]: 
+def complete_basis_reversed(basis: std_vector[BinWord], N: int) -> std_vector[BinWord]: 
     # !TODO! docstring for algorithm.complete_basis_reversed
     if rank_of_vector_set(basis) != len(basis):
         raise Exception("in complete_basis: the inputs must be independent! input={}".format(basis))
@@ -314,12 +315,12 @@ def complete_basis_reversed(basis: list[BinWord], N: int) -> list[BinWord]:
     return basis
 
 
-def generating_F2AffineMap_r(basis: list[BinWord], N: int) -> F2AffineMap:
+def generating_F2AffineMap_r(basis: std_vector[BinWord], N: int) -> F2AffineMap:
     # !TODO! docstring for algorithm.generating_F2AffineMap_r
     return get_F2AffineMap(complete_basis_reversed(basis,N),N,N)
 
 
-def generating_F2AffineMap(basis: list[BinWord], N: int) -> F2AffineMap:
+def generating_F2AffineMap(basis: std_vector[BinWord], N: int) -> F2AffineMap:
     """Builds a full rank F2AffineMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis.
 
     Args:
@@ -333,7 +334,7 @@ def generating_F2AffineMap(basis: list[BinWord], N: int) -> F2AffineMap:
     return get_F2AffineMap(complete_basis(basis,N),N,N)
 
 
-def F2AffineMap_from_masks(masks: list[BinWord], N: int, M: int) -> F2AffineMap:
+def F2AffineMap_from_masks(masks: std_vector[BinWord], N: int, M: int) -> F2AffineMap:
     """Builds a F2AffineMap such that the image of the inputs with the lowest MSBs corresponds to a specific basis, and such that the other inputs are mapped to 0.
 
     Args:
@@ -348,7 +349,7 @@ def F2AffineMap_from_masks(masks: list[BinWord], N: int, M: int) -> F2AffineMap:
     return get_F2AffineMap(masks + [0 for _ in range(len(masks), N)], N, M)
 
 
-def F2AffineMap_from_range_and_image(inputs: list[BinWord], outputs: list[BinWord], N:int, M: int) -> F2AffineMap:
+def F2AffineMap_from_range_and_image(inputs: std_vector[BinWord], outputs: std_vector[BinWord], N:int, M: int) -> F2AffineMap:
     # !TODO! docstring for algorithm.F2AffineMap_from_range_and_image
     return F2AffineMap_from_masks(outputs,M,N)*(generating_F2AffineMap(inputs,M).inverse())
     
@@ -385,7 +386,7 @@ cdef class F2LinearSystem:
         self.cpp_ls = make_unique[cpp_F2LinearSystem](<int>n_variables, <bool>echelonize)
 
     
-    def add_equation(self, variable_indices: list[BinWord]) -> bool:
+    def add_equation(self, variable_indices: std_vector[BinWord]) -> bool:
         """Adds an equation to the system corresponding to the sum of the variables with the given indices. If the input is a list [0, 1, 3], then the equation x_0+x_1+x_3=0 is added to the system.
 
         If the system was initialized with `echelonize` set to True, then the running time is at worst proportional wit the rank of the current system as the system will get re-echelonized. If it was set to False, then the run time is constant.
@@ -400,7 +401,7 @@ cdef class F2LinearSystem:
         return dereference(self.cpp_ls).add_equation(<std_vector[BinWord]>variable_indices)
 
     
-    def remove_solution(self, solution_indices: list[BinWord]) -> None:
+    def remove_solution(self, solution_indices: std_vector[BinWord]) -> None:
         """Ensures that the space spanned by the Kernel of the system does not contain a specific value. If said value was indeed in the kernel, then the kernel dimension is decreased. If it actually was not in it, then nothing it will have no impact.
 
         The input describes the indices where the unwanted solution is set to 1. For example, if the input is [0, 1, 3], and if the system has 5 variables, then the solution (1,1,0,1,0) will be removed from the Kernel.
@@ -460,10 +461,7 @@ cdef class F2LinearSystem:
     
     
     def __str__(self) -> str:
-<<<<<<< HEAD
         return dereference(self.cpp_ls).to_string().decode("UTF-8")
-=======
-        return ampersand(self.cpp_ls).to_string().decode("UTF-8")
 
 
 
@@ -508,7 +506,7 @@ cdef class BinLinearBigBasis:
     #         The next element in the basis.
         
     #     """
-    #     for x in ampersand(self.cpp_blb).get_basis():
+    #     for x in dereference(self.cpp_blb).get_basis():
     #         yield x
 
             
@@ -517,7 +515,7 @@ cdef class BinLinearBigBasis:
             The number of elements in the basis, i.e., the rank of the set of vectors constituting this BinLinearBigBasis.
         
         """
-        return ampersand(self.cpp_blb).rank()
+        return dereference(self.cpp_blb).rank()
 
     
     def rank(self) -> int:
@@ -525,12 +523,12 @@ cdef class BinLinearBigBasis:
             The rank of the set of vectors constituting this BinLinearBigBasis, i.e., the number of elements in the basis.
         
         """
-        return ampersand(self.cpp_blb).rank()
+        return dereference(self.cpp_blb).rank()
 
 
     def basis_vectors(self):
         return [list(byte_vec)
-            for byte_vec in ampersand(self.cpp_blb).get_basis()]
+            for byte_vec in dereference(self.cpp_blb).get_basis()]
 
 
     
@@ -546,7 +544,7 @@ cdef class BinLinearBigBasis:
             True if adding the element has indeed increased the dimension of the vector space, False if the BinLinearBigBasis is actually left unchanged by this operation (i.e. if the element was already in the vector space it spans. This output is equal to `self.is_in_span(x)`.
         
         """
-        return ampersand(self.cpp_blb).add_to_span(x)
+        return dereference(self.cpp_blb).add_to_span(x)
         
 
     # def span(self) -> std_vector[BinWord]:
@@ -555,7 +553,7 @@ cdef class BinLinearBigBasis:
     #     Returns:
     #         An ordered list of integers, one per vector in the vector space spanned by this basis.
     #     """
-    #     return ampersand(self.cpp_blb).span()
+    #     return dereference(self.cpp_blb).span()
     
 
     def is_in_span(self, std_vector[BinWord] x) -> bool:
@@ -567,7 +565,7 @@ cdef class BinLinearBigBasis:
         Returns:
             True if the binary vector corresponding to `x` is spanned by the vectors in this basis (or, equivalently, if it is in the vector space that has this basis as its Guss-Jordan basis), False otherwise.
         """
-        return ampersand(self.cpp_blb).is_in_span(x)
+        return dereference(self.cpp_blb).is_in_span(x)
 
     
     def __eq__(self, BinLinearBigBasis b) -> bool:
@@ -584,7 +582,6 @@ cdef class BinLinearBigBasis:
 
     # def __str__(self) -> str:
     #     result = "("
-    #     for x in ampersand(self.cpp_blb).get_basis():
+    #     for x in dereference(self.cpp_blb).get_basis():
     #         result += "{:x}, ".format(x)
     #     return result[:-2] + ")"
->>>>>>> 3fcf598731bcd4943138dd842508003dc967a8fd

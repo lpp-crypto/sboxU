@@ -8,7 +8,7 @@ from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial,
 import itertools
 
 from sboxUv2.core import Sb, is_permutation
-from .cython_functions import differential_spectrum, walsh_spectrum, boomerang_spectrum
+from sboxUv2.statistics.cython_functions import differential_spectrum, walsh_spectrum, boomerang_spectrum
 
 
 from sboxUv2.config import DEFAULT_HIGH_PRECISION

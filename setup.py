@@ -16,7 +16,7 @@ if sys.platform == 'darwin':	#macOs
 else:
     os.environ["CC"] = "g++"
     os.environ["CXX"] = "g++"
-extra_compile_args = ["-O3", "-march=native", "-std=c++20", "-pthread", "-Wno-narrowing"]	#narrowing warnings in fp_lat when calling shape_t{p}
+extra_compile_args = ["-O3", "-march=native", "-std=c++20", "-pthread", "-Wno-narrowing", "-w"]	#narrowing warnings in fp_lat when calling shape_t{p}
 
 extra_link_args=[]
 

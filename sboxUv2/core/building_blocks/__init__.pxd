@@ -1,3 +1,3 @@
 # -*- python -*-
 
-from .cython_functions cimport *
+from sboxUv2.core.building_blocks.cython_functions cimport *

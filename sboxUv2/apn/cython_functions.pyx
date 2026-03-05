@@ -89,10 +89,11 @@ def apn_ea_mugshot_from_spectra(
 def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = []
-    for L in cpp_automorphisms_from_ortho_derivative(
-            dereference((<S_box>sb).cpp_sb),
-            n_threads
-    ):
+    cdef std_vector[cpp_F2AffineMap] automorphisms = cpp_automorphisms_from_ortho_derivative(
+        dereference((<S_box>sb).cpp_sb),
+        n_threads
+    )
+    for L in automorphisms:
         new_blm = F2AffineMap()
         (<F2AffineMap>new_blm).set_inner_map(<cpp_F2AffineMap>L)
         result.append(new_blm)
@@ -117,11 +118,12 @@ def ea_mappings_from_ortho_derivative(
     """
     sb, sb_prime = Sb(s), Sb(s_prime)
     result = []
-    for L in cpp_ea_mappings_from_ortho_derivative(
+    cdef std_vector[cpp_F2AffineMap] ea_mappings  = cpp_ea_mappings_from_ortho_derivative(
             dereference((<S_box>sb).cpp_sb),
             dereference((<S_box>sb_prime).cpp_sb),
             n_threads
-    ):
+    )
+    for L in ea_mappings:
         new_blm = F2AffineMap()
         (<F2AffineMap>new_blm).set_inner_map(<cpp_F2AffineMap>L)
         result.append(new_blm)
@@ -135,10 +137,11 @@ def enumerate_ea_classes_apn_quadratic(
     sb = Sb(s)
     result = []
     i = 0
-    for new_s in cpp_enumerate_ea_classes_quadratic_apn(
+    cdef std_vector[cpp_S_box] ea_classes = cpp_enumerate_ea_classes_quadratic_apn(
         dereference((<S_box>sb).cpp_sb),
         n_threads
-    ):
+    )
+    for new_s in ea_classes:
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)

@@ -630,9 +630,6 @@ cdef class S_box_fp:
 # !SUBSECTION! Basic factories
 
 def get_Sbox_from_lut(s : list, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
-    cdef std_vector[FpWord] input_space
-    cdef std_vector[FpWord] lut_cpp
-    cdef FpWord out
     
     if len(s) % 2 == 0:
         # case of F_2
@@ -670,12 +667,16 @@ def get_Sbox_from_bytes(s : bytes | bytearray, name, input_casts : list, output_
 
 
 def get_Sbox_from_multivariate_polynomials(s : list, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
-    result = S_box(name=name,
-                   input_casts=input_casts,
-                   output_casts=output_casts)
+    cdef std_vector[FpWord] input_space
+    cdef std_vector[FpWord] lut_cpp
+    cdef FpWord out
+    
     n_vars = len(s[0].parent().gens())
     p = int((s[0].parent().base_ring().cardinality()))    
     if p%2 == 0:
+        result = S_box(name=name,
+                   input_casts=input_casts,
+                   output_casts=output_casts)
         # ANF over F2
         lut = [0 for x in range(0, 2**n_vars)]
         for x in range(0, len(lut)):
@@ -688,6 +689,7 @@ def get_Sbox_from_multivariate_polynomials(s : list, name, input_casts : list, o
         (<S_box>result).set_inner_sbox(cpp_S_box(<std_vector[BinWord]>lut))
         return result
     else:
+        result = S_box_fp(name=name)
         # ANF over Fp
         lut_cpp = std_vector[FpWord]()
         input_space = cpp_S_box_fp.build_input_space(<cpp_Integer>p,<cpp_Integer>n_vars)

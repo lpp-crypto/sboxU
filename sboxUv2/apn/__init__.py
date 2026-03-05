@@ -3,7 +3,7 @@
 """This module contains tools to investigate APN functions specifically.
 """
 
-from .cython_functions import \
+from sboxUv2.apn.cython_functions import \
     ortho_derivative, ortho_integral, \
     sigma_multiplicities, \
     apn_ea_mugshot, apn_ea_mugshot_from_spectra, \
