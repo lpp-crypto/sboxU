@@ -105,6 +105,17 @@ bool cpp_S_box::operator==(const cpp_S_box & other_s) const
     return true;
 }
 
+cpp_S_box cpp_S_box::operator|(const cpp_S_box & s) const
+{   
+    Integer input_size = 1 <<input_length;
+    std::vector<BinWord> new_lut(input_size * s.input_space_size(), 0);
+    for (unsigned int y = 0; y < s.input_space_size(); y++){
+        for (unsigned x = 0; x < input_size; x++){
+            new_lut[x | (y << input_length)]=lut[x] | (s[y] << output_length) ;
+        }
+    }
+    return cpp_S_box(new_lut,input_length+s.get_input_length(),output_length+s.get_output_length());
+}
 
 // !SECTION! Basic access methods
 
