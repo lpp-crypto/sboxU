@@ -13,7 +13,7 @@ from sboxUv2.algorithms.cython_functions import \
     extract_bases, extract_affine_bases, \
     BinLinearBasis, is_affine, is_sum_full_rank, \
     complete_basis, complete_basis_reversed, \
-    generating_BinLinearMap_r,generating_BinLinearMap, BinLinearMap_from_masks,BinLinearMap_from_range_and_image, \
+    generating_F2AffineMap_r,generating_F2AffineMap, F2AffineMap_from_masks,F2AffineMap_from_range_and_image, \
     F2LinearSystem,BinLinearBigBasis
 
 
