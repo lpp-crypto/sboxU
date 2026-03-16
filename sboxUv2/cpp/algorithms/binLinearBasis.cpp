@@ -64,7 +64,9 @@ cpp_BinLinearBasis cpp_BinLinearBasis::image_by(const cpp_F2AffineMap & L) const
         return result;
     }
     else
+    {
         throw std::runtime_error("A cpp_BinLinearBasis cannot be the input of a non-linear cpp_F2AffineMap");
+    }
 }
 
 

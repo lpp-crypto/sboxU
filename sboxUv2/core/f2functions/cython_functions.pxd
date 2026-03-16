@@ -76,6 +76,8 @@ cdef extern from "../../cpp/core/f2affinemap.hpp":
         int64_t get_input_length()
     
         int64_t get_output_length()
+
+        bool is_linear()
     
         BinWord operator() (
             const BinWord x

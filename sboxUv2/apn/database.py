@@ -138,7 +138,9 @@ class APNFunctions(FunctionsDB):
         # inserting all the functions
         for L in ws.get_mappings():
             new_sb = ccz_equivalent_function(sb, L)
-            new_ws = ws.image_by(L.transpose().inverse())
+            new_L = L.transpose()
+            new_L = new_L.inverse()
+            new_ws = ws.image_by(new_L)
             new_thk_spec = new_ws.thickness_spectrum()
             new_degree_spec = degree_spectrum(new_sb)
             new_sigma_mult = sigma_multiplicities(new_sb, k=4)

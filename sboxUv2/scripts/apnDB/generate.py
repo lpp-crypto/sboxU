@@ -79,29 +79,11 @@ def generate_apn_ea_classes_database(
             print("        pprint(walsh_spectrum(s))")
             print("\n\n")
 
-def process_arguments():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--path",
-                        nargs="?",
-                        type=str,
-                        default=DEFAULT_APN_DB_NAME,
-                        help="The path to the file in which to write the database")
-    parser.add_argument("-n", 
-                        type=int,
-                        help="The value of the bit length of the functions to process")
-    parser.add_argument("-mode", 
-                        type=str,
-                        help="The mode of database generation")
-    return parser.parse_args()
-
 
 
 ################################################################
 #### !SECTION! Code For CCZ only quadratic compact database ####
 ################################################################
-
-
-
 
 
 
@@ -149,6 +131,30 @@ def generate_apn_ccz_classes_database(
             print("generation finished")
             print("{} CCZ classes found".format(db.number_of_ccz_classes))
  
+
+
+#########################################
+#### !SECTION! User Interface
+#########################################
+
+
+
+def process_arguments():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-p", "--path",
+                        nargs="?",
+                        type=str,
+                        default=DEFAULT_APN_DB_NAME,
+                        help="The path to the file in which to write the database")
+    parser.add_argument("-n", 
+                        type=int,
+                        help="The value of the bit length of the functions to process")
+    parser.add_argument("-mode", 
+                        type=str,
+                        default="default",
+                        help="The mode of database generation")
+    return parser.parse_args()
+
 
 
 DEFAULT_APN_DB_NAME = "apnDB.db"

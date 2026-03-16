@@ -162,16 +162,16 @@ def ccz_equivalent_quadratic_function(
 def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = WalshZeroesSpaces()
-    (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
+    (<WalshZeroesSpaces>result).cpp_wzs = make_unique[cpp_WalshZeroesSpaces](
         dereference((<S_box>sb).cpp_sb),
-        n_threads
+        <unsigned int>n_threads
     )
     # handling the initilization of the mappings by hand
-    result.cpp_wzs[0].init_mappings(
+    dereference(result.cpp_wzs).init_mappings(
         cpp_automorphisms_from_ortho_derivative(dereference((<S_box>sb).cpp_sb),
                                                 n_threads)
     )
-    for m in result.cpp_wzs[0].mappings:
+    for m in dereference(result.cpp_wzs).mappings:
         L = F2AffineMap()
         (<F2AffineMap>L).set_inner_map(<cpp_F2AffineMap>m)
         result.mappings.append(L)
