@@ -164,7 +164,7 @@ cdef class F2AffineMap:
     
     def __add__(self, L : F2AffineMap) -> F2AffineMap:
         result = F2AffineMap()
-        result.set_inner_map( dereference(self.cpp_map)  + dereference(L.cpp_map))
+        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + dereference((<F2AffineMap>L).cpp_map))
         return result
 
     
@@ -175,7 +175,7 @@ cdef class F2AffineMap:
     
     def __mul__(self, F2AffineMap L) -> F2AffineMap:
         result = F2AffineMap()
-        result.set_inner_map(dereference(self.cpp_map) * dereference(L.cpp_map))
+        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + dereference((<F2AffineMap>L).cpp_map))
         return result
 
     

@@ -4,7 +4,7 @@
 
 """
 
-from .cython_functions import \
+from sboxUv2.ccz.cython_functions import \
     thickness_spectrum, WalshZeroesSpaces, get_WalshZeroesSpaces, \
     ccz_equivalent_function, enumerate_ea_classes, enumerate_permutations_in_ccz_class, EA_mapping, \
     linear_equivalences, el_equivalences, cczl_equivalences, \

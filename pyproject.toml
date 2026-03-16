@@ -9,7 +9,7 @@ sboxU_apn_db_generation   = "sboxUv2.scripts.apnDB.generate:main_cli"
 
 
 [build-system]
-requires = [ "setuptools", "wheel", "cython" ]
+requires = ["setuptools", "wheel", "cython>=3.00" ]
 build-backend = "setuptools.build_meta"
 
 

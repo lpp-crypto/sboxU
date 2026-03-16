@@ -16,15 +16,14 @@ if __name__ == "__main__":
     print(u[(Fp(0),Fp(1))]) 
     print(u.coordinate(0))
   
-    # R = PolynomialRing(Fp,2,"x")
-    # x1, x2 = R.gens()
-    # P1 = x1**3 + x2**5 + x1*x2
-    # P2 = x2
-    # v = Sb([P1,P2])
-    # print(u)
-    # print(v)
-    # a = v.coordinate(0)
-    # print(a)
+    R = PolynomialRing(Fp,2,"x")
+    x1, x2 = R.gens()
+    P1 = x1**3 + x2**5 + x1*x2
+    P2 = x2
+    v = Sb([P1,P2])
+    print(v)
+    print(v.coordinate(0))
+    print(u)
 
     # print(v+u)
     # print(v*u)

@@ -156,7 +156,7 @@ class cpp_S_box_fp {
         }
 
         // Returns the derivative of the S-Box, namely x -> S(x+delta) - S(x)
-        const cpp_S_box_fp& derivative(const FpWord& delta) const {
+        cpp_S_box_fp derivative(const FpWord& delta) const {
             std::vector<FpWord> new_lut(input_space.size());
             for (int i = 0; i < input_space.size(); i++){
                 // x + delta
@@ -179,7 +179,7 @@ class cpp_S_box_fp {
         }
 
         // Returns the i-th coordinate function of the SBox 
-        const cpp_S_box_fp& coordinate(const BinWord i) const {
+        cpp_S_box_fp coordinate(const BinWord i) const {
             std::vector<FpWord> new_lut;
             for (int j = 0; j < input_space.size(); j++){
                 const FpWord& out = lut[j];
