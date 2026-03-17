@@ -46,7 +46,7 @@ def generate_apn_ea_classes_database(
             for index, s in enumerate(quads):
                 inserted = db.insert_full_ccz_equivalence_class(
                     s,
-                    "6-bit"
+                    "TODO"
                 )
                 print("{:5d}) CCZ class has {} functions".format(index, len(inserted)))
     

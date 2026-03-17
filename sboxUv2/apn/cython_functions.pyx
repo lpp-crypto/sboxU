@@ -76,10 +76,10 @@ def apn_ea_mugshot_from_spectra(
         thk_spec
 ):
     return cpp_apn_ea_mugshot(
-        (<Spectrum>abs_walsh_spec).cpp_sp[0],
-        (<Spectrum>deg_spec).cpp_sp[0],
-        (<Spectrum>sig_mult).cpp_sp[0],
-        (<Spectrum>thk_spec).cpp_sp[0]
+        dereference((<Spectrum>abs_walsh_spec).cpp_sp),
+        dereference((<Spectrum>deg_spec).cpp_sp),
+        dereference((<Spectrum>sig_mult).cpp_sp),
+        dereference((<Spectrum>thk_spec).cpp_sp)
     )
 
 

@@ -121,7 +121,7 @@ class APNFunctions(FunctionsDB):
         sb = Sb(s)
         differential_spec = differential_spectrum(sb)
         if differential_spec.maximum() != 2:
-            raise Exception("Trying to add a non-APN function to the APN function database: {}".format(sb))
+            raise Exception("Trying to add a non-APN function to the APN function database: \nspec={}\ns={}".format(differential_spec, sb))
         encoded = sb.to_bytes()
         # linear
         abs_walsh_spec = absolute_walsh_spectrum(sb)
