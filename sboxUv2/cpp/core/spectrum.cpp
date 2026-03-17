@@ -7,7 +7,7 @@ Integer cpp_Spectrum::maximum() const
         return 0;
     else
     {
-        Integer result;
+        Integer result = 0;
         for(auto &row : content)
             if ((row.first > result) && (row.second > 0))
                 result = row.first;
