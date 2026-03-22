@@ -19,6 +19,7 @@ cdef extern from "../../cpp/core/s_box.hpp":
         BinWord brackets "operator[]" (const BinWord x) const
         cpp_S_box add "operator+" (const cpp_S_box s) const
         cpp_S_box mul "operator*" (const cpp_S_box s) const
+        cpp_S_box concat "operator|" (const cpp_S_box s) const
         string content_string_repr()
         Bytearray to_bytes() const
         std_vector[BinWord] get_lut()
@@ -99,6 +100,7 @@ cdef class S_box:
 # !SUBSECTION! Wrapper for the S_box class operators
 cdef cpp_S_box pyx_add_sboxes(cpp_S_box s, cpp_S_box t)
 cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t)
+cdef cpp_S_box pyx_concat_sboxes(cpp_S_box s, cpp_S_box t)
 
 # # !SUBSECTION! The S_Box_fp class
 

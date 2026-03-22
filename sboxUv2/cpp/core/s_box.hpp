@@ -61,6 +61,8 @@ public:
 
     cpp_S_box operator* (const cpp_S_box &s) const;
 
+    cpp_S_box operator| (const cpp_S_box &s) const; 
+    
     bool operator==(const cpp_S_box & other_s) const;
 
     std::string content_string_repr() const;

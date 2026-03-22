@@ -1,4 +1,6 @@
 #include "./binLinearBasis.hpp"
+#include "./bigvectors.hpp"
+#include "./linearSystem.hpp"
 
 
 // !SECTION! cpp_BinLinearBasis
@@ -147,6 +149,45 @@ bool cpp_BinLinearBasis::add_to_span(BinWord x)
     }
 }
 
+cpp_BinLinearBasis cpp_BinLinearBasis::intersection(const cpp_BinLinearBasis blb_1) const
+{   std::vector <BinWord> basis_1=blb_1.get_basis();
+    BinWord n1=blb_1.rank();
+    BinWord n2=basis.size();
+    cpp_F2LinearSystem system=cpp_F2LinearSystem(n1+n2,true);
+    BinWord msb_1=blb_1.msb();
+    BinWord msb_2=basis.rbegin()->first;
+    for (BinWord i =0; i <= std::max(msb_1,msb_2); i++){
+        std::vector<BinWord> tmp;
+        BinWord ct=0;
+        for (auto b : basis){
+            if ((b.second>>i)&1){
+                tmp.push_back(ct);
+            }
+            ct++;
+        }
+        for (auto b : basis_1){
+            if ((b>>i)&1){
+                tmp.push_back(ct);
+            }
+            ct++;
+        }
+        system.add_equation(tmp);
+    }   
+    std::vector<cpp_BigF2Vector> kernel=system.kernel();
+    cpp_BinLinearBasis res=cpp_BinLinearBasis();
+    for (auto v : kernel){// For each vector in the kernel, we add the corresponding vector in the intersection
+        BinWord x = 0;
+        BinWord ct=0;
+        for (auto b : basis){
+            if (v.is_set(ct)){
+                x=cpp_oplus(x,b.second);
+            }
+            ct ++;
+        }
+        res.add_to_span(x);
+    }
+    return res;
+}
 
 
 // !SECTION! Helper functions 

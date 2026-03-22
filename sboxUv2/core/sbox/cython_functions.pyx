@@ -33,6 +33,9 @@ cdef cpp_S_box pyx_mul_sboxes(cpp_S_box s, cpp_S_box t):
     """A wrapper for the cpp_S_box overloaded operator *."""
     return s.mul(t)
 
+cdef cpp_S_box pyx_concat_sboxes(cpp_S_box s, cpp_S_box t):
+    """A wrapper for the cpp_S_box overloaded operator |."""
+    return s.concat(t)
 
 def new_sbox_name() -> bytes:
     """Returns a unique name that can be given to an S-box.
@@ -280,6 +283,23 @@ cdef class S_box:
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
         return result
+
+    def __or__(S_box self, _s) -> S_box : 
+        """The concatenation operator.
+
+        Args:
+            _s: an S_boxable object.
+
+        Returns:
+            An S_box corresponding to the function "F | _s", where F is the current S-box, and _s is the input to the function.
+        """
+        s = Sb(_s)
+        name = self.cpp_name + "|".encode("UTF-8") + s.name()
+        result = S_box(name)
+        (<S_box>result).set_inner_sbox(pyx_concat_sboxes(dereference(self.cpp_sb),
+                                                      dereference((<S_box>s).cpp_sb)))
+        return result
+
 
     
     # !SUBSECTION! Functions dealing with input/output sizes

@@ -9,6 +9,10 @@ from random import randint
 
 from cython.operator cimport dereference
 
+# from sage.all import Integer
+
+
+
 # !SECTION! Extracting spaces contained in a set
 
 def extract_bases(
@@ -140,6 +144,25 @@ cdef class BinLinearBasis:
             dereference((<BinLinearBasis>self).cpp_lb).add(dereference((<BinLinearBasis>x).cpp_lb)).get_basis()
         )
         
+    
+    def intersection(self, b : BinLinearBasis | list[BinWord]) -> BinLinearBasis:
+        """Intersects two BinLinearBasis instances.
+
+        Args:
+            b: either a BinLinearBasis, or a list of BinWord that corresponds to the content of a BinLinearBasis.
+
+        Returns:
+            A BinLinearBasis spanning the content of the intersection of the vector spaces spanned by the input bases.
+        """
+        if isinstance(b, BinLinearBasis):
+            x = b
+        elif isinstance(b, list):
+            x = BinLinearBasis(b)
+        else:
+            raise NotImplemented
+        return BinLinearBasis(
+            dereference((<BinLinearBasis>self).cpp_lb).intersection(dereference((<BinLinearBasis>x).cpp_lb)).get_basis()
+        )
     
     def rank(self) -> int:
         """Returns:
@@ -439,3 +462,126 @@ cdef class F2LinearSystem:
     
     def __str__(self) -> str:
         return dereference(self.cpp_ls).to_string().decode("UTF-8")
+
+
+
+# !SECTION! The BinLinearBigBasis class
+
+
+# !SUBSECTION! The class itself 
+
+cdef class BinLinearBigBasis:
+    """Stores the Gauss-Jordan basis of a vector space.
+
+    For a given vector space, this basis is uniquely defined (it is for example the smallest one if you were to rank all the basis of a vector space in lexicographic order), meaning that testing the equality of the BinLinearBigBasis of two vector spaces is enough to test their equality.
+
+    It provides efficient method to add a new dimension to the span of the corresponding vector space, and to test if an element is the corresponding vector space.
+
+    It is a thin wrapper for the `cpp_BinLinearBigBasis` C++ class. 
+    
+    """
+    
+    def __init__(self, std_vector[std_vector[BinWord]] l,unsigned int n):
+        """Creates a BinLinearBigBasis instance that corresponds to the smallest vector space containing all the vectors in `l`.
+
+        Args:
+            l: a list of integers interpreted as a list of binary vectors.
+            n: the dimension of the BigLinearBasis
+        
+        """
+        self.cpp_blb = make_unique[cpp_BinLinearBigBasis](<std_vector[std_vector[BinWord]]> l,n)
+
+        
+    # def __iter__(self) -> BinWord:
+    #     """An iterator for the basis elements.
+
+    #     For example, for the following snippet::
+
+    #     >>> print([x  for x in BinLinearBigBasis([1, 2])])
+    #     [1, 2]
+
+    #      3 will not appear.
+
+    #     Yields:
+    #         The next element in the basis.
+        
+    #     """
+    #     for x in dereference(self.cpp_blb).get_basis():
+    #         yield x
+
+            
+    def __len__(self) -> int:
+        """Returns:
+            The number of elements in the basis, i.e., the rank of the set of vectors constituting this BinLinearBigBasis.
+        
+        """
+        return dereference(self.cpp_blb).rank()
+
+    
+    def rank(self) -> int:
+        """Returns:
+            The rank of the set of vectors constituting this BinLinearBigBasis, i.e., the number of elements in the basis.
+        
+        """
+        return dereference(self.cpp_blb).rank()
+
+
+    def basis_vectors(self):
+        return [list(byte_vec)
+            for byte_vec in dereference(self.cpp_blb).get_basis()]
+
+
+    
+    def add_to_span(self, std_vector[BinWord] x) -> bool:
+        """Adds a vector to the vector space spanned by this BinLinearBigBasis. If `x` is actually already in said space, i.e., if it is spanned by the current basis vectors, then does nothing. Otherwise, builds a new echelonized basis that will contain one more element, this new basis spanning the previous space V as well as x+V.
+
+        The echelonizing step means that this function has a run time that is proportional to the current size of the basis.
+
+        Args:
+            x: The integer representing the binary vector to add to the vector space corresponding to this BinLinearBigBasis.
+        
+        Returns:
+            True if adding the element has indeed increased the dimension of the vector space, False if the BinLinearBigBasis is actually left unchanged by this operation (i.e. if the element was already in the vector space it spans. This output is equal to `self.is_in_span(x)`.
+        
+        """
+        return dereference(self.cpp_blb).add_to_span(x)
+        
+
+    # def span(self) -> std_vector[BinWord]:
+    #     """Computes the full vector space spanned by the vectors in the basis.
+
+    #     Returns:
+    #         An ordered list of integers, one per vector in the vector space spanned by this basis.
+    #     """
+    #     return dereference(self.cpp_blb).span()
+    
+
+    def is_in_span(self, std_vector[BinWord] x) -> bool:
+        """Tests if a vector is contained in the vector space spanned by this basis.
+
+        Args:
+            x: the integer representation of the binary vector to test.
+
+        Returns:
+            True if the binary vector corresponding to `x` is spanned by the vectors in this basis (or, equivalently, if it is in the vector space that has this basis as its Guss-Jordan basis), False otherwise.
+        """
+        return dereference(self.cpp_blb).is_in_span(x)
+
+    
+    def __eq__(self, BinLinearBigBasis b) -> bool:
+        """An equality test between two BinLinearBigBasis.
+
+        Args:
+            b: a BinLinearBigBasis to test
+
+        Returns:
+            True if `b` contains the same vectors as this BinLinearBigBasis instance, False otherwise. Equivalently, returns True if and only if the vector spaces spanned by `b` and by this basis are the same.
+        """
+        return self.basis_vectors()==b.basis_vectors()
+
+
+    # def __str__(self) -> str:
+    #     result = "("
+    #     for x in dereference(self.cpp_blb).get_basis():
+    #         result += "{:x}, ".format(x)
+    #     return result[:-2] + ")"

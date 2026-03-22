@@ -257,7 +257,17 @@ def circ_shift_F2AffineMap(int n, int shift) -> F2AffineMap:
     """
     return get_F2AffineMap([circ_shift(1 <<i,n,shift) for i in range(0, n)], n, n)
 
-
+def bit_permutation_F2AffineMap(p) -> F2AffineMap:
+    """
+    A bit permutation is the operation of rearranging the entries in a F2 vector, according to a given permutation. 
+    
+    Args :
+        p : The lut of the bit permutation.
+    
+    Returns : 
+        A BinLinearMap corresponding to bit permutation associated to p.
+    """
+    return get_F2AffineMap([1 << p[i] for i in range(len(p))])
     
 # !SUBSECTION! The main factory
 
