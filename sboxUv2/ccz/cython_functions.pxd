@@ -6,6 +6,8 @@ from sboxUv2.core cimport *
 from sboxUv2.statistics cimport *
 from sboxUv2.algorithms cimport *
 
+from libcpp.memory cimport unique_ptr
+
 
 # !SECTION! Loading C++ code
 
@@ -111,5 +113,5 @@ cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
 # !SUBSECTION! The WalshZeroesSpaces class
 
 cdef class WalshZeroesSpaces:
-    cdef cpp_WalshZeroesSpaces * cpp_wzs;
+    cdef unique_ptr[cpp_WalshZeroesSpaces] cpp_wzs;
     cdef list mappings

@@ -5,6 +5,8 @@ from sboxUv2.core import Sb, get_F2AffineMap
 from sboxUv2.config import MAX_N_THREADS
 from sboxUv2.statistics import lat
 
+
+from libcpp.memory cimport unique_ptr, make_unique
 from cython.operator cimport dereference
 
 
@@ -33,31 +35,28 @@ def thickness_spectrum(s, spaces=None):
     return result
 
 
-# !SUBSECTION! The  WalshZeroesSpaces class
+# !SUBSECTION! The WalshZeroesSpaces class
 
 cdef class WalshZeroesSpaces:
     def __init__(self):
-        self.cpp_wzs = new cpp_WalshZeroesSpaces()
+        self.cpp_wzs = make_unique[cpp_WalshZeroesSpaces]()
         self.mappings = []
 
-        
-    def __dealloc__(self):
-        self.cpp_wzs[0].destruct()
-        free(self.cpp_wzs)
 
         
     def image_by(self, L):
         Lm = get_F2AffineMap(L)
         result = WalshZeroesSpaces()
-        (<WalshZeroesSpaces>result).cpp_wzs[0] = (<WalshZeroesSpaces>self).cpp_wzs[0].image_by(
-            dereference((<F2AffineMap>Lm).cpp_map)
-        )
+        cdef cpp_WalshZeroesSpaces new_ws = dereference(self.cpp_wzs).image_by(
+                dereference((<F2AffineMap>Lm).cpp_map)
+            )
+        (<WalshZeroesSpaces>result).cpp_wzs = make_unique[cpp_WalshZeroesSpaces](new_ws)
         return result
 
     
     def init_mappings(self):
-        self.cpp_wzs[0].init_mappings()
-        for m in self.cpp_wzs[0].mappings:
+        dereference(self.cpp_wzs).init_mappings()
+        for m in dereference(self.cpp_wzs).mappings:
             L = F2AffineMap()
             L.set_inner_map(m)
             self.mappings.append(L)
@@ -88,19 +87,19 @@ cdef class WalshZeroesSpaces:
 
     
     def get_bases(self) -> list:
-        return [b.get_basis() for b in self.cpp_wzs[0].bases]
+        return [b.get_basis() for b in dereference(self.cpp_wzs).bases]
             
         
     def thickness_spectrum(self):
         result = Spectrum(name=b"thickness")
         result.set_inner_sp(
-            (<WalshZeroesSpaces>self).cpp_wzs[0].thickness_spectrum()
+            dereference(self.cpp_wzs).thickness_spectrum()
         )
         return result
 
     
     def __iter__(self):
-        for b in self.cpp_wzs[0].bases:
+        for b in dereference(self.cpp_wzs).bases:
             yield BinLinearBasis(b.get_basis())
         return
         
@@ -108,9 +107,9 @@ cdef class WalshZeroesSpaces:
 def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = WalshZeroesSpaces()
-    (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
-        dereference((<S_box>sb).cpp_sb),
-        n_threads
+    (<WalshZeroesSpaces>result).cpp_wzs = make_unique[cpp_WalshZeroesSpaces](
+        <cpp_S_box>dereference((<S_box>sb).cpp_sb),
+        <unsigned int>n_threads
     )
     result.init_mappings()
     return result

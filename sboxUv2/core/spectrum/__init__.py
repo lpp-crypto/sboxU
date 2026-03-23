@@ -3,4 +3,4 @@
 """
 
 from sboxUv2.core.spectrum.cython_functions import \
-    Spectrum, Spctr
+    Spectrum, get_Spectrum

@@ -146,7 +146,9 @@ cdef class F2AffineMap:
     
     cdef set_inner_map(self, A : cpp_F2AffineMap):
         self.cpp_map = make_unique[cpp_F2AffineMap](A)
-        
+
+    def is_linear(self):
+        return dereference(self.cpp_map).is_linear()
         
     def get_input_length(self) -> int:
         return dereference(self.cpp_map).get_input_length()
@@ -177,18 +179,19 @@ cdef class F2AffineMap:
         return result
 
     
-    def inverse(self) -> F2AffineMap:
+    def inverse(self) -> F2AffineMap | Exception:
         if (dereference(self.cpp_map).is_invertible()):
             result = F2AffineMap()
-            self.set_inner_map(dereference(self.cpp_map).inverse())
+            result.set_inner_map(dereference(self.cpp_map).inverse())
             return result
         else:
+            print("Trying to invert a non-invertible F2AffineMap")
             raise Exception("Trying to invert a non-invertible F2AffineMap")
 
     
     def transpose(self) -> F2AffineMap:
         result = F2AffineMap()
-        self.set_inner_map(dereference(self.cpp_map).transpose())
+        result.set_inner_map(dereference(self.cpp_map).transpose())
         return result
 
     
@@ -269,7 +272,7 @@ def bit_permutation_F2AffineMap(p) -> F2AffineMap:
 # !SUBSECTION! The main factory
 
 
-def get_F2AffineMap(l,input_length=None,output_length=None) -> F2AffineMap:
+def get_F2AffineMap(l, input_length=None, output_length=None) -> F2AffineMap:
     if isinstance(l, (F2AffineMap)):
         return l
     elif input_length is None and output_length is None:

@@ -2,6 +2,9 @@
 
 from sboxUv2.config import n_threads_from_sbox_size
 
+from libcpp.memory cimport unique_ptr, make_unique
+from cython.operator cimport dereference
+
 
 # !SECTION! Dealing with Spectra
 
@@ -10,31 +13,27 @@ from sboxUv2.config import n_threads_from_sbox_size
 cdef class Spectrum:
     def __init__(self, name=b"Spc"):
         self.name = name
-        self.cpp_sp = new cpp_Spectrum()
-
-        
-    def __dealloc__(self):
-        self.cpp_sp[0].destruct()
-        del self.cpp_sp
+        self.cpp_sp = make_unique[cpp_Spectrum]()
+       
         
 
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp):
-        self.cpp_sp[0] = sp
+        self.cpp_sp = make_unique[cpp_Spectrum](sp)
         
 
-    def __getitem__(self, k):
-        return self.cpp_sp.brackets(k)
+    def __getitem__(self, int64_t k):
+        return dereference(self.cpp_sp)[k]
 
     
     def __len__(self):
-        return self.cpp_sp.size()
+        return dereference(self.cpp_sp).size()
 
 
     def __str__(self):
         result = "{"
         ks = self.keys()
         for k in ks:
-            result += "{:d}:{:d}, ".format(k, self.cpp_sp.brackets(k))
+            result += "{:d}:{:d}, ".format(k, dereference(self.cpp_sp)[k])
         return result[:-2] + "}"
 
 
@@ -49,58 +48,58 @@ cdef class Spectrum:
             for k in ks[:-1]:
                 result += "[bold bright_black]{:d}[/][black]:[/][white]{:d}[/], ".format(
                     k,
-                    self.cpp_sp.brackets(k)
+                    dereference(self.cpp_sp)[k]
                 )
             result += "[bold blue]{:d}[/][black]:{:d}[/], ".format(
                     ks[-1],
-                    self.cpp_sp.brackets(ks[-1])
+                    dereference(self.cpp_sp)[ks[-1]]
                 )
             return result[:-2] + "}"
 
     
     def __iter__(self):
-        for x in self.cpp_sp.keys():
+        for x in dereference(self.cpp_sp).cpp_keys():
             yield x
 
 
     def absolute(self):
         result = Spectrum(name=b"|" + self.name + b"|")
-        result.set_inner_sp(self.cpp_sp.absolute())
+        result.set_inner_sp(dereference(self.cpp_sp).absolute())
         return result
         
     
     def keys(self):
-        return self.cpp_sp.keys()
+        return dereference(self.cpp_sp).cpp_keys()
 
     
     def incr(self, x):
-        self.cpp_sp.incr(x)
+        dereference(self.cpp_sp).incr(x)
 
     
     def incr_by_amount(self, x, c):
-        self.cpp_sp.incr_by_amount(x, c)
+        dereference(self.cpp_sp).incr_by_amount(x, c)
 
 
     def incr_by_counting(self, v):
-        self.cpp_sp.incr_by_counting(v)
+        dereference(self.cpp_sp).incr_by_counting(v)
 
         
     def maximum(self):
-        return self.cpp_sp.maximum()
+        return dereference(self.cpp_sp).maximum()
     
 
     def occurrence_of_maximum(self):
-        return self.cpp_sp.brackets(self.cpp_sp_maximum())
+        return dereference(self.cpp_sp)[self.cpp_sp_maximum()]
 
 
 # !SUBSECTION! A Spectrum factory
 
 
-def Spctr(x):
+def get_Spectrum(x):
     if isinstance(x, (list)):
         result = Spectrum()
         result.incr_by_counting(x)
         return result
     else:
-        return NotImplemented("{} is not a valid input type for Spctr".format(type(x)))
+        return NotImplemented("{} is not a valid input type for get_Spectrum".format(type(x)))
 

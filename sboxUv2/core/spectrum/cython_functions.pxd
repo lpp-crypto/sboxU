@@ -2,6 +2,9 @@
 
 from sboxUv2.cython_types cimport *
 
+from libcpp.memory cimport unique_ptr
+
+
 cdef extern from "../../cpp/core/spectrum.hpp":
     cdef cppclass cpp_Spectrum:
         cpp_Spectrum()
@@ -9,6 +12,7 @@ cdef extern from "../../cpp/core/spectrum.hpp":
         void destruct()
         
         int64_t maximum() const
+        
         void incr(
             const int64_t entry
         )
@@ -22,11 +26,13 @@ cdef extern from "../../cpp/core/spectrum.hpp":
             const std_vector[int64_t] & vector_to_count
         )
 
-        int64_t brackets "operator[]"(
+        int64_t operator[](
             const int64_t key
-        )
+        ) const
 
-        std_vector[int64_t] keys() const
+        # renaming is needed because the compiler otherwise mistakes
+        # the "keys" method for the one of a dictionary
+        std_vector[int64_t] cpp_keys "keys"() const
 
         int64_t size() const
 
@@ -42,5 +48,5 @@ cdef extern from "../../cpp/core/spectrum.cpp":
 
 cdef class Spectrum:
     cdef string name 
-    cdef cpp_Spectrum * cpp_sp
+    cdef unique_ptr[cpp_Spectrum] cpp_sp
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp)

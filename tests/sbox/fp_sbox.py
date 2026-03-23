@@ -25,13 +25,13 @@ if __name__ == "__main__":
     print(v.coordinate(0))
     print(u)
 
-    print(v+u)
-    print(v*u)
-    print(u.inverse())
-    try :
-        print((v*u).inverse())
-    except Exception as e :
-        pass
+    # print(v+u)
+    # print(v*u)
+    # print(u.inverse())
+    # try :
+    #     print((v*u).inverse())
+    # except Exception as e :
+    #     pass
 
-    w = pow(u,0)
-    print(w[(0,1)])
+    # w = pow(u,0)
+    # print(w[(0,1)])

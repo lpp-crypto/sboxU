@@ -76,10 +76,10 @@ def apn_ea_mugshot_from_spectra(
         thk_spec
 ):
     return cpp_apn_ea_mugshot(
-        (<Spectrum>abs_walsh_spec).cpp_sp[0],
-        (<Spectrum>deg_spec).cpp_sp[0],
-        (<Spectrum>sig_mult).cpp_sp[0],
-        (<Spectrum>thk_spec).cpp_sp[0]
+        dereference((<Spectrum>abs_walsh_spec).cpp_sp),
+        dereference((<Spectrum>deg_spec).cpp_sp),
+        dereference((<Spectrum>sig_mult).cpp_sp),
+        dereference((<Spectrum>thk_spec).cpp_sp)
     )
 
 
@@ -165,16 +165,16 @@ def ccz_equivalent_quadratic_function(
 def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
     sb = Sb(s)
     result = WalshZeroesSpaces()
-    (<WalshZeroesSpaces>result).cpp_wzs = new cpp_WalshZeroesSpaces(
+    (<WalshZeroesSpaces>result).cpp_wzs = make_unique[cpp_WalshZeroesSpaces](
         dereference((<S_box>sb).cpp_sb),
-        n_threads
+        <unsigned int>n_threads
     )
     # handling the initilization of the mappings by hand
-    result.cpp_wzs[0].init_mappings(
+    dereference(result.cpp_wzs).init_mappings(
         cpp_automorphisms_from_ortho_derivative(dereference((<S_box>sb).cpp_sb),
                                                 n_threads)
     )
-    for m in result.cpp_wzs[0].mappings:
+    for m in dereference(result.cpp_wzs).mappings:
         L = F2AffineMap()
         (<F2AffineMap>L).set_inner_map(<cpp_F2AffineMap>m)
         result.mappings.append(L)

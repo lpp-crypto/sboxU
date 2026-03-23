@@ -9,7 +9,7 @@ from sboxUv2 import *
 
 for t in range(0, 10):
     v = [randint(-4, 4) for i in range(0, 10)]
-    sp = Spctr(v)
+    sp = get_Spectrum(v)
     v.sort()
     print("\n", v)
     print(sp.maximum(), sp.keys(), [(k,sp[k]) for k in sp.keys()])
