@@ -1,5 +1,5 @@
 from sboxUv2.core.f2functions import get_F2AffineMap,rank_of_vector_set
-from sboxUv2.core.sbox import  Sb
+from sboxUv2.core.sbox import  get_sbox
 from random import randint,shuffle
 
 
@@ -31,13 +31,13 @@ def rand_linear_function(n,m):
 def rand_Sbox(n,m):
     """Returns a random n bits to m bits S_box"""
     borne_max= 2**m-1
-    return Sb([randint(0,borne_max) for _ in range(2**n)])
+    return get_sbox([randint(0,borne_max) for _ in range(2**n)])
 
 def rand_invertible_Sbox(n):
     """Returns a permutation of {0,1}^n"""
     res=[i for i in range(2**n)]
     shuffle(res)
-    return Sb(res)
+    return get_sbox(res)
 
 
 

@@ -1,7 +1,7 @@
 # -*- python -*-
 
 
-from sboxUv2.core import Sb, oplus
+from sboxUv2.core import get_sbox, oplus
 from sboxUv2.core.sbox import F2_trans
 from sboxUv2.config import MAX_N_THREADS
 from collections import defaultdict
@@ -13,7 +13,7 @@ from cython.operator cimport dereference
 # !SECTION! XOR equivalence
 
 def xor_equivalence(s, s_prime, all_pairs=True):
-    sb, sb_prime = Sb(s), Sb(s_prime)
+    sb, sb_prime = get_sbox(s), get_sbox(s_prime)
     if sb.get_input_length() != s_prime.get_input_length():
         return []
     else:
@@ -46,7 +46,7 @@ def le_class_representative(s):
         An `S_box` instance corresponding to the smallest function in the linear equivalence class of `s`, where "smallest" is in the sense of the lexicographic order.
     
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     if sb.is_invertible():
         result = S_box(name=b"LE(" + sb.name() + b")")
         result.set_inner_sbox(
@@ -61,8 +61,8 @@ def le_class_representative(s):
 
 
 def linear_equivalence(f, g, all_mappings=False):
-    sf = Sb(f)
-    sg = Sb(g)
+    sf = get_sbox(f)
+    sg = get_sbox(g)
     if len(f) != len(g):
         raise "f and g are of different dimensions!"
     if sf.is_invertible() or sg.is_invertible():
@@ -87,8 +87,8 @@ def linear_equivalence_permutations(f, g, all_mappings=False):
     The algorithm used is specified in [EC:BDCBP03].
 
     """
-    sf = Sb(f)
-    sg = Sb(g)
+    sf = get_sbox(f)
+    sg = get_sbox(g)
     result = cpp_linear_equivalence_permutations(
         dereference((<S_box>sf).cpp_sb),
         dereference((<S_box>sg).cpp_sb),
@@ -110,8 +110,8 @@ def linear_equivalence_permutations(f, g, all_mappings=False):
 
 
 def affine_equivalence(f, g):
-    sf = Sb(f)
-    sg = Sb(g)
+    sf = get_sbox(f)
+    sg = get_sbox(g)
     if len(f) != len(g):
         raise "f and g are of different dimensions!"
     if sf.is_invertible() or sg.is_invertible():
@@ -140,8 +140,8 @@ def affine_equivalence_permutations(f, g):
     """
 
 
-    sf = Sb(f)
-    sg = Sb(g)
+    sf = get_sbox(f)
+    sg = get_sbox(g)
     
     if len(f) != len(g):
         raise "f and g are of different dimensions!"

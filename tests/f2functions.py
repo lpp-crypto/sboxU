@@ -43,7 +43,7 @@ if __name__ == "__main__":
         print(img)
         print([linear_combination(masks, x_i) for x_i in x])
         print(L.get_input_length(), rank_of_vector_set(img), L.rank())
-        s = Sb(L)
+        s = get_sbox(L)
         print(get_F2AffineMap(s))
         print(L)
         pprint(s)

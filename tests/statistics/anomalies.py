@@ -13,7 +13,7 @@ with Experiment("Checking some anomalies"):
 # ----
 
     section("Skipjack")
-    skipjack = Sb(sboxes["Skipjack"])
+    skipjack = get_sbox(sboxes["Skipjack"])
     for table in ["LAT", "BCT", "DDT"]:
         print("{} {:10.5f} {:10.5f}".format(
             table,
@@ -29,7 +29,7 @@ with Experiment("Checking some anomalies"):
 
     section("Other S-boxes")
     for k in ["AES", "Fantomas", "Kuznyechik"]:
-        s = Sb(sboxes[k])
+        s = get_sbox(sboxes[k])
         subsection(k)
         for table in ["LAT", "BCT", "DDT"]:
             print("{} {:10.5f} {:10.5f}".format(

@@ -109,7 +109,7 @@ cdef class S_box:
         Returns:
             An `S_box` instance whose output is the XOR of `self` and `_s`. 
         """
-        s = Sb(_s)
+        s = get_sbox(_s)
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self, s))
         name = self.cpp_name + b"+" + s.name()
@@ -275,7 +275,7 @@ cdef class S_box:
         Returns:
             An S_box corresponding to the function "F o _s", where F is the current S-box, and _s is the input to the function.
         """
-        s = Sb(_s)
+        s = get_sbox(_s)
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
         name = self.cpp_name + "◦".encode("UTF-8") + s.name()
@@ -293,7 +293,7 @@ cdef class S_box:
         Returns:
             An S_box corresponding to the function "F | _s", where F is the current S-box, and _s is the input to the function.
         """
-        s = Sb(_s)
+        s = get_sbox(_s)
         name = self.cpp_name + "|".encode("UTF-8") + s.name()
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_concat_sboxes(dereference(self.cpp_sb),
@@ -451,7 +451,7 @@ cdef class S_box_fp:
             An `S_box_fp` instance whose output is the modular addition of `self` and `_s`.
 
         """
-        s = Sb(_s)
+        s = get_sbox(_s)
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self,s))
         name = self.get_name() + b"+" + s.get_name()
@@ -469,7 +469,7 @@ cdef class S_box_fp:
         Returns:
             An `S_box_fp` instance whose output is the composition of `self`and `_s`.
         """      
-        s = Sb(_s)
+        s = get_sbox(_s)
         name = self.get_name() + "◦".encode("UTF-8") + s.get_name()
         result = S_box_fp(name)
         (<S_box_fp>result).set_inner_sbox(dereference((<S_box_fp>self).cpp_sb)*dereference((<S_box_fp>s).cpp_sb))
@@ -784,7 +784,7 @@ SBOXU_TYPE_TO_FACTORY = {
     Polynomial   : get_Sbox_from_univariate_polynomial,
 }
 
-def Sb(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
+def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
     """Turns its input into an object of the S_box class.
 
     If it is already an S_box instance, simply returns its
@@ -820,7 +820,7 @@ def identity_S_box(length) -> S_box:
     function, i.e. the one mapping x to itself.
 
     """
-    return Sb(list(range(0, length)))
+    return get_sbox(list(range(0, length)))
 
 
 cdef S_box pyx_F2_trans(BinWord k, n):

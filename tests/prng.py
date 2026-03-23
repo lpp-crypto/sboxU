@@ -7,7 +7,7 @@ if __name__ == "__main__":
 
         section("Basic queries")
         
-        p = UnsafePRNG(bytearray([0, 1]))
+        p = InsecurePRNG(bytearray([0, 1]))
         x = 0
         for t in range(0, 2**20):
             x += p(0, 30)

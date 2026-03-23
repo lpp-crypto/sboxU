@@ -1,4 +1,4 @@
-from sboxUv2.core import S_box, Sb, degree_spectrum
+from sboxUv2.core import S_box, get_sbox, degree_spectrum
 from sboxUv2.statistics import differential_spectrum, absolute_walsh_spectrum
 
 
@@ -37,7 +37,7 @@ class LiteratureSBoxes(FunctionsDB):
 
         
     def insert_function_from_lut(self, s, name, bibliography, usage=None):
-        sb = Sb(s)
+        sb = get_sbox(s)
         n, m = sb.get_input_length(), sb.get_output_length()
         encoded = sb.to_bytes()
         # differential
@@ -71,5 +71,5 @@ class LiteratureSBoxes(FunctionsDB):
         for i, column in enumerate(sorted(self.row_structure.keys())):
             entry[column] = row[i]
         # post-processing
-        entry["sbox"] = Sb(entry["lut"], name=entry["name"])
+        entry["sbox"] = get_sbox(entry["lut"], name=entry["name"])
         return entry

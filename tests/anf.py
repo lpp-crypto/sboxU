@@ -4,7 +4,7 @@ from sage.crypto.sboxes import sboxes
 from random import randint
 
 
-Sb0=Sb(sboxes["Midori_Sb0"])
+Sb0=get_sbox(sboxes["Midori_Sb0"])
 anf_Sb0=algebraic_normal_form(Sb0)
 
 # the coordinates of the ANF (such as the first one) are SAGE polynomials, meaning their `parent()` is the multivariate polynomial over which they are defined.
@@ -22,7 +22,7 @@ if anf_Sb0==[x0*x1*x2 + x0*x1*x3 + x0*x2 + x0*x3 + x1*x2*x3 + x1,
     print("The ANF of Midori_Sb0 is computed correctly")
 
 
-test=Sb(anf_Sb0)
+test=get_sbox(anf_Sb0)
 
 if Sb0.lut()==test:
     print("The polynomials can be evaluated to retrieve the LUT")
@@ -32,7 +32,7 @@ if algebraic_degree(Sb0) == 3:
     
 
 print("Testing eval_anf on a 8-bit random Boolean Function")
-S=Sb([randint(0,1) for _ in range(256)])
+S=get_sbox([randint(0,1) for _ in range(256)])
 anf=algebraic_normal_form(S)[0]
 if [eval_anf(anf,x) for x in range(256)]==S:
     print("Success")
@@ -40,7 +40,7 @@ else :
     print("Failure")
 
 print("Testing eval_vect_anf on a random 8-bit Sbox")
-S=Sb([randint(0,255) for _ in range(256)])
+S=get_sbox([randint(0,255) for _ in range(256)])
 anfs=algebraic_normal_form(S)
 if [eval_vect_anf(anfs,x) for x in range(256)]==S:
     print("Success")

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.widgets import Slider, RadioButtons
 
-from sboxUv2.core import Sb
+from sboxUv2.core import get_sbox
 from sboxUv2.statistics import \
     ddt, differential_spectrum, ddt_coeff_probability, \
     lat, walsh_spectrum, absolute_walsh_spectrum, lat_coeff_probability_permutation, lat_coeff_probability_function, \
@@ -122,7 +122,7 @@ def lat_interactive_view(
         with_sliders=True,
         with_cmap_choice=True
 ):
-    sb = Sb(s)
+    sb = get_sbox(s)
     table = lat(sb)
     if absolute:
         t = [[abs(table[a][b]) for b in range(0, len(table[a]))]
@@ -157,7 +157,7 @@ def ddt_interactive_view(
         with_sliders=True,
         with_cmap_choice=True
 ):
-    sb = Sb(s)
+    sb = get_sbox(s)
     t = ddt(sb)
     if show_only != None:
         t = [[t[a][b] if t[a][b] in show_only else vmax+2
@@ -184,7 +184,7 @@ def bct_interactive_view(
         with_sliders=True,
         with_cmap_choice=True
 ):
-    sb = Sb(s)
+    sb = get_sbox(s)
     t = bct(sb)
     if show_only != None:
         t = [[t[a][b] if t[a][b] in show_only else vmax+2
@@ -211,7 +211,7 @@ def fbct_interactive_view(
         with_sliders=True,
         with_cmap_choice=True
 ):
-    sb = Sb(s)
+    sb = get_sbox(s)
     t = fbct(sb)
     if show_only != None:
         t = [[t[a][b] if t[a][b] in show_only else vmax+2
@@ -364,7 +364,7 @@ def interactive_distribution_comparison(
 # !SUBSECTION! Specific instanciations
 
 def interactive_distribution_comparison_lat(s, y_log_scale=True):
-    sb = Sb(s)
+    sb = get_sbox(s)
     if sb.is_invertible():
         interactive_distribution_comparison(
             absolute_walsh_spectrum(sb),
@@ -389,7 +389,7 @@ def interactive_distribution_comparison_lat(s, y_log_scale=True):
             
 
 def interactive_distribution_comparison_ddt(s, y_log_scale=True):
-    sb = Sb(s)
+    sb = get_sbox(s)
     interactive_distribution_comparison(
         differential_spectrum(sb),
         sb.get_input_length(),
@@ -403,7 +403,7 @@ def interactive_distribution_comparison_ddt(s, y_log_scale=True):
  
 
 def interactive_distribution_comparison_bct(s, y_log_scale=True):
-    sb = Sb(s)
+    sb = get_sbox(s)
     interactive_distribution_comparison(
         boomerang_spectrum(sb),
         sb.get_input_length(),

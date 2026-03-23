@@ -4,7 +4,7 @@ instances.
 """
 
 
-from sboxUv2.core.sbox.cython_functions import S_box, Sb
+from sboxUv2.core.sbox.cython_functions import S_box, get_sbox
 from sboxUv2.core.f2functions import i2f_and_f2i
 
 from random import shuffle, randint
@@ -29,7 +29,7 @@ def random_permutation_S_box(bit_length, name=None):
     shuffle(lut)
     if name == None:
         name = "RandPerm"
-    return Sb(lut, name=name)
+    return get_sbox(lut, name=name)
 
 
 def random_function_S_box(input_bit_length, output_bit_length, name=None):
@@ -52,7 +52,7 @@ def random_function_S_box(input_bit_length, output_bit_length, name=None):
     ]
     if name == None:
         name = "RandFunc"
-    return Sb(lut, name=name)
+    return get_sbox(lut, name=name)
 
 
 
@@ -78,7 +78,7 @@ def F2_mul(coeff, field=None):
         field = coeff.parent()
         i2f, f2i = i2f_and_f2i(field)
         c = coeff
-    return Sb(
+    return get_sbox(
         [
             f2i(i2f(x) * c)
             for x in range(0, field.cardinality())
@@ -98,7 +98,7 @@ def monomial(d, field):
     assert field.characteristic() == 2
     assert isinstance(d, (int, Integer))
     i2f, f2i = i2f_and_f2i(field)
-    return Sb([f2i(i2f(x)**d) for x in range(0, field.cardinality())],
+    return get_sbox([f2i(i2f(x)**d) for x in range(0, field.cardinality())],
               name="X^{}".format(d))
 
 
@@ -116,7 +116,7 @@ def inverse(s):
     if isinstance(s, (S_box)):
         return s.inverse()
     else:        
-        sb = Sb(s)
+        sb = get_sbox(s)
         return sb.inverse()
 
 
@@ -132,6 +132,6 @@ def is_permutation(s):
     if isinstance(s, (S_box)):
         return s.is_invertible()
     else:        
-        sb = Sb(s)
+        sb = get_sbox(s)
         return sb.is_invertible()
     

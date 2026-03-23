@@ -7,7 +7,7 @@ The idea here is not yet to study S-boxes, only to generate them, and store them
 
 
 from sboxUv2.core.sbox.cython_functions import \
-    Sb, S_box, \
+    get_sbox, S_box, \
     new_sbox_name, \
     F2_trans, identity_S_box
 

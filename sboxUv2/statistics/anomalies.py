@@ -7,7 +7,7 @@ This reasoning is based on the probabilities for the DDT and LAT given in [JMC:D
 from sage.all import RealField, RealNumber, imag_part, exp, factorial, binomial, Infinity, Integer, floor
 import itertools
 
-from sboxUv2.core import Sb, is_permutation
+from sboxUv2.core import get_sbox, is_permutation
 from sboxUv2.statistics.cython_functions import differential_spectrum, walsh_spectrum, boomerang_spectrum
 
 
@@ -382,7 +382,7 @@ def table_anomaly(
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
     else:
-        sb = Sb(s)
+        sb = get_sbox(s)
         proba_func = get_proba_func(sb, table)
         if table == "DDT":
             if spec == None:
@@ -432,7 +432,7 @@ def table_negative_anomaly(
     if table not in ["DDT", "LAT", "BCT"]:
         raise "The table-based negative anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
     else:
-        sb = Sb(s)
+        sb = get_sbox(s)
         proba_func = get_proba_func(sb, table)
         m, n = sb.get_input_length(), sb.get_output_length()
         if table == "DDT":

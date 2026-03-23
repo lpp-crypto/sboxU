@@ -1,5 +1,5 @@
 from sage.all import Integer as sage_Integer
-from sboxUv2.core import Sb
+from sboxUv2.core import get_sbox
 
 import sqlite3
 

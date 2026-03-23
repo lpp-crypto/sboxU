@@ -12,7 +12,7 @@ if __name__ == "__main__":
     # Build an SBox from F_3^2 to itself, invertible
     lut = [[0,1],[1,0],[0,2],[0,0],[2,0],[2,2],[1,2],[2,1],[1,1]]
     lut = [[Fp(x),Fp(y)] for x,y in lut]
-    u = Sb(lut)
+    u = get_sbox(lut)
     print(u[(Fp(0),Fp(1))]) 
     print(u.coordinate(0))
   
@@ -20,7 +20,7 @@ if __name__ == "__main__":
     x1, x2 = R.gens()
     P1 = x1**3 + x2**5 + x1*x2
     P2 = x2
-    v = Sb([P1,P2])
+    v = get_sbox([P1,P2])
     print(v)
     print(v.coordinate(0))
     print(u)

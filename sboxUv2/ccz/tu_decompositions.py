@@ -1,5 +1,5 @@
 from sage.all import log
-from sboxUv2.core import is_permutation,identity_F2AffineMap,zero_F2AffineMap,oplus,block_diagonal_F2AffineMap,rank_of_vector_set, Sb, get_F2AffineMap,F2AffineMap
+from sboxUv2.core import is_permutation,identity_F2AffineMap,zero_F2AffineMap,oplus,block_diagonal_F2AffineMap,rank_of_vector_set, get_sbox, get_F2AffineMap,F2AffineMap
 from sboxUv2.ccz import get_WalshZeroesSpaces
 from sboxUv2.algorithms import generating_F2AffineMap_r,generating_F2AffineMap, F2AffineMap_from_range_and_image
 from sboxUv2.display import pprint
@@ -52,7 +52,7 @@ class TUdecomposition:
                 raise Exception("ill formed TU-decomposition: T must be a keyed permutation!")
                 break
             else:
-                self.T_inv.append(Sb(T_k.inverse()))
+                self.T_inv.append(get_sbox(T_k.inverse()))
         if U != None:
             self.U = U
             self.U_prime = [[-1 for x2 in range(0, 2**(self.n - self.t))]
@@ -60,7 +60,7 @@ class TUdecomposition:
             for x1 in range(0, 2**self.t):
                 for x2 in range(0, 2**(self.n - self.t)):
                     self.U_prime[self.T[x2][x1]][x2] = self.U[x1][x2]
-            self.U_prime=[Sb(row) for row in self.U_prime]
+            self.U_prime=[get_sbox(row) for row in self.U_prime]
             # print("U_prime finished")
         elif U_prime != None:
             self.U_prime = U_prime
@@ -69,7 +69,7 @@ class TUdecomposition:
             for x1 in range(0, 2**self.t):
                 for x2 in range(0, 2**(self.n - self.t)):
                     self.U[x1][x2] = self.U_prime[self.T[x2][x1]][x2]
-            self.U=[Sb(row) for row in self.U]
+            self.U=[get_sbox(row) for row in self.U]
             # print("U finished")
         else:
             raise Exception("at least U or U' must be specified")
@@ -219,7 +219,7 @@ class TUdecomposition:
             y = oplus(y1 | (y2 << (self.t)) , self.C(y))
             y = self.B(y)
             result.append(y)
-        return Sb(result)
+        return get_sbox(result)
     
     def __eq__(self, value):
         return self.get_S_box()==value.get_S_box()
@@ -290,14 +290,14 @@ def tu_decomposition_from_space_basis(s, basis,n,m):
             y2, y1 = s_prime[x] >> t, s_prime[x] & mask_t
             T[x2][x1] = y1
             U[x1][x2] = y2
-    T=[Sb(row) for row in T]
-    U=[Sb(row) for row in U]
+    T=[get_sbox(row) for row in T]
+    U=[get_sbox(row) for row in U]
     return TUdecomposition(A=A, B=B, C=C, T=T, U=U,m=m)
 
 
     
 def get_tu_decompositions(s, walsh_zeroes=None):
-    sb=Sb(s)
+    sb=get_sbox(s)
     if walsh_zeroes == None:
         walsh_zeroes = get_WalshZeroesSpaces(sb).get_bases()
     result = []

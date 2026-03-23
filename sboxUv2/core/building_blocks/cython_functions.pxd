@@ -1,7 +1,7 @@
 # -*- python -*-
 
 from sboxUv2.cython_types cimport *
-from ..sbox cimport *
+from sboxUv2.core.sbox cimport *
 
 
 # !SECTION! Declaring C++ code
@@ -39,5 +39,5 @@ cdef extern from "../../cpp/core/componentsGeneration.cpp":
 # !SECTION! Declaring cython code
 
     
-cdef class UnsafePRNG:
+cdef class InsecurePRNG:
     cdef unique_ptr[cpp_PRNG] cpp_p

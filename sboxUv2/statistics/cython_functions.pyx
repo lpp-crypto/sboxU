@@ -3,7 +3,7 @@
 
 from sboxUv2.config import n_threads_from_sbox_size
 
-from sboxUv2.core import Sb
+from sboxUv2.core import get_sbox
 from sboxUv2.core cimport *
 
 
@@ -26,7 +26,7 @@ def differential_spectrum(s):
         Spectrum: A `Spectrum` instance `d` such that `d[k]` is equal to the number of occurrences of the coefficient `k` in the DDT of `s`.
     
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = Spectrum(name="Differential".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
@@ -46,7 +46,7 @@ def ddt(s):
         list: A list of lists corresponding to a 2-dimensional array containing the DDT of `s`.
     
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = cpp_ddt(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -60,7 +60,7 @@ def differential_uniformity(s):
     Returns:
         int: The differential uniformity of the function corresponding to `s`.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     dif = differential_spectrum(s)
     return dif.maximum()
 
@@ -76,7 +76,7 @@ def is_differential_uniformity_smaller_than(s, u):
         bool: True if and only if the differential uniformity of the function corresponding to `s` is at most equal to `u`.
     
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     return cpp_is_differential_uniformity_smaller_than(
         dereference((<S_box>sb).cpp_sb),
         u
@@ -100,7 +100,7 @@ def walsh_transform(s):
         list: a list `l` such that `l[a]` is equal to $W_f(a)$. Contains integers for vectorial Boolean function, complex numbers otherwise.
     """
     # !CHECK! does the output consists of complex numbers in the case of non binary fields?
-    sb = Sb(s)
+    sb = get_sbox(s)
     if sb.get_output_length() != 1:
         raise Exception("Walsh transform takes as input a boolean function")
     else:
@@ -118,7 +118,7 @@ def walsh_spectrum(s):
     Returns:
         Spectrum: a Spectrum instance `d` such that `d[i]` is the number of occurrences of `i` in the LAT of `s`.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = Spectrum(name="Walsh".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
@@ -155,7 +155,7 @@ def lat(s):
     Returns:
         list: A list of list `l` such that `l[a][b]` = $W_{F}(a, b)$.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = cpp_lat(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -183,7 +183,7 @@ def linearity(s):
     Returns:
         number: In F_2, an integer; in F_p, a real number.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     wal = walsh_spectrum(s)
     return wal.maximum()
 
@@ -204,7 +204,7 @@ def boomerang_spectrum(s):
     Returns:
         Spectrum: a Spectrum instance `d` such that `d[i]` is the number of occurrences of `i` in the BCT of `s`.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = Spectrum(name="BCT".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
@@ -221,13 +221,13 @@ def bct(s):
 
     $B(a,b) = \\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = cpp_bct(dereference((<S_box>sb).cpp_sb))
     return result
 
 
 def boomerang_uniformity(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     bom = boomerang_spectrum(s)
     return bom.maximum()
 
@@ -236,7 +236,7 @@ def boomerang_uniformity(s):
 # !SUBSECTION! FBCT
 
 def fbct_spectrum(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = Spectrum(name="F-BCT".encode("UTF-8"))
     n_threads = n_threads_from_sbox_size(sb.get_input_length())
     result.set_inner_sp(
@@ -248,7 +248,7 @@ def fbct_spectrum(s):
 
 
 def fbct(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = cpp_fbct(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -264,7 +264,7 @@ def xddt(s):
     Returns :
         list: A list of lists of lists corresponding to a 3-dimensional array containing the XDDT of `s`.
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     result = cpp_xddt(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -279,7 +279,7 @@ def yddt(s):
     Returns :
         list: A list of lists of lists corresponding to a 3-dimensional array containing the YDDT of `s`.
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     result = cpp_yddt(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -294,7 +294,7 @@ def zddt(s):
     Returns :
         list: A list of lists of lists corresponding to a 3-dimensional array containing the ZDDT of `s`.
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     result = cpp_zddt(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -310,7 +310,7 @@ def linear_structures(s):
         f(x+a) + f(x) = e,
         for all x (where `+` corresponds to a XOR). 0 does not appear in `l_0` as it would always be present.
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     result=cpp_linear_structures(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -329,7 +329,7 @@ def linear_structures_vectorial(s):
         where `l_1` is non-empty.
 
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     result=cpp_linear_structures_vectorial(dereference((<S_box>sb).cpp_sb))
     return result
 
@@ -343,7 +343,7 @@ def linear_structures_vectorial_spectrum(s):
         scalar product. The spectrum only contains keys for which the number of linear structures is non-zero.
 
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     result=Spectrum(name="Linear Structures".encode("UTF-8"))
     result.set_inner_sp(cpp_linear_structures_vectorial_spectrum(dereference((<S_box>sb).cpp_sb)))
     return result

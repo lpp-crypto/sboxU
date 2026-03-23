@@ -1,7 +1,7 @@
 # -*- python -*-
 
 
-from sboxUv2.core import Sb, get_F2AffineMap
+from sboxUv2.core import get_sbox, get_F2AffineMap
 from sboxUv2.config import MAX_N_THREADS
 from sboxUv2.statistics import lat
 
@@ -27,7 +27,7 @@ def thickness_spectrum(s, spaces=None):
         A Spectrum instance such where the entry with key `k` is the number of spaces of dimension s.get_input_length() contained in the Walsh zeroes of `s` that have an intersection with V that is of dimension k.
 
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = Spectrum(name=b"thickness")
     result.set_inner_sp(
         cpp_thickness_spectrum(dereference((<S_box>sb).cpp_sb), MAX_N_THREADS)
@@ -105,7 +105,7 @@ cdef class WalshZeroesSpaces:
         
 
 def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = WalshZeroesSpaces()
     (<WalshZeroesSpaces>result).cpp_wzs = make_unique[cpp_WalshZeroesSpaces](
         <cpp_S_box>dereference((<S_box>sb).cpp_sb),
@@ -131,7 +131,7 @@ def ccz_equivalent_function(s, L):
         If `L` is indeed admissible for `s`, then returns an `S_box` instance corresponding to the function whose graph is the image of that of `s` by `L`. Otherwise, returns an empty `S_box`.
     
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     basis = get_F2AffineMap(L)
     result = S_box(name=b"CCZ-" + sb.name())
     result.set_inner_sbox(
@@ -144,7 +144,7 @@ def ccz_equivalent_function(s, L):
 
 
 def enumerate_ea_classes(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = []
     i = 0
     cdef std_vector[cpp_S_box] ea_classes = cpp_enumerate_ea_classes(
@@ -160,14 +160,14 @@ def enumerate_ea_classes(s):
 
 
 def enumerate_permutations_in_ccz_class(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = []
     i = 0
-    cdef std_vector[cpp_S_box] permuations_in_ccz_class = cpp_enumerate_permutations_in_ccz_class(
+    cdef std_vector[cpp_S_box] permutations_in_ccz_class = cpp_enumerate_permutations_in_ccz_class(
         dereference((<S_box>sb).cpp_sb), 
         MAX_N_THREADS
     )
-    for new_s in permuations_in_ccz_class :
+    for new_s in permutations_in_ccz_class :
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
@@ -243,8 +243,8 @@ def equivalences_from_lat(
 
 def linear_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return equivalences_from_lat(
-        Sb(sbox1),
-        Sb(sbox2),
+        get_sbox(sbox1),
+        get_sbox(sbox2),
         single_non_trivial_answer,
         "linear",
         n_threads
@@ -253,8 +253,8 @@ def linear_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads
 
 def el_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return equivalences_from_lat(
-        Sb(sbox1),
-        Sb(sbox2),
+        get_sbox(sbox1),
+        get_sbox(sbox2),
         single_non_trivial_answer,
         "extended-linear",
         n_threads
@@ -263,8 +263,8 @@ def el_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX
 
 def cczl_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return equivalences_from_lat(
-        Sb(sbox1),
-        Sb(sbox2),
+        get_sbox(sbox1),
+        get_sbox(sbox2),
         single_non_trivial_answer,
         "ccz-linear",
         n_threads
@@ -274,11 +274,11 @@ def cczl_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=M
 # !SUBSECTION! All "affine" equivalences
 
 def up_to_constant_equivalences(sbox1, sbox2, single_non_trivial_answer=False,  equivalence_type="linear", n_threads=MAX_N_THREADS):
-    shifted_sbox1 = Sb([x ^ sbox1[0] for x in sbox1])
+    shifted_sbox1 = get_sbox([x ^ sbox1[0] for x in sbox1])
 
     results = []
     for a in range(len(sbox1)):
-        shifted_sbox2 = Sb([sbox2[x ^ a] ^ sbox2[a] for x in range(len(sbox2))])
+        shifted_sbox2 = get_sbox([sbox2[x ^ a] ^ sbox2[a] for x in range(len(sbox2))])
         res = equivalences_from_lat(shifted_sbox1,
                                     shifted_sbox2,
                                     False,
@@ -296,8 +296,8 @@ def up_to_constant_equivalences(sbox1, sbox2, single_non_trivial_answer=False,  
 
 def affine_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return up_to_constant_equivalences(
-        Sb(sbox1),
-        Sb(sbox2),
+        get_sbox(sbox1),
+        get_sbox(sbox2),
         single_non_trivial_answer,
         "linear",
         n_threads
@@ -306,8 +306,8 @@ def affine_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads
 
 def ea_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return up_to_constant_equivalences(
-        Sb(sbox1),
-        Sb(sbox2),
+        get_sbox(sbox1),
+        get_sbox(sbox2),
         single_non_trivial_answer,
         "extended-linear",
         n_threads
@@ -316,8 +316,8 @@ def ea_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX
 
 def ccz_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MAX_N_THREADS):
     return up_to_constant_equivalences(
-        Sb(sbox1),
-        Sb(sbox2),
+        get_sbox(sbox1),
+        get_sbox(sbox2),
         single_non_trivial_answer,
         "ccz-linear",
         n_threads
@@ -374,15 +374,15 @@ def verify_up_to_constant_equivalence(sbox1, sbox2, L, a, equivalence_type):
     """ Verify whether sbox1 and sbox2 are indeed equivalent given an affine mapping x \mapsto Lx + a. """
     if equivalence_type in ["extended-linear", "linear"]:
         A, B, C, D = ccz_block_decomposition(L)
-        A, B, C, D = Sb(A), Sb(B), Sb(C), Sb(D)
+        A, B, C, D = get_sbox(A), get_sbox(B), get_sbox(C), get_sbox(D)
 
         # Verify the null blocks
         assert D == [0 for _ in range(len(D))]
         if equivalence_type == "linear":
             assert C == [0 for _ in range(len(C))]
 
-        A_aff = Sb([A[x] ^ a for x in range(len(A))])
-        B_aff = Sb([B[x] ^ sbox2[a] ^ B[sbox1[0]] for x in range(len(B))])
+        A_aff = get_sbox([A[x] ^ a for x in range(len(A))])
+        B_aff = get_sbox([B[x] ^ sbox2[a] ^ B[sbox1[0]] for x in range(len(B))])
         
         sbox1_prime = (B_aff * sbox1) + C
         sbox2_prime = sbox2 * A_aff

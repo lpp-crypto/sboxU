@@ -5,7 +5,7 @@ from ..sbox cimport *
 from ..spectrum cimport *
 
 from sboxUv2.core.f2functions import to_bin, from_bin
-from sboxUv2.core.sbox import Sb
+from sboxUv2.core.sbox import get_sbox
 
 
 from cython.operator cimport dereference
@@ -28,7 +28,7 @@ def degree_spectrum(s):
     Returns:
        A Spectrum object d such that d[k] is the number of components of `s` with algebraic degree exactly equal to k.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     py_result = Spectrum(name=b"Degree")  
     py_result.set_inner_sp(
         cpp_degree_spectrum(dereference((<S_box>sb).cpp_sb))
@@ -38,7 +38,7 @@ def degree_spectrum(s):
 
 def algebraic_degree(s):
     # !TODO! docstring for algebraic_degree
-    sb = Sb(s)
+    sb = get_sbox(s)
     return cpp_algebraic_degree(dereference((<S_box>sb).cpp_sb))
 
 # !SUBSECTION! Precise information on the degree
@@ -52,7 +52,7 @@ def is_degree_bigger_than(s,d):
     Returns:
         A boolean value, True if the algebraic degree of s is (strictly) bigger than d, False otherwise.
     """
-    sb=Sb(s)
+    sb=get_sbox(s)
     return cpp_is_degree_bigger_than(dereference((<S_box>sb).cpp_sb), d)
 
 
@@ -69,7 +69,7 @@ def algebraic_normal_form_coordinate(s, polynomial_vars=None):
     Returns:
        A polynomial corresponding to the anf of the boolean function s, expressed in terms of polynomial_vars if not None.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     if polynomial_vars == None:
         R = PolynomialRing(
             GF(2),
@@ -99,7 +99,7 @@ def algebraic_normal_form(s, polynomial_vars=None):
     Returns:
         A list of polynomials corresponding to the anfs of the coordinate functions of s, expressed in terms of polynomial_vars if not None.
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     if polynomial_vars == None:
         R = PolynomialRing(
             GF(2),
@@ -114,12 +114,12 @@ def algebraic_normal_form(s, polynomial_vars=None):
 
 
 def anf_component(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     plop = cpp_anf_component(dereference((<S_box>sb).cpp_sb))
     return(plop)
 
-def quadratic_compact_representation(s):
 
+def quadratic_compact_representation(s):
     """
     Args:
         s: an S_box-able object 
@@ -128,7 +128,7 @@ def quadratic_compact_representation(s):
         A list of elements representing a compact representation of a quadratic function
     """
     
-    sb = Sb(s)
+    sb = get_sbox(s)
     plop = cpp_quadratic_compact_representation(dereference((<S_box>sb).cpp_sb))
     return(plop)
 

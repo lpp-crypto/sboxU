@@ -1,7 +1,7 @@
 # -*- python -*-
 
 from sboxUv2.cython_types cimport *
-from sboxUv2.core import Sb
+from sboxUv2.core import get_sbox
 from sboxUv2.config import MAX_N_THREADS
 
 
@@ -21,7 +21,7 @@ def ortho_derivative(q):
         An S_box instance containing the ortho-derivative of `q`. If the ortho-derivative of `q` is actually not defined (e.g. if it is not a quadratic APN), then returns an empty S_box.
     
     """
-    sb = Sb(q)
+    sb = get_sbox(q)
     result = S_box(name="π_{".encode("UTF-8") + sb.name() + b"}")
     (<S_box>result).set_inner_sbox(
         cpp_ortho_derivative((dereference((<S_box>sb).cpp_sb)))
@@ -39,7 +39,7 @@ def ortho_integral(s):
         An S_box instance containing the ortho-integral of `s`, that is, to a quadratic APN function that has `s` as its ortho-derivative. If there is no such function, returns the empty S-box.
     
     """
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = S_box(name="∫_{".encode("UTF-8") + sb.name() + b"}")
     (<S_box>result).set_inner_sbox(
         cpp_ortho_integral(dereference((<S_box>sb).cpp_sb))
@@ -54,7 +54,7 @@ def ortho_integral(s):
 
 def sigma_multiplicities(s, k=4):
     # !TODO! docstring for sigma_multiplicities 
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = Spectrum(name="σ-mult".encode("UTF-8"))
     result.set_inner_sp(
         cpp_sigma_multiplicities(dereference((<S_box>sb).cpp_sb), k, MAX_N_THREADS)
@@ -65,7 +65,7 @@ def sigma_multiplicities(s, k=4):
 # !SUBSECTION! Aggregated invariants
 
 def apn_ea_mugshot(s):
-    sb = Sb(s)
+    sb = get_sbox(s)
     return cpp_apn_ea_mugshot(dereference((<S_box>sb).cpp_sb), MAX_N_THREADS)
 
 
@@ -87,7 +87,7 @@ def apn_ea_mugshot_from_spectra(
 
 
 def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = []
     cdef std_vector[cpp_F2AffineMap] automorphisms = cpp_automorphisms_from_ortho_derivative(
         dereference((<S_box>sb).cpp_sb),
@@ -116,7 +116,7 @@ def ea_mappings_from_ortho_derivative(
         A list of F2AffineMaps L_i such that the graph of s is, up to a constant addition, the same as the image of the graph of s_prime under the linear permutation L_i.
     
     """
-    sb, sb_prime = Sb(s), Sb(s_prime)
+    sb, sb_prime = get_sbox(s), get_sbox(s_prime)
     result = []
     cdef std_vector[cpp_F2AffineMap] ea_mappings  = cpp_ea_mappings_from_ortho_derivative(
             dereference((<S_box>sb).cpp_sb),
@@ -134,7 +134,7 @@ def enumerate_ea_classes_apn_quadratic(
         s,
         n_threads=MAX_N_THREADS
 ):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = []
     i = 0
     cdef std_vector[cpp_S_box] ea_classes = cpp_enumerate_ea_classes_quadratic_apn(
@@ -153,7 +153,7 @@ def ccz_equivalent_quadratic_function(
         s,
         n_threads=MAX_N_THREADS
 ):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = S_box(name=b"deg2-CCZ-" + sb.name())
     result.set_inner_sbox(cpp_ccz_equivalent_quadratic_function(
         dereference((<S_box>sb).cpp_sb),
@@ -163,7 +163,7 @@ def ccz_equivalent_quadratic_function(
 
             
 def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = WalshZeroesSpaces()
     (<WalshZeroesSpaces>result).cpp_wzs = make_unique[cpp_WalshZeroesSpaces](
         dereference((<S_box>sb).cpp_sb),
@@ -185,7 +185,7 @@ def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
 # !SECTION! Switching Neighbours
 
 def non_trivial_sn(s,ne,ns):
-    sb = Sb(s)
+    sb = get_sbox(s)
     result = []
     i = 0
     SW = cpp_non_trivial_sn(dereference((<S_box>sb).cpp_sb),<cpp_Integer> ne, <cpp_Integer> ns )

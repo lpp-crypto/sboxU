@@ -1,5 +1,5 @@
 from sboxUv2.core import \
-    Sb, \
+    get_sbox, \
     degree_spectrum, algebraic_degree, quadratic_compact_representation, quadratic_sbox_from_compact_representation
 
 from sboxUv2.statistics import \
@@ -81,7 +81,7 @@ class APNFunctions(FunctionsDB):
 
 
     # def insert_new_ea_repr(self, s, bibliography):
-    #     sb = Sb(s)
+    #     sb = get_sbox(s)
     #     differential_spec = differential_spectrum(sb)
     #     if differential_spec.maximum() != 2:
     #         raise Exception("Trying to add a non-APN function to the APN function database: {}".format(lut))
@@ -118,7 +118,7 @@ class APNFunctions(FunctionsDB):
 
 
     def insert_full_ccz_equivalence_class(self, s, bibliography):
-        sb = Sb(s)
+        sb = get_sbox(s)
         differential_spec = differential_spectrum(sb)
         if differential_spec.maximum() != 2:
             raise Exception("Trying to add a non-APN function to the APN function database: \nspec={}\ns={}".format(differential_spec, sb))
@@ -187,7 +187,7 @@ class APNFunctions(FunctionsDB):
         for i, column in enumerate(sorted(self.row_structure.keys())):
             entry[column] = row[i]
         # post-processing
-        entry["sbox"] = Sb(entry["lut"])
+        entry["sbox"] = get_sbox(entry["lut"])
         return entry
 
     
@@ -202,7 +202,7 @@ class APNFunctions(FunctionsDB):
         """
         # !TODO! docstring 
         """
-        sb = Sb(s)
+        sb = get_sbox(s)
         if degree_spec == None:
             degree_spec = degree_spectrum(sb)
         if degree_spec.maximum() == 2:
@@ -297,7 +297,7 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
         In this version, we only insert a ccz representative
         """
         
-        sb = Sb(s)
+        sb = get_sbox(s)
         differential_spec = differential_spectrum(sb)
         if differential_spec.maximum() != 2:
             raise Exception("Trying to add a non-APN function to the APN function database: {}".format(sb))
@@ -343,7 +343,7 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
         for i, column in enumerate(sorted(self.row_structure.keys())):
             entry[column] = row[i]
         # post-processing
-        #entry["sbox"] = Sb(quadratic_sbox_from_compact_representation(entry["qcr"],8,8))
+        #entry["sbox"] = get_sbox(quadratic_sbox_from_compact_representation(entry["qcr"],8,8))
         return entry
 
     
@@ -354,7 +354,7 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
         """
         # !TODO! docstring 
         """
-        sb = Sb(s)
+        sb = get_sbox(s)
         
         if mug == None:
             # Computing the mugshot of s depending on its degree
@@ -370,7 +370,7 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
                     # Decide if we put more
                     mug = absolute_walsh_spectrum(sb)
                 else:
-                    mug = apn_ea_mugshot(Sb(s_quad))
+                    mug = apn_ea_mugshot(get_sbox(s_quad))
 
 
             # We hash the mugshot for memory concerns
