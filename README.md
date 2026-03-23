@@ -81,7 +81,7 @@ or, on macOS:
 To be able to use `sboxU` in your scripts, simply run the following command. It will download and compile `sboxU` (and also create some executable scripts, see above).
 
 ```
-    sage --pip install git+https://github.com/lpp-crypto/sboxU
+sage -pip install git+https://github.com/lpp-crypto/sboxU
 ```
 
 #### From a Local Copy of the Repository
@@ -90,6 +90,12 @@ Alternatively, especially if you want to work on `sboxU`, you can first clone th
 
 ```
 sage -pip install -e .
+```
+
+Once it has been installed, you can recompile it much faster using
+
+```
+sage setup.py build_ext --inplace -j 8
 ```
 
 
