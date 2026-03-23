@@ -1,5 +1,7 @@
 # sboxU
 
+![The logo of sboxU, showing a box being bult or disassembled.](./docs/logo-v2-5.png)
+
 ## Description
 
 
