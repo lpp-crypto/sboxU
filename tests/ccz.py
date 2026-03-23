@@ -1,6 +1,6 @@
 from sage.all import *
-from sboxUv2 import *
-from sboxUv2.display import *
+from sboxU import *
+from sboxU.display import *
 from sage.crypto.sboxes import sboxes
 
 

@@ -16,7 +16,7 @@ Let's see how this notion behaves. To this end, we obviously need to import `sbo
 
 ```python
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 from collections import defaultdict
 ```
 

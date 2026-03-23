@@ -1,7 +1,7 @@
 #!/usr/bin/env sage
 
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 from sage.crypto.sboxes import sboxes
 
 

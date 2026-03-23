@@ -4,7 +4,7 @@ from collections import defaultdict
 
 from timer import *
 
-from sboxUv2 import *
+from sboxU import *
 
 
 for t in range(0, 10):

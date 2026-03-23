@@ -1,7 +1,7 @@
 # -*- python -*-
 
 
-from sboxUv2 import *
+from sboxU import *
 from sage.crypto.sboxes import sboxes
 from sage.all import *
 

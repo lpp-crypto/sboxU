@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 from collections import defaultdict
 import itertools

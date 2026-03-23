@@ -5,13 +5,13 @@
 # =======================
 
 # -- cleaning up
-rm source/sboxUv2*.rst
+rm source/sboxU*.rst
 rm -rf ./build/*
 
 
 PYTHONPATH="$PYTHONPATH:.."
 # -- parsing the docstrings
-sphinx-apidoc ../sboxUv2 -o source -M
+sphinx-apidoc ../sboxU -o source -M
 
 # -- generating the bibliography
 #sage ./biblio.py "gen"

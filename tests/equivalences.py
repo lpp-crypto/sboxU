@@ -1,6 +1,6 @@
 from sage.all import *
 from sage.crypto import sboxes
-from sboxUv2 import *
+from sboxU import *
 import random
 import itertools
 import time

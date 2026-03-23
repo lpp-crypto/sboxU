@@ -1,11 +1,11 @@
 [project]
-name = "sboxUv2"
+name = "sboxU"
 version = "2.0"
 description = "SAGE/Python functions useful for studying S-boxes and Boolean functions such as computing the DDT, the Walsh spectrum, investigating their (CCZ/affine/EA equivalence classes..."
 dependencies = [ "pybtex", "rich", "sphinx-rtd-theme" ]
 
 [project.scripts]
-sboxU_apn_db_generation   = "sboxUv2.scripts.apnDB.generate:main_cli"
+sboxU_apn_db_generation   = "sboxU.scripts.apnDB.generate:main_cli"
 
 
 [build-system]
@@ -17,5 +17,5 @@ build-backend = "setuptools.build_meta"
 include-package-data = false
 
 [tool.setuptools.packages.find]
-include = ["sboxUv2*"] 
+include = ["sboxU*"] 
 namespaces = false

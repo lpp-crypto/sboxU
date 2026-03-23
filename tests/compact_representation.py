@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 def are_ea_equivalent_from_vq(f,g):
 
