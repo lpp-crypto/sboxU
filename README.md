@@ -22,6 +22,7 @@ If you use `sboxU` in a published paper, please cite it using the following bibt
     @misc{sboxU,
     author={Léo Perrin,
     Jules Baudrin,
+    Aurélien Boeuf,
     Xavier Bonnetain,
     Alain Couvreur,
     Merlin Fruchon,
@@ -62,7 +63,7 @@ During its installation, `sboxU` creates some executables that are installed in 
 
 ### Dependencies
 
-Most functions in `sboxU` only depend on a recent version of SAGE (it was tested for example with version 10.5). Some use `openmp` for multithreading, and you may need to install it in order to successfully compile. 
+Most functions in `sboxU` only depend on a recent version of SAGE (it was tested for example with version 10.5). Some use `openmp` for multithreading, and you may need to install it in order to successfully compile. The python dependencies are installed automatically by `pip`.
 
 Installing openmp can be done with:
 
