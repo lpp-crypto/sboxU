@@ -17,7 +17,7 @@ if __name__ == "__main__":
         
         g = GF(2**8)
         X = PolynomialRing(g, "X").gen()
-        s = Sb((X**16 + X) * X**3)
+        s = get_sbox((X**16 + X) * X**3)
         for t in range(0, 10):
             x     = g.random_element()
             x_int = ffe_to_int(x)

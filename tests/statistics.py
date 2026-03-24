@@ -2,7 +2,7 @@ from sage.all import *
 from sage.crypto.sboxes import sboxes
 from collections import defaultdict
 
-from timer import *
+# from timer import *
 
 from sboxU import *
 
@@ -35,7 +35,7 @@ for t in range(0, 10):
 
 for name in ["Kuznyechik", "Fantomas"]:
     print("\n\n", name)
-    s = Sb(sboxes[name])
+    s = get_sbox(sboxes[name])
     for tab in ["DDT", "LAT", "BCT"]:
         print(
             tab,
