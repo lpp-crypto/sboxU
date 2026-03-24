@@ -5,13 +5,13 @@
 ## Description
 
 
-`sboxU` is a SAGE/Python library that is intended to systematize knowledge about the black-box analysis of vectorial Boolean functions, p-ary fuctions, and in particular about the algorithms relevant to their study. To this end, it provides a wide variety of fuctions performing for instance the following tasks:
+`sboxU` is a SAGE/Python library that is intended to systematize knowledge about the black-box analysis of vectorial Boolean functions, p-ary fuctions, and in particular about the algorithms relevant to their study. To this end, it provides a wide variety of functions performing for instance the following tasks:
 - generating S-boxes from univariate polynomials,
 - multi-threaded computation of the Walsh spectrum,
 - display of the "Pollock representation" on a DDT,
-- computation of the automorphisms of the graph of an APN funotion,
+- computation of the automorphisms of the graph of an APN function,
 - identify all the bijections in the CCZ-equivalence class of a function,
-- compuptation iof the non-linear invariants of a function,
+- computation of the non-linear invariants of a function,
 - ... and much, much more!
 
 At its core, `sboxU` is a C++ library providing convenient abstractions for S-boxe, affine maps, etc.; as well as the algorithms operating on them. Then, a cython layer exposes these functions to SAGE.
