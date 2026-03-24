@@ -329,12 +329,7 @@ def dlct_uniformity(s):
         int: the DLCT uniformity of the function corresponding to `s`.
 
     """
-    table = dlct(s)
-    N = len(table)
-    # Cannot use dlct_spectrum(s).maximum() here: Spectrum.maximum() only
-    # considers positive keys, so it would miss cases where the largest
-    # absolute value is negative.
-    return max(abs(table[a][b]) for a in range(1, N) for b in range(1, N))
+    return dlct_spectrum(s).absolute().maximum()
 
 
 # SECTION xddt and co
