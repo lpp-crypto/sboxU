@@ -20,14 +20,14 @@ If you use `sboxU` in a published paper, please cite it using the following bibt
 
 ```
     @misc{sboxU,
-    author={Léo Perrin,
-    Jules Baudrin,
-    Aurélien Boeuf,
-    Xavier Bonnetain,
-    Alain Couvreur,
-    Merlin Fruchon,
-    Mathias Joly,
-    Pierre Galissant,
+    author={Léo Perrin and
+    Jules Baudrin and
+    Aurélien Boeuf and
+    Xavier Bonnetain and
+    Alain Couvreur and
+    Merlin Fruchon and
+    Mathias Joly and
+    Pierre Galissant and
     Lukas Stennes
     },
     year=2026,
@@ -100,9 +100,7 @@ sage setup.py build_ext --inplace -j 8
 ```
 
 
-## Contributing
-
-### How to
+## Example
 
 After installation, import `sboxU` in a SAGE session:
 
@@ -140,6 +138,13 @@ print(differential_spectrum(r))
 ```
 
 More examples are available in the `tests/` folder.
+
+
+## Contributing
+
+### How to
+
+Contributions are welcome! To contribute, please open an issue to discuss your idea or bug report, then submit a pull request with your changes.
 
 ### Contributors
 
