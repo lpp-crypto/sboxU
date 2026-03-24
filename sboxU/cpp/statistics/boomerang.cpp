@@ -20,14 +20,14 @@ std::vector<Integer> cpp_bct_row(
 
     FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
     {
-        BinWord z1 = s[x];
-        BinWord z = z1 ^ s[x^a];
+        BinWord y1 = s[x];
+        BinWord z = y1 ^ s[x^a];
 
-        for(auto z2 : xor_list[z]){
-            result[ z1 ^ z2 ] += 4;
-            result[ z1 ^ z2 ^ z] += 4;
+        for(auto y2 : xor_list[z]){
+            result[ y1 ^ y2 ] += 4;
+            result[ y1 ^ y2 ^ z] += 4;
         }
-        xor_list[z].push_back(z1);
+        xor_list[z].push_back(y1);
         result[z] += 2;
     }
     return result;
