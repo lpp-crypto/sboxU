@@ -68,10 +68,10 @@ class APNFunctions(FunctionsDB):
             try:
                 self.cursor.execute("SELECT COUNT(ccz_id) FROM {}".format(self.functions_table))
                 self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
-            except:
+            except Exception:
                 self.number_of_ccz_classes = 0
-                
-    
+
+
     def __str__(self):
         return "APN function DB containing {} EA-classes from {} CCZ-classes".format(
             self.number_of_functions,
@@ -281,10 +281,10 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
             try:
                 self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
                 self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
-            except:
+            except Exception:
                 self.number_of_ccz_classes = 0
-                
-    
+
+
     def __str__(self):
         return "APN function DB containing {} CCZ-classes".format(
             self.number_of_functions
@@ -418,6 +418,6 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
             self.cursor.executemany( "INSERT INTO functions(id, linearity, mugshot, qcr) VALUES (?,?,?,?)",to_insert)
             self.number_of_functions = end_id
             return list(range(start_id,end_id+1))
-        except:
-            raise Exception("Insertion of many entries failed \n")
+        except Exception as e:
+            raise Exception("Insertion of many entries failed \n") from e
 

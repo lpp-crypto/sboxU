@@ -146,7 +146,7 @@ def lat_coeff_probability_permutation(
     m, n = in_length, out_length
     big_precision = RealField(precision)
     if m != n:
-        raise "A permutation cannot map {} bits to {}!".format(m, n)
+        raise ValueError("A permutation cannot map {} bits to {}!".format(m, n))
     if c % 4 != 0:
         return 0
     elif c == 0:
@@ -204,7 +204,7 @@ def lat_coeff_probability_function(
     m, n = in_length, out_length
     big_precision = RealField(precision)
     if m != n:
-        raise "m (={}) should be equal to n (={})!".format(m, n)
+        raise ValueError("m (={}) should be equal to n (={})!".format(m, n))
     if c % 2 != 0:
         return 0
     if c == 0:
@@ -267,7 +267,7 @@ def bct_coeff_probability(
     m, n = in_length, out_length
     big_precision = RealField(precision)
     if m != n:
-        raise "the BCT is only defined when in_length == out_length"
+        raise ValueError("the BCT is only defined when in_length == out_length")
     if c % 2 == 1:
         return RealNumber(0.0)
     B = big_precision(2**(n-1))
@@ -342,7 +342,7 @@ def probability_of_max_and_occurrences(
         if imag_part(result) != 0: # can happen sometimes, I (Léo) have no idea why
             raise Exception("somehow, an imaginary number returned")
         return result
-    except:
+    except Exception:
         print("failure in sum: occ={}, result={}, added={}".format(occ, result, added))
         return 0
 
@@ -380,7 +380,7 @@ def table_anomaly(
     
     """
     if table not in ["DDT", "LAT", "BCT"]:
-        raise "The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
+        raise ValueError("The table-based anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table))
     else:
         sb = get_sbox(s)
         proba_func = get_proba_func(sb, table)
@@ -430,7 +430,7 @@ def table_negative_anomaly(
     
     """
     if table not in ["DDT", "LAT", "BCT"]:
-        raise "The table-based negative anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table)
+        raise ValueError("The table-based negative anomaly is defined for the LAT, DDT and BCT. table={} is unknown.".format(table))
     else:
         sb = get_sbox(s)
         proba_func = get_proba_func(sb, table)

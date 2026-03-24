@@ -139,12 +139,12 @@ cdef class BinLinearBasis:
         elif isinstance(b, list):
             x = BinLinearBasis(b)
         else:
-            raise NotImplemented
+            raise NotImplementedError
         return BinLinearBasis(
             dereference((<BinLinearBasis>self).cpp_lb).add(dereference((<BinLinearBasis>x).cpp_lb)).get_basis()
         )
-        
-    
+
+
     def intersection(self, b : BinLinearBasis | list[BinWord]) -> BinLinearBasis:
         """Intersects two BinLinearBasis instances.
 
@@ -159,7 +159,7 @@ cdef class BinLinearBasis:
         elif isinstance(b, list):
             x = BinLinearBasis(b)
         else:
-            raise NotImplemented
+            raise NotImplementedError
         return BinLinearBasis(
             dereference((<BinLinearBasis>self).cpp_lb).intersection(dereference((<BinLinearBasis>x).cpp_lb)).get_basis()
         )
@@ -261,7 +261,21 @@ def is_sum_full_rank(b0: list[int] | BinLinearBasis, b1: list[int] | BinLinearBa
     
 
 def is_affine(l: std_vector[BinWord], give_basis=False):
-    # !TODO! docstring for algorithm.is_affine
+    """Checks whether a list of integers is the lookup table of an affine function over F_2.
+
+    A function f is affine if and only if f(x) = L(x) XOR c for some linear map L and constant c.
+    This is tested by checking that the set {f(x) XOR f(0) : x in domain} has rank equal to log2(len(l)).
+
+    Args:
+        l: the lookup table of the function to test, as a list of integers.
+        give_basis: if True, also returns the constant term and a basis for the linear part. Defaults to False.
+
+    Returns:
+        If give_basis is False: True if l is an affine function, False otherwise.
+        If give_basis is True: a triple (is_affine, constant, basis) where constant = l[0] and basis
+        is a list of vectors spanning the linear part, or (False, None, None) if l is not affine.
+
+    """
     b = BinLinearBasis([])
     V = [oplus(l[0], x) for x in l] 
     n = round(log(len(V), 2))

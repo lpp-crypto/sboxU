@@ -101,5 +101,5 @@ def get_Spectrum(x):
         result.incr_by_counting(x)
         return result
     else:
-        return NotImplemented("{} is not a valid input type for get_Spectrum".format(type(x)))
+        raise NotImplementedError("{} is not a valid input type for get_Spectrum".format(type(x)))
 
