@@ -39,6 +39,15 @@ else:
     print("  Spectrum covers all non-trivial pairs: Failure ({} instead of {})".format(
         n_pairs, (N - 1) ** 2))
 
+print("Testing dlct on non-square S-box")
+
+try:
+    from sboxU import random_function_S_box
+    dlct(random_function_S_box(3, 4))
+    print("  Rejects non-square S-box: Failure (no exception raised)")
+except Exception:
+    print("  Rejects non-square S-box: Success")
+
 print("Testing dlct_uniformity on Midori_Sb0")
 
 u = dlct_uniformity(sb)

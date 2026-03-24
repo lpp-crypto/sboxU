@@ -305,6 +305,9 @@ def dlct_spectrum(s):
     """The DLCT spectrum counts the occurrences of each value in the Differential-Linear
     Connectivity Table for non-trivial pairs (a != 0, b != 0).
 
+    Note: unlike other spectrum functions, this function stores the full DLCT in memory
+    before counting, as no C++ backend is available yet for the DLCT computation.
+
     Args:
         s: an S-boxable object over F_2.
 
