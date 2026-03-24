@@ -1,5 +1,7 @@
 # -*- python -*-
 
+import struct
+
 from sage.all import Matrix, GF, Polynomial
 from sboxU.core.f2functions.field_arithmetic import i2f_and_f2i
 
@@ -169,8 +171,7 @@ cdef class F2AffineMap:
 
     
     def __hash__(self):
-        # !TODO! improve the implementation of F2AffineMap.__hash__() 
-        return hash(self.get_S_box())
+        return hash(tuple(self.get_image_vectors()))
 
     
     def __mul__(self, F2AffineMap L) -> F2AffineMap:
@@ -217,15 +218,47 @@ cdef class F2AffineMap:
         return dereference(self.cpp_map).get_image_vectors()
 
     
-    # !TODO! __rich_repr__
+    def __rich_repr__(self):
+        yield "input_length", self.get_input_length()
+        yield "output_length", self.get_output_length()
+        yield "rank", self.rank()
 
-    # !TODO! from_blob / to_blob
+    def to_blob(self) -> bytes:
+        """Serializes the F2AffineMap to a compact binary blob.
+
+        The blob encodes the input and output dimensions followed by the image
+        vectors of the canonical basis, which fully characterize the map.
+        It is more compact than converting to an S_box and using to_bytes(),
+        since it stores n vectors of output_length bits rather than a 2^n-entry LUT.
+
+        Returns:
+            bytes of length 2 + input_length * 8.
+
+        """
+        n = self.get_input_length()
+        m = self.get_output_length()
+        return struct.pack("BB" + "Q" * n, n, m, *self.get_image_vectors())
 
     def __eq__(self,F2AffineMap L) -> bool:
         return dereference(self.cpp_map).get_image_vectors() == dereference(L.cpp_map).get_image_vectors()
 
 
 # !SUBSECTION! Factories 
+
+def F2AffineMap_from_blob(data: bytes) -> F2AffineMap:
+    """Deserializes an F2AffineMap from a binary blob produced by F2AffineMap.to_blob().
+
+    Args:
+        data: bytes produced by a previous call to F2AffineMap.to_blob().
+
+    Returns:
+        The reconstructed F2AffineMap.
+
+    """
+    n, m = struct.unpack_from("BB", data, 0)
+    vecs = list(struct.unpack_from("Q" * n, data, 2))
+    return get_F2AffineMap(vecs, n, m)
+
 
 def identity_F2AffineMap(int64_t n) -> F2AffineMap:
     return get_F2AffineMap([(1 << i) for i in range(0, n)],n,n)
