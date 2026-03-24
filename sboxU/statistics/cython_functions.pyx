@@ -258,11 +258,7 @@ def fbct(s):
 
 def dlct(s):
     """The Differential-Linear Connectivity Table (DLCT) of a vectorial Boolean function F,
-<<<<<<< HEAD
-    as introduced in [AC:BCCD+19] (Cid, Huang, Peyrin, Sasaki, Song).
-=======
     as introduced in [EC:BDKW19] (Bar-On, Dunkelman, Keller, Weizman).
->>>>>>> 7a033b0 (feat: implement Differential-Linear Connectivity Table (DLCT))
 
     The DLCT is defined as the 2^n x 2^n table:
 
