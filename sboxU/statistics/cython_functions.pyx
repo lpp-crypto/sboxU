@@ -277,6 +277,8 @@ def dlct(s):
 
     """
     sb = get_sbox(s)
+    if sb.get_output_length() != sb.get_input_length():
+        raise Exception("DLCT is only defined for functions with equal input and output length")
     n = sb.get_input_length()
     N = 1 << n
     lut = [sb(x) for x in range(N)]
