@@ -12,7 +12,17 @@ def generate_apn_ea_classes_database(
         ccz_class_representatives,
         db_path
 ):
-    """!TODO! write docstring
+    """Generates a TinyDB database containing one representative per EA-class of APN functions.
+
+    For each CCZ-class representative, the full CCZ-equivalence class is enumerated and
+    inserted into the database, so that the database ultimately holds one entry per EA-class.
+    Quadratic and non-quadratic functions are processed separately.
+
+    Args:
+        ccz_class_representatives: A list of S-boxable objects, each being a representative
+            of a distinct CCZ-equivalence class of APN functions.
+        db_path (str): Path to the TinyDB file to create. If it already exists, it is deleted
+            and recreated.
     """
     with Experiment("Generating database"):
         
@@ -91,7 +101,17 @@ def generate_apn_ccz_classes_database(
         ccz_class_representatives,
         db_path
 ):
-    """!TODO! write docstring
+    """Generates a compact TinyDB database containing one representative per CCZ-class of quadratic APN functions.
+
+    Only quadratic functions from the input list are inserted; non-quadratic functions are discarded.
+    This produces a smaller database than `generate_apn_ea_classes_database`, since only CCZ-class
+    representatives (rather than full EA-class expansions) are stored.
+
+    Args:
+        ccz_class_representatives: A list of S-boxable objects, each being a representative
+            of a distinct CCZ-equivalence class of APN functions.
+        db_path (str): Path to the TinyDB file to create. If it already exists, it is deleted
+            and recreated.
     """
     with Experiment("Generating database"):
         
