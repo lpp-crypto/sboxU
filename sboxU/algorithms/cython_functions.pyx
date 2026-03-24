@@ -296,8 +296,23 @@ def is_affine(l: std_vector[BinWord], give_basis=False):
 
 
 def complete_basis(basis: std_vector[BinWord], N: int) -> std_vector[BinWord]:
-    # !TODO! docstring for algorithm.complete_basis
-    # !TODO! replace cython complete_basis by a wrapper for cpp_complete_basis 
+    """Extends a set of linearly independent vectors to a full basis of F_2^N.
+
+    New vectors are appended at the end: the input vectors occupy the first positions in the returned list.
+    New vectors are chosen greedily from the standard basis {1, 2, 4, 8, ...}.
+
+    Args:
+        basis: a list of linearly independent vectors in F_2^N, as integers.
+        N: the dimension of the target space.
+
+    Returns:
+        A list of N linearly independent vectors whose first len(basis) elements are those of the input.
+
+    Raises:
+        Exception: if the input vectors are not linearly independent.
+
+    """
+    # !TODO! replace cython complete_basis by a wrapper for cpp_complete_basis
     if rank_of_vector_set(basis)!=len(basis): 
         raise Exception("in complete_basis: the inputs must be independent! input={}".format(basis))
     r = len(basis)
@@ -313,8 +328,23 @@ def complete_basis(basis: std_vector[BinWord], N: int) -> std_vector[BinWord]:
     return res
 
 
-def complete_basis_reversed(basis: std_vector[BinWord], N: int) -> std_vector[BinWord]: 
-    # !TODO! docstring for algorithm.complete_basis_reversed
+def complete_basis_reversed(basis: std_vector[BinWord], N: int) -> std_vector[BinWord]:
+    """Extends a set of linearly independent vectors to a full basis of F_2^N.
+
+    New vectors are prepended at the front: the input vectors occupy the last positions in the returned list.
+    New vectors are chosen greedily from the standard basis {1, 2, 4, 8, ...}.
+
+    Args:
+        basis: a list of linearly independent vectors in F_2^N, as integers.
+        N: the dimension of the target space.
+
+    Returns:
+        A list of N linearly independent vectors whose last len(basis) elements are those of the input.
+
+    Raises:
+        Exception: if the input vectors are not linearly independent.
+
+    """
     if rank_of_vector_set(basis) != len(basis):
         raise Exception("in complete_basis: the inputs must be independent! input={}".format(basis))
     r = len(basis)
@@ -330,7 +360,20 @@ def complete_basis_reversed(basis: std_vector[BinWord], N: int) -> std_vector[Bi
 
 
 def generating_F2AffineMap_r(basis: std_vector[BinWord], N: int) -> F2AffineMap:
-    # !TODO! docstring for algorithm.generating_F2AffineMap_r
+    """Builds a full-rank F2AffineMap such that the images of the inputs with the highest MSBs correspond to a specific basis.
+
+    This is the reversed counterpart of generating_F2AffineMap: new completion vectors occupy the
+    low-index columns of the matrix, pushing the given basis vectors to the high-index columns.
+
+    Args:
+        basis: a list of linearly independent vectors to use as the last columns of the map.
+        N: the input and output dimension.
+
+    Returns:
+        A bijective F2AffineMap L from N bits to N bits such that L(1 << (N - len(basis) + i)) = basis[i]
+        for all i < len(basis).
+
+    """
     return get_F2AffineMap(complete_basis_reversed(basis,N),N,N)
 
 
@@ -364,7 +407,18 @@ def F2AffineMap_from_masks(masks: std_vector[BinWord], N: int, M: int) -> F2Affi
 
 
 def F2AffineMap_from_range_and_image(inputs: std_vector[BinWord], outputs: std_vector[BinWord], N:int, M: int) -> F2AffineMap:
-    # !TODO! docstring for algorithm.F2AffineMap_from_range_and_image
+    """Builds a F2AffineMap that maps a given set of linearly independent input vectors to a given set of output vectors.
+
+    Args:
+        inputs: a list of linearly independent vectors in F_2^N representing the inputs to fix.
+        outputs: a list of vectors in F_2^M of the same length as inputs, giving the desired images.
+        N: the input dimension.
+        M: the output dimension.
+
+    Returns:
+        A F2AffineMap L from N bits to M bits such that L(inputs[i]) = outputs[i] for all i < len(inputs).
+
+    """
     return F2AffineMap_from_masks(outputs,M,N)*(generating_F2AffineMap(inputs,M).inverse())
     
 
