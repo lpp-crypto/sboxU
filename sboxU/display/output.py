@@ -180,8 +180,30 @@ def subsection(title : str) -> None:
         raise Exception("subsections can only be used within an Experiment")
     ONGOING_EXPERIMENT.subsection(title)
 
-# !TODO!  Write a function that uses python functions' __name__ attribute and the Chronograph object to easily compare the time efficiency different functions on the same input. For example, we want to write
-# !
-# !compare_execution_time([f1, f2], common_inputs)
-# !
-# ! If x=(x0, x1) and f has two inputs, then f(*x) is the same as f(x0, x1)
+def compare_execution_time(funcs, inputs):
+    """Measures and compares the wall-clock execution time of several functions called on the same input.
+
+    Args:
+        funcs: a list of callables to benchmark.
+        inputs: the input passed to each function. If a tuple, it is unpacked
+                so that f(*inputs) is called; otherwise f(inputs) is called.
+
+    Example:
+        compare_execution_time([f1, f2], sbox)
+        compare_execution_time([f1, f2], (sbox, table))
+
+    """
+    timings = []
+    for f in funcs:
+        t0 = time.perf_counter()
+        if isinstance(inputs, tuple):
+            f(*inputs)
+        else:
+            f(inputs)
+        elapsed = time.perf_counter() - t0
+        timings.append((f.__name__, elapsed))
+    fastest = min(t for _, t in timings)
+    CONSOLE.print("\n[bold]Execution time comparison[/bold]")
+    for name, t in timings:
+        ratio = t / fastest if fastest > 0 else 1.0
+        CONSOLE.print("  [blue]{}[/blue]: [bold]{:.6f}[/bold]s  (x{:.2f})".format(name, t, ratio))
