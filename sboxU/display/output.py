@@ -22,7 +22,7 @@ from math import floor
 
 # !SUBSECTION! Setting up global variables
 
-from ..config import SECTION_TEMPLATES
+from sboxU.config import SECTION_TEMPLATES, KEYWORD_TEMPLATES
 CONSOLE = Console(theme=Theme({}, inherit=False))
 ONGOING_EXPERIMENT = None
 
@@ -130,6 +130,7 @@ class Experiment:
         self.section_timer = None
         CONSOLE.print(SECTION_TEMPLATES[0].format(self.title))
         self.global_timer = Chronograph("[bold]{}[/bold]".format(self.title))
+        self.exit_code = 0 # success
 
         
     def section(self, title : str) -> None:
@@ -156,6 +157,15 @@ class Experiment:
             title
         ))
 
+    def fail(self, title : str) -> None:
+        CONSOLE.print(KEYWORD_TEMPLATES["fail"].format("[FAIL]" + title))
+        self.exit_code = 1
+
+        
+    def success(self, title : str) -> None:
+        CONSOLE.print(KEYWORD_TEMPLATES["success"].format("[SUCCESS] " + title))
+                
+
     def __enter__(self):
         global ONGOING_EXPERIMENT
         ONGOING_EXPERIMENT = self
@@ -165,7 +175,13 @@ class Experiment:
         if self.sections_counters[0] > 0:
             pprint(self.section_timer)
         pprint(self.global_timer)
+        if self.exit_code == 1:
+            CONSOLE.print(KEYWORD_TEMPLATES["fail"].format("Experiment failed"))
+            
         
+
+# !SUBSECTION! Wrappers operating on the ONGOING_EXPERIMENT
+
 
 def section(title : str) -> None:
     global ONGOING_EXPERIMENT
@@ -179,6 +195,26 @@ def subsection(title : str) -> None:
     if ONGOING_EXPERIMENT == None:
         raise Exception("subsections can only be used within an Experiment")
     ONGOING_EXPERIMENT.subsection(title)
+
+    
+def fail(title : str) -> None:
+    global ONGOING_EXPERIMENT
+    if ONGOING_EXPERIMENT == None:
+        raise Exception("can only fail within an Experiment: you failed at failing properly!")
+    ONGOING_EXPERIMENT.fail(title)
+
+    
+def success(title : str) -> None:
+    global ONGOING_EXPERIMENT
+    if ONGOING_EXPERIMENT == None:
+        raise Exception("can only succeed within an Experiment")
+    ONGOING_EXPERIMENT.success(title)
+
+
+def exit_code() -> int:
+    global ONGOING_EXPERIMENT
+    return ONGOING_EXPERIMENT.exit_code
+    
 
 # !TODO!  Write a function that uses python functions' __name__ attribute and the Chronograph object to easily compare the time efficiency different functions on the same input. For example, we want to write
 # !

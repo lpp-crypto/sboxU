@@ -39,3 +39,8 @@ SECTION_TEMPLATES = [
     "\n[bold underline purple]{:2d} {}[/bold underline purple]\n", # section
     "[blue underline]{:2d}.{:2d}) {} [/blue underline]"            # subsection
 ]
+
+KEYWORD_TEMPLATES = {
+    "fail" : "[bold red]{}[/bold red]\n",
+    "success" : "[bold green]{}[/bold green]\n",
+}

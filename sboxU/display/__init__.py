@@ -5,7 +5,7 @@
 from sboxU.display.output import \
     pprint, \
     Chronograph, \
-    Experiment, section, subsection
+    Experiment, section, subsection, success, fail, exit_code
 
 from sboxU.display.pollock import \
     table_interactive_view, \

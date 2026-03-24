@@ -6,6 +6,7 @@ dependencies = [ "pybtex", "rich", "sphinx-rtd-theme" ]
 
 [project.scripts]
 sboxU_apn_db_generation   = "sboxU.scripts.apnDB.generate:main_cli"
+sboxU_test_tangle   = "sboxU.scripts.tangler.testTangler:main_cli"
 
 
 [build-system]
