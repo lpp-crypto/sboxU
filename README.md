@@ -8,7 +8,7 @@
 `sboxU` is a SAGE/Python library that is intended to systematize knowledge about the black-box analysis of vectorial Boolean functions, p-ary fuctions, and in particular about the algorithms relevant to their study. To this end, it provides a wide variety of functions performing for instance the following tasks:
 - generating S-boxes from univariate polynomials,
 - multi-threaded computation of the Walsh spectrum,
-- display of the "Pollock representation" on a DDT,
+- display of the "Pollock representation" of a DDT,
 - computation of the automorphisms of the graph of an APN function,
 - identify all the bijections in the CCZ-equivalence class of a function,
 - computation of the non-linear invariants of a function,
@@ -22,6 +22,7 @@ If you use `sboxU` in a published paper, please cite it using the following bibt
     @misc{sboxU,
     authors={Léo Perrin,
     Jules Baudrin,
+    Aurélien Boeuf,
     Xavier Bonnetain,
     Alain Couvreur,
     Merlin Fruchon,
@@ -62,7 +63,7 @@ During its installation, `sboxU` creates some executables that are installed in 
 
 ### Dependencies
 
-Most functions in `sboxU` only depend on a recent version of SAGE (it was tested for example with version 10.5). Some use `openmp` for multithreading, and you may need to install it in order to successfully compile. 
+Most functions in `sboxU` only depend on a recent version of SAGE (it was tested for example with version 10.5). Some use `openmp` for multithreading, and you may need to install it in order to successfully compile. The python dependencies are installed automatically by `pip`.
 
 Installing openmp can be done with:
 
