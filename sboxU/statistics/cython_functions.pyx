@@ -258,7 +258,11 @@ def fbct(s):
 
 def dlct(s):
     """The Differential-Linear Connectivity Table (DLCT) of a vectorial Boolean function F,
+<<<<<<< HEAD
     as introduced in [AC:BCCD+19] (Cid, Huang, Peyrin, Sasaki, Song).
+=======
+    as introduced in [EC:BDKW19] (Bar-On, Dunkelman, Keller, Weizman).
+>>>>>>> 7a033b0 (feat: implement Differential-Linear Connectivity Table (DLCT))
 
     The DLCT is defined as the 2^n x 2^n table:
 
@@ -307,18 +311,15 @@ def dlct_spectrum(s):
         s: an S-boxable object over F_2.
 
     Returns:
-        dict: a dictionary `d` such that `d[v]` is the number of pairs (a, b) with
+        Spectrum: a Spectrum instance `d` such that `d[v]` is the number of pairs (a, b) with
         a != 0 and b != 0 for which DLCT[a][b] = v.
 
     """
     table = dlct(s)
     N = len(table)
-    spec = {}
-    for a in range(1, N):
-        for b in range(1, N):
-            v = table[a][b]
-            spec[v] = spec.get(v, 0) + 1
-    return spec
+    result = Spectrum(name="DLCT".encode("UTF-8"))
+    result.incr_by_counting([table[a][b] for a in range(1, N) for b in range(1, N)])
+    return result
 
 
 def dlct_uniformity(s):
@@ -334,6 +335,9 @@ def dlct_uniformity(s):
     """
     table = dlct(s)
     N = len(table)
+    # Cannot use dlct_spectrum(s).maximum() here: Spectrum.maximum() only
+    # considers positive keys, so it would miss cases where the largest
+    # absolute value is negative.
     return max(abs(table[a][b]) for a in range(1, N) for b in range(1, N))
 
 
