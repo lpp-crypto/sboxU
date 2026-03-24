@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 # Utils for display #
 import networkx as nx
 import matplotlib.pyplot as plt

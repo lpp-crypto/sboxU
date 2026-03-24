@@ -1,4 +1,4 @@
-from sboxUv2.statistics import xddt,yddt,zddt
+from sboxU.statistics import xddt,yddt,zddt
 from sage.crypto.sboxes import sboxes
 Sb0=sboxes["Midori_Sb0"]
 

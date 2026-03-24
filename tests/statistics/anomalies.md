@@ -16,7 +16,7 @@ Let's see how this notion behaves. To this end, we obviously need to import `sbo
 
 ```python
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 from collections import defaultdict
 ```
 
@@ -41,7 +41,7 @@ Let's start with the S-box of Skipjack and let's look at the anomalies correspon
 
 ```python
     section("Skipjack")
-    skipjack = Sb(sboxes["Skipjack"])
+    skipjack = get_sbox(sboxes["Skipjack"])
     for table in ["LAT", "BCT", "DDT"]:
         print("{} {:10.5f} {:10.5f}".format(
             table,
@@ -65,7 +65,7 @@ We can look at these values for other S-boxes: those of the AES, Fantomas, and K
 ```python
     section("Other S-boxes")
     for k in ["AES", "Fantomas", "Kuznyechik"]:
-        s = Sb(sboxes[k])
+        s = get_sbox(sboxes[k])
         subsection(k)
         for table in ["LAT", "BCT", "DDT"]:
             print("{} {:10.5f} {:10.5f}".format(

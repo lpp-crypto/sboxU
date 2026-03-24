@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 from collections import defaultdict
 import itertools
@@ -42,9 +42,10 @@ with Experiment("Testing APN functions-related functions"):
     #     print(s)
     #     pprint("checking: ", degree_spectrum(ccz_equivalent_quadratic_function(s)))
 
-    section("Testing DB")
+    # section("Testing DB")
     
-    with APNFunctions("./apnDB.db") as db:
+    with APNFunctions("sboxU/scripts/apnDB/apnDB.db") as db:
+        print(db[0])
         s = db[0]["sbox"]
         pprint(s)
         pprint(differential_spectrum(s))
