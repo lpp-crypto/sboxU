@@ -199,8 +199,22 @@ class APNFunctions(FunctionsDB):
                    thk_spec=None,
                    ccz_id=None
         ):
-        """
-        # !TODO! docstring 
+        """Returns True if and only if `s` is not EA-equivalent to any function already in the database.
+
+        Computes an EA-invariant "mugshot" for `s` and queries the database for matching entries.
+        If any candidate is found, EA-equivalence is verified explicitly. Pre-computed spectra can
+        be supplied to avoid redundant computation.
+
+        Args:
+            s: An S-boxable APN function.
+            degree_spec: Pre-computed degree spectrum of `s`, or None to compute it.
+            abs_walsh_spec: Pre-computed absolute Walsh spectrum of `s`, or None to compute it.
+            sigma_mult: Pre-computed sigma multiplicities of `s`, or None to compute them.
+            thk_spec: Pre-computed thickness spectrum of `s`, or None to compute it.
+            ccz_id: If given, restrict the search to functions with this CCZ class identifier.
+
+        Returns:
+            bool: True if `s` is new (not EA-equivalent to any stored function), False otherwise.
         """
         sb = get_sbox(s)
         if degree_spec == None:
@@ -349,13 +363,24 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
     
     def is_new(self,
                    s,
-                   mug=None
+                   mug=None,
+                   degree_spec=None
         ):
-        """
-        # !TODO! docstring 
+        """Returns True if and only if `s` is not EA-equivalent to any function already in the database.
+
+        This compact version uses a hashed mugshot for fast lookup, relying on the quadratic compact
+        representation and EA-mappings from the ortho-derivative for confirmation.
+
+        Args:
+            s: An S-boxable APN function.
+            mug: A pre-computed (and hashed) mugshot bytes object, or None to compute it.
+            degree_spec: Pre-computed degree spectrum of `s`, or None to compute it.
+
+        Returns:
+            bool: True if `s` is new (not EA-equivalent to any stored function), False otherwise.
         """
         sb = get_sbox(s)
-        
+
         if mug == None:
             # Computing the mugshot of s depending on its degree
             if degree_spec == None:
