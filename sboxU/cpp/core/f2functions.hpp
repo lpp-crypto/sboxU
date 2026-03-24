@@ -68,10 +68,13 @@ Integer cpp_rank_of_vector_set(std::vector<BinWord> l);
  * a: difference (BinWord), can be 0, can be greater than size
  * size: must be a power of 2
  * Enumerate in order the x such that all (x,x^a) are distinct
- * Guarantee x < size and x < x^a
+ * Guarantee x < size and x <= x^a
  * */
+
+#define GLUE(x,y) _##x##y
+#define VAR(x,y) GLUE(x,y)
 #define FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,size) \
-    for(BinWord x = 0, _max = size, _msb = (a == 0 || a > _max) ? _max : 1l << cpp_msb(a); x < _max; x+=_msb)\
-        for(BinWord _ceil = x + _msb; x < _ceil; x++)
+    for(BinWord x = 0, VAR(x,_max) = size, VAR(x,_msb) = (a == 0 || a >= VAR(x,_max)) ? VAR(x,_max) : 1l << cpp_msb(a); x < VAR(x,_max); x+=VAR(x,_msb))\
+        for(BinWord VAR(x,_ceil) = x + VAR(x,_msb); x < VAR(x,_ceil); x++)
 
 #endif
