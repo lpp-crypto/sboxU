@@ -9,8 +9,8 @@ Integer cpp_Spectrum::maximum() const
     {
         Integer result = 0;
         for(auto &row : content)
-            if ((row.first > result) && (row.second > 0))
-                result = row.first;
+            if ((abs(row.first) > result) && (row.second > 0))
+                result = abs(row.first);
         return result;
     }
 }
