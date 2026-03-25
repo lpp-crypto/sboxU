@@ -90,7 +90,7 @@ cdef class S_box:
         elif isinstance(name, str):
             self.cpp_name = name.encode("UTF-8")
         else:
-            raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
 
         
     def attach_casts_pair(self, input_cast, output_cast) -> None:
@@ -237,7 +237,7 @@ cdef class S_box:
         The `modulo` argument is needed by the python syntax for the __pow__ function. An error will be thrown if it is set.
         """
         if modulo != None:
-            raise NotImplemented("why are you using a modulo (second pow argument) here?")
+            raise NotImplementedError("why are you using a modulo (second pow argument) here?")
         elif d == 0:
             return identity_S_box(len(self))
         elif d == 1:
@@ -263,7 +263,7 @@ cdef class S_box:
 
 
     def __lmul__(self):
-        return NotImplemented("Only right composition is implemented for objects of class S_box")
+        raise NotImplementedError("Only right composition is implemented for objects of class S_box")
 
     
     def __mul__(S_box self, _s) -> S_box:
@@ -435,7 +435,7 @@ cdef class S_box_fp:
         elif isinstance(name, str):
             self.cpp_name = name.encode("UTF-8")
         else:
-            raise NotImplemented("trying to give invalid name to S_box: {}".format(name))
+            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
         
         
 
@@ -499,7 +499,7 @@ cdef class S_box_fp:
         cdef cpp_S_box_fp inv
 
         if modulo != None:
-            raise NotImplemented("why are you using a modulo (second pow argument) here?")
+            raise NotImplementedError("why are you using a modulo (second pow argument) here?")
         if self.get_input_size() != self.get_output_size():
             raise Exception(f"Can not compose the SBox {self} with itself : its input size is :\
              {self.get_input_size()} which is not equal to its output size : {self.get_output_size()}")
@@ -754,8 +754,8 @@ def get_Sbox_from_univariate_polynomial(s : Polynomial, name, input_casts : list
         return result
     else:
         # !TODO! implement Fp case 
-        raise NotImplemented
-    
+        raise NotImplementedError
+
 
 
 def get_Sbox_from_list(s : list, name, input_casts : list, output_casts : list) -> S_box | S_box_fp:
@@ -851,7 +851,7 @@ def F2_trans(BinWord additive_cstte, field=None, bit_length=None) -> S_box:
             n = field.degree()
         else:
             inputs = {"field": field, "bit_length": bit_length}
-            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be speficied, instead, got {}".format(inputs))
+            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be specified, instead, got {}".format(inputs))
     else: # case where the additive constant is a finite field element
         k = ffe_to_int(additive_cstte)
         n = additive_cstte.parent().degree()

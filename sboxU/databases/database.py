@@ -49,7 +49,7 @@ class FunctionsDB:
             self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.functions_table))
             self.number_of_functions = self.cursor.fetchall()[0][0]
         # otherwise we create the DB file
-        except:
+        except Exception:
             self.create()
 
         
@@ -116,8 +116,8 @@ class FunctionsDB:
             self.cursor.execute(self.function_insertion_query, tuple(inserted_list))
             self.number_of_functions += 1
             return entry["id"]
-        except:
-            raise Exception("Insertion failed for \n {}\n".format(entry))
+        except Exception as e:
+            raise Exception("Insertion failed for \n {}\n".format(entry)) from e
 
 
 
