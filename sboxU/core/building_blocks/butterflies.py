@@ -8,8 +8,8 @@ def closed_butterfly(alpha, beta):
     where f(x, y) = (x + alpha*y)^3 + beta*y^3, operating on pairs of elements
     from the same finite field of characteristic 2.
 
-    It was introduced in [FSE:PeSa16] as a construction yielding APN permutations
-    on F_2^{2n} when n is odd.
+    It was introduced in [C:PerUdoBir16], and then refined in [IEEE:CanDuvPer17] (where
+    conditions on alpha and beta for APN-ness were identified).
 
     Args:
         alpha: A finite field element.
@@ -36,7 +36,8 @@ def open_butterfly(alpha, beta):
     where f(x, y) = (x + alpha*y)^3 + beta*y^3 and g(x, y) = (beta*y^3 + x)^{1/3} + alpha*y,
     operating on pairs of elements from the same finite field of characteristic 2 with odd degree.
 
-    It was introduced alongside the closed butterfly in [FSE:PeSa16].
+    It was introduced in [C:PerUdoBir16], and then refined in [IEEE:CanDuvPer17] (where
+    conditions on alpha and beta for APN-ness were identified).
 
     Args:
         alpha: A finite field element.
