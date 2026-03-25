@@ -109,7 +109,7 @@ std::vector< std::vector<Integer>> cpp_fbct(
     {
         result[a][0] = s.input_space_size();
         result[a][a] = s.input_space_size();
-        for(BinWord x = 0, _max = s.input_space_size(), _msb = 1 << cpp_msb(a) ; x < _max; x+=_msb)
+        for(BinWord x = 0, _max = s.input_space_size(), _msb = (BinWord)1 << cpp_msb(a) ; x < _max; x+=_msb)
         {
             std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
             for(BinWord _ceil = x + _msb; x < _ceil; x++)
