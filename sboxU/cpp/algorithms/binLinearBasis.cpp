@@ -47,7 +47,7 @@ std::vector<BinWord> cpp_BinLinearBasis::get_basis() const
 
 std::vector<BinWord> cpp_BinLinearBasis::span() const
 {
-    unsigned int total_size = 1 << basis.size();
+    BinWord total_size = (BinWord)1 << basis.size();
     std::vector<BinWord>
         result(total_size, 0),
         vects = get_basis();

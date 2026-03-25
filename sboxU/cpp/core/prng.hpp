@@ -61,7 +61,7 @@ public:
             if (cpp_hamming_weight(range) > 1)
             {
                 BinWord
-                    mask = (1 << (cpp_msb(range) + 2)) - 1,
+                    mask = ((BinWord)1 << (cpp_msb(range) + 2)) - 1,
                     result = range+1;
                 while (result >= range)
                     result = gen() & mask;
