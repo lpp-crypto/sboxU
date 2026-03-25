@@ -293,10 +293,10 @@ def get_F2AffineMap(l, input_length=None, output_length=None) -> F2AffineMap:
                 raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
         else:
             # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))
+            raise NotImplementedError("Blm function cannot process input of type {}".format(type(l)))
         return result
     elif (input_length is None) or (output_length is None):
-        raise NotImplemented("You must specify both input_length and output_length or none of them")
+        raise NotImplementedError("You must specify both input_length and output_length or none of them")
     else :
         result = F2AffineMap()
         if isinstance(l, (list)):
@@ -321,6 +321,6 @@ def get_F2AffineMap(l, input_length=None, output_length=None) -> F2AffineMap:
                 raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
         else:
             # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplemented("Blm function cannot process input of type {}".format(type(l)))
+            raise NotImplementedError("Blm function cannot process input of type {}".format(type(l)))
         return result
 

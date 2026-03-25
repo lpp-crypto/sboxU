@@ -75,7 +75,7 @@ def F2_mul(coeff, field=None):
     """
     if isinstance(coeff, (int, Integer)):
         if field == None:
-            raise Exception("If `c` is an integer then the field must be speficied!")
+            raise Exception("If `c` is an integer then the field must be specified!")
         else:
             i2f, f2i = i2f_and_f2i(field)
             c = i2f(coeff)

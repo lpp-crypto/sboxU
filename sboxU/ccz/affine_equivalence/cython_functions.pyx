@@ -55,7 +55,7 @@ def le_class_representative(s):
         )
         return result
     else:
-        raise NotImplemented("Linear representatives can only be computed for permutations")
+        raise NotImplementedError("Linear representatives can only be computed for permutations")
 
 
 
@@ -64,7 +64,7 @@ def linear_equivalence(f, g, all_mappings=False):
     sf = get_sbox(f)
     sg = get_sbox(g)
     if len(f) != len(g):
-        raise "f and g are of different dimensions!"
+        raise ValueError("f and g are of different dimensions!")
     if sf.is_invertible() or sg.is_invertible():
         if sf.is_invertible() and sg.is_invertible():
             return linear_equivalence_permutations(sf, sg, all_mappings=all_mappings)
@@ -73,7 +73,7 @@ def linear_equivalence(f, g, all_mappings=False):
                          # to another permutation
     else:
         # !TODO! use Jules table-based algorithm or Itai's algorithm if the degree is maximum
-        raise NotImplemented("only permutations are implemented at the moment")
+        raise NotImplementedError("only permutations are implemented at the moment")
     
 
 
@@ -113,7 +113,7 @@ def affine_equivalence(f, g):
     sf = get_sbox(f)
     sg = get_sbox(g)
     if len(f) != len(g):
-        raise "f and g are of different dimensions!"
+        raise ValueError("f and g are of different dimensions!")
     if sf.is_invertible() or sg.is_invertible():
         if sf.is_invertible() and sg.is_invertible():
             return affine_equivalence_permutations(sf, sg)
@@ -122,7 +122,7 @@ def affine_equivalence(f, g):
                          # to another permutation
     else:
         # !TODO! use Jules table-based algorithm in general, and Alain's algorithm for quadratic functions
-        raise NotImplemented("only permutations are implemented at the moment")
+        raise NotImplementedError("only permutations are implemented at the moment")
     
 
 def affine_equivalence_permutations(f, g):
@@ -144,7 +144,7 @@ def affine_equivalence_permutations(f, g):
     sg = get_sbox(g)
     
     if len(f) != len(g):
-        raise "f and g are of different dimensions!"
+        raise ValueError("f and g are of different dimensions!")
     if not sf.is_invertible():
         raise Exception("first argument is not a permutation!")
     if not sg.is_invertible():
