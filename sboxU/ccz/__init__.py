@@ -16,3 +16,4 @@ from sboxU.ccz.affine_equivalence import *
 from sboxU.ccz.tu_decompositions import TUdecomposition,thickness,tu_decomposition_from_space_basis,get_tu_decompositions,swap_F2AffineMap
 from sboxU.ccz.equivalences_from_code import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
 from sboxU.ccz.equivalence_from_vq import are_ea_equivalent_from_vq
+from sboxU.ccz.self_equivalences import self_linear_equivalent_mappings, self_affine_equivalent_mappings

@@ -1,6 +1,6 @@
 # -*- python -*-
 
-from sage.all import Matrix, GF, Polynomial
+from sage.all import Matrix, GF, Polynomial,vector
 from sboxU.core.f2functions.field_arithmetic import i2f_and_f2i
 
 from cython.operator cimport dereference
@@ -167,6 +167,14 @@ cdef class F2AffineMap:
         result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + dereference((<F2AffineMap>L).cpp_map))
         return result
 
+    def __add__(self, cst : BinWord) -> F2AffineMap:
+        result = F2AffineMap()
+        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + cst)
+        return result
+
+    def __radd__(self, cst : BinWord) -> F2AffineMap:
+       return self + cst
+
     
     def __hash__(self):
         # !TODO! improve the implementation of F2AffineMap.__hash__() 
@@ -200,7 +208,7 @@ cdef class F2AffineMap:
 
 
     def __str__(self) -> str:
-        return str(Matrix(
+        return str(vector(GF(2),cpp_to_bin(self.get_cste(),self.get_output_length())))+ "\n+\n" + str(Matrix(
             GF(2),
             [cpp_to_bin(x, self.get_output_length())
              for x in dereference(self.cpp_map).get_image_vectors()]
@@ -216,6 +224,9 @@ cdef class F2AffineMap:
     def get_image_vectors(self):
         return dereference(self.cpp_map).get_image_vectors()
 
+    def get_cste(self):
+        return dereference(self.cpp_map).get_cstte()
+
     
     # !TODO! __rich_repr__
 
@@ -223,7 +234,6 @@ cdef class F2AffineMap:
 
     def __eq__(self,F2AffineMap L) -> bool:
         return dereference(self.cpp_map).get_image_vectors() == dereference(L.cpp_map).get_image_vectors()
-
 
 # !SUBSECTION! Factories 
 

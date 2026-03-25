@@ -89,6 +89,10 @@ cdef extern from "../../cpp/core/f2affinemap.hpp":
         
         cpp_F2AffineMap operator+(
             const cpp_F2AffineMap & l
+        )
+
+        cpp_F2AffineMap operator+(
+            const BinWord & cst
         ) 
 
         bool is_invertible() const
@@ -102,6 +106,8 @@ cdef extern from "../../cpp/core/f2affinemap.hpp":
         cpp_S_box get_cpp_S_box() 
 
         std_vector[BinWord] get_image_vectors()
+
+        BinWord get_cstte()
     
     cpp_F2AffineMap cpp_block_diagonal_F2AffineMap(
         const cpp_F2AffineMap &A,

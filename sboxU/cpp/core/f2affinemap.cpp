@@ -60,6 +60,17 @@ cpp_F2AffineMap cpp_F2AffineMap::operator+(const cpp_F2AffineMap & l) const
 }
 
 
+cpp_F2AffineMap cpp_F2AffineMap::operator+(const BinWord cst) const
+{
+    return cpp_F2AffineMap(
+        image_vectors,
+        input_length,
+        output_length,
+        cst^cstte
+        );
+}
+
+
 cpp_F2AffineMap cpp_F2AffineMap::operator|(const cpp_F2AffineMap & l) const
 {
     
@@ -130,6 +141,10 @@ cpp_F2AffineMap cpp_F2AffineMap::transpose() const
     }
 }
 
+
+cpp_F2AffineMap operator+(const BinWord cst, const cpp_F2AffineMap & A) {
+    return A + cst;
+}
 
 cpp_F2AffineMap identity_F2AffineMap(unsigned int n)
 {

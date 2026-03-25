@@ -142,7 +142,7 @@ public:
     inline cpp_S_box get_cpp_S_box() const
     {
         std::vector<BinWord> lut(1 << input_length, 0);
-        for(BinWord x=1; x<lut.size(); x++)
+        for(BinWord x=0; x<lut.size(); x++)
             lut[x] = cstte ^ cpp_linear_combination(image_vectors, x);
         return cpp_S_box(lut, input_length, output_length);
     };
@@ -151,6 +151,12 @@ public:
     inline std::vector<BinWord> get_image_vectors() const
     {
         std::vector<BinWord> result(image_vectors);
+        return result;
+    };
+
+    inline BinWord get_cstte() const
+    {
+        BinWord result = cstte;
         return result;
     };
 
@@ -186,6 +192,15 @@ public:
         @return A new F2AffineMap A such A(x)=self(x)+l(x) for all relevant x, where the addition is done in parallel over F_2.
      */    
     cpp_F2AffineMap operator+(const cpp_F2AffineMap & l) const;
+
+
+    /** Sums F2AffineMap with a constant.
+
+        @param cst A 64-bit integer
+
+        @return A new F2AffineMap A such A(x)=cst + self(x) for all relevant x
+     */    
+    cpp_F2AffineMap operator+(const BinWord cst) const;
 
 
     /** Concatenates the output of this F2AffineMap with another one.
@@ -242,6 +257,7 @@ public:
 
 
 // !SECTION! Helper fuctions
+cpp_F2AffineMap operator+(const BinWord cst, const cpp_F2AffineMap & A);
 
 cpp_F2AffineMap identity_F2AffineMap(unsigned int n);
 
