@@ -32,7 +32,7 @@ napoleon_include_private_with_doc = False
 
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ["sboxU/scripts/**"]
 
 
 

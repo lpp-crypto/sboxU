@@ -1,22 +1,10 @@
-.. sboxU documentation master file, created by
-   sphinx-quickstart on Tue Aug  5 15:29:28 2025.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 sboxU
 =====
 
-.. figure:: ../docs/logo-v2-5.png
-     
+.. figure:: ./logo-v2-5.png
+   :alt: The logo of sboxU, showing a box being built or disassembled.
 
-.. toctree::
-   :maxdepth: 5
-   :caption: Contents:
-
-   ./modules.rst
-   ./apn-study.rst
-   ./bibliography.rst
-
+   The logo of sboxU, showing a box being built or disassembled.
 
 Description
 -----------
@@ -24,13 +12,13 @@ Description
 ``sboxU`` is a SAGE/Python library that is intended to systematize
 knowledge about the black-box analysis of vectorial Boolean functions,
 p-ary fuctions, and in particular about the algorithms relevant to their
-study. To this end, it provides a wide variety of fuctions performing
+study. To this end, it provides a wide variety of functions performing
 for instance the following tasks: - generating S-boxes from univariate
 polynomials, - multi-threaded computation of the Walsh spectrum, -
-display of the “Pollock representation” on a DDT, - computation of the
-automorphisms of the graph of an APN funotion, - identify all the
-bijections in the CCZ-equivalence class of a function, - compuptation
-iof the non-linear invariants of a function, - … and much, much more!
+display of the “Pollock representation” of a DDT, - computation of the
+automorphisms of the graph of an APN function, - identify all the
+bijections in the CCZ-equivalence class of a function, - computation of
+the non-linear invariants of a function, - … and much, much more!
 
 At its core, ``sboxU`` is a C++ library providing convenient
 abstractions for S-boxe, affine maps, etc.; as well as the algorithms
@@ -44,6 +32,7 @@ following bibtex entry:
        @misc{sboxU,
        authors={Léo Perrin,
        Jules Baudrin,
+       Aurélien Boeuf,
        Xavier Bonnetain,
        Alain Couvreur,
        Merlin Fruchon,
@@ -96,7 +85,7 @@ Dependencies
 Most functions in ``sboxU`` only depend on a recent version of SAGE (it
 was tested for example with version 10.5). Some use ``openmp`` for
 multithreading, and you may need to install it in order to successfully
-compile.
+compile. The python dependencies are installed automatically by ``pip``.
 
 Installing openmp can be done with:
 
@@ -166,4 +155,12 @@ Contributors
 - `Lukas
   Stennes <https://informatik.rub.de/symcrypt/personen/stennes/>`__
 
+.. toctree::
+   :maxdepth: 5
+   :caption: Contents:
+
+   ./modules.rst
+   ./apn-study.rst
+   ./bibliography.rst
+   ./anomalies.rst
 

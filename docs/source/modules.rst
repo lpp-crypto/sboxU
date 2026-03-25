@@ -1,5 +1,5 @@
-sboxUv2
-=======
+sboxU
+=====
 
 .. toctree::
    :maxdepth: 4

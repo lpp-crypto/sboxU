@@ -1,6 +1,6 @@
 # sboxU
 
-![The logo of sboxU, showing a box being built or disassembled.](./docs/logo-v2-5.png)
+![The logo of sboxU, showing a box being built or disassembled.](./docs/source/logo-v2-5.png)
 
 ## Description
 

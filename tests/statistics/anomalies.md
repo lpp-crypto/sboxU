@@ -1,6 +1,8 @@
 # Computing Anomalies
 
 
+The corresponding source file is available online [on github](https://github.com/lpp-crypto/sboxU/blob/main/tests/statistics/anomalies.py).
+
 ## Preamble
 
 An "anomaly" is a concept that was introduced in [AC:BonPerTia19] (though its principle was already present in [C:BirPer15]). It can be positive or negative, and it quantifies how good the properties of a given S-box are compared to a permutation picked uniformly at random from the relevant set. If a an S-box has a high positive anomaly for a given property, then it means that its property is much better than should be expected from a random S-box. If instead its negative anomaly is high, then its property is much worse than should be expected.
