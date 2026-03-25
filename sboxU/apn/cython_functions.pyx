@@ -87,16 +87,43 @@ def apn_ea_mugshot_from_spectra(
 
 
 def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
+    """Returns all EA automorphisms of the quadratic APN function s.
+
+    Each entry is a pair (L, delta) where L is the 2n×2n upper-triangular
+    matrix encoding the automorphism and delta is the input shift.  See
+    ccz_class.hpp for the full block-decomposition convention.
+
+    To compare with the (r, a) pairs returned by ea_equivalences (which use
+    a lower-triangular convention), use the canonical (A_affine, B) form::
+
+        abcd_L = ccz_block_decomposition(L)
+        A_affine_lut = [get_sbox(abcd_L[1]).inverse()[x] ^ delta
+                        for x in range(2**n)]   # block_B^{-1} XOR delta
+        B_lut        = get_sbox(abcd_L[0]).lut()  # block_A = L_B_T
+
+        abcd_r = ccz_block_decomposition(r)
+        A_affine_lut = [get_sbox(abcd_r[0])[x] ^ a
+                        for x in range(2**n)]   # block_A XOR a
+        B_lut        = get_sbox(abcd_r[1]).lut()  # block_B
+
+    Args:
+        s: an S-boxable object for a quadratic APN function.
+        n_threads: number of threads. Defaults to MAX_N_THREADS.
+
+    Returns:
+        A list of (F2AffineMap, int) pairs (L, delta).
+    """
     sb = get_sbox(s)
     result = []
-    cdef std_vector[cpp_F2AffineMap] automorphisms = cpp_automorphisms_from_ortho_derivative(
-        dereference((<S_box>sb).cpp_sb),
-        n_threads
-    )
-    for L in automorphisms:
+    cdef std_vector[pair[cpp_F2AffineMap, BinWord]] automorphisms = \
+        cpp_automorphisms_from_ortho_derivative(
+            dereference((<S_box>sb).cpp_sb),
+            n_threads
+        )
+    for L_and_delta in automorphisms:
         new_blm = F2AffineMap()
-        (<F2AffineMap>new_blm).set_inner_map(<cpp_F2AffineMap>L)
-        result.append(new_blm)
+        (<F2AffineMap>new_blm).set_inner_map(L_and_delta.first)
+        result.append((new_blm, int(L_and_delta.second)))
     return result
 
 

@@ -57,7 +57,7 @@ cdef extern from "../cpp/apn/invariants.cpp":
 # !SUBSECTION! Exploring the CCZ class
 
 cdef extern from "../cpp/apn/ccz_class.hpp":
-    std_vector[cpp_F2AffineMap] cpp_automorphisms_from_ortho_derivative(
+    std_vector[pair[cpp_F2AffineMap, BinWord]] cpp_automorphisms_from_ortho_derivative(
         const cpp_S_box & s,
         const unsigned int n_threads
     )

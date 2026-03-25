@@ -119,15 +119,59 @@ if __name__ == '__main__':
     n = 5
     ascon = get_sbox(list(sboxes.sboxes['Ascon']))
 
-    # 1) THIS SHOULD WORK
-    #test_ea_equivalence(ascon, ascon, 20)
-    #test_random_ea_equivalence(n, 20)
-    #test_banff_list()
-    #cardinal_of_automorphisms_group_banff_list()
+    test_ea_equivalence(ascon, ascon, 20)
+    test_random_ea_equivalence(n, 20)
+    test_banff_list()
+    cardinal_of_automorphisms_group_banff_list()
 
-    #2) THERE IS STILL A REPRESENTATION PROBLEM BETWEEN THESE TWO FUNCTIONS
-    # TODO Investigate
-    aut = set([tuple(get_sbox(t).lut()) for t in automorphisms_from_ortho_derivative(banff_list[4])])
-    aut_bis = set([tuple(get_sbox(t[0].transpose()).lut()) for t in ea_equivalences(banff_list[4], banff_list[4])])
-    print(len(aut_bis), len(aut))
-    print(aut == aut_bis)
+    # Verify that automorphisms_from_ortho_derivative and ea_equivalences find
+    # the same EA automorphism group.
+    #
+    # The two functions encode each automorphism as a different 2n×2n matrix:
+    #
+    #   automorphisms_from_ortho_derivative → upper-triangular (L, delta):
+    #     block decomposition [block_A, block_B, block_C, block_D]:
+    #       block_A = L_B_T  (output map B)
+    #       block_B = L_A    (inverse of input map A, so A = block_B^{-1})
+    #       block_C = 0      (zero for upper-triangular)
+    #       block_D = L_C*L_A
+    #     delta: input shift — the full affine input map is A(x) = block_B^{-1}(x) XOR delta
+    #
+    #   ea_equivalences → lower-triangular (r, a):
+    #       block_A = A'  (linear part of input map)
+    #       block_B = B'  (output map)
+    #       block_C = C'
+    #       block_D = 0   (zero for lower-triangular)
+    #     a: input shift — the full affine input map is A(x) = block_A(x) XOR a
+    #
+    # Both encode (A_affine, B), where A_affine is the (possibly shifted) input
+    # transformation and B is the output transformation.  Comparing via the raw
+    # LUT of the 2n×2n matrix fails because the two conventions give different
+    # matrices for the same automorphism.
+    #
+    # Instead, we compare the canonical (A_affine_lut, B_lut) pair extracted
+    # from the block decomposition.
+
+    def _canonical_key_upper(L, delta):
+        """Canonical key from an upper-triangular (L, delta) automorphism."""
+        block_A, block_B, _, _ = ccz_block_decomposition(L)
+        A_sbox = get_sbox(block_B).inverse()  # block_B = L_A, so A = L_A^{-1}
+        A_affine_lut = tuple([A_sbox[x] ^ delta for x in range(len(A_sbox))])
+        B_lut = tuple(get_sbox(block_A).lut())  # block_A = L_B_T = B
+        return (A_affine_lut, B_lut)
+
+    def _canonical_key_lower(r, a):
+        """Canonical key from a lower-triangular (r, a) automorphism."""
+        block_A, block_B, _, _ = ccz_block_decomposition(r)
+        A_sbox = get_sbox(block_A)  # block_A = A' = linear part of A
+        A_affine_lut = tuple([A_sbox[x] ^ a for x in range(len(A_sbox))])
+        B_lut = tuple(get_sbox(block_B).lut())  # block_B = B'
+        return (A_affine_lut, B_lut)
+
+    aut     = set([_canonical_key_upper(L, delta)
+                   for L, delta in automorphisms_from_ortho_derivative(banff_list[4])])
+    aut_bis = set([_canonical_key_lower(r, a)
+                   for r, a in ea_equivalences(banff_list[4], banff_list[4])])
+    print("EA automorphisms via ortho-derivative:", len(aut))
+    print("EA automorphisms via LAT:             ", len(aut_bis))
+    print("Both methods agree:", aut == aut_bis)

@@ -35,13 +35,16 @@ def are_ea_equivalent_from_vq(f,g):
     
     # Compute of the ccz-quadratic aut(q)
     q = ccz_equivalent_quadratic_function(f)
+    # automorphisms_from_ortho_derivative returns (L, delta) pairs; only L is
+    # needed here (delta is used for canonical comparison, not for the Walsh
+    # zeroes action below).
     aut_q = automorphisms_from_ortho_derivative(q)
-    
+
     # Compute the EA mapping
     q_prime = ccz_equivalent_quadratic_function(g)
     ea_mappings = ea_mappings_from_ortho_derivative(q_prime,q)
-    
-    if len(ea_mappings) != 0 : 
+
+    if len(ea_mappings) != 0 :
         ea_q_q_prime = ea_mappings[0]
     else:
          return(False)
@@ -60,7 +63,7 @@ def are_ea_equivalent_from_vq(f,g):
     #print(ws_2.get_bases()[quad_index_g])
 
 
-    for L in aut_q:
+    for L, _ in aut_q:
         ws_temp = ws_1.image_by(L.transpose().inverse())
         if ws_2.get_bases()[quad_index_g]  == ws_temp.get_bases()[quad_index_f]:
             return(True)

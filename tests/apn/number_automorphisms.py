@@ -8,6 +8,7 @@ with Experiment("Testing APN functions-related functions"):
     with APNFunctions("./apnDB.db") as db:
         entries = db.query_functions({"degree" : 2})
         for entry in entries:
+            # automorphisms_from_ortho_derivative returns (L, delta) pairs
             aut = automorphisms_from_ortho_derivative(entry["sbox"])
             l = len(aut)
             if l % 5 == 0:
@@ -17,7 +18,7 @@ with Experiment("Testing APN functions-related functions"):
                 pprint(absolute_walsh_spectrum(s))
                 pprint(thickness_spectrum(s))
                 mask = 2**6-1
-                for L in aut:
+                for L, _ in aut:
                     interesting = False
                     # for x in range(0, 2**6):
                     #     if (L(x) & mask) != L(x):

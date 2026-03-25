@@ -104,7 +104,7 @@ def test_ccz_equivalence_to_permutation(verbose=False):
 # !SECTION! Main function 
 
 if __name__ == "__main__":
-    # test_ccz_exploration()
-    # test_affine_equivalence()
-    # test_EA_mappings()
+    test_ccz_exploration()
+    test_affine_equivalence()
+    test_EA_mappings()
     test_ccz_equivalence_to_permutation()

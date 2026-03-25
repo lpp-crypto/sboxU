@@ -2,93 +2,91 @@ from sage.all import *
 from sage.crypto.sboxes import sboxes
 from collections import defaultdict
 
-# from timer import *
-
 from sboxU import *
 
 
-for t in range(0, 10):
-    v = [randint(-4, 4) for i in range(0, 10)]
-    sp = get_Spectrum(v)
-    v.sort()
-    print("\n", v)
-    print(sp.maximum(), sp.keys(), [(k,sp[k]) for k in sp.keys()])
+if __name__ == "__main__":
+    for t in range(0, 10):
+        v = [randint(-4, 4) for i in range(0, 10)]
+        sp = get_Spectrum(v)
+        v.sort()
+        print("\n", v)
+        print(sp.maximum(), sp.keys(), [(k,sp[k]) for k in sp.keys()])
 
-for t in range(0, 10):
-    s = random_function_S_box(randint(3, 4), randint(3, 4))
-    print(s)
-    print("-- DDT")
-    dif = differential_spectrum(s)
-    print(dif.maximum(), dif.keys(), dif)
-    for row in ddt(s):
-        print(row)
-    print("-- LAT")
-    wal = walsh_spectrum(s)
-    print(wal.maximum(), wal.keys(), wal)
-    l = lat(s)
-    for row in l:
-        print(row)
-    if s == invert_lat(l):
-        print("LAT inversion successfull")
-    else:
-        print("LAT inversion [FAILED]")
-
-for name in ["Kuznyechik", "Fantomas"]:
-    print("\n\n", name)
-    s = get_sbox(sboxes[name])
-    for tab in ["DDT", "LAT", "BCT"]:
-        print(
-            tab,
-            table_anomaly(s, tab),
-            table_negative_anomaly(sboxes[name], tab)
-        )
-    print("u = ", differential_uniformity(s))
-    for u in range(6, 20, 2):
-        if is_differential_uniformity_smaller_than(s, u):
-            print("u <= ", u)
+    for t in range(0, 10):
+        s = random_function_S_box(randint(3, 4), randint(3, 4))
+        print(s)
+        print("-- DDT")
+        dif = differential_spectrum(s)
+        print(dif.maximum(), dif.keys(), dif)
+        for row in ddt(s):
+            print(row)
+        print("-- LAT")
+        wal = walsh_spectrum(s)
+        print(wal.maximum(), wal.keys(), wal)
+        l = lat(s)
+        for row in l:
+            print(row)
+        if s == invert_lat(l):
+            print("LAT inversion successfull")
         else:
-            print("u > ", u)
-    pprint(fbct_spectrum(s))
+            print("LAT inversion [FAILED]")
 
-targets = []
-for t in range(0, 8):
-    targets.append(monomial(2**t+1, GF(2**13)))
+    for name in ["Kuznyechik", "Fantomas"]:
+        print("\n\n", name)
+        s = get_sbox(sboxes[name])
+        for tab in ["DDT", "LAT", "BCT"]:
+            print(
+                tab,
+                table_anomaly(s, tab),
+                table_negative_anomaly(sboxes[name], tab)
+            )
+        print("u = ", differential_uniformity(s))
+        for u in range(6, 20, 2):
+            if is_differential_uniformity_smaller_than(s, u):
+                print("u <= ", u)
+            else:
+                print("u > ", u)
+        pprint(fbct_spectrum(s))
 
-c = Chronograph("cpp_differential_spectrum")
-for i, s in enumerate(targets):
-    sp = differential_spectrum(s)
-    print(sp)
-print(c)
+    targets = []
+    for t in range(0, 8):
+        targets.append(monomial(2**t+1, GF(2**13)))
 
-print("testing expected distributions")
-n = 8
-n_tested = 2**13
+    c = Chronograph("cpp_differential_spectrum")
+    for i, s in enumerate(targets):
+        sp = differential_spectrum(s)
+        print(sp)
+    print(c)
 
-print("-- LAT")
-dis = defaultdict(int)
-print("---- experimental")
-for t in range(0, n_tested):
-    dis[linearity(random_permutation_S_box(n))] += 1
-for k in sorted(dis.keys()):
-    if dis[k] != 0:
-        print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
-print("---- theoretical")
-dis = expected_linearity_distribution_permutation(n, n)
-for k in sorted(dis.keys()):
-    if dis[k] != 0.0:
-        print("{:3d}: {:.4f}".format(k, dis[k]))
+    print("testing expected distributions")
+    n = 8
+    n_tested = 2**13
 
-print("-- DDT")
-dis = defaultdict(int)
-print("---- experimental")
-for t in range(0, n_tested):
-    dis[differential_uniformity(random_permutation_S_box(n))] += 1
-for k in sorted(dis.keys()):
-    if dis[k] != 0:
-        print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
-print("---- theoretical")
-dis = expected_differential_uniformity_distribution_permutation(n, n)
-for k in sorted(dis.keys()):
-    if dis[k] != 0.0:
-        print("{:3d}: {:.4f}".format(k, dis[k]))
+    print("-- LAT")
+    dis = defaultdict(int)
+    print("---- experimental")
+    for t in range(0, n_tested):
+        dis[linearity(random_permutation_S_box(n))] += 1
+    for k in sorted(dis.keys()):
+        if dis[k] != 0:
+            print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
+    print("---- theoretical")
+    dis = expected_linearity_distribution_permutation(n, n)
+    for k in sorted(dis.keys()):
+        if dis[k] != 0.0:
+            print("{:3d}: {:.4f}".format(k, dis[k]))
 
+    print("-- DDT")
+    dis = defaultdict(int)
+    print("---- experimental")
+    for t in range(0, n_tested):
+        dis[differential_uniformity(random_permutation_S_box(n))] += 1
+    for k in sorted(dis.keys()):
+        if dis[k] != 0:
+            print("{:3d}: {:.4f}".format(k, float(dis[k])/n_tested))
+    print("---- theoretical")
+    dis = expected_differential_uniformity_distribution_permutation(n, n)
+    for k in sorted(dis.keys()):
+        if dis[k] != 0.0:
+            print("{:3d}: {:.4f}".format(k, dis[k]))
