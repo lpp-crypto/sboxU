@@ -68,6 +68,7 @@ add_library(
   ./apn/invariants.cpp
   ./apn/ccz_class.cpp
   ./apn/sn.cpp
+  ./apn/ortho_derivative.cpp
 )
 target_link_libraries(libapn PRIVATE libcore libstatistics libalgorithms libccz)
 
@@ -95,3 +96,6 @@ target_link_libraries(test_sn PRIVATE sboxU_CPP)
 
 add_executable(test_f2affinemap ./tests/F2AffineMap.cpp)
 target_link_libraries(test_f2affinemap PRIVATE sboxU_CPP) 
+
+add_executable(test_orthoderiv ./tests/ortho_deriv_test.cpp)
+target_link_libraries(test_orthoderiv PRIVATE sboxU_CPP) 
