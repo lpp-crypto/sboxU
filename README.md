@@ -5,29 +5,29 @@
 ## Description
 
 
-`sboxU` is a SAGE/Python library that is intended to systematize knowledge about the black-box analysis of vectorial Boolean functions, p-ary fuctions, and in particular about the algorithms relevant to their study. To this end, it provides a wide variety of functions performing for instance the following tasks:
+`sboxU` is a SAGE/Python library that is intended to systematize knowledge about the black-box analysis of vectorial Boolean functions, p-ary functions, and in particular about the algorithms relevant to their study. To this end, it provides a wide variety of functions performing for instance the following tasks:
 - generating S-boxes from univariate polynomials,
-- multi-threaded computation of the Walsh spectrum,
-- display of the "Pollock representation" of a DDT,
+- multi-threaded computation of the Walsh spectrum, DDT, LAT, BCT, and DLCT,
+- display of the "Pollock representation" on a DDT,
 - computation of the automorphisms of the graph of an APN function,
 - identify all the bijections in the CCZ-equivalence class of a function,
 - computation of the non-linear invariants of a function,
 - ... and much, much more!
 
-At its core, `sboxU` is a C++ library providing convenient abstractions for S-boxe, affine maps, etc.; as well as the algorithms operating on them. Then, a cython layer exposes these functions to SAGE.
+At its core, `sboxU` is a C++ library providing convenient abstractions for S-boxes, affine maps, etc.; as well as the algorithms operating on them. Then, a cython layer exposes these functions to SAGE.
 
 If you use `sboxU` in a published paper, please cite it using the following bibtex entry:
 
 ```
     @misc{sboxU,
-    authors={Léo Perrin,
-    Jules Baudrin,
-    Aurélien Boeuf,
-    Xavier Bonnetain,
-    Alain Couvreur,
-    Merlin Fruchon,
-    Mathias Joly,
-    Pierre Galissant,
+    author={Léo Perrin and
+    Jules Baudrin and
+    Aurélien Boeuf and
+    Xavier Bonnetain and
+    Alain Couvreur and
+    Merlin Fruchon and
+    Mathias Joly and
+    Pierre Galissant and
     Lukas Stennes
     },
     year=2026,
@@ -49,13 +49,13 @@ Some tests/examples are provided in the `tests` folder. You must compile and ins
 
 ### sboxU_CPP
 
-The `C++` component of `sboxU` can be used on its own, see [the relevant folder](./sboxUv2/cpp/README.md).
+The `C++` component of `sboxU` can be used on its own, see [the relevant folder](./sboxU/cpp/README.md).
 
 ### Executable Scripts
 
-During its installation, `sboxU` creates some executables that are installed in your path. To see their interfacce, simply run them with the `-h` argument.
+During its installation, `sboxU` creates some executables that are installed in your path. To see their interface, simply run them with the `-h` argument.
 
-- **sboxU_apn_db_generation** uses known lists of APN fuctions to generate a local `tinySQL` database containing exactly one representstive per EA-class of functions 
+- **sboxU_apn_db_generation** uses known lists of APN functions to generate a local `tinySQL` database containing exactly one representative per EA-class of functions
 
 
 ## Installing SboxU
@@ -100,11 +100,51 @@ sage setup.py build_ext --inplace -j 8
 ```
 
 
+## Example
+
+After installation, import `sboxU` in a SAGE session:
+
+```python
+from sage.all import *
+from sboxU import *
+
+# Use a built-in SAGE S-box or supply your own lookup table
+from sage.crypto.sboxes import sboxes
+s = get_sbox(sboxes["Kuznyechik"])
+
+# Differential properties
+print(differential_uniformity(s))   # best differential probability denominator
+print(differential_spectrum(s))     # full spectrum of the DDT
+for row in ddt(s):
+    print(row)
+
+# Linear properties
+print(linearity(s))                 # best linear approximation
+print(walsh_spectrum(s))
+
+# Boomerang properties
+print(boomerang_uniformity(s))
+print(boomerang_spectrum(s))
+
+# Anomaly scores (how far a table is from a random permutation)
+print(table_anomaly(s, "DDT"))
+print(table_anomaly(s, "LAT"))
+print(table_anomaly(s, "BCT"))
+
+# Generate a random permutation and check properties
+r = random_permutation_S_box(8)
+print(is_permutation(r))
+print(differential_spectrum(r))
+```
+
+More examples are available in the `tests/` folder.
+
+
 ## Contributing
 
 ### How to
 
-TODO
+Contributions are welcome! To contribute, please open an issue to discuss your idea or bug report, then submit a pull request with your changes.
 
 ### Contributors
 
