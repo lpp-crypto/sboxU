@@ -184,6 +184,10 @@ bool cpp_S_box::is_invertible() const
         for(unsigned int x=0; x<input_space_size(); x++)
         {
             BinWord y = lut[x];
+            // Guard against malformed LUTs where an output value exceeds
+            // the output space size, which would silently corrupt memory.
+            if (y >= lut.size())
+                throw std::runtime_error("is_invertible: output value out of range");
             counters[y] ++ ;
             if (counters[y] > 1)
                 return false;
@@ -276,8 +280,14 @@ bool cpp_is_permutation(Lut & s)
 {
     std::vector<BinWord> counters(s.size(), 0);
     for(unsigned int x=0; x<s.size(); x++)
+    {
+        // Guard against malformed LUTs where an output value exceeds
+        // the output space size, which would silently corrupt memory.
+        if (s[x] >= s.size())
+            throw std::runtime_error("cpp_is_permutation: output value out of range");
         if ((counters[s[x]]++) > 1)
             return false;
+    }
     return true;
 }
 

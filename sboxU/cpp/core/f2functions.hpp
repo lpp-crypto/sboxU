@@ -24,6 +24,10 @@ inline BinWord cpp_msb(const BinWord x)
 
 inline BinWord cpp_lsb(const BinWord x)
 {
+    // __builtin_ctzll(0) is undefined behaviour per GCC docs;
+    // return 0 to match the convention used by cpp_msb.
+    if (x == 0)
+        return 0;
     return __builtin_ctzll(x);
 };
 
