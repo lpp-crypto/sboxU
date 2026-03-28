@@ -1,14 +1,13 @@
 from sage.all import Matrix, log, LinearCode, GF
-from sboxU.core import to_bin
+from sboxU.core import to_bin, get_sbox
 
 # CCZ and EA equivalences ``à la Edel-Pott''
 # https://www.yvesedel.de/Papers/nato08.pdf Theorems 9 and 10.
 
 
-# !TODO! Adapt to handle Sboxes
 def ccz_matrix(lut):
     N = int(log(len(lut), 2))
-    return Matrix(GF(2), len(lut), 2 * N + 1, 
+    return Matrix(GF(2), len(lut), 2 * N + 1,
         [[1] + to_bin((x << N) | lut[x], 2 * N)[::-1] for x in range(0, 2 ** N)]).transpose()
 
 
@@ -20,6 +19,8 @@ def ea_matrix(lut):
 
 
 def are_code_equivalent(f, g, equivalence="CCZ"):
+    f = list(get_sbox(f))
+    g = list(get_sbox(g))
     if len(f) != len(g):
         raise Exception("f and g are of different sizes!")
 
