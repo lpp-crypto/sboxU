@@ -74,7 +74,10 @@ public:
         return lut[x];
     };
 
-    inline std::vector<BinWord> get_lut() const
+    /** Returns a const reference to the lookup table to avoid unnecessary copies.
+        Use the copy constructor if you need an owned copy.
+     */
+    inline const std::vector<BinWord> & get_lut() const
     {
         return lut;
     };
