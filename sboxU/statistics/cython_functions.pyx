@@ -252,6 +252,91 @@ def fbct(s):
     result = cpp_fbct(dereference((<S_box>sb).cpp_sb))
     return result
 
+
+# !SECTION! Differential-Linear properties
+
+
+def dlct(s):
+    """The Differential-Linear Connectivity Table (DLCT) of a vectorial Boolean function F,
+    as introduced in [EC:BDKW19] (Bar-On, Dunkelman, Keller, Weizman).
+
+    The DLCT is defined as the 2^n x 2^n table:
+
+        DLCT[a][b] = sum_{x in F_2^n} (-1)^{b · (F(x) XOR F(x XOR a))}
+
+    Equivalently, each row of the DLCT is the Fast Walsh-Hadamard Transform of the
+    corresponding row of the DDT.  For a != 0 and b != 0, DLCT[a][b] / 2^n measures
+    the correlation of the differential transition a -> * with the output linear mask b,
+    which governs the success probability of differential-linear distinguishers.
+
+    Args:
+        s: an S-boxable object over F_2.
+
+    Returns:
+        list: A list of 2^n lists of 2^n integers giving the full DLCT.
+
+    """
+    sb = get_sbox(s)
+    if sb.get_output_length() != sb.get_input_length():
+        raise Exception("DLCT is only defined for functions with equal input and output length")
+    n = sb.get_input_length()
+    N = 1 << n
+    lut = [sb(x) for x in range(N)]
+    table = []
+    for a in range(N):
+        # Build DDT row: row[v] = #{x : F(x) XOR F(x XOR a) = v}
+        row = [0] * N
+        for x in range(N):
+            row[lut[x] ^ lut[x ^ a]] += 1
+        # Apply in-place Fast Walsh-Hadamard Transform to get DLCT row
+        h = 1
+        while h < N:
+            for i in range(0, N, h << 1):
+                for j in range(i, i + h):
+                    u, v = row[j], row[j + h]
+                    row[j] = u + v
+                    row[j + h] = u - v
+            h <<= 1
+        table.append(row)
+    return table
+
+
+def dlct_spectrum(s):
+    """The DLCT spectrum counts the occurrences of each value in the Differential-Linear
+    Connectivity Table for non-trivial pairs (a != 0, b != 0).
+
+    Note: unlike other spectrum functions, this function stores the full DLCT in memory
+    before counting, as no C++ backend is available yet for the DLCT computation.
+
+    Args:
+        s: an S-boxable object over F_2.
+
+    Returns:
+        Spectrum: a Spectrum instance `d` such that `d[v]` is the number of pairs (a, b) with
+        a != 0 and b != 0 for which DLCT[a][b] = v.
+
+    """
+    table = dlct(s)
+    N = len(table)
+    result = Spectrum(name="DLCT".encode("UTF-8"))
+    result.incr_by_counting([table[a][b] for a in range(1, N) for b in range(1, N)])
+    return result
+
+
+def dlct_uniformity(s):
+    """The DLCT uniformity is the maximum absolute value of DLCT[a][b] over all a != 0
+    and b != 0.  A lower value indicates stronger resistance to differential-linear attacks.
+
+    Args:
+        s: an S-boxable object over F_2.
+
+    Returns:
+        int: the DLCT uniformity of the function corresponding to `s`.
+
+    """
+    return dlct_spectrum(s).absolute().maximum()
+
+
 # SECTION xddt and co
 
 def xddt(s):

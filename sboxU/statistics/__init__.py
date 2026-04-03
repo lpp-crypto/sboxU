@@ -12,7 +12,8 @@ from sboxU.statistics.cython_functions import \
     differential_spectrum, ddt, differential_uniformity, is_differential_uniformity_smaller_than, \
     walsh_transform, walsh_spectrum, absolute_walsh_spectrum, lat, invert_lat, linearity, \
     boomerang_spectrum, bct, boomerang_uniformity, \
-    fbct_spectrum, fbct,xddt,yddt,zddt, linear_structures, linear_structures_vectorial, linear_structures_vectorial_spectrum
+    fbct_spectrum, fbct, xddt, yddt, zddt, linear_structures, linear_structures_vectorial, linear_structures_vectorial_spectrum, \
+    dlct, dlct_spectrum, dlct_uniformity
 
 
 from sboxU.statistics.anomalies import \
