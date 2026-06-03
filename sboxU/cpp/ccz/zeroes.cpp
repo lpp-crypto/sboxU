@@ -46,6 +46,12 @@ void cpp_WalshZeroesSpaces::init_mappings()
 }
 
 
+/** @brief Computes the set of the admissible mappings corresponding to these Walsh zeroes and reduces it using the set of automorphisms provided.
+ *
+ * At the end of its execution, the this->mappings attribute is properly initialised. If the set of automorphisms provided is complete, then there is a bijection between the mappings contained in the this->mappings attribute and the EA-classes contained in the CCZ-class of the function assoicated to this instance.
+ *
+ * @param automorphisms An std::vector of affine mappings that is expected to contain all the automorphisms of the function associated to this cpp_WalshZeroesSpaces instance. This is not verified!
+ */
 void cpp_WalshZeroesSpaces::init_mappings(
     const std::vector<cpp_F2AffineMap> & automorphisms
     )
@@ -59,6 +65,64 @@ void cpp_WalshZeroesSpaces::init_mappings(
     A.reserve(automorphisms.size());
     for(auto & a_i : automorphisms)
         A.push_back(a_i.transpose());
+    // checking if an automorphism maps a space to another
+    std::vector<bool> relevant(bases.size(), true);
+    for (auto & space_and_i : preimages)
+    {
+        cpp_BinLinearBasis space = space_and_i.first;
+        unsigned int i = space_and_i.second;
+        if (relevant[i])
+            for (auto & Aj : A)
+            {
+                cpp_BinLinearBasis img = space.image_by(Aj);
+                if (preimages.contains(img))
+                {
+                    unsigned int index = preimages[img];
+                    if (index != i)
+                        relevant[index] = false;
+                }
+            }
+    }
+    // building the mappings by transposing
+    for(unsigned int i=0; i<bases.size(); i++)
+        if (relevant[i])
+        {
+            std::vector<BinWord> img = cpp_complete_basis(bases[i],
+                                                          total_size);
+            std::reverse(img.begin(), img.end());
+            cpp_F2AffineMap L(img);
+            mappings.push_back(L.transpose());
+        }
+}
+
+
+/** @brief Computes the set of the admissible mappings corresponding to these Walsh zeroes and reduces it using the sets of automorphisms provided (assuming that the complete set of the automorphisms is the product of the two sets given).
+ *
+ * At the end of its execution, the this->mappings attribute is properly initialised. If the set of automorphisms provided is complete, then there is a bijection between the mappings contained in the this->mappings attribute and the EA-classes contained in the CCZ-class of the function assoicated to this instance.
+ *
+ * @param automorphisms_1 An std::vector of affine mappings that is expected to contain automorphisms of the function associated to this cpp_WalshZeroesSpaces instance. This is not verified!
+ *
+ * @param automorphisms_2 Another std::vector of affine mappings that is also expected to contain automorphisms of the function associated to this cpp_WalshZeroesSpaces instance. Any autmorphism of the function should be written as A_1*A_2, where "*" is the composition, A_1 is in automorphisms_1, and A_2 is in automorphisms_2. None of this is verified!
+ */
+void cpp_WalshZeroesSpaces::init_mappings(
+    const std::vector<cpp_F2AffineMap> & automorphisms_1,
+    const std::vector<cpp_F2AffineMap> & automorphisms_2
+    )
+{
+    // computing the image of each basis
+    std::map<cpp_BinLinearBasis, unsigned int> preimages;
+    // initializing walsh zeroes automorphisms
+    std::vector<cpp_F2AffineMap> A, B;
+    A.reserve(automorphisms_1.size());
+    B.reserve(automorphisms_2.size());
+    for(auto & a_i : automorphisms_1)
+        A.push_back(a_i.transpose());
+    for(auto & b_j : automorphisms_2)
+        B.push_back(b_j.transpose().inverse()); // !warning! polarity of inversions
+    // Here, we apply a first mapping to all preimages
+    for (unsigned int i=0; i<bases.size(); i++)
+        for(auto & b_j : automorphisms)
+            preimages[b_j(bases[i])] = i;
     // checking if an automorphism maps a space to another
     std::vector<bool> relevant(bases.size(), true);
     for (auto & space_and_i : preimages)

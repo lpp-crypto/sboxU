@@ -1,4 +1,5 @@
 #include "./ccz_class.hpp"
+#include "ortho_derivative.hpp"
 
 
 // !TODO! Unifomize the output :
@@ -118,6 +119,41 @@ std::vector<cpp_F2AffineMap> cpp_ea_mappings_from_ortho_derivative(
 }
 
 
+/** @brief Compute the trivial graph automorphisms that correspond to the derivatives of quadratic functions.
+ *
+ * @param
+ *
+ * @result
+ */
+std::vector<cpp_F2AffineMap> cpp_graph_automorphisms_from_derivatives(
+    const cpp_S_box & s,
+    )
+{
+    // !TODO! 
+    std::vector<cpp_F2AffineMap> result;
+    return result;
+}
+
+
+
+/** @brief 
+ *
+ * @param
+ *
+ * @result
+ */
+std::vector<cpp_F2AffineMap> cpp_graph_el_automorphisms_from_ortho_derivative(
+    const cpp_S_box & s,
+    )
+{
+    // !TODO!
+    cpp_S_box o = cpp_ortho_derivative(s);
+    std::vector<cpp_F2AffineMap> result;
+    return result;
+}
+
+
+
 std::vector<cpp_S_box> cpp_enumerate_ea_classes_quadratic_apn(
     const cpp_S_box &s,
     const unsigned int n_threads
@@ -127,9 +163,12 @@ std::vector<cpp_S_box> cpp_enumerate_ea_classes_quadratic_apn(
     cpp_WalshZeroesSpaces ws(s, n_threads);
     // computing linear automorphisms of the ortho-derivative
     ws.init_mappings(cpp_automorphisms_from_ortho_derivative(s, n_threads)); 
+    // ws.init_mappings(
+    //     cpp_el_graph_automorphisms_from_ortho_derivative(s, n_threads), // !WARNING! transpose/inversions
+    //     cpp_graph_automorphisms_from_derivatives(s, n_threads)
+    //     ); 
     return cpp_enumerate_ea_classes(s, ws);
 }
-    
 
 cpp_S_box cpp_ccz_equivalent_quadratic_function(
     const cpp_S_box & s,
