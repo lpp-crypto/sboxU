@@ -126,7 +126,7 @@ std::vector<cpp_F2AffineMap> cpp_ea_mappings_from_ortho_derivative(
  * @result
  */
 std::vector<cpp_F2AffineMap> cpp_graph_automorphisms_from_derivatives(
-    const cpp_S_box & s,
+    const cpp_S_box & s
     )
 {
     // !TODO! 
@@ -143,7 +143,7 @@ std::vector<cpp_F2AffineMap> cpp_graph_automorphisms_from_derivatives(
  * @result
  */
 std::vector<cpp_F2AffineMap> cpp_graph_el_automorphisms_from_ortho_derivative(
-    const cpp_S_box & s,
+    const cpp_S_box & s
     )
 {
     // !TODO!
