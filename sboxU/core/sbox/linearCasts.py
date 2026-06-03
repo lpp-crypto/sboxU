@@ -127,6 +127,13 @@ class CastFromF2Product:
 
             
 class CastToF2Product:
+    """Encapsulates a mapping from an integer (as used inside an S_box lookup table)
+    back into a tuple of smaller integers, each representing an element of F_2^{n_i}.
+
+    This is the inverse of CastFromF2Product: given an integer whose bit-decomposition
+    concatenates several field elements, it extracts each component.
+
+    """
     def __init__(self, output_lengths, name=None):
         self.n_outputs = len(output_lengths)
         self.output_lengths = output_lengths

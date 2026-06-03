@@ -92,17 +92,17 @@ public:
 
     inline Integer input_space_size() const
     {
-        return (1 << input_length);
+        return (Integer)1 << input_length;
     };
 
     inline Integer get_output_length() const
     {
         return output_length;
     };
-    
+
     Integer output_space_size() const
     {
-        return (1 << output_length);
+        return (Integer)1 << output_length;
     };
     
 

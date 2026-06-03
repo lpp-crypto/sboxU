@@ -84,9 +84,9 @@ cpp_Spectrum cpp_absolute_walsh_spectrum(
 cpp_S_box cpp_invert_lat(const std::vector< std::vector<Integer> > & l)
 {
     std::vector<BinWord> result(l.size(), 0);
-    for (unsigned int i=0; l[0].size() > (1 << i); i++)
+    for (unsigned int i=0; l[0].size() > ((BinWord)1 << i); i++)
     {
-        Integer b = (1 << i), sum;
+        Integer b = (Integer)1 << i, sum;
         for (unsigned int x=0; x<l.size(); x++)
         {
             sum = 0;
