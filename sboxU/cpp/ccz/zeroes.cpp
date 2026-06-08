@@ -90,6 +90,56 @@ void cpp_WalshZeroesSpaces::init_mappings(
 }
 
 
+void cpp_WalshZeroesSpaces::init_mappings(
+    const std::vector<cpp_F2AffineMap> & automorphisms_1,
+    const std::vector<cpp_F2AffineMap> & automorphisms_2
+    )
+{
+    // computing the image of each basis
+    std::map<cpp_BinLinearBasis, unsigned int> preimages;
+    // initializing walsh zeroes automorphisms
+    std::vector<cpp_F2AffineMap> A, B;
+    A.reserve(automorphisms_1.size());
+    B.reserve(automorphisms_2.size());
+    for(auto & a_i : automorphisms_1)
+        A.push_back(a_i.transpose());
+    for(auto & b_j : automorphisms_2)
+        B.push_back(b_j.transpose().inverse()); // !warning! polarity of inversions
+    // Here, we apply a first mapping to all preimages
+    for (unsigned int i=0; i<bases.size(); i++)
+        for(auto & b_j : B)
+            preimages[bases[i].image_by(b_j)] = i;
+    // checking if an automorphism maps a space to another
+    std::vector<bool> relevant(bases.size(), true);
+    for (auto & space_and_i : preimages)
+    {
+        cpp_BinLinearBasis space = space_and_i.first;
+        unsigned int i = space_and_i.second;
+        if (relevant[i])
+            for (auto & Aj : A)
+            {
+                cpp_BinLinearBasis img = space.image_by(Aj);
+                if (preimages.contains(img))
+                {
+                    unsigned int index = preimages[img];
+                    if (index != i)
+                        relevant[index] = false;
+                }
+            }
+    }
+    // building the mappings by transposing
+    for(unsigned int i=0; i<bases.size(); i++)
+        if (relevant[i])
+        {
+            std::vector<BinWord> img = cpp_complete_basis(bases[i],
+                                                          total_size);
+            std::reverse(img.begin(), img.end());
+            cpp_F2AffineMap L(img);
+            mappings.push_back(L.transpose());
+        }
+}
+
+
 
 // !SECTION! Applying a linear permutation
 
