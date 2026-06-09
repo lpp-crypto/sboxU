@@ -1,12 +1,17 @@
 import re
-from pybtex.database import parse_file
 from os.path import dirname
+
+from pybtex.database import parse_file, BibliographyData
+from pybtex.plugin import find_plugin
 
 """The path to the bibtex file containing all entries. """
 bib_file_path = dirname(__file__) + "/biblio.bib"
 
+pybtex_style = find_plugin('pybtex.style.formatting', 'plain')()
+pybtex_backend = find_plugin('pybtex.backends', 'plaintext')()
 
 SboxU_BIBLIOGRAPHY = None
+
 
 def open_bibliography():
     global SboxU_BIBLIOGRAPHY
@@ -24,7 +29,7 @@ def cite(key):
 
     """
     open_bibliography()
-    target = key
+    target = key.replace("-", ":") # needed to handle some github markdown shenanigans
     if key[0] == "[":
         target = target[1:]
     if key[-1] == "]":
@@ -83,21 +88,17 @@ def format_to_rst(entry, key):
 
 def format_ref_to_md(key):
     entry = cite(key)
+    # return pybtex_backend.render_sequence(entry.text.parts)
     content = entry.fields
     content["key"] = key.replace("[", "[^")
-    content["url"] = key.replace("\\_", "_")
-    content["url"] = key.replace("\\_", "_")
-    for person_type in [ "author", "editor" ]:
-        if person_type in entry.persons.keys():
-            content[person_type] = ""
-            for p in entry.persons[person_type]:
-                for x in p.first_names:
-                    content[person_type] += x + " "
-                for x in p.last_names:
-                    content[person_type] += x + " "
-                content[person_type] = content[person_type][:-1] + ", "
-            content[person_type] = content[person_type][:-2]
-    return "{key}: {author} ({year}). *{title}*. [link]({url}).".format(**content)
+    content["url"] = content["url"].replace("\\_", "_")
+    content["doi"] = content["doi"].replace("\\_", "_")
+    bib_single = BibliographyData(entries={key: entry})
+    formatted = pybtex_style.format_bibliography(bib_single)
+    entry_text = list(formatted.entries)[0].text
+    result = entry_text.render(pybtex_backend)
+    return content["key"] + ": " + result
+
 
 
 def gen_full_biblio_rst(path):

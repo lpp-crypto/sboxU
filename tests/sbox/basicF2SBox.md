@@ -119,5 +119,9 @@ for test in [("AES", 4),
 ### Composition
 
 
+
+
 # References
-[^C-BihSha91]: Eli Biham, Adi Shamir (1990). *Differential Cryptanalysis of DES-like Cryptosystems*. [link](https://doi.org/10.1007/3-540-38424-3_1).
+
+[^C-BihSha91]: Eli Biham and Adi Shamir. Differential cryptanalysis of des-like cryptosystems. In Alfred Menezes and Scott A. Vanstone, editors, Advances in Cryptology - CRYPTO '90, 10th Annual International Cryptology Conference, Santa Barbara, California, USA, August 11-15, 1990, Proceedings, Lecture Notes in Computer Science, 2–21. Springer, 1990. URL: https://doi.org/10.1007/3-540-38424-3_1, doi:10.1007/3-540-38424-3_1.
+
