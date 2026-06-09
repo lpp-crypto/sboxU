@@ -11,13 +11,27 @@ def main_test():
             34,17,14,45,30,61,21,51,19,46,60,41,20,55,22])
         # --- } 
         # --- { 
-        print("basic list representation")
+        print("basic list representation:")
         print(s)
-        print("pretty printing the same information")
+        print("\npretty printing the same information:")
         pprint(s)
         # --- } 
-        subsection(' Linear properties')
         subsection(' Differential properties')
+        # --- { 
+        a = 1
+        D_a_s = derivative(s, 1)
+        pprint(D_a_s)
+        # --- } 
+        # --- { 
+        derivative_is_translation_invariant = True
+        for x in range(0, 2**s.get_output_length()):
+            if D_a_s[x] != D_a_s[oplus(x, 1)]:
+                fail("derivative should be identical on x and x+a for all x and a, but it isn't the case for x={}, a={}".format(x, a))
+                derivative_is_translation_invariant = False
+        if derivative_is_translation_invariant:
+            success("sanity check passed: the derivative on a is invariant under translation by a")
+        # --- } 
+        subsection(' Linear properties')
         subsection(' Boomerang properties')
         subsection(' Polynomial representation')
         section(' Building an S-box')
@@ -27,7 +41,8 @@ def main_test():
         # --- } 
         # --- { 
         for test in [("AES", 4),
-                     ("Kuznyechik", 8)]:
+                     ("Kuznyechik", 8),
+                     ("Ascon", 8)]:
             name, expected_uniformity = test
             u = differential_uniformity(get_sbox(name))
             if u == expected_uniformity:
@@ -42,6 +57,9 @@ def main_test():
                     u
                 ))
         # --- } 
+        section(' Univariate polynomials')
+        section(' Operations on S-boxes')
+        subsection(' Composition')
     return exit_code()
 
 

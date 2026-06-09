@@ -283,6 +283,8 @@ def bit_permutation_F2AffineMap(p) -> F2AffineMap:
 
 
 def get_F2AffineMap(l, input_length=None, output_length=None) -> F2AffineMap:
+
+    # !TODO! rewrite this factory in the style of the get_sbox factory 
     if isinstance(l, (F2AffineMap)):
         return l
     elif input_length is None and output_length is None:

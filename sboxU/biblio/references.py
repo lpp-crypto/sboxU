@@ -35,7 +35,11 @@ def cite(key):
         return "{} not found in bibliography".format(target)
 
 
-        
+
+def find_citations_in_string(line : str) -> list:
+    return re.findall(r"\[.+:.+[0-9]\]", line)
+
+
 def who_to_cite(sboxU_tool):
     """Returns a list of strings, each being a bibtex entry citing a paper on which the object `sboxU_tool` is based.
 
@@ -46,7 +50,7 @@ def who_to_cite(sboxU_tool):
 
     !WARNING! We need to do something to be able to handle papers which should have identical keys
     """
-    return re.findall(r"\[.+:.+[0-9]\]", sboxU_tool.__doc__ )
+    return find_citations_in_string(sboxU_tool.__doc__)
 
 
 def cite_as(key, output_format):
@@ -75,6 +79,25 @@ def format_to_rst(entry, key):
                 content[person_type] = content[person_type][:-1] + ", "
             content[person_type] = content[person_type][:-2]
     return "\\[{key}\\]\n    {author} ({year}). *{title}*. `\\[link\\] <{url}>`_".format(**entry.fields)
+
+
+def format_ref_to_md(key):
+    entry = cite(key)
+    content = entry.fields
+    content["key"] = key.replace("[", "[^")
+    content["url"] = key.replace("\\_", "_")
+    content["url"] = key.replace("\\_", "_")
+    for person_type in [ "author", "editor" ]:
+        if person_type in entry.persons.keys():
+            content[person_type] = ""
+            for p in entry.persons[person_type]:
+                for x in p.first_names:
+                    content[person_type] += x + " "
+                for x in p.last_names:
+                    content[person_type] += x + " "
+                content[person_type] = content[person_type][:-1] + ", "
+            content[person_type] = content[person_type][:-2]
+    return "{key}: {author} ({year}). *{title}*. [link]({url}).".format(**content)
 
 
 def gen_full_biblio_rst(path):

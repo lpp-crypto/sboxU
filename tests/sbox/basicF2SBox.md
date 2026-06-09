@@ -31,16 +31,41 @@ s = get_sbox([57,29,43,15,16,12,10,59,37,63,32,23,9,24,31,1,33,
 We can simply print `s` to see again the LUT, but it is more interesting to pretty print it using the `pprint` function. 
 
 ```python
-print("basic list representation")
+print("basic list representation:")
 print(s)
-print("pretty printing the same information")
+print("\npretty printing the same information:")
 pprint(s)
 ```
 
-### Linear properties
-
 
 ### Differential properties
+
+The study of equations of the form $S(x+a)=S(x)+b$ is of crucial importance, for instance when investigating differential attacks [^C:BihSha91]. `sboxU` provides several utilities for this purpose.
+
+First, it is possible to compute derivatives, i.e. given an S-box `s` to obtain the S-box corresponding to the vectorial boolean function $D_a s: x \mapsto s(x+a)+s(x)$, for any $a$. This is done using the `derivative` function. 
+
+```python
+a = 1
+D_a_s = derivative(s, 1)
+pprint(D_a_s)
+```
+
+As a sanity check, we can verify that $D_a s(x) = D_a s(x + a)$, for all $x$.
+
+```python
+derivative_is_translation_invariant = True
+for x in range(0, 2**s.get_output_length()):
+    if D_a_s[x] != D_a_s[oplus(x, 1)]:
+        fail("derivative should be identical on x and x+a for all x and a, but it isn't the case for x={}, a={}".format(x, a))
+        derivative_is_translation_invariant = False
+if derivative_is_translation_invariant:
+    success("sanity check passed: the derivative on a is invariant under translation by a")
+```
+
+In general, it is convenient to compute the Difference Distribution Table (DDT). It is defined by 
+
+
+### Linear properties
 
 
 ### Boomerang properties
@@ -65,7 +90,8 @@ This will retrieve the LUT of the S-box of the AES from its internal database, a
 
 ```python
 for test in [("AES", 4),
-             ("Kuznyechik", 8)]:
+             ("Kuznyechik", 8),
+             ("Ascon", 8)]:
     name, expected_uniformity = test
     u = differential_uniformity(get_sbox(name))
     if u == expected_uniformity:
@@ -81,3 +107,13 @@ for test in [("AES", 4),
         ))
 
 ```
+
+
+## Univariate polynomials
+
+
+## Operations on S-boxes
+
+
+
+### Composition

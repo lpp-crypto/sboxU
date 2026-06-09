@@ -16,6 +16,7 @@ from cython.operator cimport dereference
 # imports needed to test the input type in the Sb factory
 from sage.all import Polynomial 
 from sage.crypto.sboxes import SBox as sage_SBox
+from sage.crypto.sboxes import sboxes as literature_sboxes
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
 
@@ -769,7 +770,18 @@ def get_Sbox_from_list(s : list, name, input_casts : list, output_casts : list) 
     elif isinstance(s[0], (int, sage_Integer, list)):
         # case of a LUT
         return get_Sbox_from_lut(s, name, input_casts, output_casts)
+
     
+def get_Sbox_from_string(key : str, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
+    if name == None:
+        name = key 
+    if key in literature_sboxes:
+        return get_Sbox_from_sage_SBox(literature_sboxes[key], name, [], [])
+    # !TODO! beter handling of upper/lower case 
+    else:
+        raise Exception("Couldn't figure out what the string meant")
+
+
 
 # !SUBSECTION! Main factory
 
@@ -780,9 +792,11 @@ SBOXU_TYPE_TO_FACTORY = {
     list         : get_Sbox_from_list,
     bytes        : get_Sbox_from_bytes,
     bytearray    : get_Sbox_from_bytes,
+    str          : get_Sbox_from_string,
     
     Polynomial   : get_Sbox_from_univariate_polynomial,
 }
+
 
 def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
     """Turns its input into an object of the S_box class.

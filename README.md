@@ -21,6 +21,7 @@ If you use `sboxU` in a published paper, please cite it using the following bibt
 ```
     @misc{sboxU,
     authors={Léo Perrin,
+    Jens Alich,
     Jules Baudrin,
     Aurélien Boeuf,
     Xavier Bonnetain,

@@ -1,5 +1,7 @@
 from sys import argv
+import re
 
+from sboxU.biblio import *
 
 # !SECTION! The TestTangler class
 
@@ -26,6 +28,7 @@ class TestTangler:
         self.current_block = None
         self.original = None
         self.tangled  = None
+        self.references = []
         
         
     def finalize_current_block(self) -> None:            
@@ -64,7 +67,7 @@ class TestTangler:
                 self.tangled.write(2*self.INDENT + "print('{}')\n".format(title))
         
         
-    def absorb_line(self, line : str):
+    def absorb_line(self, line : str) -> None:
         if line[0:3] == "```":
             if self.current_block != None:
                 self.finalize_current_block()
@@ -74,6 +77,13 @@ class TestTangler:
             self.current_block.append(line)
         elif line[0] == "#":
             self.process_section(line)
+        else:
+            self.maybe_add_reference(line)
+
+            
+    def maybe_add_reference(self, line : str) -> None:
+        for hit in re.findall(r"\[\^.+:.+[0-9]\]", line):
+            self.references.append(hit.replace("^", ""))
         
 
     def process(self):
@@ -89,6 +99,23 @@ class TestTangler:
                         self.absorb_line(line)
                 self.tangled.write(self.INDENT + "return exit_code()\n\n")
                 self.tangled.write(self.FOOTER)
+        if len(self.references) > 0:
+            print("handling refs")
+            self.add_references()
+
+    def add_references(self) -> None:
+        with open(self.original_file, "r") as original:
+            with open(self.original_file + ".tmp", "w") as updated:
+                for line in original.readlines():
+                    if line[0:12] == "# References":
+                        break
+                    else:
+                        updated.write(line)
+                updated.write("\n\n# References\n")
+                for ref in self.references:
+                    updated.write(format_ref_to_md(ref) + "\n")
+                    
+            
                     
 
 # !SECTION! Main program
