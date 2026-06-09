@@ -40,7 +40,7 @@ pprint(s)
 
 ### Differential properties
 
-The study of equations of the form $S(x+a)=S(x)+b$ is of crucial importance, for instance when investigating differential attacks [^C:BihSha91]. `sboxU` provides several utilities for this purpose.
+The study of equations of the form $S(x+a)=S(x)+b$ is of crucial importance, for instance when investigating differential attacks [^C-BihSha91]. `sboxU` provides several utilities for this purpose.
 
 First, it is possible to compute derivatives, i.e. given an S-box `s` to obtain the S-box corresponding to the vectorial boolean function $D_a s: x \mapsto s(x+a)+s(x)$, for any $a$. This is done using the `derivative` function. 
 
@@ -117,3 +117,7 @@ for test in [("AES", 4),
 
 
 ### Composition
+
+
+# References
+[^C-BihSha91]: Eli Biham, Adi Shamir (1990). *Differential Cryptanalysis of DES-like Cryptosystems*. [link](https://doi.org/10.1007/3-540-38424-3_1).
