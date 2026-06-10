@@ -19,13 +19,11 @@ Let's see how this can be done in practice.
 ## Basic functionalities of the S_box class
 
 
-An `S_box` instance can be easily created using the LUT of the function investigated. For example, we generated the LUT of a random permutation of $F_{64}$: here is how to initialize an `S_box` instance using this LUT.
+An `S_box` instance can be easily created using the LUT of the function investigated. For example,  here is how to initialize an `S_box` instance operating on $F_2^6$ that is simply the multiplication by 5 over the integers.
 
 ```python
-s = get_sbox([57,29,43,15,16,12,10,59,37,63,32,23,9,24,31,1,33,
-    26,39,38,18,7,58,49,27,54,62,52,4,53,5,25,47,
-    11,40,0,50,48,8,42,35,13,3,36,2,44,56,6,28,
-    34,17,14,45,30,61,21,51,19,46,60,41,20,55,22])
+N = 6
+s = get_sbox([5*x % 2**N for x in range(0, 2**N)])
 ```
 
 We can simply print `s` to see again the LUT, but it is more interesting to pretty print it using the `pprint` function. 
@@ -38,41 +36,42 @@ pprint(s)
 ```
 
 
-### Differential properties
+### Queries
 
-The study of equations of the form $S(x+a)=S(x)+b$ is of crucial importance, for instance when investigating differential attacks [^C-BihSha91]. `sboxU` provides several utilities for this purpose.
+It is possible to query the content of the lookup of an S-box using the operator $[]$. The operator $()$ can also work but it offers additional functionalities (see the section on "Linear Casts").
 
-First, it is possible to compute derivatives, i.e. given an S-box `s` to obtain the S-box corresponding to the vectorial boolean function $D_a s: x \mapsto s(x+a)+s(x)$, for any $a$. This is done using the `derivative` function. 
-
+For the all 0 vector, we have:
 ```python
-a = 1
-D_a_s = derivative(s, 1)
-pprint(D_a_s)
+if s[0] == 0:
+    success("the output of s on the all zero bit string is indeed {}".format(s[0]))
+else:
+    fail("s[0] should be 0, something went wrong")
 ```
 
-As a sanity check, we can verify that $D_a s(x) = D_a s(x + a)$, for all $x$.
+and for the vector `(1, 0, ..., 0)`, we need to use the integer 1 as the query. We get:
 
 ```python
-derivative_is_translation_invariant = True
-for x in range(0, 2**s.get_output_length()):
-    if D_a_s[x] != D_a_s[oplus(x, 1)]:
-        fail("derivative should be identical on x and x+a for all x and a, but it isn't the case for x={}, a={}".format(x, a))
-        derivative_is_translation_invariant = False
-if derivative_is_translation_invariant:
-    success("sanity check passed: the derivative on a is invariant under translation by a")
+if s[1] == 5:
+    success("the output of s on (1,0,...,0) is indeed {}".format(s[0]))
+else:
+    fail("s[1] should be 5, something went wrong")
 ```
 
-In general, it is convenient to compute the Difference Distribution Table (DDT). It is defined by 
+### Basic quantities
 
 
-### Linear properties
+- input length
+- output length
+- input space
+- input space size
+- is_permutation
 
+### Coordinates and Components
 
-### Boomerang properties
+### Polynomial representations
 
-
-### Polynomial representation
-
+- algegraic normal form
+- univariate
 
 
 
@@ -86,11 +85,11 @@ SUppose that you want to study the S-box of the AES (it has its own [wikipedia p
 s = get_sbox("AES")
 ```
 
-This will retrieve the LUT of the S-box of the AES from its internal database, and generate an object of the class `S_box` (which is assigned to `s`). 
+This will retrieve the LUT of the S-box of the AES from its internal database, and generate an object of the class `S_box` (which is assigned to `s`). Thus, the following snippet grabs several S-boxes from the literature (namely, from the AES[^EC-DaeRij02], Ascon[^JC-DEMS21], and PRESENT[^CHES-BKLP+07].
 
 ```python
 for test in [("AES", 4),
-             ("Kuznyechik", 8),
+             ("PRESENT", 4),
              ("Ascon", 8)]:
     name, expected_uniformity = test
     u = differential_uniformity(get_sbox(name))
@@ -112,8 +111,29 @@ for test in [("AES", 4),
 ## Univariate polynomials
 
 
+```python
+field = GF(2**5)
+g = field.gen()
+X = PolynomialRing(field, "x").gen()
+cube = get_sbox(X**3)
+cube_plus = get_sbox(X**3 + g*X)
+```
+
+
 ## Operations on S-boxes
 
+### Addition
+
+It is possible to add to S-boxes.
+
+```python
+diff = cube + cube_plus 
+is_linear = (differential_uniformity(diff) == 2**5)
+if is_linear:
+    success("the sum of X^3 and X^3+gX is indeed an affine function")
+else:
+    fail("something went wrong, gX should be affine")
+```
 
 
 ### Composition
@@ -121,7 +141,16 @@ for test in [("AES", 4),
 
 
 
-# References
 
-[^C-BihSha91]: Eli Biham and Adi Shamir. Differential cryptanalysis of des-like cryptosystems. In Alfred Menezes and Scott A. Vanstone, editors, Advances in Cryptology - CRYPTO '90, 10th Annual International Cryptology Conference, Santa Barbara, California, USA, August 11-15, 1990, Proceedings, Lecture Notes in Computer Science, 2–21. Springer, 1990. URL: https://doi.org/10.1007/3-540-38424-3_1, doi:10.1007/3-540-38424-3_1.
+
+
+
+
+## References
+
+[^EC-DaeRij02]: Joan Daemen and Vincent Rijmen. AES and the wide trail design strategy. In Lars R. Knudsen, editor, Advances in Cryptology - EUROCRYPT 2002, International Conference on the Theory and Applications of Cryptographic Techniques, Amsterdam, The Netherlands, April 28 - May 2, 2002, Proceedings, Lecture Notes in Computer Science, 108–109. Springer, 2002. URL: https://doi.org/10.1007/3-540-46035-7_7, doi:10.1007/3-540-46035-7_7.
+
+[^JC-DEMS21]: Christoph Dobraunig, Maria Eichlseder, Florian Mendel, and Martin Schläffer. Ascon v1.2: lightweight authenticated encryption and hashing. J. Cryptol., 34(3):33, 2021. URL: https://doi.org/10.1007/s00145-021-09398-9, doi:10.1007/S00145-021-09398-9.
+
+[^CHES-BKLP+07]: Andrey Bogdanov, Lars R. Knudsen, Gregor Leander, Christof Paar, Axel Poschmann, Matthew J. B. Robshaw, Yannick Seurin, and C. Vikkelsoe. PRESENT: an ultra-lightweight block cipher. In Pascal Paillier and Ingrid Verbauwhede, editors, Cryptographic Hardware and Embedded Systems - CHES 2007, 9th International Workshop, Vienna, Austria, September 10-13, 2007, Proceedings, Lecture Notes in Computer Science, 450–466. Springer, 2007. URL: https://doi.org/10.1007/978-3-540-74735-2_31, doi:10.1007/978-3-540-74735-2_31.
 

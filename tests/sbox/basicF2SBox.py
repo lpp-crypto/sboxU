@@ -1,14 +1,15 @@
+#!/usr/bin/env python
 import sys
 from sage.all import *
 from sboxU import *
+
+
 def main_test():
-    with Experiment(' Basic functionalities of the S_box class'):
-        section(' Basic functionalities of the S_box class')
+    with Experiment('Dealing with S-boxes in F_2'):
+        section('Basic functionalities of the S_box class')
         # --- { 
-        s = get_sbox([57,29,43,15,16,12,10,59,37,63,32,23,9,24,31,1,33,
-            26,39,38,18,7,58,49,27,54,62,52,4,53,5,25,47,
-            11,40,0,50,48,8,42,35,13,3,36,2,44,56,6,28,
-            34,17,14,45,30,61,21,51,19,46,60,41,20,55,22])
+        N = 6
+        s = get_sbox([5*x % 2**N for x in range(0, 2**N)])
         # --- } 
         # --- { 
         print("basic list representation:")
@@ -16,32 +17,28 @@ def main_test():
         print("\npretty printing the same information:")
         pprint(s)
         # --- } 
-        subsection(' Differential properties')
+        subsection('Queries')
         # --- { 
-        a = 1
-        D_a_s = derivative(s, 1)
-        pprint(D_a_s)
+        if s[0] == 0:
+            success("the output of s on the all zero bit string is indeed {}".format(s[0]))
+        else:
+            fail("s[0] should be 0, something went wrong")
         # --- } 
         # --- { 
-        derivative_is_translation_invariant = True
-        for x in range(0, 2**s.get_output_length()):
-            if D_a_s[x] != D_a_s[oplus(x, 1)]:
-                fail("derivative should be identical on x and x+a for all x and a, but it isn't the case for x={}, a={}".format(x, a))
-                derivative_is_translation_invariant = False
-        if derivative_is_translation_invariant:
-            success("sanity check passed: the derivative on a is invariant under translation by a")
+        if s[1] == 5:
+            success("the output of s on (1,0,...,0) is indeed {}".format(s[0]))
+        else:
+            fail("s[1] should be 5, something went wrong")
         # --- } 
-        subsection(' Linear properties')
-        subsection(' Boomerang properties')
-        subsection(' Polynomial representation')
-        section(' Building an S-box')
-        subsection(' The case of S-boxes from the literature')
+        subsection('Polynomial representation')
+        section('Building an S-box')
+        subsection('The case of S-boxes from the literature')
         # --- { 
         s = get_sbox("AES")
         # --- } 
         # --- { 
         for test in [("AES", 4),
-                     ("Kuznyechik", 8),
+                     ("PRESENT", 4),
                      ("Ascon", 8)]:
             name, expected_uniformity = test
             u = differential_uniformity(get_sbox(name))
@@ -57,9 +54,26 @@ def main_test():
                     u
                 ))
         # --- } 
-        section(' Univariate polynomials')
-        section(' Operations on S-boxes')
-        subsection(' Composition')
+        section('Univariate polynomials')
+        # --- { 
+        field = GF(2**5)
+        g = field.gen()
+        X = PolynomialRing(field, "x").gen()
+        cube = get_sbox(X**3)
+        cube_plus = get_sbox(X**3 + g*X)
+        # --- } 
+        section('Operations on S-boxes')
+        subsection('Addition')
+        # --- { 
+        diff = cube + cube_plus 
+        is_linear = (differential_uniformity(diff) == 2**5)
+        if is_linear:
+            success("the sum of X^3 and X^3+gX is indeed an affine function")
+        else:
+            fail("something went wrong, gX should be affine")
+        # --- } 
+        subsection('Composition')
+        section('References')
     return exit_code()
 
 

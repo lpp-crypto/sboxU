@@ -73,7 +73,7 @@ class TestTangler:
 
             
     def start_experiment(self) -> None:
-        print(SHEBANG)
+        self.tangled.write(SHEBANG + "\n")
         for line in self.preamble:
             self.tangled.write(line + "\n")
         self.tangled.write("\n\ndef main_test():\n")
@@ -103,7 +103,7 @@ class TestTangler:
                 self.tangled.write(2*self.INDENT + "subsection('{}')\n".format(title))
         else: # all other sections
             if PREAMBLE_TITLE not in title:
-                self.tangled.write(2*self.INDENT + "print('{}')\n".format(title))
+                self.tangled.write(2*self.INDENT + "pprint('[bold]{}[/bold]')\n".format(title))
         
         
     def absorb_line(self, line : str) -> None:
