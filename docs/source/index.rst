@@ -31,6 +31,7 @@ following bibtex entry:
 
        @misc{sboxU,
        authors={Léo Perrin,
+       Jens Alich,
        Jules Baudrin,
        Aurélien Boeuf,
        Xavier Bonnetain,
@@ -162,5 +163,7 @@ Contributors
    ./modules.rst
    ./apn-study.rst
    ./bibliography.rst
+   ./basic.rst
    ./anomalies.rst
+   ./tables.rst
 

@@ -11,6 +11,8 @@ rm -rf ./build/*
 echo "building additional doc"
 # grabbing tutorials/tests
 pandoc ../tests/statistics/anomalies.md -o source/anomalies.rst
+pandoc ../tests/statistics/tables.md -o source/tables.rst
+pandoc ../tests/sbox/basicF2SBox.md -o source/basic.rst
 
 
 # building index.rst
@@ -24,7 +26,9 @@ echo "
    ./modules.rst
    ./apn-study.rst
    ./bibliography.rst
+   ./basic.rst
    ./anomalies.rst
+   ./tables.rst
 " >> source/index.rst 
 
 
