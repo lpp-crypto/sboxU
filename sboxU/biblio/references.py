@@ -37,12 +37,12 @@ def cite(key):
     if target in SboxU_BIBLIOGRAPHY.entries.keys():
         return SboxU_BIBLIOGRAPHY.entries[target]
     else:
-        return "{} not found in bibliography".format(target)
+        return False
 
 
 
 def find_citations_in_string(line : str) -> list:
-    return re.findall(r"\[.+:.+[0-9]\]", line)
+    return re.findall(r"\[[A-Za-z]+:[A-Za-z\+]+[0-9]*\]", line)
 
 
 def who_to_cite(sboxU_tool):
@@ -88,11 +88,14 @@ def format_to_rst(entry, key):
 
 def format_ref_to_md(key):
     entry = cite(key)
+    if not entry:
+        return "{} not found".format(key)
     # return pybtex_backend.render_sequence(entry.text.parts)
     content = entry.fields
     content["key"] = key.replace("[", "[^")
-    content["url"] = content["url"].replace("\\_", "_")
-    content["doi"] = content["doi"].replace("\\_", "_")
+    for link_field in ["url", "doi"]:
+        if link_field in content:
+            content[link_field] = content[link_field].replace("\\_", "_")
     bib_single = BibliographyData(entries={key: entry})
     formatted = pybtex_style.format_bibliography(bib_single)
     entry_text = list(formatted.entries)[0].text

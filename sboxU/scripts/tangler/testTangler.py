@@ -4,6 +4,8 @@ import os
 
 from sboxU.biblio import *
 
+REFERENCE_HEADER = "## References"
+
 # !SECTION! The TestTangler class
 
 class TestTangler:
@@ -83,7 +85,7 @@ class TestTangler:
 
             
     def maybe_add_reference(self, line : str) -> None:
-        for hit in re.findall(r"\[\^.+-.+[0-9]\]", line):
+        for hit in re.findall(r"\[\^[A-Za-z]+-[A-Za-z\+]+[0-9]*\]", line):
             ref = hit.replace("^", "")
             if ref not in self.references:
                 self.references.append(ref)
@@ -101,7 +103,7 @@ class TestTangler:
                 for line in original.readlines():
                     if len(line) > 3:
                         self.absorb_line(line)
-                        if line[0:12] == "# References":
+                        if line[0:len(REFERENCE_HEADER)] == REFERENCE_HEADER:
                             break
                 self.tangled.write(self.INDENT + "return exit_code()\n\n")
                 self.tangled.write(self.FOOTER)
@@ -115,11 +117,11 @@ class TestTangler:
         with open(self.original_file, "r") as original:
             with open(tmp_file, "w") as updated:
                 for line in original.readlines():
-                    if line[0:12] == "# References":
+                    if line[0:len(REFERENCE_HEADER)] == REFERENCE_HEADER:
                         break
                     else:
                         updated.write(line)
-                updated.write("\n\n# References\n\n")
+                updated.write("\n\n{}\n\n".format(REFERENCE_HEADER))
                 for ref in self.references:
                     line = format_ref_to_md(ref)
                     updated.write(line + "\n\n")
