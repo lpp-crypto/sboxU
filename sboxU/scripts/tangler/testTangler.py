@@ -5,6 +5,8 @@ import os
 from sboxU.biblio import *
 
 REFERENCE_HEADER = "## References"
+BLOCK_DELIMITER = "```"
+
 
 # !SECTION! The TestTangler class
 
@@ -40,9 +42,9 @@ class TestTangler:
         for line in self.current_block:
             self.tangled.write(local_indent + line)
         self.tangled.write(local_indent + self.BLOCK_END)
-        self.current_block = None    
         if self.verbose:
             print("tangled {} lines".format(len(self.current_block)))
+        self.current_block = None    
 
             
     def start_experiment(self, title : str) -> None:
@@ -71,14 +73,20 @@ class TestTangler:
         
         
     def absorb_line(self, line : str) -> None:
-        if line[0:3] == "```":
+        if line.startswith(BLOCK_DELIMITER):
             if self.current_block != None:
                 self.finalize_current_block()
+                if self.verbose:
+                    print("--- }")
             else:
                 self.current_block = []
+                if self.verbose:
+                    print("--- {")
         elif isinstance(self.current_block, (list)):
             self.current_block.append(line)
-        elif line[0] == "#":
+            if self.verbose:
+                print(line, len(self.current_block))
+        elif line.startswith("#"):
             self.process_section(line)
         else:
             self.maybe_add_reference(line)
@@ -101,9 +109,9 @@ class TestTangler:
                 self.tangled = tangled
                 self.tangled.write(self.HEADER)
                 for line in original.readlines():
-                    if len(line) > 3:
+                    if len(line) > 1:
                         self.absorb_line(line)
-                        if line[0:len(REFERENCE_HEADER)] == REFERENCE_HEADER:
+                        if line.startswith(REFERENCE_HEADER):
                             break
                 self.tangled.write(self.INDENT + "return exit_code()\n\n")
                 self.tangled.write(self.FOOTER)
@@ -117,7 +125,7 @@ class TestTangler:
         with open(self.original_file, "r") as original:
             with open(tmp_file, "w") as updated:
                 for line in original.readlines():
-                    if line[0:len(REFERENCE_HEADER)] == REFERENCE_HEADER:
+                    if line.startswith(REFERENCE_HEADER):
                         break
                     else:
                         updated.write(line)
@@ -134,7 +142,7 @@ class TestTangler:
 # !SECTION! Main program
 
 def main_cli():
-    t = TestTangler(argv[1])
+    t = TestTangler(argv[1], verbose=False)
     t.process()
 
     

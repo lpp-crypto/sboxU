@@ -153,21 +153,6 @@ As you can see by running this code, modeling the table coefficients like indepe
 
 
 
-
-
-
-# References
-
-[^AC-BonPerTia19]: Xavier Bonnetain, Léo Perrin, and Shizhu Tian. Anomalies and vector space search: tools for s-box analysis. In Steven D. Galbraith and Shiho Moriai, editors, Advances in Cryptology - ASIACRYPT 2019 - 25th International Conference on the Theory and Application of Cryptology and Information Security, Kobe, Japan, December 8-12, 2019, Proceedings, Part I, volume 11921 of Lecture Notes in Computer Science, 196–223. Springer, 2019. URL: https://doi.org/10.1007/978-3-030-34578-5_8, doi:10.1007/978-3-030-34578-5_8.
-
-[^C-BirPer15]: Alex Biryukov and Léo Perrin. On reverse-engineering s-boxes with hidden design criteria or structure. In Rosario Gennaro and Matthew Robshaw, editors, Advances in Cryptology - CRYPTO 2015 - 35th Annual Cryptology Conference, Santa Barbara, CA, USA, August 16-20, 2015, Proceedings, Part I, volume 9215 of Lecture Notes in Computer Science, 116–140. Springer, 2015. URL: https://doi.org/10.1007/978-3-662-47989-6_6, doi:10.1007/978-3-662-47989-6_6.
-
-[PhD-Perrin17] not found
-
-[^JMC-DaeRij07]: Joan Daemen and Vincent Rijmen. Probability distributions of correlation and differentials in block ciphers. J. Math. Cryptol., 1(3):221–242, 2007. URL: https://doi.org/10.1515/JMC.2007.011, doi:10.1515/JMC.2007.011.
-
-
-
 ## References
 
 [^AC-BonPerTia19]: Xavier Bonnetain, Léo Perrin, and Shizhu Tian. Anomalies and vector space search: tools for s-box analysis. In Steven D. Galbraith and Shiho Moriai, editors, Advances in Cryptology - ASIACRYPT 2019 - 25th International Conference on the Theory and Application of Cryptology and Information Security, Kobe, Japan, December 8-12, 2019, Proceedings, Part I, volume 11921 of Lecture Notes in Computer Science, 196–223. Springer, 2019. URL: https://doi.org/10.1007/978-3-030-34578-5_8, doi:10.1007/978-3-030-34578-5_8.
