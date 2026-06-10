@@ -58,14 +58,17 @@ class TestTangler:
         self.preamble = DEFAULT_PREAMBLE
         
         
-    def finalize_current_block(self) -> None:            
-        local_indent = 2*self.INDENT if self.experiment_has_started else ""
-        self.tangled.write(local_indent + self.BLOCK_BEGIN)
-        for line in self.current_block:
-            self.tangled.write(local_indent + line)
-        self.tangled.write(local_indent + self.BLOCK_END)
-        if self.verbose:
-            print("tangled {} lines".format(len(self.current_block)))
+    def finalize_current_block(self) -> None:
+        if self.experiment_has_started:
+            local_indent = 2*self.INDENT
+            self.tangled.write(local_indent + self.BLOCK_BEGIN)
+            for line in self.current_block:
+                self.tangled.write(local_indent + line)
+            self.tangled.write(local_indent + self.BLOCK_END)
+            if self.verbose:
+                print("tangled {} lines".format(len(self.current_block)))
+        else:
+            self.preamble += self.current_block
         self.current_block = None    
 
             
