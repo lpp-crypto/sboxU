@@ -17,4 +17,5 @@ from sboxU.core.sbox.misc import \
     is_permutation
 
 from sboxU.core.sbox.linearCasts import \
-    CastToF2Product, CastFromF2Product, canonical_cast
+    CastToF2Product, CastFromF2Product, canonical_cast, \
+    CastFromF2n, CastToF2n, casts_from_field
