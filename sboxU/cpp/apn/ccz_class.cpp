@@ -129,8 +129,12 @@ std::vector<cpp_F2AffineMap> cpp_graph_automorphisms_from_derivatives(
     const cpp_S_box & s
     )
 {
-    // !TODO! 
     std::vector<cpp_F2AffineMap> result;
+    //for(BinWord delta=0; delta<pw_n; delta++)
+    {
+        // !TODO! use function returning derivative and build affine map from the result if the derivative is affine
+        //automorphisms.push_back(A);
+    }
     return result;
 }
 

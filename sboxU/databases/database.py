@@ -82,7 +82,11 @@ class FunctionsDB:
                     ))
             else:
                 where_clause += constraint + " = ? AND "
-                values.append(query_description[constraint])
+                # the following is needed to ensure an integer is indeed a python-style `int` and not a SAGE-style `Integer`
+                if self.row_structure[constraint] == "INTEGER":
+                    values.append(int(query_description[constraint]))
+                else:
+                    values.append(query_description[constraint])
         values = tuple(values)
         where_clause = where_clause[:-4]
         self.cursor.execute(where_clause, values)

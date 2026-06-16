@@ -124,7 +124,7 @@ cube_plus = get_sbox(X**3 + g*X)
 
 ### Addition
 
-It is possible to add to S-boxes.
+It is possible to add to S-boxes, i.e. to obtain a new S-box whose LUT is the xor of the LUTs of several other S-boxes. The `+` operator is simply overloaded.
 
 ```python
 diff = cube + cube_plus 
@@ -138,7 +138,7 @@ else:
 
 ### Composition
 
-
+The multiplication operation (`*`) is also overloaded, but it corresponds to function composition.
 
 
 
