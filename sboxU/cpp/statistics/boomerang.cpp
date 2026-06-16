@@ -15,7 +15,24 @@ std::vector<Integer> cpp_bct_row(
         return std::vector<Integer>(s.output_space_size(),s.input_space_size());
 
     std::vector<Integer> result(s.output_space_size(), 0);
-    std::vector<std::vector<BinWord> > xor_list(s.output_space_size(), std::vector<BinWord>(0));
+
+    // Flat linked-list structure replacing vector<vector<BinWord>>.
+    // For each output difference z, we maintain a singly-linked list of all
+    // y1 values seen so far with that z. This avoids N heap allocations and
+    // keeps all data cache-local in three contiguous arrays.
+    //
+    // pool[i]  : the i-th stored y1 value
+    // head[z]  : index in pool of the most recently inserted y1 for bucket z
+    //            (-1 if the bucket is empty)
+    // next[i]  : index in pool of the previous y1 in the same bucket as pool[i]
+    //            (-1 if pool[i] is the oldest entry in its bucket)
+    //
+    // At most N/2 entries are inserted in total (one per coset representative).
+    std::vector<BinWord> pool(s.input_space_size() / 2);
+    std::vector<int> head(s.output_space_size(), -1);
+    std::vector<int> next(s.input_space_size() / 2, -1);
+    int pool_idx = 0;
+
     result[0] = s.input_space_size();
 
     FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,s.input_space_size())
@@ -23,11 +40,19 @@ std::vector<Integer> cpp_bct_row(
         BinWord y1 = s[x];
         BinWord z = y1 ^ s[x^a];
 
-        for(auto y2 : xor_list[z]){
-            result[ y1 ^ y2 ] += 4;
-            result[ y1 ^ y2 ^ z] += 4;
+        // For each previously seen y2 with the same output difference z,
+        // both (y1^y2) and (y1^y2^z) are valid output differences for the BCT.
+        for(int i = head[z]; i != -1; i = next[i])
+        {
+            result[ y1 ^ pool[i] ] += 4;
+            result[ y1 ^ pool[i] ^ z] += 4;
         }
-        xor_list[z].push_back(y1);
+
+        // Insert y1 at the head of the linked list for bucket z.
+        pool[pool_idx] = y1;
+        next[pool_idx] = head[z];
+        head[z] = pool_idx++;
+
         result[z] += 2;
     }
     return result;
