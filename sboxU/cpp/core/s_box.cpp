@@ -31,8 +31,10 @@ cpp_S_box::cpp_S_box(std::vector<BinWord> _lut) :
 }
 
 
-cpp_S_box::cpp_S_box(Bytearray bytes) 
+cpp_S_box::cpp_S_box(Bytearray bytes)
 {
+    if (bytes.empty())
+        throw std::runtime_error("cpp_S_box(Bytearray): empty input");
     output_length = bytes[0];
     if (output_length <= 4)
     {
