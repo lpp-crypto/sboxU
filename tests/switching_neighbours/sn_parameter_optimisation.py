@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 import time
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +13,7 @@ def time_f(n, m, n_repeat):
     times = []
     for _ in range(n_repeat):
         t0 = time.perf_counter()
-        non_trivial_sn(0,Sb(X**3),n, m)
+        non_trivial_sn(0,get_sbox(X**3),n, m)
         t1 = time.perf_counter()
         times.append(t1 - t0)
     return np.mean(times)
@@ -99,7 +99,7 @@ if __name__ == "__main__":
     # Choose an APN function
     field = GF(2**n)
     X = PolynomialRing(field, "X").gen()
-    s = Sb(X**3)
+    s = get_sbox(X**3)
     # Choose a range of size for the first batch 
     first_batch_start = 625
     first_batch_end = 640

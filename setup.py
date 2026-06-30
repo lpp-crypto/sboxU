@@ -49,16 +49,16 @@ def declare_cython(full_module_name):
 # ! It is crucial that the module with index i only depends on modules with indices j with j<i
 
 all_cython_extensions = [ declare_cython(name) for name in [
-    "sboxUv2.core.f2functions.cython_functions",
-    "sboxUv2.core.spectrum.cython_functions",
-    "sboxUv2.core.sbox.cython_functions",
-    "sboxUv2.core.anf.cython_functions",
-    "sboxUv2.core.building_blocks.cython_functions",
-    "sboxUv2.algorithms.cython_functions",
-    "sboxUv2.statistics.cython_functions",
-    "sboxUv2.ccz.cython_functions",
-    "sboxUv2.ccz.affine_equivalence.cython_functions",
-    "sboxUv2.apn.cython_functions",
+    "sboxU.core.f2functions.cython_functions",
+    "sboxU.core.spectrum.cython_functions",
+    "sboxU.core.sbox.cython_functions",
+    "sboxU.core.anf.cython_functions",
+    "sboxU.core.building_blocks.cython_functions",
+    "sboxU.algorithms.cython_functions",
+    "sboxU.statistics.cython_functions",
+    "sboxU.ccz.cython_functions",
+    "sboxU.ccz.affine_equivalence.cython_functions",
+    "sboxU.apn.cython_functions",
 ]]
 
 

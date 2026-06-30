@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 def are_ea_equivalent_from_vq(f,g):
 
@@ -73,11 +73,11 @@ with Experiment("Testing APN functions-related functions"):
     g = field.gen()
     
     
-    s_boxes  = [ Sb(X**3 + X**17 + g**16*(X**18 + X**33) + g**15*X**48),
-        Sb(X**3 + g**24*X**6 + g**182*X**132 + g**67*X**192),
-        Sb(X**3 + X**6 + X**68 + X**80 + X**132 + X**160),
-        Sb(X**3 + X**5 + X**18 + X**40 + X**66),
-        Sb(X**3 + X**12 + X**40 + X**66 + X**130 ),]
+    s_boxes  = [ get_sbox(X**3 + X**17 + g**16*(X**18 + X**33) + g**15*X**48),
+        get_sbox(X**3 + g**24*X**6 + g**182*X**132 + g**67*X**192),
+        get_sbox(X**3 + X**6 + X**68 + X**80 + X**132 + X**160),
+        get_sbox(X**3 + X**5 + X**18 + X**40 + X**66),
+        get_sbox(X**3 + X**12 + X**40 + X**66 + X**130 ),]
 
 
     section("Moebius Transform Check")

@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 from time import *
 import hashlib
 from tqdm import *

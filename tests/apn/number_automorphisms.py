@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 
 with Experiment("Testing APN functions-related functions"):

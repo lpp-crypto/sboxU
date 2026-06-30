@@ -1,6 +1,6 @@
 
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 n = 10
 

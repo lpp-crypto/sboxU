@@ -1,0 +1,94 @@
+# -*- python -*-
+
+from sboxU.cython_types cimport *
+from sboxU.core cimport *
+from sboxU.statistics cimport *
+from sboxU.ccz cimport *
+
+
+# !SECTION! Declaring C++ code
+
+# !SUBSECTION! Invariants
+
+cdef extern from "../cpp/apn/ortho_derivative.hpp":
+    cpp_S_box cpp_ortho_derivative(
+        const cpp_S_box &q
+    )
+
+    cpp_S_box cpp_ortho_integral(
+        const cpp_S_box &s
+    )
+
+    
+cdef extern from "../cpp/apn/ortho_derivative.cpp":
+    pass
+
+
+# !SUBSECTION! Invariants
+
+cdef extern from "../cpp/apn/invariants.hpp":
+
+    cpp_Spectrum cpp_sigma_multiplicities(
+        const cpp_S_box &f,
+        const int64_t k,
+        const int64_t n_threads
+    )
+
+    
+    string cpp_apn_ea_mugshot(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
+    
+    string cpp_apn_ea_mugshot(
+        const cpp_Spectrum &abs_walsh_spec,
+        const cpp_Spectrum &deg_spec,
+        const cpp_Spectrum &sig_mult,
+        const cpp_Spectrum &thk_spec
+    )
+
+
+    
+cdef extern from "../cpp/apn/invariants.cpp":
+    pass
+
+
+# !SUBSECTION! Exploring the CCZ class
+
+cdef extern from "../cpp/apn/ccz_class.hpp":
+    std_vector[cpp_F2AffineMap] cpp_automorphisms_from_ortho_derivative(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+
+    std_vector[cpp_F2AffineMap] cpp_ea_mappings_from_ortho_derivative(
+        const cpp_S_box & s,
+        const cpp_S_box & s_prime,
+        const unsigned int n_threads
+    )
+
+    std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
+        const cpp_S_box &s,
+        const unsigned int n_threads
+    )
+
+    cpp_S_box cpp_ccz_equivalent_quadratic_function(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
+
+
+
+cdef extern from "../cpp/apn/ccz_class.cpp":
+    pass
+
+
+# !SUBSECTION! Switching Neighbours
+
+cdef extern from "../../cpp/apn/sn.hpp":
+    
+    std_vector[std_vector[cpp_S_box]] cpp_non_trivial_sn (const cpp_S_box & f, cpp_Integer n_eq, cpp_Integer n_step)
+
+cdef extern from "../../cpp/apn/sn.cpp":
+    pass

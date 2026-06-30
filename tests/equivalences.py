@@ -1,6 +1,6 @@
 from sage.all import *
 from sage.crypto import sboxes
-from sboxUv2 import *
+from sboxU import *
 import random
 import itertools
 import time
@@ -66,13 +66,13 @@ def test_ea_equivalence(s1, s2, nb_tests, test_from_code=True):
         print_bool(are_ea_equivalent_from_code(s1, s2))
     # 2. Modify each of them by EA mappings and test again
     for _ in range(nb_tests):
-        A1, A2, B1, B2 = [Sb(linear_function_matrix_to_lut(rand_linear_permutation(n))) for _ in range(4)]
-        C1, C2 = [Sb(linear_function_matrix_to_lut(rand_linear_function(n, n))) for _ in range(2)]
+        A1, A2, B1, B2 = [get_sbox(linear_function_matrix_to_lut(rand_linear_permutation(n))) for _ in range(4)]
+        C1, C2 = [get_sbox(linear_function_matrix_to_lut(rand_linear_function(n, n))) for _ in range(2)]
         a1, a2, b1, b2 = [randint(0, len(s1)-1) for _ in range(4)]
         s1_bis = A1 * s1 * B1 + C1
         s2_bis = A2 * s2 * B2 + C2
-        s1_bis = Sb([s1_bis[x ^ a1] ^ b1 for x in range(len(s1))])
-        s2_bis = Sb([s2_bis[x ^ a2] ^ b2 for x in range(len(s2))])
+        s1_bis = get_sbox([s1_bis[x ^ a1] ^ b1 for x in range(len(s1))])
+        s2_bis = get_sbox([s2_bis[x ^ a2] ^ b2 for x in range(len(s2))])
         print_bool(are_ea_equivalent(s1_bis, s2_bis))
         if test_from_code:
             print_bool(are_ea_equivalent_from_code(s1_bis, s2_bis))
@@ -117,7 +117,7 @@ def cardinal_of_automorphisms_group_banff_list():
 
 if __name__ == '__main__':
     n = 5
-    ascon = Sb(list(sboxes.sboxes['Ascon']))
+    ascon = get_sbox(list(sboxes.sboxes['Ascon']))
 
     # 1) THIS SHOULD WORK
     #test_ea_equivalence(ascon, ascon, 20)
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     #2) THERE IS STILL A REPRESENTATION PROBLEM BETWEEN THESE TWO FUNCTIONS
     # TODO Investigate
-    aut = set([tuple(Sb(t).lut()) for t in automorphisms_from_ortho_derivative(banff_list[4])])
-    aut_bis = set([tuple(Sb(t[0].transpose()).lut()) for t in ea_equivalences(banff_list[4], banff_list[4])])
+    aut = set([tuple(get_sbox(t).lut()) for t in automorphisms_from_ortho_derivative(banff_list[4])])
+    aut_bis = set([tuple(get_sbox(t[0].transpose()).lut()) for t in ea_equivalences(banff_list[4], banff_list[4])])
     print(len(aut_bis), len(aut))
     print(aut == aut_bis)

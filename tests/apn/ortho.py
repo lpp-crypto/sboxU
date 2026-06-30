@@ -1,5 +1,5 @@
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 
 import itertools 
 
@@ -33,8 +33,8 @@ if __name__ == "__main__":
         X = PolynomialRing(field, "X").gen()
         g = field.gen()
 
-        cube = Sb(X**3)
-        not_cube = Sb(X**3 + g**11*X**6 + g*X**9)
+        cube = get_sbox(X**3)
+        not_cube = get_sbox(X**3 + g**11*X**6 + g*X**9)
 
         A = rand_linear_permutation(n)
         B = rand_linear_permutation(n)
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         print(A)
         print()
         print(B)
-        other_func = Sb(B) * cube * Sb(A) + Sb(C)
+        other_func = get_sbox(B) * cube * get_sbox(A) + get_sbox(C)
 
         section("functions considered")
         

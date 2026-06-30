@@ -2,14 +2,14 @@ from sage.all import *
 from sage.crypto.sboxes import sboxes
 from collections import defaultdict
 
-from timer import *
+# from timer import *
 
-from sboxUv2 import *
+from sboxU import *
 
 
 for t in range(0, 10):
     v = [randint(-4, 4) for i in range(0, 10)]
-    sp = Spctr(v)
+    sp = get_Spectrum(v)
     v.sort()
     print("\n", v)
     print(sp.maximum(), sp.keys(), [(k,sp[k]) for k in sp.keys()])
@@ -35,7 +35,7 @@ for t in range(0, 10):
 
 for name in ["Kuznyechik", "Fantomas"]:
     print("\n\n", name)
-    s = Sb(sboxes[name])
+    s = get_sbox(sboxes[name])
     for tab in ["DDT", "LAT", "BCT"]:
         print(
             tab,

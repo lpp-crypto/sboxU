@@ -11,7 +11,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'sboxU'
-copyright = '2025, Léo Perrin'
+copyright = '2026, Léo Perrin'
 author = 'Léo Perrin'
 release = '2.0'
 
@@ -32,7 +32,7 @@ napoleon_include_private_with_doc = False
 
 
 templates_path = ['_templates']
-exclude_patterns = []
+exclude_patterns = ["sboxU/scripts/**"]
 
 
 

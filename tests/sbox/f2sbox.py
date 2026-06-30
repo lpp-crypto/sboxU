@@ -1,7 +1,7 @@
 # -*- python -*-
 
 
-from sboxUv2 import *
+from sboxU import *
 from sage.crypto.sboxes import sboxes
 from sage.all import *
 
@@ -10,10 +10,10 @@ if __name__ == "__main__":
     with Experiment("Testing S-boxes in F_2"):
         section("Basic functionalities")
         
-        u = Sb(list(range(0, 16)))
+        u = get_sbox(list(range(0, 16)))
         s = random_permutation_S_box(4)
         t = random_function_S_box(4, 2, name="t")
-        s_prime = Sb(list(s), name="S'")
+        s_prime = get_sbox(list(s), name="S'")
         print("u      |", u)
         print("t      |", t)
         print("s      |", s)
@@ -72,9 +72,9 @@ if __name__ == "__main__":
         g = GF(16)
         print("gf_inv", monomial(14, g))
         X = PolynomialRing(g, "X").gen()
-        print("other_inv", Sb(X**14))
+        print("other_inv", get_sbox(X**14))
     
-        sb0 = Sb(sboxes["Midori_Sb0"], name="Midori_Sb0")
+        sb0 = get_sbox(sboxes["Midori_Sb0"], name="Midori_Sb0")
         print("Midori_Sb0", sb0)
         print("Midori_Sb0 ** 2", sb0 ** 2)
         
@@ -88,3 +88,15 @@ if __name__ == "__main__":
         s_prod.attach_casts_pair(c, c_inv)
         for x in c.structure([2, "*"]):
             print(x, s_prod(x))
+
+        section("Generating random S-boxes")
+
+        for n in range(3, 11):
+            print("\n\n----\n", n)
+            for t in range(0, 3):
+                s = random_function_S_box(randint(2, 7), n)
+                b = s.to_bytes()
+                print("\n{}\n{}\n{}".format(
+                    b,
+                    s,
+                    get_sbox(b)))

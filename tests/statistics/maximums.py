@@ -1,6 +1,6 @@
 # ~/~ begin <<anomalies.md#maximums.py>>[init]
 from sage.all import *
-from sboxUv2 import *
+from sboxU import *
 from collections import defaultdict
 # ~/~ end
 # ~/~ begin <<anomalies.md#maximums.py>>[1]

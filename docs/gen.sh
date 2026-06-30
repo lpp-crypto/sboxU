@@ -5,13 +5,40 @@
 # =======================
 
 # -- cleaning up
-rm source/sboxUv2*.rst
+rm -f source/sboxU*.rst
 rm -rf ./build/*
+
+echo "building additional doc"
+# grabbing tutorials/tests
+pandoc ../tests/statistics/anomalies.md -o source/anomalies.rst
+pandoc ../tests/statistics/tables.md -o source/tables.rst
+pandoc ../tests/sbox/basicF2SBox.md -o source/basic.rst
+
+
+# building index.rst
+pandoc ../README.md -o source/index.rst
+sed "s/docs\/source\/logo-v2-5.png/logo-v2-5.png/g" -i source/index.rst
+echo "
+.. toctree::
+   :maxdepth: 1
+   :caption: Tutorials
+
+   ./basic.rst
+   ./tables.rst
+   ./anomalies.rst
+ 
+.. toctree::
+   :maxdepth: 2
+   :caption: API documentation
+
+   ./sboxU.rst
+" >> source/index.rst 
+
 
 
 PYTHONPATH="$PYTHONPATH:.."
 # -- parsing the docstrings
-sphinx-apidoc ../sboxUv2 -o source -M
+sphinx-apidoc -M -o source ../sboxU "../sboxU/scripts/apnDB/*QAM.py" "../sboxU/scripts/apnDB/BeierleLeander.py" "../sboxU/scripts/apnDB/apn_8bit_BLP22.py" 
 
 # -- generating the bibliography
 #sage ./biblio.py "gen"

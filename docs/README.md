@@ -4,10 +4,10 @@ Documentation
 
 In order to generate the documentation, you need `sphinx`, and the theme "readthedocs", which you can install with `pip`[^1]
 
-Then, **assuming you have already installed `sboxUv2`**, run the following commands from this folder:
+Then, **assuming you have already installed `sboxU`**, run the following commands from this folder:
 
 ```
-sphinx-apidoc -f -o source ../sboxUv2 -M
+sphinx-apidoc -f -o source ../sboxU -M
 make html
 ```
 
