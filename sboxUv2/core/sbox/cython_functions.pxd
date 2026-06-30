@@ -49,6 +49,7 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
         cpp_S_box_fp()
         cpp_S_box_fp(BinWord input_size, BinWord output_size, cpp_Integer p, std_vector[cpp_Integer] powers_in, std_vector[cpp_Integer] powers_out, std_vector[FpWord] input_space, std_vector[FpWord] output_space, std_vector[FpWord] lut) except +
         cpp_S_box_fp(cpp_Integer p, std_vector[FpWord] lut) except +
+        cpp_S_box_fp(Bytearray bytes) except +
         cpp_S_box_fp(const cpp_S_box_fp& s) except +
         BinWord get_input_size() const
         BinWord get_output_size() const
@@ -60,8 +61,10 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
         const std_vector[FpWord]& get_lut() const
 
         FpWord operator[](const FpWord& input) const
-        cpp_S_box_fp operator+(const cpp_S_box_fp& s) except +  
-        cpp_S_box_fp operator*(const cpp_S_box_fp& s) except + 
+        cpp_S_box_fp operator+(const cpp_S_box_fp& s) except +
+        cpp_S_box_fp operator-(const cpp_S_box_fp& s) except +
+        cpp_S_box_fp operator*(const cpp_S_box_fp& s) except +
+        bool operator==(const cpp_S_box_fp& s) const
 
         bool is_invertible() const
 
@@ -69,7 +72,13 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 
         cpp_S_box_fp derivative(const FpWord& delta) const
 
-        cpp_S_box_fp coordinate(const BinWord i) const 
+        cpp_S_box_fp coordinate(const BinWord i) const
+
+        cpp_S_box_fp component(const FpWord& a) except +
+
+        string content_string_repr() const
+
+        Bytearray to_bytes() const
 
         @staticmethod
         std_vector[cpp_Integer] iterated_powers(cpp_Integer p, cpp_Integer n)
