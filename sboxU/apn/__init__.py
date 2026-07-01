@@ -16,7 +16,7 @@ from sboxU.apn.cython_functions import \
     non_trivial_sn
 
 
-from sboxU.apn.database import APNFunctions
+from sboxU.apn.database import APNFunctions, sixBitAPNs
 from sboxU.apn.database import APNQuadraticFunctions_ccz_only
 from sboxU.apn.database import APNQuadraticFunctions_compact
 

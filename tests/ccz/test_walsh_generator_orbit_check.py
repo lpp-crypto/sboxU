@@ -1,32 +1,54 @@
+#!/usr/bin/env python
 import sys
 from sage.all import *
 from sboxU import *
-# --- { 
 import os
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH    = os.path.join(SCRIPT_DIR, "../sboxU/sboxU/scripts/apnDB/apn6.db")
+
+DB_PATH = sixBitAPNs()
+
+print(DB_PATH)
+
 def affine_key(L):
+
     return tuple(L.get_S_box().lut())
+
 def group_closure(n, gens):
+
     """BFS closure of <gens> inside the group of (2n)x(2n) F2AffineMap, via right-multiplication."""
+
     e = identity_F2AffineMap(2*n)
+
     elements = {affine_key(e): e}
+
     frontier = [e]
+
     while frontier:
+
         new_frontier = []
+
         for g in frontier:
+
             for h in gens:
+
                 gh = g * h
+
                 k = affine_key(gh)
+
                 if k not in elements:
+
                     elements[k] = gh
+
                     new_frontier.append(gh)
+
         frontier = new_frontier
+
     return elements
-# --- } 
+
+
+
 def main_test():
-    with Experiment(' Derivative automorphisms: canonical-basis generators vs full group'):
-        section(' Derivative automorphisms: canonical-basis generators vs full group')
+    with Experiment('Generator sets and Walsh zero orbits — sanity checks'):
+        section('Derivative automorphisms: canonical-basis generators vs full group')
         # --- { 
         with APNFunctions(DB_PATH) as db:
             entries = db.query_functions({"degree": 2})
@@ -42,7 +64,7 @@ def main_test():
         if n_ok == len(entries):
             success("All {} functions: canonical-basis generators close into the full derivative automorphism group".format(n_ok))
         # --- } 
-        section(' gen_set_F2AffineMap_group (deterministic) on EL automorphism groups')
+        section('gen_set_F2AffineMap_group (deterministic) on EL automorphism groups')
         # --- { 
         n_ok = 0
         for entry in entries:
@@ -56,7 +78,7 @@ def main_test():
         if n_ok == len(entries):
             success("All {} functions: gen_set_F2AffineMap_group(mode='deterministic') generates the EL automorphism group".format(n_ok))
         # --- } 
-        section(' gen_set_F2AffineMap_group (probabilistic) success rate, CCZ class 0')
+        section('gen_set_F2AffineMap_group (probabilistic) success rate, CCZ class 0')
         # --- { 
         class0 = next(e for e in entries if e["ccz_id"] == 0)
         f0 = class0["sbox"]
@@ -69,7 +91,7 @@ def main_test():
         pprint("Probabilistic mode generated the full group in {}/{} trials ({:.1%})".format(n_success, n_trials, rate))
         (success if rate >= 0.5 else fail)("Probabilistic mode success rate: {:.1%} over {} trials".format(rate, n_trials))
         # --- } 
-        section(' Walsh_zero_orbits: orbit count vs EA-class count')
+        section('Walsh_zero_orbits: orbit count vs EA-class count')
         # --- { 
         n_ok = 0
         for entry in entries:
@@ -85,11 +107,10 @@ def main_test():
         if n_ok == len(entries):
             success("All {} functions: Walsh_zero_orbits count matches EA-class count, valid partition".format(n_ok))
         # --- } 
-        section(' enumerate_ea_classes_apn_quadratic: standard vs product vs generators vs product_generator')
+        section('enumerate_ea_classes_apn_quadratic: standard vs product vs generators vs product_generator')
         # --- { 
         from time import time
-        
-        modes = ["standard", "product", "generators"]
+        modes = ["standard", "product", "generators", "product_generator"]
         t = {m: 0.0 for m in modes}
         n_ok = 0
         for entry in entries:
@@ -101,10 +122,10 @@ def main_test():
             (success if ok else fail)("id={}: {}".format(entry["id"], counts))
             n_ok += ok
         if n_ok == len(entries):
-            success("All {} functions: standard, product, generators agree on EA-class count".format(n_ok))
+            success("All {} functions: standard, product, generators, product_generator agree on EA-class count".format(n_ok))
         for m in modes:
             pprint("  {}: {:.3f}s".format(m, t[m]))
-                # --- } 
+        # --- } 
     return exit_code()
 
 

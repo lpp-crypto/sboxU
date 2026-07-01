@@ -72,6 +72,11 @@ class FunctionsDB:
 
     
     def query_functions(self, query_description):
+        """Queries the database using a dictionary of selectors and returns the result as a list.
+
+        !TODO! finish the docstring
+        
+        """
         where_clause = "SELECT * from functions WHERE "
         values = []
         for constraint in query_description.keys():
@@ -99,6 +104,7 @@ class FunctionsDB:
                 for row in result
             ]
 
+        
     def __getitem__(self, index):
         if not isinstance(index, (int, sage_Integer)):
             raise Exception("db[ index ] can only work if `index` is an integer")

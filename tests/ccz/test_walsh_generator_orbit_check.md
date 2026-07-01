@@ -22,8 +22,7 @@ All tested on the 13 quadratic APN functions in the 6-bit database.
 ```python
 import os
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH    = os.path.join(SCRIPT_DIR, "../sboxU/sboxU/scripts/apnDB/apn6.db")
+DB_PATH = sixBitAPNs()
 
 def affine_key(L):
     return tuple(L.get_S_box().lut())

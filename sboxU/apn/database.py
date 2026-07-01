@@ -1,3 +1,5 @@
+from os.path import dirname
+
 from sboxU.core import \
     get_sbox, \
     degree_spectrum, algebraic_degree, quadratic_compact_representation, quadratic_sbox_from_compact_representation
@@ -23,7 +25,17 @@ from sboxU.apn import \
 from sboxU.databases import *
 import hashlib
 
-                 
+
+def sixBitAPNs():
+    """Returns the path to the database of 6-bit functions bundled with sboxU.
+
+    To be used when building an `APNFunctions` object:
+
+    `with APNFunctions(sixBitAPNs()) as db:`
+    """
+    return dirname(__file__) + "/../scripts/apnDB/apn6.db"
+
+
 
 class APNFunctions(FunctionsDB):
     """This class is expected to be bundled with a literal TinySQL
