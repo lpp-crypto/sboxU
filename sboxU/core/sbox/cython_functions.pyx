@@ -13,7 +13,7 @@ from libcpp.memory cimport unique_ptr, make_unique
 from libcpp.utility cimport move
 from cython.operator cimport dereference
 
-# imports needed to test the input type in the Sb factory
+# imports needed to test the input type in the get_sbox factory
 from sage.all import Polynomial 
 from sage.crypto.sboxes import SBox as sage_SBox
 from sage.crypto.sboxes import sboxes as literature_sboxes
@@ -66,7 +66,7 @@ cdef class S_box:
     """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
 
     
-    Objects of this class should be initialized using the :py:func:Sb function.
+    Objects of this class should be initialized using the :py:func:get_sbox function.
 
     """
                                  
@@ -481,7 +481,7 @@ cdef class S_box_fp:
             An `S_box_fp` instance whose output, on every input `x`, is
             `self[x] - _s[x]` reduced coordinate-wise modulo p.
         """
-        s = Sb(_s)
+        s = get_sbox(_s)
         if len(s) != len(self):
             raise Exception("Trying to subtract S_boxes of different lengths:\n{}\n{}".format(self,s))
         name = self.get_name() + b"-" + s.get_name()
@@ -511,7 +511,7 @@ cdef class S_box_fp:
 
         Args:
             other: an S_box_fp instance, or any S_boxable object that can
-                be turned into one via `Sb`.
+                be turned into one via `get_sbox`.
 
         Returns:
             True if and only if `other` is an S-box over the same field,
@@ -519,7 +519,7 @@ cdef class S_box_fp:
         """
         if not isinstance(other, S_box_fp):
             try:
-                other = Sb(other)
+                other = get_sbox(other)
             except Exception:
                 return False
         if not isinstance(other, S_box_fp):
