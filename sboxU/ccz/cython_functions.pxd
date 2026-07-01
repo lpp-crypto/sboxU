@@ -3,6 +3,7 @@
 from sboxU.cython_types cimport *
 
 from sboxU.core cimport *
+from sboxU.apn cimport *
 from sboxU.statistics cimport *
 from sboxU.algorithms cimport *
 
@@ -46,11 +47,21 @@ cdef extern from "../cpp/ccz/zeroes.hpp":
 
         void init_mappings(const std_vector[cpp_F2AffineMap] & automorphisms)
 
+        void init_mappings(
+            const std_vector[cpp_F2AffineMap] & automorphisms_1,
+            const std_vector[cpp_F2AffineMap] & automorphisms_2
+        )
+
         cpp_WalshZeroesSpaces image_by(const cpp_F2AffineMap & L) const
 
         cpp_Spectrum thickness_spectrum() const
-    
-    
+
+    std_vector[std_vector[unsigned int]] cpp_Walsh_zero_orbits(
+        const cpp_WalshZeroesSpaces & ws,
+        const std_vector[cpp_F2AffineMap] & generators
+    )
+
+
 cdef extern from "../cpp/ccz/zeroes.cpp":
     pass
 
@@ -103,6 +114,25 @@ cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.hpp":
         const string equivalence_type)
 
 cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
+    pass
+
+# !SUBSECTION!  Equivalence from Vq
+
+cdef extern from "../cpp/ccz/ea_from_vq.hpp":
+    std_vector[cpp_F2AffineMap] cpp_ea_mapping_from_vq(
+        const cpp_S_box f,
+        const cpp_S_box g,
+        const unsigned int n_threads,
+        const string & mode)
+
+    std_vector[cpp_F2AffineMap] cpp_product_walsh_match(
+        std_vector[cpp_F2AffineMap] G1,
+        std_vector[cpp_F2AffineMap] G2,
+        cpp_BinLinearBasis V1,
+        cpp_BinLinearBasis V2
+    )
+
+cdef extern from "../cpp/ccz/ea_from_vq.cpp" :
     pass
 
 

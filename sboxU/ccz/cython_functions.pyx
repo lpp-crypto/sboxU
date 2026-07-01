@@ -97,7 +97,20 @@ cdef class WalshZeroesSpaces:
         )
         return result
 
-    
+
+    def Walsh_zero_orbits(self, generators):
+        cdef std_vector[cpp_F2AffineMap] cpp_generators
+        for elt in generators:
+            if not isinstance(elt, F2AffineMap):
+                raise TypeError(f"generators must be a list of F2AffineMap, got {type(elt)} instead")
+            cpp_generators.push_back(dereference((<F2AffineMap>elt).cpp_map))
+        cdef std_vector[std_vector[unsigned int]] cpp_orbits = cpp_Walsh_zero_orbits(
+            dereference(self.cpp_wzs),
+            cpp_generators
+        )
+        return [list(orbit) for orbit in cpp_orbits]
+
+
     def __iter__(self):
         for b in dereference(self.cpp_wzs).bases:
             yield BinLinearBasis(b.get_basis())
@@ -112,6 +125,36 @@ def get_WalshZeroesSpaces(s, n_threads=MAX_N_THREADS):
         <unsigned int>n_threads
     )
     result.init_mappings()
+    return result
+
+
+
+def product_walsh_match(G1,G2,V1,V2):
+
+    cdef std_vector[cpp_F2AffineMap] cpp_G1
+    cdef std_vector[cpp_F2AffineMap] cpp_G2
+
+    for elt in G1:
+       if not isinstance(elt, F2AffineMap):
+           raise TypeError(f"G1 must be a list of F2AffineMap, got {type(elt)} instead")
+       cpp_G1.push_back(dereference((<F2AffineMap>elt).cpp_map))  
+    for item in G2:
+       if not isinstance(elt, F2AffineMap):
+           raise TypeError(f"G2 must be a list of F2AffineMap, got {type(elt)} instead")
+       cpp_G2.push_back(dereference((<F2AffineMap>elt).cpp_map))  
+
+    cdef std_vector[cpp_F2AffineMap] cpp_result = cpp_product_walsh_match(
+        cpp_G1,
+        cpp_G2,
+        cpp_BinLinearBasis(V1),
+        cpp_BinLinearBasis(V2)
+    )
+    cdef cpp_F2AffineMap m   
+    result = []       
+    for m in cpp_result:
+        to_add = F2AffineMap()
+        to_add.set_inner_map(m)     
+        result.append(to_add)
     return result
 
 
@@ -323,6 +366,26 @@ def ccz_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MA
         n_threads
     )
 
+def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
+    sb1 = get_sbox(s1)
+    sb2 = get_sbox(s2)
+    mappings = cpp_ea_mapping_from_vq(
+        dereference((<S_box>sb1).cpp_sb),
+        dereference((<S_box>sb2).cpp_sb),
+        n_threads,
+        mode.encode()
+    )
+    result = []
+    cdef cpp_F2AffineMap m
+    for m in mappings:
+        to_add = F2AffineMap()
+        to_add.set_inner_map(m)
+        result.append(to_add)
+    return result
+
+
+def are_ea_equivalent_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
+    return len(ea_mapping_from_vq(s1, s2, n_threads, mode)) > 0
 
 # !SUBSECTION! Boolean tests
 

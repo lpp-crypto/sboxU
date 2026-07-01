@@ -188,3 +188,46 @@ cpp_F2AffineMap cpp_block_diagonal_F2AffineMap(
         B.cstte | (A.cstte << B.get_output_length())
         );
 }
+
+// !TODO! Check with Léo that it is grosboutiste
+
+/// @brief Computes the 2n by 2n affine map composed of the blocks A,B,C,D of the shape [[A,D][C,B]]. Assumes that all the blocks are squares of the same size 
+/// @param A a n by n cpp_F2AffineMap
+/// @param B a n by n cpp_F2AffineMap
+/// @param C a n by n cpp_F2AffineMap
+/// @param D a n by n cpp_F2AffineMap
+/// @return a 2n by 2n cpp_F2AffineMap [[A,D][C,B]]
+cpp_F2AffineMap cpp_F2AffineMap_from_blocks(
+    const cpp_F2AffineMap &A,
+    const cpp_F2AffineMap &B,
+    const cpp_F2AffineMap &C,
+    const cpp_F2AffineMap &D
+    )
+{
+
+    if (A.get_input_length() != A.get_output_length()) 
+        throw std::runtime_error("in cpp_EA_F2AffineMap: A cannot be invertible");
+    else if (B.get_input_length() != B.get_output_length()) 
+        throw std::runtime_error("in cpp_EA_F2AffineMap: B cannot be invertible");
+    else if (A.get_input_length() < C.get_input_length())
+        throw std::runtime_error("in cpp_EA_F2AffineMap: A and C have incompatible input length");
+    else if (B.get_output_length() < C.get_output_length())
+        throw std::runtime_error("in cpp_EA_F2AffineMap: B and C have incompatible output length");
+    else if (A.get_input_length() < D.get_input_length())
+        throw std::runtime_error("in cpp_EA_F2AffineMap: A and D have incompatible input length");
+    else if (B.get_output_length() < D.get_output_length())
+        throw std::runtime_error("in cpp_EA_F2AffineMap: B and D have incompatible output length");
+    else
+    {
+
+        std::vector<BinWord> images;
+        for(unsigned int i=0; i<B.get_input_length(); i++)
+            images.push_back((D.image_vectors[i] << B.get_output_length()) |B.image_vectors[i]);
+        for(unsigned int i=0; i<A.get_output_length(); i++)
+            images.push_back((A.image_vectors[i] << B.get_output_length()) | C.image_vectors[i]);
+        return cpp_F2AffineMap(images, cpp_oplus(B.cstte, C.cstte)|cpp_oplus(A.cstte, D.cstte) << B.get_output_length());
+
+    }
+}
+
+

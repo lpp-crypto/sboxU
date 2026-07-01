@@ -255,6 +255,20 @@ def block_diagonal_F2AffineMap(A, B) -> F2AffineMap:
     ))
     return result
 
+def F2AffineMap_from_blocks(A, B, C, D) -> F2AffineMap:
+    Ablm = get_F2AffineMap(A)
+    Bblm = get_F2AffineMap(B)
+    Cblm = get_F2AffineMap(C)
+    Dblm = get_F2AffineMap(D)
+    result = F2AffineMap()
+    result.set_inner_map(cpp_F2AffineMap_from_blocks(
+        dereference((<F2AffineMap>Ablm).cpp_map),
+        dereference((<F2AffineMap>Bblm).cpp_map),
+        dereference((<F2AffineMap>Cblm).cpp_map),
+        dereference((<F2AffineMap>Dblm).cpp_map),
+    ))
+    return result
+
 
 def circ_shift_F2AffineMap(int n, int shift) -> F2AffineMap:
     """A circular shift is the operation of rearranging the entries in a vector, either by moving the final entry to the first position, while shifting all other entries to the next position, or by performing the inverse operation. 

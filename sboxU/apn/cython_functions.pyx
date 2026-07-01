@@ -86,12 +86,13 @@ def apn_ea_mugshot_from_spectra(
 # !SECTION! CCZ-equivalence class exploration
 
 
-def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS):
+def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS, mode="standard"):
     sb = get_sbox(s)
     result = []
     cdef std_vector[cpp_F2AffineMap] automorphisms = cpp_automorphisms_from_ortho_derivative(
         dereference((<S_box>sb).cpp_sb),
-        n_threads
+        n_threads,
+        mode.encode()
     )
     for L in automorphisms:
         new_blm = F2AffineMap()
@@ -132,14 +133,16 @@ def ea_mappings_from_ortho_derivative(
 
 def enumerate_ea_classes_apn_quadratic(
         s,
-        n_threads=MAX_N_THREADS
+        n_threads=MAX_N_THREADS,
+        mode="standard"
 ):
     sb = get_sbox(s)
     result = []
     i = 0
     cdef std_vector[cpp_S_box] ea_classes = cpp_enumerate_ea_classes_quadratic_apn(
         dereference((<S_box>sb).cpp_sb),
-        n_threads
+        n_threads,
+        mode.encode()
     )
     for new_s in ea_classes:
         new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
@@ -172,13 +175,71 @@ def get_WalshZeroesSpaces_quadratic_apn(s, n_threads=MAX_N_THREADS):
     # handling the initilization of the mappings by hand
     dereference(result.cpp_wzs).init_mappings(
         cpp_automorphisms_from_ortho_derivative(dereference((<S_box>sb).cpp_sb),
-                                                n_threads)
+                                                n_threads,
+                                                b"standard")
     )
     for m in dereference(result.cpp_wzs).mappings:
         L = F2AffineMap()
         (<F2AffineMap>L).set_inner_map(<cpp_F2AffineMap>m)
         result.mappings.append(L)
     return result
+
+
+
+def graph_automorphisms_from_derivatives(s):
+    sb = get_sbox(s)
+    mappings = cpp_graph_automorphisms_from_derivatives(dereference((<S_box>sb).cpp_sb))
+    result = []
+    cdef cpp_F2AffineMap m
+    for m in mappings:
+        to_add = F2AffineMap()
+        to_add.set_inner_map(m)
+        result.append(to_add)
+    return result
+
+
+def gen_set_graph_automorphisms_from_derivatives(s):
+    sb = get_sbox(s)
+    mappings = cpp_gen_set_graph_automorphisms_from_derivative(dereference((<S_box>sb).cpp_sb))
+    result = []
+    cdef cpp_F2AffineMap m
+    for m in mappings:
+        to_add = F2AffineMap()
+        to_add.set_inner_map(m)
+        result.append(to_add)
+    return result
+
+
+def gen_set_F2AffineMap_group(G, mode="deterministic"):
+    cdef std_vector[cpp_F2AffineMap] cpp_G
+    for elt in G:
+        if not isinstance(elt, F2AffineMap):
+            raise TypeError(f"G must be a list of F2AffineMap, got {type(elt)} instead")
+        cpp_G.push_back(dereference((<F2AffineMap>elt).cpp_map))
+    cdef std_vector[cpp_F2AffineMap] cpp_result = cpp_gen_set_F2AffineMap_group(
+        cpp_G,
+        mode.encode()
+    )
+    result = []
+    cdef cpp_F2AffineMap m
+    for m in cpp_result:
+        to_add = F2AffineMap()
+        to_add.set_inner_map(m)
+        result.append(to_add)
+    return result
+
+
+def graph_el_automorphisms_from_ortho_derivative(s,n_threads=MAX_N_THREADS):
+    sb = get_sbox(s)
+    mappings = cpp_graph_el_automorphisms_from_ortho_derivative(dereference((<S_box>sb).cpp_sb), n_threads)
+    result = []
+    cdef cpp_F2AffineMap m          
+    for m in mappings:
+        to_add = F2AffineMap()
+        to_add.set_inner_map(m)     
+        result.append(to_add)
+    return result
+
 
 
 

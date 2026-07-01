@@ -6,5 +6,5 @@
 #include "./explore.hpp"
 #include "./linear_representative.hpp"
 #include "./partition_preserving_linear_mapping/pplm.hpp"
-
+#include "./ea_from_vq.hpp"
 #endif

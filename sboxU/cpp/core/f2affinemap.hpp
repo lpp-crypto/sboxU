@@ -164,6 +164,19 @@ public:
 
 // !SUBSECTION! Overloaded operators
 
+    // !TODO! : Check that this is correct
+    /** Tests equality with another F2AffineMap by comparing their image vectors and constant term.
+
+        @param l Another F2AffineMap
+
+        @return True if and only if l has the same image vectors and the same constant as this mapping.
+     */
+    inline bool operator==(const cpp_F2AffineMap & l) const
+    {
+        return (image_vectors == l.image_vectors) && (cstte == l.cstte);
+    };
+
+
     /** Evaluate the affine mapping on the given input.
 
         @param x A BinWord corresponding to the binary vector on which the mapping is to be evaluated.
@@ -270,5 +283,10 @@ cpp_F2AffineMap cpp_block_diagonal_F2AffineMap(
     const cpp_F2AffineMap &B
     );
 
-
+cpp_F2AffineMap cpp_F2AffineMap_from_blocks(
+    const cpp_F2AffineMap &A,
+    const cpp_F2AffineMap &B,
+    const cpp_F2AffineMap &C,
+    const cpp_F2AffineMap &D
+    );
 #endif

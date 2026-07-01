@@ -148,6 +148,35 @@ def quadratic_sbox_from_compact_representation(rep,n,m):
 
 
 
+def linear_compact_representation(s):
+    """
+    Args:
+        s: an S_box-able object 
+
+    Returns:
+        A list of elements representing a compact representation of a linear function
+    """
+    
+    sb = get_sbox(s)
+    plop = cpp_linear_compact_representation(dereference((<S_box>sb).cpp_sb))
+    return(plop)
+
+
+def linear_sbox_from_compact_representation(rep,n,m):
+
+    """
+    Args:
+        repr: a linear compact representation
+        n: input size
+        m: output size
+
+    Returns:
+        The linear S box corresponding to the compact representation
+    """
+    return(cpp_linear_sbox_from_compact_representation(rep, n, m))
+
+
+
 # !SECTION! Evaluating ANFs
 
 def eval_anf(anf, x):

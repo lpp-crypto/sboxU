@@ -113,6 +113,13 @@ cdef extern from "../../cpp/core/f2affinemap.hpp":
         const cpp_F2AffineMap &A,
         const cpp_F2AffineMap &B,
     )
+    cpp_F2AffineMap cpp_F2AffineMap_from_blocks(
+        const cpp_F2AffineMap &A,
+        const cpp_F2AffineMap &B,
+        const cpp_F2AffineMap &C,
+        const cpp_F2AffineMap &D,
+
+    )
 
     
 cdef extern from "../../cpp/core/f2affinemap.cpp":

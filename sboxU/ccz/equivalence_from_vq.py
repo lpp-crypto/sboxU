@@ -33,7 +33,7 @@ def are_ea_equivalent_from_vq(f,g):
              break
     
     
-    # Compute of the ccz-quadratic aut(q)
+    # Compute the ccz-quadratic aut(q)
     q = ccz_equivalent_quadratic_function(f)
     aut_q = automorphisms_from_ortho_derivative(q)
     

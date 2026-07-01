@@ -7,11 +7,16 @@ from sboxU.apn.cython_functions import \
     ortho_derivative, ortho_integral, \
     sigma_multiplicities, \
     apn_ea_mugshot, apn_ea_mugshot_from_spectra, \
-    enumerate_ea_classes_apn_quadratic, ea_mappings_from_ortho_derivative, ccz_equivalent_quadratic_function, \
-    automorphisms_from_ortho_derivative, get_WalshZeroesSpaces_quadratic_apn, non_trivial_sn
+    enumerate_ea_classes_apn_quadratic, \
+    ea_mappings_from_ortho_derivative, ccz_equivalent_quadratic_function, \
+    automorphisms_from_ortho_derivative, \
+    graph_el_automorphisms_from_ortho_derivative, graph_automorphisms_from_derivatives, \
+    gen_set_graph_automorphisms_from_derivatives, gen_set_F2AffineMap_group, \
+    get_WalshZeroesSpaces_quadratic_apn, \
+    non_trivial_sn
 
 
 from sboxU.apn.database import APNFunctions
 from sboxU.apn.database import APNQuadraticFunctions_ccz_only
-
+from sboxU.apn.database import APNQuadraticFunctions_compact
 

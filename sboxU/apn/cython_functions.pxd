@@ -59,7 +59,8 @@ cdef extern from "../cpp/apn/invariants.cpp":
 cdef extern from "../cpp/apn/ccz_class.hpp":
     std_vector[cpp_F2AffineMap] cpp_automorphisms_from_ortho_derivative(
         const cpp_S_box & s,
-        const unsigned int n_threads
+        const unsigned int n_threads,
+        const string & mode
     )
 
     std_vector[cpp_F2AffineMap] cpp_ea_mappings_from_ortho_derivative(
@@ -70,17 +71,36 @@ cdef extern from "../cpp/apn/ccz_class.hpp":
 
     std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
         const cpp_S_box &s,
-        const unsigned int n_threads
+        const unsigned int n_threads,
+        const string & mode
     )
 
     cpp_S_box cpp_ccz_equivalent_quadratic_function(
         const cpp_S_box & s,
         const unsigned int n_threads
     )
+        
+    std_vector[cpp_F2AffineMap] cpp_graph_el_automorphisms_from_ortho_derivative(
+        const cpp_S_box & s,
+        const unsigned int n_threads
+    )
 
+    std_vector[cpp_F2AffineMap]cpp_graph_automorphisms_from_derivatives(
+        cpp_S_box s
+    )
 
+    std_vector[cpp_F2AffineMap] cpp_gen_set_graph_automorphisms_from_derivative(
+        const cpp_S_box & s
+    )
+
+    std_vector[cpp_F2AffineMap] cpp_gen_set_F2AffineMap_group(
+        std_vector[cpp_F2AffineMap] G,
+        const string & mode
+    )
 
 cdef extern from "../cpp/apn/ccz_class.cpp":
+
+
     pass
 
 

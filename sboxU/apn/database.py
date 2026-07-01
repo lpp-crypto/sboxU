@@ -446,3 +446,125 @@ class APNQuadraticFunctions_ccz_only(FunctionsDB):
         except Exception as e:
             raise Exception("Insertion of many entries failed \n") from e
 
+
+# For CCZ class computation for n=8
+# Experimental, be careful of edge cases
+
+
+class APNQuadraticFunctions_compact(FunctionsDB):
+    """This class is expected to be bundled with a literal TinySQL
+    database file called "apn_functions.db", and allows an easy
+    interaction with it.
+
+    It builds upon the `FunctionDB` class, and contains additional
+    logic to handle the specifics of APN functions, and in particular
+    of their CCZ-equivalence class. Here, "functions" should be
+    thought of much more as "extended affine equivalence class
+    representative" rather than function.
+    
+    This class is a compact version of APN_functions that is used only for n=8
+
+    """
+    
+    def __init__(self, db_file):
+        # !IDEA! have a max_degree and a min_degree?
+        super().__init__(
+            db_file,
+            {
+                "compact_representation" : "BLOB", # the cr of the representative
+                "linearity" : "INTEGER",
+                "degree" : "INTEGER",
+                "ccz_id": "INTEGER",
+                "mugshot" : "BLOB"
+            }
+        )
+        if self.new_db:
+            self.number_of_ccz_classes = 0
+        else:
+            try:
+                self.cursor.execute("SELECT COUNT(ccz_id) FROM {}".format(self.functions_table))
+                self.number_of_ccz_classes = self.cursor.fetchall()[0][0]
+            except Exception:
+                self.number_of_ccz_classes = 0
+
+
+    def __str__(self):
+        return "APN function DB containing {} EA-classes from {} CCZ-classes".format(
+            self.number_of_functions,
+            self.number_of_ccz_classes
+        )
+
+
+    def insert_full_ccz_equivalence_class(self, s,n):
+
+        sb = get_sbox(s)
+        differential_spec = differential_spectrum(sb)
+
+        if differential_spec.maximum() != 2:
+            raise Exception("Trying to add a non-APN function to the APN function database: \nspec={}\ns={}".format(differential_spec, sb))
+
+        # linear
+        abs_walsh_spec = absolute_walsh_spectrum(sb)
+        lin = abs_walsh_spec.maximum()
+        inserted_ids = []
+        if not(algebraic_degree(sb) == 2):
+            raise Exception("Trying to add a non-APN quadratic function class to the APN function database: \ns={}".format(sb))
+
+        ws = get_WalshZeroesSpaces_quadratic_apn(sb)
+        # inserting all the functions
+        for L in ws.get_mappings():
+            new_sb = ccz_equivalent_function(sb, L)
+            new_L = L.transpose()
+            new_L = new_L.inverse()
+            new_ws = ws.image_by(new_L)
+            #new_thk_spec = new_ws.thickness_spectrum()
+            new_degree_spec = degree_spectrum(new_sb)
+            #new_sigma_mult = sigma_multiplicities(new_sb, k=4)
+            # We hash the mugshot for memory concerns
+            mug = apn_ea_mugshot(new_sb)
+            h = hashlib.sha256()
+            h.update(mug)
+            mug = h.digest()
+            if new_degree_spec.maximum() == 2:
+                to_insert = {
+                        "compact_representation" : bytearray(quadratic_compact_representation(sb.lut())),
+                        "linearity" : lin,
+                        "degree" : new_degree_spec.maximum(),
+                        "ccz_id" : self.number_of_ccz_classes,
+                        "mugshot" : mug
+                    }
+            else:
+                to_insert = {
+                        "compact_representation" :bytearray(linear_compact_representation(L.get_S_box().lut())),
+                        "linearity" : lin,
+                        "degree" : new_degree_spec.maximum(),
+                        "ccz_id" : self.number_of_ccz_classes,
+                        "mugshot" : mug
+                    }
+            inserted_ids.append(self.insert_function(to_insert))
+        self.number_of_ccz_classes += 1
+        return inserted_ids
+    
+    def get_lut(self,i,n):
+
+        if i > self.number_of_functions:
+            raise Exception("The database only contains {} functions".format(self.number_of_functions))
+        else:
+            entry = self.query_functions({"id" : i})
+            if entry["degree"] == 2:
+                lut = quadratic_sbox_from_compact_representation(entry["compact_representation"],n,n)
+            else:
+                quad_entry = self.query_functions({"ccz_id" : entry["ccz_id"], "degree":2})
+                quad_lut = quadratic_sbox_from_compact_representation(quad_entry["compact_representation"],n,n)
+                adm_lut = F2AffineMapping(linear_sbox_from_compact_representation(entry["compact_representation"],2*n,2*n))
+                lut = ccz_equivalent_function(get_sbox(quad_lut), adm_lut).lut()
+            return(lut)
+        
+    def parse_function_from_row(self, row):
+        entry = {}
+        for i, column in enumerate(sorted(self.row_structure.keys())):
+            entry[column] = row[i]
+        # post-processing
+        #entry["sbox"] = get_sbox(entry["lut"])
+        return entry
+

@@ -11,9 +11,10 @@ from sboxU.ccz.cython_functions import \
     affine_equivalences, ea_equivalences, ccz_equivalences, \
     are_linear_equivalent, are_el_equivalent, are_cczl_equivalent, \
     are_affine_equivalent, are_ea_equivalent, are_ccz_equivalent, \
-    ccz_block_decomposition, equivalences_from_lat
+    ccz_block_decomposition, equivalences_from_lat, ea_mapping_from_vq, \
+    are_ea_equivalent_from_vq, product_walsh_match
 from sboxU.ccz.affine_equivalence import *
 from sboxU.ccz.tu_decompositions import TUdecomposition,thickness,tu_decomposition_from_space_basis,get_tu_decompositions,swap_F2AffineMap
 from sboxU.ccz.equivalences_from_code import are_ccz_equivalent_from_code, are_ea_equivalent_from_code
-from sboxU.ccz.equivalence_from_vq import are_ea_equivalent_from_vq
 from sboxU.ccz.self_equivalences import self_linear_equivalent_mappings, self_affine_equivalent_mappings
+
