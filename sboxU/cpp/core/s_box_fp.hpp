@@ -271,7 +271,7 @@ class cpp_S_box_fp {
                 std::vector<FpWord> new_lut(s.get_input_space().size());
                 const std::vector<FpWord>& lut1 = get_lut(); const std::vector<FpWord>& lut2 = s.get_lut();
                 for (int i = 0; i<new_lut.size();i++){
-                    new_lut[i] = lut1[vec_to_int(lut2[i],get_powers_out())];
+                    new_lut[i] = lut1[vec_to_int(lut2[i],get_powers_in())];
                 }
                 return cpp_S_box_fp(p,new_lut);
             }
@@ -394,21 +394,20 @@ class cpp_S_box_fp {
          */
         cpp_S_box_fp derivative(const FpWord& delta) const {
             std::vector<FpWord> new_lut(input_space.size());
-            for (int i = 0; i < input_space.size(); i++){
-                // x + delta
+            for (int i = 0; i < (int)input_space.size(); i++){
+                // x is the actual input at integer index i (not its image)
+                const FpWord& x = input_space[i];
+                // compute x + delta coordinate-wise, reducing mod p
                 FpWord x_delta(input_size);
-                const FpWord& x = lut[i];
-                for (int j = 0; j < input_size; j++){
-                    x_delta[j] = x[j]+delta[j];
-                }
-                Integer x_delta_int = vec_to_int(x_delta,powers_in);
-                Integer x_int = vec_to_int(x,powers_in);
-                const FpWord& out_x_delta = lut[x_delta_int];
-                const FpWord& out_x = lut[x_int];
-                Integer out_i_int = vec_to_int(out_x_delta,powers_out);
-                Integer out_j_int = vec_to_int(out_x,powers_out);
-                Integer new_out_int = (out_j_int - out_i_int)% p;
-                FpWord new_out = int_to_vec(new_out_int,output_space);
+                for (int j = 0; j < input_size; j++)
+                    x_delta[j] = (x[j] + delta[j]) % p;
+                Integer x_delta_int = vec_to_int(x_delta, powers_in);
+                const FpWord& out_x_delta = lut[x_delta_int]; // S(x + delta)
+                const FpWord& out_x       = lut[i];           // S(x)
+                // D_delta(S)(x) = S(x+delta) - S(x) mod p, coordinate-wise
+                FpWord new_out(output_size);
+                for (int j = 0; j < output_size; j++)
+                    new_out[j] = (out_x_delta[j] + p - out_x[j]) % p;
                 new_lut[i] = new_out;
             }
             return cpp_S_box_fp(input_size,output_size,p,powers_in,powers_out,input_space,output_space,new_lut);
