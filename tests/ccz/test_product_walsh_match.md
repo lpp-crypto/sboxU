@@ -8,11 +8,8 @@ Tests that the Walsh zero space orbit partition computed via `init_mappings(G1, 
 ## Preamble
 
 ```python
-import os
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH    = os.path.join(SCRIPT_DIR, "../sboxU/sboxU/scripts/apnDB/apn6.db")
-CCZ_IDS    = [2, 3]
+DB_PATH = sixBitAPNs()
+CCZ_IDS = [2, 3]
 
 def linearize(L):
     return L + L.get_cste()
@@ -53,8 +50,7 @@ def make_uf(n):
 
 ```python
 with APNFunctions(DB_PATH) as db:
-    seen_ccz = {cid: db.query_functions({"degree": 2, "ccz_id": cid})[0]["sbox"]
-                for cid in CCZ_IDS}
+    seen_ccz = {cid: db.query_functions({"degree": 2, "ccz_id": cid})[0]["sbox"] for cid in CCZ_IDS}
 pprint("Loaded CCZ classes: {}".format(sorted(seen_ccz.keys())))
 ```
 
@@ -112,11 +108,8 @@ for cid in sorted(seen_ccz):
 for cid in sorted(seen_ccz):
     f        = seen_ccz[cid]
     label    = "CCZ-class {}".format(cid)
-    ea       = enumerate_ea_classes_apn_quadratic(f)
     n_orbits = len(two_part[cid])
-    n_ea     = len(ea)
-    if n_orbits == n_ea:
-        success("{}: {} orbits == {} EA classes".format(label, n_orbits, n_ea))
-    else:
-        fail("{}: {} orbits != {} EA classes".format(label, n_orbits, n_ea))
+    n_ea     = len(enumerate_ea_classes_apn_quadratic(f))
+    (success if n_orbits == n_ea else fail)(
+        "{}: {} orbits == {} EA classes".format(label, n_orbits, n_ea))
 ```

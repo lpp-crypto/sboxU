@@ -1,7 +1,7 @@
 # ea_mapping_from_vq — correctness and mode benchmark
 
 Tests `ea_mapping_from_vq` against the reference `are_ea_equivalent`, then
-compares the timing of its four modes.
+compares the timing of its two modes.
 
 All experiments use quadratic APN functions from the 6-bit database.  Three
 source functions are drawn at random from distinct CCZ classes; three
@@ -11,12 +11,11 @@ from three different CCZ classes serve as the negative controls.
 ## Preamble
 
 ```python
-import os, random
+import random
 from time import time
 from sage.all import Matrix, GF, vector
 
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(SCRIPT_DIR, "../sboxU/sboxU/scripts/apnDB/apn6.db")
+DB_PATH = sixBitAPNs()
 
 with APNFunctions(DB_PATH) as db:
     all_apn = db.query_functions({"degree": 2})
@@ -30,8 +29,7 @@ def rand_lin_perm(n):
 
 def mat_to_sbox(mat):
     n = mat.ncols()
-    lut = [from_bin(mat * vector(to_bin(x, n))) for x in range(1 << n)]
-    return get_sbox(lut)
+    return get_sbox([from_bin(mat * vector(to_bin(x, n))) for x in range(1 << n)])
 
 def random_ea_equiv(f):
     """Return A*f*B + C with random linear permutations A, B and linear map C."""

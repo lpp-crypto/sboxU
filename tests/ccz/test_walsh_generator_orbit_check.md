@@ -119,23 +119,17 @@ if n_ok == len(entries):
 ```
 
 
-## enumerate_ea_classes_apn_quadratic: standard vs product vs generators vs product_generator
+## enumerate_ea_classes_apn_quadratic: standard vs product vs generators
 
 `mode="generators"` builds the EA-class partition via `init_mappings_generators`, using only
 a generating set of `Aut(q_f)` (concatenation of `gen_set_F2AffineMap_group` on the EL
 automorphisms and `gen_set_graph_automorphisms_from_derivatives` on the derivative
 automorphisms) instead of the full group.
 
-`mode="product_generator"` starts from the same full G1, G2 as `mode="product"`, but reduces
-both to generic generating sets (`gen_set_F2AffineMap_group` on each) before computing orbits,
-instead of scanning the full groups via the G_map/G_walk preimage-matching of
-`init_mappings(G1, G2)`. This isolates the effect of the generating-set + union-find approach
-from the domain-specific generator shortcut used by `mode="generators"`.
-
 ```python
 from time import time
 
-modes = ["standard", "product", "generators", "product_generator"]
+modes = ["standard", "product", "generators"]
 t = {m: 0.0 for m in modes}
 n_ok = 0
 for entry in entries:
@@ -147,7 +141,7 @@ for entry in entries:
     (success if ok else fail)("id={}: {}".format(entry["id"], counts))
     n_ok += ok
 if n_ok == len(entries):
-    success("All {} functions: standard, product, generators, product_generator agree on EA-class count".format(n_ok))
+    success("All {} functions: standard, product, generators agree on EA-class count".format(n_ok))
 for m in modes:
     pprint("  {}: {:.3f}s".format(m, t[m]))
 ```

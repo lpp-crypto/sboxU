@@ -6,8 +6,6 @@ import os
 
 DB_PATH = sixBitAPNs()
 
-print(DB_PATH)
-
 def affine_key(L):
 
     return tuple(L.get_S_box().lut())
@@ -107,10 +105,10 @@ def main_test():
         if n_ok == len(entries):
             success("All {} functions: Walsh_zero_orbits count matches EA-class count, valid partition".format(n_ok))
         # --- } 
-        section('enumerate_ea_classes_apn_quadratic: standard vs product vs generators vs product_generator')
+        section('enumerate_ea_classes_apn_quadratic: standard vs product vs generators')
         # --- { 
         from time import time
-        modes = ["standard", "product", "generators", "product_generator"]
+        modes = ["standard", "product", "generators"]
         t = {m: 0.0 for m in modes}
         n_ok = 0
         for entry in entries:
@@ -122,7 +120,7 @@ def main_test():
             (success if ok else fail)("id={}: {}".format(entry["id"], counts))
             n_ok += ok
         if n_ok == len(entries):
-            success("All {} functions: standard, product, generators, product_generator agree on EA-class count".format(n_ok))
+            success("All {} functions: standard, product, generators agree on EA-class count".format(n_ok))
         for m in modes:
             pprint("  {}: {:.3f}s".format(m, t[m]))
         # --- } 

@@ -1,51 +1,80 @@
+#!/usr/bin/env python
 import sys
 from sage.all import *
 from sboxU import *
-# --- { 
-import os
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH    = os.path.join(SCRIPT_DIR, "../sboxU/sboxU/scripts/apnDB/apn6.db")
-CCZ_IDS    = [2, 3]
+DB_PATH = sixBitAPNs()
+
+CCZ_IDS = [2, 3]
+
 def linearize(L):
+
     return L + L.get_cste()
+
 def span_of(vecs):
+
     s = {0}
+
     for b in vecs:
+
         s |= {x ^ b for x in s}
+
     return frozenset(s)
+
 def basis_from_span(s):
+
     basis, covered = [], {0}
+
     for v in sorted(s):
+
         if v and v not in covered:
+
             basis.append(v)
+
             covered |= {x ^ v for x in covered}
+
     return basis
+
 def make_uf(n):
+
     p = list(range(n))
+
     def find(x):
+
         while p[x] != x:
+
             p[x] = p[p[x]]; x = p[x]
+
         return x
+
     def union(a, b):
+
         a, b = find(a), find(b)
+
         if a != b: p[a] = b
+
     def partition():
+
         cls = {}
+
         for i in range(n):
+
             cls.setdefault(find(i), set()).add(i)
+
         return frozenset(frozenset(v) for v in cls.values())
+
     return find, union, partition
-# --- } 
+
+
+
 def main_test():
-    with Experiment(' Initialization'):
-        section(' Initialization')
+    with Experiment('Product Walsh Match — Walsh Zero Space Orbit Test'):
+        section('Initialization')
         # --- { 
         with APNFunctions(DB_PATH) as db:
-            seen_ccz = {cid: db.query_functions({"degree": 2, "ccz_id": cid})[0]["sbox"]
-                        for cid in CCZ_IDS}
+            seen_ccz = {cid: db.query_functions({"degree": 2, "ccz_id": cid})[0]["sbox"] for cid in CCZ_IDS}
         pprint("Loaded CCZ classes: {}".format(sorted(seen_ccz.keys())))
         # --- } 
-        section(' Two-group orbit partition')
+        section('Two-group orbit partition')
         # --- { 
         two_part = {}
         for cid in sorted(seen_ccz):
@@ -79,18 +108,15 @@ def main_test():
             success("{}: {} Walsh zero spaces → {} orbits, representatives: {}".format(
                 label, k, len(two_part[cid]), reps))
         # --- } 
-        section(' Comparison with enumerate_ea_classes_apn_quadratic')
+        section('Comparison with enumerate_ea_classes_apn_quadratic')
         # --- { 
         for cid in sorted(seen_ccz):
             f        = seen_ccz[cid]
             label    = "CCZ-class {}".format(cid)
-            ea       = enumerate_ea_classes_apn_quadratic(f)
             n_orbits = len(two_part[cid])
-            n_ea     = len(ea)
-            if n_orbits == n_ea:
-                success("{}: {} orbits == {} EA classes".format(label, n_orbits, n_ea))
-            else:
-                fail("{}: {} orbits != {} EA classes".format(label, n_orbits, n_ea))
+            n_ea     = len(enumerate_ea_classes_apn_quadratic(f))
+            (success if n_orbits == n_ea else fail)(
+                "{}: {} orbits == {} EA classes".format(label, n_orbits, n_ea))
         # --- } 
     return exit_code()
 

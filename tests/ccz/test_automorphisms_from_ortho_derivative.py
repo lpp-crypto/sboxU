@@ -1,15 +1,16 @@
+#!/usr/bin/env python
 import sys
 from sage.all import *
 from sboxU import *
-# --- { 
-import os
 from time import time
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH    = os.path.join(SCRIPT_DIR, "../sboxU/sboxU/scripts/apnDB/apn6.db")
-# --- } 
+
+DB_PATH = sixBitAPNs()
+
+
+
 def main_test():
-    with Experiment(' Count and automorphism verification'):
-        section(' Count and automorphism verification')
+    with Experiment('automorphisms_from_ortho_derivative — mode benchmark'):
+        section('Count and automorphism verification')
         # --- { 
         with APNFunctions(DB_PATH) as db:
             entries = db.query_functions({"degree": 2})
@@ -23,16 +24,13 @@ def main_test():
             if len(std) != len(prod):
                 fail("{}: standard={} automorphisms, product={}".format(label, len(std), len(prod)))
                 continue
-            bad = next(
-                (L for L in prod
-                 if len(g := ccz_equivalent_function(f, L)) == 0
-                 or g.lut() != f.lut()),
-                None
-            )
-            if bad is None:
-                success("{}: {} automorphisms, all verified".format(label, len(prod)))
+            for L in prod:
+                g = ccz_equivalent_function(f, L)
+                if len(g) == 0 or g.lut() != f.lut():
+                    fail("{}: map is not a graph automorphism".format(label))
+                    break
             else:
-                fail("{}: map {} is not a graph automorphism".format(label, bad))
+                success("{}: {} automorphisms, all verified".format(label, len(prod)))
         pprint("Total time — standard: {:.3f}s  product: {:.3f}s".format(t_std, t_prod))
         # --- } 
     return exit_code()
