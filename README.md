@@ -21,6 +21,7 @@ If you use `sboxU` in a published paper, please cite it using the following bibt
 ```
     @misc{sboxU,
     authors={Léo Perrin,
+    Jens Alich,
     Jules Baudrin,
     Aurélien Boeuf,
     Xavier Bonnetain,
@@ -115,7 +116,7 @@ TODO
 - [Alain Couvreur](http://www.lix.polytechnique.fr/Labo/Alain.Couvreur/)
 - [Mathias Joly](https://github.com/MathiasJoly)
 - [Merlin Fruchon](https://who.paris.inria.fr/Merlin.Fruchon/)
-- Pierre Galissant
+- [Pierre Galissant](https://314gali.github.io/)
 - [Léo Perrin](https://who.paris.inria.fr/Leo.Perrin/)
 - [Lukas Stennes](https://informatik.rub.de/symcrypt/personen/stennes/)
 

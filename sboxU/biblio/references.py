@@ -1,12 +1,17 @@
 import re
-from pybtex.database import parse_file
 from os.path import dirname
+
+from pybtex.database import parse_file, BibliographyData
+from pybtex.plugin import find_plugin
 
 """The path to the bibtex file containing all entries. """
 bib_file_path = dirname(__file__) + "/biblio.bib"
 
+pybtex_style = find_plugin('pybtex.style.formatting', 'plain')()
+pybtex_backend = find_plugin('pybtex.backends', 'plaintext')()
 
 SboxU_BIBLIOGRAPHY = None
+
 
 def open_bibliography():
     global SboxU_BIBLIOGRAPHY
@@ -24,7 +29,7 @@ def cite(key):
 
     """
     open_bibliography()
-    target = key
+    target = key.replace("-", ":") # needed to handle some github markdown shenanigans
     if key[0] == "[":
         target = target[1:]
     if key[-1] == "]":
@@ -32,10 +37,14 @@ def cite(key):
     if target in SboxU_BIBLIOGRAPHY.entries.keys():
         return SboxU_BIBLIOGRAPHY.entries[target]
     else:
-        return "{} not found in bibliography".format(target)
+        return False
 
 
-        
+
+def find_citations_in_string(line : str) -> list:
+    return re.findall(r"\[[A-Za-z]+:[A-Za-z\+]+[0-9]*\]", line)
+
+
 def who_to_cite(sboxU_tool):
     """Returns a list of strings, each being a bibtex entry citing a paper on which the object `sboxU_tool` is based.
 
@@ -46,7 +55,7 @@ def who_to_cite(sboxU_tool):
 
     !WARNING! We need to do something to be able to handle papers which should have identical keys
     """
-    return re.findall(r"\[.+:.+[0-9]\]", sboxU_tool.__doc__ )
+    return find_citations_in_string(sboxU_tool.__doc__)
 
 
 def cite_as(key, output_format):
@@ -75,6 +84,24 @@ def format_to_rst(entry, key):
                 content[person_type] = content[person_type][:-1] + ", "
             content[person_type] = content[person_type][:-2]
     return "\\[{key}\\]\n    {author} ({year}). *{title}*. `\\[link\\] <{url}>`_".format(**entry.fields)
+
+
+def format_ref_to_md(key):
+    entry = cite(key)
+    if not entry:
+        return "{} not found".format(key)
+    # return pybtex_backend.render_sequence(entry.text.parts)
+    content = entry.fields
+    content["key"] = key.replace("[", "[^")
+    for link_field in ["url", "doi"]:
+        if link_field in content:
+            content[link_field] = content[link_field].replace("\\_", "_")
+    bib_single = BibliographyData(entries={key: entry})
+    formatted = pybtex_style.format_bibliography(bib_single)
+    entry_text = list(formatted.entries)[0].text
+    result = entry_text.render(pybtex_backend)
+    return content["key"] + ": " + result
+
 
 
 def gen_full_biblio_rst(path):

@@ -8,3 +8,11 @@
 *.egg-info
 build
 .nfs*
+
+## MacOS
+
+.DS_Store
+
+## Claude
+
+CLAUDE.md

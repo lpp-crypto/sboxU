@@ -31,6 +31,7 @@ following bibtex entry:
 
        @misc{sboxU,
        authors={Léo Perrin,
+       Jens Alich,
        Jules Baudrin,
        Aurélien Boeuf,
        Xavier Bonnetain,
@@ -150,17 +151,22 @@ Contributors
   Couvreur <http://www.lix.polytechnique.fr/Labo/Alain.Couvreur/>`__
 - `Mathias Joly <https://github.com/MathiasJoly>`__
 - `Merlin Fruchon <https://who.paris.inria.fr/Merlin.Fruchon/>`__
-- Pierre Galissant
+- `Pierre Galissant <https://314gali.github.io/>`__
 - `Léo Perrin <https://who.paris.inria.fr/Leo.Perrin/>`__
 - `Lukas
   Stennes <https://informatik.rub.de/symcrypt/personen/stennes/>`__
 
 .. toctree::
-   :maxdepth: 5
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Tutorials
 
-   ./modules.rst
-   ./apn-study.rst
-   ./bibliography.rst
+   ./basic.rst
    ./anomalies.rst
+   ./tables.rst
+ 
+.. toctree::
+   :maxdepth: 2
+   :caption: API documentation
+
+   ./sboxU.rst
 

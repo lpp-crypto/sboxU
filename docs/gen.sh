@@ -11,6 +11,8 @@ rm -rf ./build/*
 echo "building additional doc"
 # grabbing tutorials/tests
 pandoc ../tests/statistics/anomalies.md -o source/anomalies.rst
+pandoc ../tests/statistics/tables.md -o source/tables.rst
+pandoc ../tests/sbox/basicF2SBox.md -o source/basic.rst
 
 
 # building index.rst
@@ -18,13 +20,18 @@ pandoc ../README.md -o source/index.rst
 sed "s/docs\/source\/logo-v2-5.png/logo-v2-5.png/g" -i source/index.rst
 echo "
 .. toctree::
-   :maxdepth: 5
-   :caption: Contents:
+   :maxdepth: 1
+   :caption: Tutorials
 
-   ./modules.rst
-   ./apn-study.rst
-   ./bibliography.rst
+   ./basic.rst
+   ./tables.rst
    ./anomalies.rst
+ 
+.. toctree::
+   :maxdepth: 2
+   :caption: API documentation
+
+   ./sboxU.rst
 " >> source/index.rst 
 
 

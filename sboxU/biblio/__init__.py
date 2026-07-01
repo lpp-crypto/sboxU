@@ -4,7 +4,8 @@ The algorithms implemented in sboxU come from the literature, and this module is
 
 """
 
-from .references import who_to_cite, cite, cite_as, gen_full_biblio_rst
+from .references import find_citations_in_string, who_to_cite, \
+    cite, cite_as, format_ref_to_md, gen_full_biblio_rst
 
 
 

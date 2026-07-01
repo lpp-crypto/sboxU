@@ -1,11 +1,11 @@
-# Computing Anomalies
+# On Anomalies
 
 
 The corresponding source file is available online [on github](https://github.com/lpp-crypto/sboxU/blob/main/tests/statistics/anomalies.py).
 
 ## Preamble
 
-An "anomaly" is a concept that was introduced in [AC:BonPerTia19] (though its principle was already present in [C:BirPer15]). It can be positive or negative, and it quantifies how good the properties of a given S-box are compared to a permutation picked uniformly at random from the relevant set. If a an S-box has a high positive anomaly for a given property, then it means that its property is much better than should be expected from a random S-box. If instead its negative anomaly is high, then its property is much worse than should be expected.
+An "anomaly" is a concept that was introduced in [^AC-BonPerTia19] (though its principle was already present in [^C-BirPer15]). It can be positive or negative, and it quantifies how good the properties of a given S-box are compared to a permutation picked uniformly at random from the relevant set. If a an S-box has a high positive anomaly for a given property, then it means that its property is much better than should be expected from a random S-box. If instead its negative anomaly is high, then its property is much worse than should be expected.
 
 
 Formally, consider a property $P$ defined for any S-box $S$, such that its outputs can be strictly ordered (for instance, if it's a number then we can simply compare two outputs).
@@ -38,7 +38,7 @@ for table in ["LAT", "BCT", "DDT"]:
     ))
 ```
 
-As we can see, the positive anomaly for the LAT is very high (remember that it is a logarithm): the S-box has been somehow optimized to have good linear property (see [C:BirPer15] and [PhD:Perrin17] for more details). Another way this property can be seen is through the display of a graph of its absolute Walsh spectrum along with what is expected for a random permutation. This is only done using the following function, which will open a new window displaying this graph. The blue area also shows the discrepancy between the expected behaviour of a random S-box and that of Skipjack.
+As we can see, the positive anomaly for the LAT is very high (remember that it is a logarithm): the S-box has been somehow optimized to have good linear property (see [^C-BirPer15] and [^PhD-Perrin17] for more details). Another way this property can be seen is through the display of a graph of its absolute Walsh spectrum along with what is expected for a random permutation. This is only done using the following function, which will open a new window displaying this graph. The blue area also shows the discrepancy between the expected behaviour of a random S-box and that of Skipjack.
 
 (you must close the graph window for the program to continue)
 
@@ -67,7 +67,7 @@ All the properties of the AES are extremely good, perhaps even optimal. Thus, th
 
 ## Looking at the maximum value
 
-`sboxU` provides tools to compute the expected value for the maximum coefficient in the LAT, DDT and BCT (based on [JMC:DaeRij07] and [AC:BonPerTia19]). Let's try them out in a new experiment.
+`sboxU` provides tools to compute the expected value for the maximum coefficient in the LAT, DDT and BCT (based on [^JMC-DaeRij07] and [^AC-BonPerTia19]). Let's try them out in a new experiment.
 
 First, we set the global parameters. Statistical tests lose their relevance when the input size becomes too small so we fix `n=8`. Running a couple thousand tests is sufficient to gather enough information, hence `n_tested=2**13`.
 
@@ -146,3 +146,20 @@ for k in sorted(dis.keys()):
 ### Comments
 
 As you can see by running this code, modeling the table coefficients like independent and identically distributed random variables works fairly well, though the results in the case of the expected linearity are not as good as the others. This is most likely due to the independance hypothesis being too heavy handed in this context.
+
+
+
+
+
+
+
+## References
+
+[^AC-BonPerTia19]: Xavier Bonnetain, Léo Perrin, and Shizhu Tian. Anomalies and vector space search: tools for s-box analysis. In Steven D. Galbraith and Shiho Moriai, editors, Advances in Cryptology - ASIACRYPT 2019 - 25th International Conference on the Theory and Application of Cryptology and Information Security, Kobe, Japan, December 8-12, 2019, Proceedings, Part I, volume 11921 of Lecture Notes in Computer Science, 196–223. Springer, 2019. URL: https://doi.org/10.1007/978-3-030-34578-5_8, doi:10.1007/978-3-030-34578-5_8.
+
+[^C-BirPer15]: Alex Biryukov and Léo Perrin. On reverse-engineering s-boxes with hidden design criteria or structure. In Rosario Gennaro and Matthew Robshaw, editors, Advances in Cryptology - CRYPTO 2015 - 35th Annual Cryptology Conference, Santa Barbara, CA, USA, August 16-20, 2015, Proceedings, Part I, volume 9215 of Lecture Notes in Computer Science, 116–140. Springer, 2015. URL: https://doi.org/10.1007/978-3-662-47989-6_6, doi:10.1007/978-3-662-47989-6_6.
+
+[^PhD-Perrin17]: Léo Perrin. Cryptanalysis, Reverse-Engineering and Design of Symmetric Cryptographic Algorithms. PhD thesis, University of Luxembourg, 2017. URL: http://orbilu.uni.lu/handle/10993/31195.
+
+[^JMC-DaeRij07]: Joan Daemen and Vincent Rijmen. Probability distributions of correlation and differentials in block ciphers. J. Math. Cryptol., 1(3):221–242, 2007. URL: https://doi.org/10.1515/JMC.2007.011, doi:10.1515/JMC.2007.011.
+

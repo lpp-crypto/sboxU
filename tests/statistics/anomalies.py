@@ -84,9 +84,9 @@ def main_test():
         for k in sorted(dis.keys()):
             if dis[k] != 0.0:
                 print("{:3d}: {:.4f}".format(k, dis[k]))
-        fail("bwooo")
         # --- } 
         subsection(' Comments')
+        section(' References')
     return exit_code()
 
 

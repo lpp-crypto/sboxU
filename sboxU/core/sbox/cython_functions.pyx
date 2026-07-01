@@ -16,6 +16,7 @@ from cython.operator cimport dereference
 # imports needed to test the input type in the Sb factory
 from sage.all import Polynomial 
 from sage.crypto.sboxes import SBox as sage_SBox
+from sage.crypto.sboxes import sboxes as literature_sboxes
 from sage.rings.polynomial.multi_polynomial_element import MPolynomial
 from sage.rings.finite_rings.integer_mod import IntegerMod_int
 
@@ -428,6 +429,15 @@ cdef class S_box_fp:
     # !SUBSECTION! Dealing with basic attributes
 
     def rename(S_box_fp self, name):
+        """Changes the name of the S-box.
+
+        Args:
+            name: the new name. If None, a unique name is generated
+                automatically; otherwise it must be a bytes or str object.
+
+        Raises:
+            NotImplemented: if `name` is neither None, bytes nor str.
+        """
         if name == None:
             self.cpp_name = new_sbox_name()
         elif isinstance(name, bytes):
@@ -460,6 +470,26 @@ cdef class S_box_fp:
         return result
 
 
+    def __sub__(S_box_fp self, S_box_fp _s):
+        """Pointwise subtraction in F_p (i.e., modular subtraction mod p).
+
+        Args:
+            _s: the S_box to subtract from the current one. Must share
+                the same characteristic, input size and output size.
+
+        Returns:
+            An `S_box_fp` instance whose output, on every input `x`, is
+            `self[x] - _s[x]` reduced coordinate-wise modulo p.
+        """
+        s = Sb(_s)
+        if len(s) != len(self):
+            raise Exception("Trying to subtract S_boxes of different lengths:\n{}\n{}".format(self,s))
+        name = self.get_name() + b"-" + s.get_name()
+        result = S_box_fp(name)
+        (<S_box_fp>result).set_inner_sbox(dereference((<S_box_fp>self).cpp_sb)-dereference((<S_box_fp>s).cpp_sb))
+        return result
+
+
     def __mul__(S_box_fp self, S_box_fp _s):
         """Composition of S-Boxes in F_p
 
@@ -474,14 +504,48 @@ cdef class S_box_fp:
         result = S_box_fp(name)
         (<S_box_fp>result).set_inner_sbox(dereference((<S_box_fp>self).cpp_sb)*dereference((<S_box_fp>s).cpp_sb))
         return result
-      
+
+
+    def __eq__(S_box_fp self, other) -> bool:
+        """Tests equality with another S-box over F_p.
+
+        Args:
+            other: an S_box_fp instance, or any S_boxable object that can
+                be turned into one via `Sb`.
+
+        Returns:
+            True if and only if `other` is an S-box over the same field,
+            with the same input and output sizes and the same lookup table.
+        """
+        if not isinstance(other, S_box_fp):
+            try:
+                other = Sb(other)
+            except Exception:
+                return False
+        if not isinstance(other, S_box_fp):
+            return False
+        return dereference(self.cpp_sb) == dereference((<S_box_fp>other).cpp_sb)
+
+
+    def __ne__(S_box_fp self, other) -> bool:
+        return not self.__eq__(other)
+
+
     def __iter__(S_box_fp self) -> FpWord:
+        """Iterates over the outputs of the S-box.
+
+        Yields:
+            The output (an FpWord) on each element of the input space,
+            in increasing order of the integer representation of the input.
+        """
         for x in self.get_input_space():
             yield self[x]
 
-    ### TODO : implem from bytes/to_bytes (at the cpp level)
-    # def __hash__(self):
-    #     return hash(self.to_bytes())
+    def __hash__(self):
+        """Returns:
+            A hash of the S-box, derived from its byte serialization.
+        """
+        return hash(self.to_bytes())
 
 
     def __pow__(S_box_fp self, int d, modulo) -> S_box_fp :
@@ -546,39 +610,86 @@ cdef class S_box_fp:
         return self.get_input_space_size()
 
     def __str__(S_box_fp self) -> str :
-        return f"""S-box over F{dereference(self.cpp_sb).get_p()} \n 
-        Name : {self.cpp_name} \n 
-        Input size : {dereference(self.cpp_sb).get_input_size()} \n 
-        Output size" : {dereference(self.cpp_sb).get_output_size()}"""
+        """Returns:
+            A human-readable representation of the lookup table, as a
+            list of lists in base p (little-endian), e.g.
+            '[[0,1],[1,0],...]'.
+        """
+        return dereference(self.cpp_sb).content_string_repr().decode("UTF-8")
 
     #! SUBSECTION! Getters dealing with the underlying cpp object
 
     def get_p(S_box_fp self) -> int :
+        """Returns:
+            The characteristic p of the field over which this S-box is defined.
+        """
         return dereference(self.cpp_sb).get_p()
 
     def get_input_size(S_box_fp self) -> int :
+        """Returns:
+            The number t of input coordinates, i.e. the input is an element of F_p^t.
+        """
         return dereference(self.cpp_sb).get_input_size()
 
     def get_output_size(S_box_fp self) -> int :
+        """Returns:
+            The number u of output coordinates, i.e. the output is an element of F_p^u.
+        """
         return dereference(self.cpp_sb).get_output_size()
 
     def get_input_space_size(S_box_fp self) -> int :
+        """Returns:
+            The cardinality p^t of the input space.
+        """
         return pow(self.get_p(),self.get_input_size())
 
     def get_output_space_size(S_box_fp self) -> int :
+        """Returns:
+            The cardinality p^u of the output space.
+        """
         return pow(self.get_p(),self.get_output_size())
 
     def get_input_space(S_box_fp self) -> std_vector[FpWord] :
+        """Returns:
+            The list of every element of the input space, each given as
+            its base-p decomposition (an FpWord, little-endian), in
+            increasing order of integer representation.
+        """
         return dereference(self.cpp_sb).get_input_space()
 
     def get_output_space(S_box_fp self) -> std_vector[FpWord] :
+        """Returns:
+            The list of every element of the output space, each given as
+            its base-p decomposition (an FpWord, little-endian), in
+            increasing order of integer representation.
+        """
         return dereference(self.cpp_sb).get_output_space()
 
     def get_name(S_box_fp self) -> string :
+        """Returns:
+            The name of this S-box, as a bytes object.
+        """
         return self.cpp_name
 
     def get_lut(S_box_fp self) -> std_vector[FpWord]:
+        """Returns:
+            The lookup table, as a list of FpWord, where entry i is the
+            output (a base-p vector) on the input whose integer
+            representation is i.
+        """
         return dereference(self.cpp_sb).get_lut()
+
+    def to_bytes(S_box_fp self) -> bytes:
+        """Serializes the S-box to a bytes object.
+
+        The result is self-describing: it encodes the characteristic,
+        the output size, the number of lookup-table entries and the
+        table itself, so that the S-box can be reconstructed from it.
+
+        Returns:
+            A bytes object encoding this S-box.
+        """
+        return bytes(dereference(self.cpp_sb).to_bytes())
 
     cdef set_inner_sbox(S_box_fp self, cpp_S_box_fp s):
         """
@@ -590,6 +701,16 @@ cdef class S_box_fp:
 
     @staticmethod
     def identity_S_box(cpp_Integer input_size, cpp_Integer p) -> S_box_fp :
+        """Builds the identity S-box over F_p^t.
+
+        Args:
+            input_size: the number t of coordinates, i.e. the S-box maps
+                F_p^t to itself.
+            p: the characteristic of the field.
+
+        Returns:
+            An S_box_fp instance mapping every x to itself.
+        """
         name = f"Id_{int(input_size)} over F_{int(p)}"
         result = S_box_fp(name=name)
         cdef std_vector[FpWord] lut = cpp_S_box_fp.build_input_space(p,input_size)
@@ -610,13 +731,32 @@ cdef class S_box_fp:
         (<S_box_fp>result).set_inner_sbox((dereference(self.cpp_sb).coordinate(<BinWord>i)))
         return result
 
-    def derivative(S_box_fp self, FpWord delta) -> S_box_fp :
-        """Args:
-            i: the index of the coordinate, where 0 is the bit of lowest weight.
-        
+    def component(S_box_fp self, FpWord a) -> S_box_fp :
+        """Computes a component of the S-box.
+
+        Args:
+            a: the linear combination of output coordinates, as an F_p
+                vector (FpWord) of length equal to the output size.
+
         Returns:
-            An S_box_fp instance mapping n Fp words to 1 corresponding to the i-th coordinate of S.
-        
+            An S_box_fp instance, with a single output coordinate, equal
+            to x -> a . S(x) mod p, where '.' is the scalar product over F_p.
+        """
+        name = self.cpp_name + ("•{}".format(list(a))).encode("UTF-8")
+        result = S_box_fp(name=name)
+        (<S_box_fp>result).set_inner_sbox(dereference(self.cpp_sb).component(a))
+        return result
+
+    def derivative(S_box_fp self, FpWord delta) -> S_box_fp :
+        """Computes the derivative of the S-box in a given direction.
+
+        Args:
+            delta: the direction of derivation, as an F_p vector (FpWord).
+
+        Returns:
+            An S_box_fp instance equal to x -> S(x + delta) - S(x), where
+            the addition of delta and the subtraction of the outputs are
+            both done coordinate-wise modulo p.
         """
         cdef cpp_S_box_fp cpp_sbox = dereference(self.cpp_sb)
         result = S_box_fp(name=("Δ_{:x} ".format(cpp_sbox.vec_to_int(delta,cpp_sbox.get_powers_in())).encode("UTF-8")+ self.get_name()))
@@ -678,7 +818,13 @@ def get_Sbox_from_lut(s : list, name, input_casts : list, output_casts: list) ->
         
 
 
-def get_Sbox_from_bytes(s : bytes | bytearray, name, input_casts : list, output_casts: list) -> S_box:
+def get_Sbox_from_bytes(s : bytes | bytearray, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
+    # A leading zero byte marks the F_p serialization (an F_2 byte array
+    # starts with an output bit-length, which is never zero).
+    if len(s) > 0 and s[0] == 0:
+        result = S_box_fp(name=name)
+        (<S_box_fp>result).set_inner_sbox(cpp_S_box_fp(<Bytearray>s))
+        return result
     result = S_box(name=name,
                    input_casts=input_casts,
                    output_casts=output_casts)
@@ -769,7 +915,18 @@ def get_Sbox_from_list(s : list, name, input_casts : list, output_casts : list) 
     elif isinstance(s[0], (int, sage_Integer, list)):
         # case of a LUT
         return get_Sbox_from_lut(s, name, input_casts, output_casts)
+
     
+def get_Sbox_from_string(key : str, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
+    if name == None:
+        name = key 
+    if key in literature_sboxes:
+        return get_Sbox_from_sage_SBox(literature_sboxes[key], name, [], [])
+    # !TODO! beter handling of upper/lower case 
+    else:
+        raise Exception("Couldn't figure out what the string meant")
+
+
 
 # !SUBSECTION! Main factory
 
@@ -780,9 +937,11 @@ SBOXU_TYPE_TO_FACTORY = {
     list         : get_Sbox_from_list,
     bytes        : get_Sbox_from_bytes,
     bytearray    : get_Sbox_from_bytes,
+    str          : get_Sbox_from_string,
     
     Polynomial   : get_Sbox_from_univariate_polynomial,
 }
+
 
 def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_box_fp]:
     """Turns its input into an object of the S_box class.
