@@ -1,13 +1,24 @@
 
 from sboxU.ccz import get_WalshZeroesSpaces,ccz_equivalent_function
 from sboxU.apn import ccz_equivalent_quadratic_function, ea_mappings_from_ortho_derivative, automorphisms_from_ortho_derivative
-from sboxU.core import algebraic_degree
+from sboxU.core import algebraic_degree, get_sbox
+from sboxU.statistics import differential_spectrum, absolute_walsh_spectrum
 
 
-def are_ea_equivalent_from_vq(f,g):
+def are_ea_equivalent_from_vq(f, g):
+    sf, sg = get_sbox(f), get_sbox(g)
 
-    # !! TODO !!
-    # Add base cases
+    # Fast invariant checks before the expensive algorithm
+    if sf.get_input_length() != sg.get_input_length():
+        return False
+    if sf.get_output_length() != sg.get_output_length():
+        return False
+    if algebraic_degree(sf) != algebraic_degree(sg):
+        return False
+    if differential_spectrum(sf) != differential_spectrum(sg):
+        return False
+    if absolute_walsh_spectrum(sf) != absolute_walsh_spectrum(sg):
+        return False
 
     ws_f = get_WalshZeroesSpaces(f)
     mappings_f = list(ws_f.get_mappings())
