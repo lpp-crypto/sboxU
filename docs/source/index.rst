@@ -164,6 +164,7 @@ Contributors
    ./test_ea_mapping_from_vq.rst
    ./test_product_walsh_match.rst
    ./test_walsh_generator_orbit_check.rst
+   ./f2affinemap.rst
    ./basicF2SBox.rst
    ./basicFpSBox.rst
    ./anomalies.rst

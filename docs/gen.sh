@@ -49,7 +49,7 @@ echo "
 
 PYTHONPATH="$PYTHONPATH:.."
 # -- parsing the docstrings - we choose to use sage python since the sphinx theme is installed via sage (cf pyproject.toml)
-sage -python -m sphinx.cmd.apidoc -M -o source ../sboxU "../sboxU/scripts/apnDB/*QAM.py" "../sboxU/scripts/apnDB/BeierleLeander.py" "../sboxU/scripts/apnDB/apn_8bit_BLP22.py" 
+sage -python -m sphinx.ext.apidoc -M -o source ../sboxU "../sboxU/scripts/apnDB/*QAM.py" "../sboxU/scripts/apnDB/BeierleLeander.py" "../sboxU/scripts/apnDB/apn_8bit_BLP22.py" 
 
 # -- generating the bibliography
 #sage ./biblio.py "gen"

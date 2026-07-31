@@ -252,6 +252,10 @@ def get_F2AffineMap_from_image_vectors(l, c=None, input_length=None, output_leng
         raise Exception("In get_F2AffineMap_from_image_vectors: mismatch between actual list length and input_length")
     if c == None:
         c = int(0)
+    # ensuring compatibility
+    for x in l:
+        if (x >> 64) != 0:
+            raise Exception("F2AffineMap image cannot be more than 64-bit long")
     # actually building the result
     result = F2AffineMap()
     result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l, c))
@@ -264,6 +268,10 @@ def get_F2AffineMap_from_S_box(l : S_box, c=None, input_length=None, output_leng
         raise Exception("In get_F2AffineMap_from_S_box: mismatch between actual S_box input length and input_length")
     if output_length != None and l.get_output_length() != output_length:
         raise Exception("In get_F2AffineMap_from_S_box: mismatch between actual S_box output length and output_length")
+    else:
+        output_length = l.get_output_length()
+    if output_length > 64:
+        raise Exception("F2AffineMap image cannot be more than 64-bit long")
     if c != None and c != l[0]:
         raise Exception("In get_F2AffineMap_from_S_box: mismatch between constant and l[0]")
     # actually building the result
@@ -280,6 +288,8 @@ def get_F2AffineMap_from_univariate_Polynomial(l : Polynomial, c=None, input_len
     n = field.degree()
     if input_length != None and input_length != n:
         raise Exception("In get_F2AffineMap_from_univariate_Polynomial: mismatch between input_size and field degree")
+    if n > 64:
+        raise Exception("F2AffineMap image cannot be more than 64-bit long")
     i2f, f2i = i2f_and_f2i(field)
     # dealing with the constant
     if c != None and c != f2i(l[0]):
@@ -330,6 +340,9 @@ def get_F2AffineMap_from_Matrix(l, c=None, input_length=None, output_length=None
             raise Exception("In get_F2AffineMap_from_Matrix: mismatch between len(l) and output_length")
         else:
             output_length = len(l)
+    # ensuring compatibility
+    if output_length > 64:
+        raise Exception("F2AffineMap image cannot be more than 64-bit long")
     # building image vector
     imgs = []
     if block_length == 1:

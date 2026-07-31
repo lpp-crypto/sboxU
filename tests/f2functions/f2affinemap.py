@@ -14,7 +14,6 @@ def main_test():
             [0, 0, 1],
             [0, 1, 0],
         ])
-        print(m_mat)
         # --- } 
         # --- { 
         m1 = get_F2AffineMap(m_mat)
@@ -23,13 +22,50 @@ def main_test():
         m2 = get_F2AffineMap([1, 4, 2])
         # --- } 
         # --- { 
-        print("x\tm1(x)\tm2(x)\tmat*x")
+        m3 = get_F2AffineMap(get_sbox([0, 1, 4, 5, 2, 3, 6, 7]))
+        # --- } 
+        # --- { 
+        print("x\tmat*x\tm1(x)\tm2(x)\tm3(x)")
         for x in range(0, 2**3):
-            print("{}\t{}\t{}\t{}".format(
-            x, 
-            m1(x),
-            m2(x),
-            from_bin(m_mat * vector(to_bin(x, 3)))))
+            y = from_bin(m_mat * vector(to_bin(x, 3)))
+            row = "{}\t{}\t".format(x, y)
+            for transformation in [m1, m2, m3]:
+                y_prime = transformation(x)
+                row += "{}\t".format(y_prime)
+                if y_prime != y:
+                    fail("an F2AffineMap doesn't match the SAGE matrix")
+            print(row)
+        # --- } 
+        subsection('A bigger test: rank distribution')
+        # --- { 
+        n_max = 10
+        parameters = [(7, 10), (10, 7), (10, 10)]
+        n_tested = 2**14
+        # --- } 
+        # --- { 
+        def proba_full_rank(n, m):
+            if m > n:
+                m, n = n, m
+            return float(prod(1 - 2**(-k) for k in range(n - m + 1, n + 1)))
+        # --- } 
+        # --- { 
+        for n, m in parameters:
+            counters = [0 for r in range(0, n_max+1)]
+            for t in range(0, n_tested):
+                L = rand_linear_function(n, m)
+                counters[L.rank()] += 1
+            row = "({:2d}, {:2d})".format(n, m)
+            for c in counters:
+                row += "\t{:5.3f}".format(float(c) / n_tested)
+            print(row)
+        # --- } 
+        # --- { 
+            observed = float(counters[min(n, m)]) /  n_tested
+            expected = proba_full_rank(n, m)
+            diff = abs(expected - observed)
+            if diff > 0.01:
+                fail("mismatch between theory and practice: {}".format(diff))
+            
         # --- } 
         section('References')
     return exit_code()
