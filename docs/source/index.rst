@@ -1,7 +1,7 @@
 sboxU
 =====
 
-.. figure:: ./docs/source/logo-v2-5.png
+.. figure:: ./logo-v2-5.png
    :alt: The logo of sboxU, showing a box being built or disassembled.
 
    The logo of sboxU, showing a box being built or disassembled.

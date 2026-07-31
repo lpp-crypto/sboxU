@@ -65,8 +65,20 @@ cdef extern from "../../cpp/core/f2affinemap.hpp":
     
         cpp_F2AffineMap(
             const std_vector[BinWord] & _image_vectors,
+            const BinWord _cstte
+        )
+    
+        cpp_F2AffineMap(
+            const std_vector[BinWord] & _image_vectors,
             const int64_t _input_length,
             const int64_t _output_length
+        )
+
+        cpp_F2AffineMap(
+            const std_vector[BinWord] & _image_vectors,
+            const int64_t _input_length,
+            const int64_t _output_length,
+            const BinWord _cstte
         )
 
         cpp_F2AffineMap(
