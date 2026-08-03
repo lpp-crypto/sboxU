@@ -141,6 +141,13 @@ cdef extern from "../../cpp/core/f2affinemap.cpp":
 # !SECTION! Declaring cython code
 
 
+cdef class F2Transformation:
+    cdef string cpp_name
+    cdef list input_casts
+    cdef list output_casts
+
+
+
 cdef class F2AffineMap:
     cdef unique_ptr[cpp_F2AffineMap] cpp_map
     cdef set_inner_map(F2AffineMap self, cpp_F2AffineMap A)

@@ -91,6 +91,8 @@ def circ_shift(BinWord x, int n, int shift) -> BinWord:
     """
     return cpp_circ_shift(x,n,shift)
 
+
+
 # !SUBSECTION! Convenient XOR abstractions
 
 def xor(*args) -> BinWord:
@@ -133,6 +135,42 @@ def to_bin(BinWord x, int n) -> list:
 
 def from_bin(std_vector[int] l) -> BinWord:
     return cpp_from_bin(l)
+
+
+
+# !SECTION! The Transformation class
+
+cdef class F2Transformation:
+    """!TODO!
+    """
+    # !SUBSECTION! Initialization and destruction
+
+ 
+    def __init__(self, name=None, input_casts : list=[], output_casts: list=[]):
+        self.rename(name)
+        self.input_casts = input_casts
+        self.output_casts = output_casts
+
+
+        
+    # !SUBSECTION! Dealing with basic attributes
+    
+    def rename(self, name):
+        if name == None:
+            self.cpp_name = new_sbox_name()
+        elif isinstance(name, bytes):
+            self.cpp_name = name
+        elif isinstance(name, str):
+            self.cpp_name = name.encode("UTF-8")
+        else:
+            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
+
+        
+    def attach_casts_pair(self, input_cast, output_cast) -> None:
+        self.input_casts.append(input_cast)
+        self.output_casts.append(output_cast)
+
+    
 
 # !SECTION! The F2AffineMap class
 

@@ -5,12 +5,16 @@ The corresponding source file is available online [on github](https://github.com
 
 ## Preamble
 
-Let $q=2^u$ be a power of two, and $F_q$ be the finite field with $q$ elements. `sboxU` provides fast tools to deal with affine functions mapping $F_q^n$ to $F_q^m$ (for now only in this case, meaning when the characteristic is 2), in particular the `F2AffineMap` class. They are implemented in C++, and the performance gain over plain SAGE matrices can be enormous. Since they are implemented in C++, you can also use them directly in C++ programs---but it is a topic for another time.
+Let $q=2^u$ be a power of two, and $F_q$ be the finite field with $q$ elements. `sboxU` provides fast tools to deal with affine functions mapping $F_q^n$ to $F_q^m$ (for now only in this case, meaning when the characteristic is 2), in particular the [`F2AffineMap`](https://who.paris.inria.fr/Leo.Perrin/code/sboxU/sage/sboxU.core.f2functions.html#sboxU.core.f2functions.cython_functions.F2AffineMap) class. They are implemented in C++, and the performance gain over plain SAGE matrices can be enormous. Since they are implemented in C++, you can also use them directly in C++ programs---but it is a topic for another time.
 
 Under the hood, the `F2AffineMap` class defines matrices over $F_2$ only and stores both the offset and the image vectors using unsigned integers.
 
 Let's see how it can be used in practice.
 
+
+## Simple Functions
+
+`hamming_weight`, `msb`, `lsb`, `scal_prod`, etc
 
 ## Basic functionalities of the F2AffineMap class
 
