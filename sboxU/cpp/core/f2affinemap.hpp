@@ -37,7 +37,7 @@ public:
     
 // !SUBSECTION! Constructors
     
-    /** Basic constructor initialisinng everything to 0. */
+    /** Basic constructor initialising everything to 0. */
     inline cpp_F2AffineMap() :
         image_vectors(std::vector<BinWord>(0)),
         input_length(0),

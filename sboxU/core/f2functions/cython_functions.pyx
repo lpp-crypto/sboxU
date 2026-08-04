@@ -1,7 +1,12 @@
 # -*- python -*-
 
-from sage.all import Matrix, GF, Polynomial,vector
+from sage.all import Matrix, GF, Polynomial, vector
+# The following `Matrix` is not the same as above, it corresponds to an abstract type
+from sage.structure.element import Matrix as SAGE_MATRIX
+from sage.all import Integer as SAGE_INTEGER
+
 from sboxU.core.f2functions.field_arithmetic import i2f_and_f2i
+
 
 from cython.operator cimport dereference
 
@@ -86,6 +91,8 @@ def circ_shift(BinWord x, int n, int shift) -> BinWord:
     """
     return cpp_circ_shift(x,n,shift)
 
+
+
 # !SUBSECTION! Convenient XOR abstractions
 
 def xor(*args) -> BinWord:
@@ -128,6 +135,42 @@ def to_bin(BinWord x, int n) -> list:
 
 def from_bin(std_vector[int] l) -> BinWord:
     return cpp_from_bin(l)
+
+
+
+# !SECTION! The Transformation class
+
+cdef class F2Transformation:
+    """!TODO!
+    """
+    # !SUBSECTION! Initialization and destruction
+
+ 
+    def __init__(self, name=None, input_casts : list=[], output_casts: list=[]):
+        self.rename(name)
+        self.input_casts = input_casts
+        self.output_casts = output_casts
+
+
+        
+    # !SUBSECTION! Dealing with basic attributes
+    
+    def rename(self, name):
+        if name == None:
+            self.cpp_name = new_sbox_name()
+        elif isinstance(name, bytes):
+            self.cpp_name = name
+        elif isinstance(name, str):
+            self.cpp_name = name.encode("UTF-8")
+        else:
+            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
+
+        
+    def attach_casts_pair(self, input_cast, output_cast) -> None:
+        self.input_casts.append(input_cast)
+        self.output_casts.append(output_cast)
+
+    
 
 # !SECTION! The F2AffineMap class
 
@@ -235,7 +278,176 @@ cdef class F2AffineMap:
     def __eq__(self,F2AffineMap L) -> bool:
         return dereference(self.cpp_map).get_image_vectors() == dereference(L.cpp_map).get_image_vectors()
 
-# !SUBSECTION! Factories 
+
+# !SUBSECTION! The main factory
+
+
+# !SUBSUBSECTION! Handling different subcases
+
+def get_F2AffineMap_from_image_vectors(l, c=None, input_length=None, output_length=None) -> F2AffineMap | Exception:
+    # sanity checks
+    if input_length != None and len(l) != input_length:
+        raise Exception("In get_F2AffineMap_from_image_vectors: mismatch between actual list length and input_length")
+    if c == None:
+        c = int(0)
+    # ensuring compatibility
+    for x in l:
+        if (x >> 64) != 0:
+            raise Exception("F2AffineMap image cannot be more than 64-bit long")
+    # actually building the result
+    result = F2AffineMap()
+    result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l, c))
+    return result
+    
+    
+def get_F2AffineMap_from_S_box(l : S_box, c=None, input_length=None, output_length=None) -> F2AffineMap | Exception:
+    # sanity checks
+    if input_length != None and l.get_input_length() != input_length:
+        raise Exception("In get_F2AffineMap_from_S_box: mismatch between actual S_box input length and input_length")
+    if output_length != None and l.get_output_length() != output_length:
+        raise Exception("In get_F2AffineMap_from_S_box: mismatch between actual S_box output length and output_length")
+    else:
+        output_length = l.get_output_length()
+    if output_length > 64:
+        raise Exception("F2AffineMap image cannot be more than 64-bit long")
+    if c != None and c != l[0]:
+        raise Exception("In get_F2AffineMap_from_S_box: mismatch between constant and l[0]")
+    # actually building the result
+    result = F2AffineMap()
+    result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
+    return result
+
+    
+def get_F2AffineMap_from_univariate_Polynomial(l : Polynomial, c=None, input_length=None, output_length=None) -> F2AffineMap | Exception:
+    # dealing with the underlying field 
+    field = l.base_ring()
+    if field.characteristic() != 2:
+        raise Exception("In get_F2AffineMap_from_univariate_Polynomial: a polynomial in characteristic 2 is needed")
+    n = field.degree()
+    if input_length != None and input_length != n:
+        raise Exception("In get_F2AffineMap_from_univariate_Polynomial: mismatch between input_size and field degree")
+    if n > 64:
+        raise Exception("F2AffineMap image cannot be more than 64-bit long")
+    i2f, f2i = i2f_and_f2i(field)
+    # dealing with the constant
+    if c != None and c != f2i(l[0]):
+        raise Exception("In get_F2AffineMap_from_univariate_Polynomial: mismatch between l[0] and the constant given")
+    elif c == None:
+        c = f2i(l[0])
+    # building the mapping
+    imgs = [oplus(c, f2i(l(i2f(1 << i)))) for i in range(0, n)] # we need to remove the constant part from the polynomial images
+    result = F2AffineMap()
+    result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs, c))
+    return result
+    
+
+def get_F2AffineMap_from_Matrix(l, c=None, input_length=None, output_length=None) -> F2AffineMap | Exception:
+    # checking the input, and making sure that input_length, output_length and block_length are correctly set
+    if isinstance(l, SAGE_MATRIX):
+        # -- field coherence
+        # !TODO! handle the case of a non-trivial underlying field using casts.
+        # !TODO! add casts to F2AffineMap
+        field = l.base_ring()
+        if field.characteristic() != 2:
+            raise Exception("In get_F2AffineMap_from_Matrix: the matrix must have an underlying field of characteristic 2")
+        # -- lengths verifications
+        block_length = field.degree()
+        if input_length != None and input_length != l.ncols()*block_length:
+            raise Exception("In get_F2AffineMap_from_Matrix: mismatch between l.ncols()*block_length and input_length")
+        else:
+            input_length = l.ncols()*block_length
+        if output_length != None and output_length != l.nrows()*block_length:
+            raise Exception("In get_F2AffineMap_from_Matrix: mismatch between l.nrows()*block_length and output_length")
+        else:
+            output_length = l.nrows()*block_length
+    elif isinstance(l, (list, tuple)):
+        field = GF(2)
+        block_length = 1 # only GF(2) is supported in this context
+        # -- checking rows
+        for row in l:
+            if not isinstance(row, (list, tuple)):
+                raise Exception("In get_F2AffineMap_from_Matrix: the list or tuple elements must themselves be lists or tuples")
+            if len(row) != len(l[0]):
+                raise Exception("In get_F2AffineMap_from_Matrix: inconsistent row lengths")
+        # -- checking input_length and output_length coherence
+        if input_length != None and input_length != len(l[0]):
+            raise Exception("In get_F2AffineMap_from_Matrix: mismatch between len(l[0]) and input_length")
+        else:
+            input_length = len(l[0])
+        if output_length != None and output_length != len(l):
+            raise Exception("In get_F2AffineMap_from_Matrix: mismatch between len(l) and output_length")
+        else:
+            output_length = len(l)
+    # ensuring compatibility
+    if output_length > 64:
+        raise Exception("F2AffineMap image cannot be more than 64-bit long")
+    # building image vector
+    imgs = []
+    if block_length == 1:
+        # -- F_2 case
+        for i in range(0, input_length):
+            y = 0
+            for j in range(0, output_length):
+                if l[j][i] == 1:
+                    y |= (1 << j)
+            imgs.append(y)
+    else:
+        # -- F_{2^n} case
+        i2f, f2i = i2f_and_f2i(field)
+        n_blocks = input_length / block_length
+        for i in range(0, input_length):
+            x = i2f(1 << (i % block_length))
+            y = [f2i(l[i][j] * x) for j in range(0, n_blocks)]
+            y_bin = []
+            for y_j in y:
+                y_bin += to_bin(y_j, block_length)
+            imgs.append(y_bin)
+    # final steps
+    result = F2AffineMap()
+    result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs, c))
+    return result
+    
+    
+
+# !SUBSUBSECTION! The main factory itself
+
+F2AFFINEMAP_TYPE_TO_FACTORY = {
+    list   : get_F2AffineMap_from_image_vectors,
+    tuple  : get_F2AffineMap_from_image_vectors,
+    S_box  : get_F2AffineMap_from_S_box,
+    Polynomial : get_F2AffineMap_from_univariate_Polynomial,
+    SAGE_MATRIX : get_F2AffineMap_from_Matrix
+}
+
+def get_F2AffineMap(l, c=0, input_length=None, output_length=None) -> F2AffineMap | Exception:
+
+    # !TODO! rewrite this factory in the style of the get_sbox factory 
+    # !TODO! add processing of matrices
+    # !TODO! add processing of the offset
+
+
+    if isinstance(l, (F2AffineMap)):
+        return l
+    
+    # sanitizing because SAGE can be annoying
+    if isinstance(c, SAGE_INTEGER):
+        c = int(c)
+    t = type(l)
+    if t in F2AFFINEMAP_TYPE_TO_FACTORY.keys():
+        return F2AFFINEMAP_TYPE_TO_FACTORY[t](l, c, input_length, output_length)
+    elif isinstance(l, Polynomial):
+        # `Polynomial` is not a real type, so indexing by it will not work
+        return F2AFFINEMAP_TYPE_TO_FACTORY[Polynomial](l, c, input_length, output_length)
+    elif isinstance(l, SAGE_MATRIX):
+        # `SAGE_MATRIX` is not a real type, so indexing by it will not work either
+        return F2AFFINEMAP_TYPE_TO_FACTORY[SAGE_MATRIX](l, c, input_length, output_length)
+    else:
+        raise Exception("get_F2AffineMap cannot process input of this type")
+
+
+
+
+# !SUBSECTION! Common particular cases
 
 def identity_F2AffineMap(int64_t n) -> F2AffineMap:
     return get_F2AffineMap([(1 << i) for i in range(0, n)],n,n)
@@ -292,61 +504,4 @@ def bit_permutation_F2AffineMap(p) -> F2AffineMap:
         A BinLinearMap corresponding to bit permutation associated to p.
     """
     return get_F2AffineMap([1 << p[i] for i in range(len(p))])
-    
-# !SUBSECTION! The main factory
-
-
-def get_F2AffineMap(l, input_length=None, output_length=None) -> F2AffineMap:
-
-    # !TODO! rewrite this factory in the style of the get_sbox factory 
-    if isinstance(l, (F2AffineMap)):
-        return l
-    elif input_length is None and output_length is None:
-        result = F2AffineMap()
-        if isinstance(l, (list)):
-            result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l))
-        elif isinstance(l, (S_box)):
-            result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
-        elif isinstance(l, Polynomial):
-            # case of a univariate polynomial
-            field = l.base_ring()
-            if field.characteristic() == 2:
-                n = field.degree()
-                i2f, f2i = i2f_and_f2i(field)
-                imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
-                result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs))
-            else:
-                raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
-        else:
-            # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplementedError("Blm function cannot process input of type {}".format(type(l)))
-        return result
-    elif (input_length is None) or (output_length is None):
-        raise NotImplementedError("You must specify both input_length and output_length or none of them")
-    else :
-        result = F2AffineMap()
-        if isinstance(l, (list)):
-            result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l,
-                                                 input_length,
-                                                 output_length))
-        elif isinstance(l, (S_box)):
-            if l.get_input_length()!=input_length or l.get_output_length()!= output_length:
-                raise Exception("You specified uncompatible input or output length")
-            result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
-        elif isinstance(l, Polynomial):
-            # case of a univariate polynomial
-            field = l.base_ring()
-            if field.characteristic() == 2:
-                n = field.degree()
-                i2f, f2i = i2f_and_f2i(field)
-                imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
-                result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs,
-                                                     input_length,
-                                                     output_length))
-            else:
-                raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
-        else:
-            # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplementedError("Blm function cannot process input of type {}".format(type(l)))
-        return result
 

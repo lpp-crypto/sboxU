@@ -65,8 +65,20 @@ cdef extern from "../../cpp/core/f2affinemap.hpp":
     
         cpp_F2AffineMap(
             const std_vector[BinWord] & _image_vectors,
+            const BinWord _cstte
+        )
+    
+        cpp_F2AffineMap(
+            const std_vector[BinWord] & _image_vectors,
             const int64_t _input_length,
             const int64_t _output_length
+        )
+
+        cpp_F2AffineMap(
+            const std_vector[BinWord] & _image_vectors,
+            const int64_t _input_length,
+            const int64_t _output_length,
+            const BinWord _cstte
         )
 
         cpp_F2AffineMap(
@@ -127,6 +139,13 @@ cdef extern from "../../cpp/core/f2affinemap.cpp":
 
 
 # !SECTION! Declaring cython code
+
+
+cdef class F2Transformation:
+    cdef string cpp_name
+    cdef list input_casts
+    cdef list output_casts
+
 
 
 cdef class F2AffineMap:
