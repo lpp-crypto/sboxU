@@ -9,11 +9,7 @@ from sboxU.core.f2functions.cython_functions import \
     hamming_weight, scal_prod, msb, lsb, \
     to_bin, from_bin, circ_shift, \
     linear_combination, rank_of_vector_set, \
-    get_F2AffineMap, F2AffineMap, \
-    identity_F2AffineMap, zero_F2AffineMap, block_diagonal_F2AffineMap,circ_shift_F2AffineMap,bit_permutation_F2AffineMap, F2AffineMap_from_blocks
-
             
 from sboxU.core.f2functions.field_arithmetic import * 
 
-# from .casts import \
-#     CastToF2Product, CastFromF2Product
+from sboxU.core.f2functions.linearcasts import * 

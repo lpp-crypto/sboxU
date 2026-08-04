@@ -1,6 +1,8 @@
 # -*- python -*-
 
 from sboxU.cython_types cimport *
+from sboxU.core.f2functions cimport *
+
 
 from libcpp.memory cimport unique_ptr
 

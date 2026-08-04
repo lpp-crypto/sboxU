@@ -2,7 +2,6 @@
 
 from sboxU.core.f2functions cimport *
 from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
-from sboxU.core.sbox.linearCasts import casts_from_field
 
 from typing import Union
 
@@ -38,6 +37,7 @@ cdef cpp_S_box pyx_concat_sboxes(cpp_S_box s, cpp_S_box t):
     """A wrapper for the cpp_S_box overloaded operator |."""
     return s.concat(t)
 
+
 def new_sbox_name() -> bytes:
     """Returns a unique name that can be given to an S-box.
 
@@ -45,12 +45,49 @@ def new_sbox_name() -> bytes:
 
     Returns:
         A bytearray corresponding to the next unique S_box name.
+
+    # !TODO! factor out this function in the F2Transform class 
+
     """
     global sboxU_SBOXES_COUNTER
     result = bytes("S_{}".format(sboxU_SBOXES_COUNTER).encode("UTF-8"))
     sboxU_SBOXES_COUNTER += 1
     return result
 
+
+# !SUBSECTION! Simple wrappers
+
+def inverse(s):
+    """Compositional inversion.
+    
+    Args:
+        - s: an S_boxable object.
+
+    Returns:
+        An S_box object corresponding to the compositional inverse of s.
+    """
+    if isinstance(s, (S_box)):
+        return s.inverse()
+    else:        
+        sb = get_sbox(s)
+        return sb.inverse()
+
+
+def is_permutation(s):
+    """Returns True if and only if `s` is an S_boxable object corresponding to a bijective function.
+
+    Args:
+        - s: an S_boxable object
+
+    Returns:
+        True if and only if s corresponds to a bijection.
+    """
+    if isinstance(s, (S_box)):
+        return s.is_invertible()
+    else:        
+        sb = get_sbox(s)
+        return sb.is_invertible()
+    
 
     
 # !SUBSECTION! Global variables 
@@ -61,7 +98,7 @@ cdef BinWord sboxU_SBOXES_COUNTER = 0
 
 # !SECTION! The S_box class
 
-cdef class S_box:
+cdef class S_box(F2Transformation):
     # "cdef" attributes are declared in the .pxd file
     """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
 
@@ -69,34 +106,13 @@ cdef class S_box:
     Objects of this class should be initialized using the :py:func:get_sbox function.
 
     """
-                                 
     
     # !SUBSECTION! Initialization and destruction
 
  
     def __init__(self, name=None, input_casts : list=[], output_casts: list=[]):
-        self.rename(name)
-        self.input_casts = input_casts
-        self.output_casts = output_casts
+        super().__init__(name, input_casts, output_casts)
 
-
-        
-    # !SUBSECTION! Dealing with basic attributes
-    
-    def rename(self, name):
-        if name == None:
-            self.cpp_name = new_sbox_name()
-        elif isinstance(name, bytes):
-            self.cpp_name = name
-        elif isinstance(name, str):
-            self.cpp_name = name.encode("UTF-8")
-        else:
-            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
-
-        
-    def attach_casts_pair(self, input_cast, output_cast) -> None:
-        self.input_casts.append(input_cast)
-        self.output_casts.append(output_cast)
 
         
     # !SUBSECTION! Python built-in methods
@@ -118,28 +134,6 @@ cdef class S_box:
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
         return result
-
-    
-    def __call__(self, x) -> BinWord:
-        """Querying the S-box on a specific input.
-
-        Unlike __getitem__, the input does not have to be an integer; however, it needs to be a of a type that this S_box isntance can cast to an integer. The integer obtained by querying the lookup is then cast to another type using `self.output_cast`.
-
-        Because of the logic related to casting, it is slower than __getitem__.
-        
-        Args:
-            x: a valid input for the cast `self.input_cast`.
-        
-        Returns:
-            The result of calling this S-box on the input of `x`, and then casting the result to the correct type.
-        """
-        if isinstance(x, (int, sage_Integer)):
-            return dereference(self.cpp_sb).brackets(<BinWord>x)
-        else:
-            for i, c in enumerate(self.input_casts):
-                if c.is_valid_input(x):
-                    return self.output_casts[i](dereference(self.cpp_sb).brackets(c(x)))
-            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
 
 
     def __eq__(self, s) -> bool:
@@ -617,7 +611,7 @@ cdef class S_box_fp:
         """
         return dereference(self.cpp_sb).content_string_repr().decode("UTF-8")
 
-    #! SUBSECTION! Getters dealing with the underlying cpp object
+    # !SUBSECTION! Getters dealing with the underlying cpp object
 
     def get_p(S_box_fp self) -> int :
         """Returns:
@@ -999,47 +993,3 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
             raise NotImplementedError("Cannot build an Sbox from this input type")
             
 
-        
-# !SUBSECTION! Other basic structures
-
-def identity_S_box(length) -> S_box:
-    """Returns an S_box instance corresponding to the identity
-    function, i.e. the one mapping x to itself.
-
-    """
-    return get_sbox(list(range(0, length)))
-
-
-cdef S_box pyx_F2_trans(BinWord k, n):
-    """Wrapper for the `cpp_translation` function. """
-    result = S_box(name="Add_{}".format(k))
-    result.set_inner_sbox(cpp_translation(k, n))
-    return result
-
-
-def F2_trans(BinWord additive_cstte, field=None, bit_length=None) -> S_box:
-    """Returns an S_box containing the lookup table of a simple XOR over a given field extension of F_2.
-
-    If additive_cstte is an integer, then either `field` or `bit_length` must be set. If it is a field element, both `field` and `bit_length` will be ignored.
-    
-    Args:
-        additive_cstte: the constant to add. Can be a field element or an integer. If an integer, then the field used must be specified.
-        field: the field in which the multiplication must be made if `additive_cstte` is an integer.
-        bit_length: the bit-length to use for both the input and output if `additive_cstte` is an integer.
-
-    Returns:
-        An S_box instance
-    """
-    if isinstance(additive_cstte, (int, sage_Integer)):
-        k = additive_cstte
-        if isinstance(bit_length, (int, sage_Integer)):
-            n = bit_length
-        elif "degree" in dir(field): # case of a field
-            n = field.degree()
-        else:
-            inputs = {"field": field, "bit_length": bit_length}
-            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be specified, instead, got {}".format(inputs))
-    else: # case where the additive constant is a finite field element
-        k = ffe_to_int(additive_cstte)
-        n = additive_cstte.parent().degree()
-    return pyx_F2_trans(k, n)

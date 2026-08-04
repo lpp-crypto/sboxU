@@ -6,6 +6,7 @@ from sboxU import *
 
 def main_test():
     with Experiment('Affine Functions of F_2^n'):
+        section('Simple Functions')
         section('Basic functionalities of the F2AffineMap class')
         subsection('Construction')
         # --- { 

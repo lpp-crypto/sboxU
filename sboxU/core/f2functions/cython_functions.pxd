@@ -53,103 +53,16 @@ cdef extern from "../../cpp/core/f2functions.cpp":
     pass
 
 
-# !SUBSECTION! The cpp_F2AffineMap class
-
-cdef extern from "../../cpp/core/f2affinemap.hpp":
-    cppclass cpp_F2AffineMap:
-        cpp_F2AffineMap()
-    
-        cpp_F2AffineMap(
-            const std_vector[BinWord] & _image_vectors
-        )
-    
-        cpp_F2AffineMap(
-            const std_vector[BinWord] & _image_vectors,
-            const BinWord _cstte
-        )
-    
-        cpp_F2AffineMap(
-            const std_vector[BinWord] & _image_vectors,
-            const int64_t _input_length,
-            const int64_t _output_length
-        )
-
-        cpp_F2AffineMap(
-            const std_vector[BinWord] & _image_vectors,
-            const int64_t _input_length,
-            const int64_t _output_length,
-            const BinWord _cstte
-        )
-
-        cpp_F2AffineMap(
-            const cpp_S_box & lut
-        )
-
-        int64_t get_input_length()
-    
-        int64_t get_output_length()
-
-        bool is_linear()
-    
-        BinWord operator() (
-            const BinWord x
-        ) 
-    
-        cpp_F2AffineMap operator*(
-           const cpp_F2AffineMap & l
-        ) 
-        
-        cpp_F2AffineMap operator+(
-            const cpp_F2AffineMap & l
-        )
-
-        cpp_F2AffineMap operator+(
-            const BinWord & cst
-        ) 
-
-        bool is_invertible() const
-        
-        cpp_F2AffineMap inverse() 
-        
-        cpp_F2AffineMap transpose()
-    
-        BinWord rank() 
-        
-        cpp_S_box get_cpp_S_box() 
-
-        std_vector[BinWord] get_image_vectors()
-
-        BinWord get_cstte()
-    
-    cpp_F2AffineMap cpp_block_diagonal_F2AffineMap(
-        const cpp_F2AffineMap &A,
-        const cpp_F2AffineMap &B,
-    )
-    cpp_F2AffineMap cpp_F2AffineMap_from_blocks(
-        const cpp_F2AffineMap &A,
-        const cpp_F2AffineMap &B,
-        const cpp_F2AffineMap &C,
-        const cpp_F2AffineMap &D,
-
-    )
-
-    
-cdef extern from "../../cpp/core/f2affinemap.cpp":
-    pass
 
 
-# !SECTION! Declaring cython code
+# !SECTION! The F2Transformation class
 
 
 cdef class F2Transformation:
-    cdef string cpp_name
+    cdef string name
     cdef list input_casts
     cdef list output_casts
 
 
-
-cdef class F2AffineMap:
-    cdef unique_ptr[cpp_F2AffineMap] cpp_map
-    cdef set_inner_map(F2AffineMap self, cpp_F2AffineMap A)
 
     

@@ -2,6 +2,8 @@
 
 from sboxU.cython_types cimport *
 from sboxU.core.sbox cimport *
+from sboxU.core.f2affinemap cimport *
+from sboxU.core.f2functions cimport *
 
 
 # !SECTION! Declaring C++ code

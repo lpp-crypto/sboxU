@@ -50,6 +50,7 @@ def declare_cython(full_module_name):
 
 all_cython_extensions = [ declare_cython(name) for name in [
     "sboxU.core.f2functions.cython_functions",
+    "sboxU.core.f2affinemap.cython_functions",
     "sboxU.core.spectrum.cython_functions",
     "sboxU.core.sbox.cython_functions",
     "sboxU.core.anf.cython_functions",
