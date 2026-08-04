@@ -1,7 +1,8 @@
 # -*- python -*-
 
 from sboxU.cython_types cimport *
-from sboxU.core.sbox cimport *
+
+
 
 
 # !SECTION! Declaring C++ code

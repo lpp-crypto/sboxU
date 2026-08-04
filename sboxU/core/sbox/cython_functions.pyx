@@ -1,7 +1,7 @@
 # -*- python -*-
 
 from sboxU.core.f2functions cimport *
-from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
+from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i, casts_from_field
 
 from typing import Union
 
@@ -129,7 +129,7 @@ cdef class S_box(F2Transformation):
         s = get_sbox(_s)
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self, s))
-        name = self.cpp_name + b"+" + s.name()
+        name = self.name + b"+" + s.name
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
@@ -180,7 +180,7 @@ cdef class S_box(F2Transformation):
             result = "([bold blue]{:2d}[/],[bold bright_black]{:2d}[/]) [bright_black]{}[/]\n".format(
                 self.get_input_length(),
                 self.get_output_length(),
-                self.cpp_name.decode("UTF-8"),
+                self.name.decode("UTF-8"),
             )
             # first row
             if self.get_input_length() <= 4:
@@ -240,7 +240,7 @@ cdef class S_box(F2Transformation):
         elif d == -1:
             return self.inverse()
         else:
-            result = S_box(name=self.name() + b"**" + str(d).encode("UTF-8"))
+            result = S_box(name=self.name + b"**" + str(d).encode("UTF-8"))
             (<S_box>result).set_inner_sbox(cpp_S_box(<std_vector[BinWord]> list(self.input_space())))
             if d >= 0:
                 for i in range(0, d):
@@ -273,7 +273,7 @@ cdef class S_box(F2Transformation):
         s = get_sbox(_s)
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
-        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
+        name = self.name + "◦".encode("UTF-8") + s.name
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
@@ -289,7 +289,7 @@ cdef class S_box(F2Transformation):
             An S_box corresponding to the function "F | _s", where F is the current S-box, and _s is the input to the function.
         """
         s = get_sbox(_s)
-        name = self.cpp_name + "|".encode("UTF-8") + s.name()
+        name = self.name + "|".encode("UTF-8") + s.name
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_concat_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
@@ -337,9 +337,6 @@ cdef class S_box(F2Transformation):
     def to_bytes(self) -> bytes:
         return bytes(dereference(self.cpp_sb).to_bytes())
 
-    
-    def name(self) -> bytes:
-        return self.cpp_name
 
     
     # !SUBSUBSECTION! Components and coordinates
@@ -353,7 +350,7 @@ cdef class S_box(F2Transformation):
         
         """
         assert i < dereference(self.cpp_sb).get_output_length()
-        result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
+        result = S_box(name=self.name + ("_{:x}".format(i)).encode("UTF-8"))
         result.set_inner_sbox(dereference(self.cpp_sb).coordinate(<BinWord>i))
         return result
     
@@ -363,7 +360,7 @@ cdef class S_box(F2Transformation):
             An S_box instance mapping n bits to 1 corresponding to the component x \mapsto S(x) \cdot a, where \cdot is the standard scalar product.
         
         """
-        result = S_box(name=self.cpp_name + ("•{:x}".format(a)).encode("UTF-8"))
+        result = S_box(name=self.name + ("•{:x}".format(a)).encode("UTF-8"))
         result.set_inner_sbox(dereference(self.cpp_sb).component(<BinWord>a))
         return result
         
@@ -375,7 +372,7 @@ cdef class S_box(F2Transformation):
             An S_box of the same dimension as S corresponding to its derivative in the direction delta, i.e. x \mapsto S(x+delta)+S(x).
         
         """
-        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8") + self.cpp_name)
+        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8") + self.name)
         result.set_inner_sbox(dereference(self.cpp_sb).derivative(<BinWord>delta))
         return result
         
@@ -397,7 +394,7 @@ cdef class S_box(F2Transformation):
         If the current S_box is not invertible, will probably crash.
         """
         if self.is_invertible():
-            name = self.cpp_name + b"^-1"
+            name = self.name + b"^-1"
             result = S_box(name=name) 
             (<S_box>result).set_inner_sbox(dereference(self.cpp_sb).inverse())
             return result
@@ -795,6 +792,14 @@ cdef class S_box_fp:
 # !SECTION! Generating S-boxes
 
 
+def identity_S_box(length) -> S_box:
+    """Returns an S_box instance corresponding to the identity
+    function, i.e. the one mapping x to itself.
+
+    """
+    return get_sbox(list(range(0, length)))
+
+
 # !SUBSECTION! Basic factories
 
 def get_Sbox_from_lut(s : list, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
@@ -885,12 +890,12 @@ def get_Sbox_from_sage_SBox(s : sage_SBox, name, input_casts : list, output_cast
     return result
 
 
-def get_Sbox_from_F2AffineMap(s : F2AffineMap, name, input_casts : list, output_casts: list) -> S_box:
-    result = S_box(name=name,
-                   input_casts=input_casts,
-                   output_casts=output_casts)
-    (<S_box>result).set_inner_sbox(dereference((<F2AffineMap>s).cpp_map).get_cpp_S_box())
-    return result
+# def get_Sbox_from_F2AffineMap(s : F2AffineMap, name, input_casts : list, output_casts: list) -> S_box:
+#     result = S_box(name=name,
+#                    input_casts=input_casts,
+#                    output_casts=output_casts)
+#     (<S_box>result).set_inner_sbox(dereference((<F2AffineMap>s).cpp_map).get_cpp_S_box())
+#     return result
 
 
 def get_Sbox_from_univariate_polynomial(s : Polynomial, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
@@ -955,7 +960,6 @@ def get_Sbox_from_string(key : str, name, input_casts : list, output_casts: list
 
 SBOXU_TYPE_TO_FACTORY = {
     sage_SBox    : get_Sbox_from_sage_SBox,
-    F2AffineMap  : get_Sbox_from_F2AffineMap,
     list         : get_Sbox_from_list,
     bytes        : get_Sbox_from_bytes,
     bytearray    : get_Sbox_from_bytes,
@@ -989,6 +993,8 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
         elif isinstance(s, Polynomial):
             # this separate test is needed because `Polynomial` is not a real type, it is a collection of types
             return SBOXU_TYPE_TO_FACTORY[Polynomial](s, name, input_casts, output_casts)
+        elif hasattr(s, "get_sbox"):
+                return s.get_sbox() 
         else:
             raise NotImplementedError("Cannot build an Sbox from this input type")
             

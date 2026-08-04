@@ -1,6 +1,6 @@
 # -*- python -*-
 
-from sage.all import GF, Polynomial, vector
+from sage.all import GF, Polynomial, PolynomialRing
 from sage.all import Integer as SAGE_INTEGER
 from sage.rings.finite_rings.finite_field_base import FiniteField
 
@@ -175,7 +175,7 @@ cdef class F2Transformation:
 
     # !SUBSECTION! Field interaction
 
-    def interpolate_in(self, field):
+    def interpolate_in(self, field, var_name="X"):
         # sanity checks        
         if not isinstance(field, FiniteField):
             raise Exception("F2Transformation.interpolate_in(f) expects f to be a binary field")
@@ -185,7 +185,7 @@ cdef class F2Transformation:
         i2f, f2i = i2f_and_f2i(field)
         io_pairs = [(i2f(x), i2f(self[x]))
                      for x in range(0, 2**self.get_input_length())]
-        return field.lagrange_interpolation(io_pairs)
+        return PolynomialRing(field, var_name).lagrange_polynomial(io_pairs)
                        
 
     # !SUBSECTION! The __call__ method

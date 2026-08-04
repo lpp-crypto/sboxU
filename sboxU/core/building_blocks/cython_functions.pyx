@@ -1,8 +1,8 @@
 # -*- python -*-
 
 from sage.all import Integer as SAGE_INTEGER
-from sboxU.core.f2functions import ffe_to_int, circ_shift, i2f_and_f2i
-from sboxU.core.f2affinemap import F2AffineMap, get_F2AffineMap
+from sboxU.core.f2functions import ffe_to_int, circ_shift, i2f_and_f2i, rank_of_vector_set
+from sboxU.core.f2affinemap import get_F2AffineMap
 from sboxU.core.sbox import get_sbox
 
 from cython.operator cimport dereference
@@ -37,14 +37,6 @@ cdef class InsecurePRNG:
 
 
 # !SUBSECTION! Simple structures
-
-
-def identity_S_box(length) -> S_box:
-    """Returns an S_box instance corresponding to the identity
-    function, i.e. the one mapping x to itself.
-
-    """
-    return get_sbox(list(range(0, length)))
 
 
 cdef S_box pyx_F2_trans(BinWord k, n):
@@ -154,6 +146,7 @@ def rand_S_box(prng : InsecurePRNG, input_length : int|SAGE_INTEGER, output_leng
 # !SECTION! Generating F2 affine maps
 
 
+# !SUBSECTION! Simple structures 
 
 def identity_F2AffineMap(int64_t n) -> F2AffineMap:
     return get_F2AffineMap([(1 << i) for i in range(0, n)],n,n)
@@ -212,3 +205,31 @@ def bit_permutation_F2AffineMap(p) -> F2AffineMap:
         A BinLinearMap corresponding to bit permutation associated to p.
     """
     return get_F2AffineMap([1 << p[i] for i in range(len(p))])
+
+
+# !SUBSECTION! Random F2 affine maps
+
+
+
+def rand_linear_permutation(prng : InsecurePRNG, input_length : int|SAGE_INTEGER) -> F2AffineMap:
+    """Returns a random F2AffineMap which is a permutation of {0,1}^N. This is done by drawing vectors at random and adding them to the image if they are not in the span of the current image. 
+    """
+    basis=[]
+    r = 0
+    while r < input_length:
+        x = prng(1, 2**input_length)
+        new_basis= basis + [x]
+        new_r = rank_of_vector_set(new_basis)
+        if new_r > r :
+            basis = new_basis[:]
+            r = new_r
+    return get_F2AffineMap(basis)
+
+
+def rand_linear_function(prng : InsecurePRNG, input_length : int|SAGE_INTEGER, output_length : int|SAGE_INTEGER) -> F2AffineMap:
+    """Returns a random F2AffineMap from {0,1}^n to {0,1}^m. This is done by drawing the vectors of the image at random."""
+    image=[]
+    for i in range(0, input_length):
+        image.append(prng(0, 2**output_length))
+    return get_F2AffineMap(image)
+

@@ -3,8 +3,8 @@
 from sboxU.cython_types cimport *
 from sboxU.core.f2functions cimport *
 
-
 from libcpp.memory cimport unique_ptr
+
 
 # !SECTION! Declaring the C++ Code
 
@@ -100,11 +100,8 @@ cdef extern from "../../cpp/core/s_box_fp.hpp":
 
 ### TODO : rename as S_box_bin
 
-cdef class S_box:
+cdef class S_box(F2Transformation):
     cdef unique_ptr[cpp_S_box] cpp_sb
-    cdef string cpp_name
-    cdef list input_casts
-    cdef list output_casts
     cdef set_inner_sbox(S_box self, cpp_S_box s)
 
 

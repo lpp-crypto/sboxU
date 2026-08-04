@@ -7,5 +7,6 @@ from sboxU.core.building_blocks.butterflies import closed_butterfly, open_butter
 from sboxU.core.building_blocks.cython_functions import \
     InsecurePRNG, \
     F2_trans, monomial, F2_mul, rand_invertible_S_box, rand_S_box, \
-    identity_F2AffineMap, zero_F2AffineMap, block_diagonal_F2AffineMap, F2AffineMap_from_blocks, circ_shift_F2AffineMap
+    identity_F2AffineMap, zero_F2AffineMap, block_diagonal_F2AffineMap, F2AffineMap_from_blocks, circ_shift_F2AffineMap, \
+    rand_linear_function, rand_linear_permutation
 

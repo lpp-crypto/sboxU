@@ -50,14 +50,22 @@ As yet another method, we can supply the full lookup table of the functions. *Ca
 m3 = get_F2AffineMap(get_sbox([0, 1, 4, 5, 2, 3, 6, 7]))
 ```
 
+Finally, the following linearized polynomial is *also* the same:
+```python
+z  = PolynomialRing(GF(2), "z").gen()
+gf = GF(8, modulus=z**3+z+1, name="a")
+a, X  = gf.gen(), PolynomialRing(gf, "X").gen()
+m4 = get_F2AffineMap((a**2+1)*X**4 + (a**2+a+1)*X**2 + (a+1)*X)
+```
+
 We can then easily check that all capture the same mathematical transformation. Since the SAGE matrix operates on vectors of bits, we need to do some plumbing to work with it. Fortunately, the `sboxU` functions `from_bin` and `to_bin` functions simplify our lives. 
 
 ```python
-print("x\tmat*x\tm1(x)\tm2(x)\tm3(x)")
+print("x\tmat*x\tm1(x)\tm2(x)\tm3(x)\tm4(x)")
 for x in range(0, 2**3):
     y = from_bin(m_mat * vector(to_bin(x, 3)))
     row = "{}\t{}\t".format(x, y)
-    for transformation in [m1, m2, m3]:
+    for transformation in [m1, m2, m3, m4]:
         y_prime = transformation(x)
         row += "{}\t".format(y_prime)
         if y_prime != y:
@@ -74,6 +82,7 @@ for x in range(0, 2**3):
 n_max = 10
 parameters = [(7, 10), (10, 7), (10, 10)]
 n_tested = 2**14
+prng = InsecurePRNG(b"seed")
 ```
 
 ```python
@@ -87,7 +96,7 @@ def proba_full_rank(n, m):
 for n, m in parameters:
     counters = [0 for r in range(0, n_max+1)]
     for t in range(0, n_tested):
-        L = rand_linear_function(n, m)
+        L = rand_linear_function(prng, n, m)
         counters[L.rank()] += 1
     row = "({:2d}, {:2d})".format(n, m)
     for c in counters:

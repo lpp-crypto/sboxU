@@ -8,4 +8,4 @@ The idea here is not yet to study S-boxes, only to generate them, and store them
 
 from sboxU.core.sbox.cython_functions import \
     inverse, is_permutation, \
-    get_sbox, S_box, S_box_Fp \
+    get_sbox, S_box, S_box_fp 
