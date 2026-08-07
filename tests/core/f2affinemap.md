@@ -73,6 +73,12 @@ for x in range(0, 2**3):
     print(row)
 ```
 
+If necessary, it is easy to obtain an S-box object from an `F2AffineMap`. This could be relevant if its evaluation somehow became a bottleneck as this precomputes all of its entries.
+
+```python
+print("S-box view:")
+pprint(m1.get_sbox())
+```
 
 ### A bigger test: rank distribution
 

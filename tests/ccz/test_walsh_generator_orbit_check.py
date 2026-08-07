@@ -8,13 +8,18 @@ DB_PATH = sixBitAPNs()
 
 def affine_key(L):
 
-    return tuple(L.get_S_box().lut())
+    return tuple(L.get_sbox().lut())
+
+
+def debug_print(h):
+    print(type(h), h)
 
 def group_closure(n, gens):
 
     """BFS closure of <gens> inside the group of (2n)x(2n) F2AffineMap, via right-multiplication."""
 
     e = identity_F2AffineMap(2*n)
+
 
     elements = {affine_key(e): e}
 
@@ -27,8 +32,11 @@ def group_closure(n, gens):
         for g in frontier:
 
             for h in gens:
-
+                # print("")
+                # debug_print(g)
+                # debug_print(h)
                 gh = g * h
+                # debug_print(gh)
 
                 k = affine_key(gh)
 

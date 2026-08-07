@@ -60,9 +60,9 @@ cdef extern from "../../cpp/core/f2functions.cpp":
 
 
 cdef class F2Transformation:
-    cdef string name
-    cdef list input_casts
-    cdef list output_casts
+    cdef public string name
+    cdef public list input_casts
+    cdef public list output_casts
 
 
 

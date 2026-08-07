@@ -22,7 +22,7 @@ def ortho_derivative(q):
     
     """
     sb = get_sbox(q)
-    result = S_box(name="π_{".encode("UTF-8") + sb.name() + b"}")
+    result = S_box(name="π_{".encode("UTF-8") + sb.name + b"}")
     (<S_box>result).set_inner_sbox(
         cpp_ortho_derivative((dereference((<S_box>sb).cpp_sb)))
     )
@@ -40,7 +40,7 @@ def ortho_integral(s):
     
     """
     sb = get_sbox(s)
-    result = S_box(name="∫_{".encode("UTF-8") + sb.name() + b"}")
+    result = S_box(name="∫_{".encode("UTF-8") + sb.name + b"}")
     (<S_box>result).set_inner_sbox(
         cpp_ortho_integral(dereference((<S_box>sb).cpp_sb))
     )
@@ -145,7 +145,7 @@ def enumerate_ea_classes_apn_quadratic(
         mode.encode()
     )
     for new_s in ea_classes:
-        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb = S_box(name=b"CCZ-" + sb.name + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
         i += 1
@@ -157,7 +157,7 @@ def ccz_equivalent_quadratic_function(
         n_threads=MAX_N_THREADS
 ):
     sb = get_sbox(s)
-    result = S_box(name=b"deg2-CCZ-" + sb.name())
+    result = S_box(name=b"deg2-CCZ-" + sb.name)
     result.set_inner_sbox(cpp_ccz_equivalent_quadratic_function(
         dereference((<S_box>sb).cpp_sb),
         n_threads
@@ -253,7 +253,7 @@ def non_trivial_sn(s,ne,ns):
     for sw_u in SW: 
         res_u = []
         for new_s in sw_u:
-            new_sb = S_box(name=b"SW-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+            new_sb = S_box(name=b"SW-" + sb.name + b"_" + str(i).encode("UTF-8"))
             new_sb.set_inner_sbox(<cpp_S_box>new_s)
             res_u.append(new_sb)
             i += 1

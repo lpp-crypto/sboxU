@@ -25,7 +25,7 @@ import os
 DB_PATH = sixBitAPNs()
 
 def affine_key(L):
-    return tuple(L.get_S_box().lut())
+    return tuple(L.get_sbox().lut())
 
 def group_closure(n, gens):
     """BFS closure of <gens> inside the group of (2n)x(2n) F2AffineMap, via right-multiplication."""

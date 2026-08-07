@@ -46,12 +46,12 @@ cdef class F2AffineMap(F2Transformation):
 
     
     def __add__(self, L : F2AffineMap) -> F2AffineMap:
-        result = F2AffineMap("(" + self.name + "+" + L.name + ")", [], [])
+        result = F2AffineMap(b"(" + self.name + b"+" + L.name + b")", [], [])
         result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + dereference((<F2AffineMap>L).cpp_map))
         return result
 
     def __add__(self, cst : BinWord) -> F2AffineMap:
-        result = F2AffineMap("(" + self.name + "+" + hex(cst) + ")", [], [])
+        result = F2AffineMap(b"(" + self.name + b"+" + hex(cst).encode() + b")", [], [])
         result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + cst)
         return result
 
@@ -61,13 +61,24 @@ cdef class F2AffineMap(F2Transformation):
     
     def __hash__(self):
         # !TODO! improve the implementation of F2AffineMap.__hash__() 
-        return hash(self.get_S_box())
+        return hash(self.get_sbox())
 
     
-    def __mul__(self, F2AffineMap L) -> F2AffineMap:
-        result = F2AffineMap("(" + self.name + "*" + L.name + ")", [], [])
-        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) * dereference((<F2AffineMap>L).cpp_map))
-        return result
+    def __mul__(self, L) -> F2AffineMap | S_box:
+        if isinstance(L, F2AffineMap):
+            result = F2AffineMap(b"(" + self.name + b"*" + L.name + b")", [], [])
+            (<F2AffineMap>result).set_inner_map(dereference((<F2AffineMap>self).cpp_map) * dereference((<F2AffineMap>L).cpp_map))
+            return result
+        elif isinstance(L, S_box):
+            result = S_box(b"(" + self.name + b"*" + L.name + b")", [], [])
+            (<S_box>result).set_inner_sbox(
+                (<cpp_S_box>dereference((<F2AffineMap>self).cpp_map).get_cpp_S_box()).mul(
+                    <cpp_S_box>dereference((<S_box>L).cpp_sb)
+                )
+            )
+            return result
+        else:
+            raise NotImplemented()
 
     
     def inverse(self) -> F2AffineMap | Exception:

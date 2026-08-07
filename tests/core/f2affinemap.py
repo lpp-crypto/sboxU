@@ -43,6 +43,10 @@ def main_test():
                     fail("an F2AffineMap doesn't match the SAGE matrix")
             print(row)
         # --- } 
+        # --- { 
+        print("S-box view:")
+        pprint(m1.get_sbox())
+        # --- } 
         subsection('A bigger test: rank distribution')
         # --- { 
         n_max = 10

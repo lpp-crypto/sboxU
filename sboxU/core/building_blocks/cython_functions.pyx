@@ -149,11 +149,15 @@ def rand_S_box(prng : InsecurePRNG, input_length : int|SAGE_INTEGER, output_leng
 # !SUBSECTION! Simple structures 
 
 def identity_F2AffineMap(int64_t n) -> F2AffineMap:
-    return get_F2AffineMap([(1 << i) for i in range(0, n)],n,n)
+    return get_F2AffineMap([(1 << i) for i in range(0, n)],
+                           input_length=n,
+                           output_length=n)
 
 
 def zero_F2AffineMap(n : BinWord, m : BinWord) -> F2AffineMap:
-    return get_F2AffineMap([0 for i in range(0, n)], n, m)
+    return get_F2AffineMap([0 for i in range(0, n)],  
+                           input_length=n,
+                           output_length=m)
 
 
 def block_diagonal_F2AffineMap(A, B) -> F2AffineMap:
@@ -191,7 +195,9 @@ def circ_shift_F2AffineMap(int n, int shift) -> F2AffineMap:
     Returns :
         A F2AffineMap object which encodes the circular shift by 'shift' positions. This linear map is an automorphism of (F_2)^n. As for circ_shift, the LSB-first decomposition of a vector x is shifted to the left if shift is positive and to the right otherwise. 
     """
-    return get_F2AffineMap([circ_shift(1 <<i,n,shift) for i in range(0, n)], n, n)
+    return get_F2AffineMap([circ_shift(1 <<i,n,shift) for i in range(0, n)], 
+                           input_length=n,
+                           output_length=n)
 
 
 def bit_permutation_F2AffineMap(p) -> F2AffineMap:

@@ -176,7 +176,7 @@ def ccz_equivalent_function(s, L):
     """
     sb = get_sbox(s)
     basis = get_F2AffineMap(L)
-    result = S_box(name=b"CCZ-" + sb.name())
+    result = S_box(name=b"CCZ-" + sb.name)
     result.set_inner_sbox(
         cpp_ccz_equivalent_function(
             dereference((<S_box>sb).cpp_sb),
@@ -195,7 +195,7 @@ def enumerate_ea_classes(s):
         MAX_N_THREADS
     )
     for new_s in ea_classes :
-        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb = S_box(name=b"CCZ-" + sb.name + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
         i += 1
@@ -211,7 +211,7 @@ def enumerate_permutations_in_ccz_class(s):
         MAX_N_THREADS
     )
     for new_s in permutations_in_ccz_class :
-        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb = S_box(name=b"CCZ-" + sb.name + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
         i += 1
