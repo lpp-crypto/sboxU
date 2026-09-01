@@ -11,7 +11,7 @@ from cython.operator cimport dereference
 # !SUBSECTION! The Spectrum class
 
 cdef class Spectrum:
-    def __init__(self, name=b"Spc"):
+    def __init__(self, name):
         self.name = name
         self.cpp_sp = make_unique[cpp_Spectrum]()
        
@@ -36,8 +36,12 @@ cdef class Spectrum:
             result += "{:d}:{:d}, ".format(k, dereference(self.cpp_sp)[k])
         return result[:-2] + "}"
 
+    
+    def __repr__(self):
+        return "get_Spectrum({}, name={})".format(str(self), self.name)
+    
 
-    def __rich_str__(self):
+    def __rich__(self):
         result = "[bright_black]{:12s}[/] ".format(self.name.decode("UTF-8"))
         result += "{"
         ks = self.keys()
@@ -95,11 +99,21 @@ cdef class Spectrum:
 # !SUBSECTION! A Spectrum factory
 
 
-def get_Spectrum(x):
-    if isinstance(x, (list)):
-        result = Spectrum()
-        result.incr_by_counting(x)
-        return result
+def get_Spectrum(x, name="Spc"):
+    # handling name
+    if isinstance(name, str):
+        name = name.encode("UTF-8")
+    # constructing actual content
+    if isinstance(x, Spectrum):
+        return x
     else:
-        raise NotImplementedError("{} is not a valid input type for get_Spectrum".format(type(x)))
+        result = Spectrum(name)
+        if isinstance(x, list):
+            result.incr_by_counting(x)
+        elif isinstance(x, dict):
+            for k in x.keys():
+                result.incr_by_amount(k, x[k])
+        else:
+            raise NotImplementedError("{} is not a valid input type for get_Spectrum".format(type(x)))
+        return result
 

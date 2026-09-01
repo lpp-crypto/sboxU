@@ -171,9 +171,11 @@ cdef class S_box(F2Transformation):
     
     def __str__(self) -> str:
         return dereference(self.cpp_sb).content_string_repr().decode("UTF-8")
-
-
-    def __rich_str__(self) -> str:
+  
+    def __repr__(self) -> str:
+        return "get_sbox({}, name={})".format(str(self), self.name)
+        
+    def __rich__(self) -> str:
         if self.get_input_length() == 0:
             return "[bold][[/] [red]∅[/] [bold]][/]"
         else:
