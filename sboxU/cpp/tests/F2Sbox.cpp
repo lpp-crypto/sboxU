@@ -22,6 +22,19 @@ int main()
               << rand_sbox.is_invertible()
               << "   "
               << cpp_differential_spectrum(rand_sbox, 4).content_string_repr() << std::endl;
+
+    cpp_S_box midori64_sbox(std::vector<BinWord>{{12, 10, 13, 3, 14, 11, 15, 7, 8, 9, 1, 5, 0, 2, 4, 6}});
+
+    std::cout << "\nMidori_Sb0" << std::endl
+              << midori64_sbox.content_string_repr() << std::endl;
+    std::vector<std::vector<BinWord>> cycles = cpp_cycle_decomposition(midori64_sbox);
+    for (int i=0; i<cycles.size(); i++){
+        std::cout << "Cycle " << i << " : (";
+        for (int j=0; j<cycles[i].size(); j++){
+            std::cout << cycles[i][j] << " ";
+        }
+        std::cout << ")\n";
+    }
     
     return 0;
 }
