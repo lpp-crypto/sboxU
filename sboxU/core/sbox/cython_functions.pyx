@@ -1043,19 +1043,3 @@ def F2_trans(BinWord additive_cstte, field=None, bit_length=None) -> S_box:
         k = ffe_to_int(additive_cstte)
         n = additive_cstte.parent().degree()
     return pyx_F2_trans(k, n)
-
-# !SUBSECTION! Cycle decomposition
-
-def cycle_decomposition(s):
-    """
-    The cycle decomposition of a permutation, is given by a list of cyclic permutations with disjoint support. The permutation is then equal to the composition of all its cycles.
-
-    Args :
-        s: an S-boxable object over F_2
-    
-    Returns :
-        list: A list of lists corresponding to the list of the cycles of `s`.
-    """
-    sb=get_sbox(s)
-    result = cpp_cycle_decomposition(dereference((<S_box>sb).cpp_sb))
-    return result

@@ -134,10 +134,9 @@ Lut cpp_inverse(Lut & s);
 
 bool cpp_is_permutation(Lut & s);
 
-// std::vector<BinWord> cpp_anf_component( const cpp_S_box & f);
+std::vector<BinWord> cpp_anf_component( const cpp_S_box & f);
 
-// cpp_Spectrum cpp_degree_spectrum(const cpp_S_box &f);
+cpp_Spectrum cpp_degree_spectrum(const cpp_S_box &f);
 
-std::vector<std::vector<BinWord>> cpp_cycle_decomposition(const cpp_S_box &s);
 
 #endif
