@@ -307,7 +307,7 @@ std::vector<std::vector<BinWord>> cpp_cycle_decomposition(const cpp_S_box &s){
                 x=s[x];
             }
             cycles.push_back(current_cycle);
-            while ((seen[next_start])&& (next_start < s.input_space_size()))
+            while ((next_start < s.input_space_size())&&(seen[next_start]))
             {
                 next_start++;
             }

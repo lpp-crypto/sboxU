@@ -19,12 +19,12 @@ std::vector<BinWord> cpp_anf_component(const cpp_S_box &f)
         for (int k = 1; k <= n; k++)
         {
             N = 1 << (n-k);
-            for (int i = 0; i <= N; i++)
+            for (int i = 0; i < N; i++)
             {
                 N_k = (1 << (k - 1)); 
                 for (int j = 0; j < N_k; j++)
                 {
-                    v[2*i*N_k+ N_k+j] = (v[j+2*i*N_k] + v[2*i*N_k+N_k+j]) %2;
+                    v[2*i*N_k+ N_k+j] ^= (v[j+2*i*N_k]);
                 }
             }
         }
