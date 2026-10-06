@@ -35,6 +35,14 @@ int main()
         }
         std::cout << ")\n";
     }
-    
-    return 0;
+    for (int u =0; u < 4 ; u++){
+        std::cout<< "Anf vector of coordinate " << u << " of Midori64 Sbox : ";
+        std::vector<BinWord> anf_midori = cpp_anf_component(midori64_sbox.coordinate(u));
+        for (int i = 0; i < anf_midori.size(); i++)
+        {
+            std::cout << anf_midori[i] << " ";
+        }
+        std::cout << "\n";
+    }
+        return 0;
 }

@@ -3,29 +3,34 @@
 // !SECTION! Functions on Boolean Functions
 
 
-// Naive version for now
-// See  https://www.joux.biz/algcrypt/PROGRAMS/Walsh_9-2.html for an optimized version
-
-std::vector<BinWord> cpp_anf_component( const cpp_S_box &f)
-{   if (f.get_output_length()!=1){
+std::vector<BinWord> cpp_anf_component(const cpp_S_box &f)
+{
+    if (f.get_output_length() != 1)
+    {
         throw std::runtime_error("This function is for boolean functions only");
     }
-    else{
-        int n= f.get_input_length();
-        int N = 1<<n;
+    else
+    {
+        int n = f.get_input_length();
+        int N;
+        int N_k;
         std::vector<BinWord> v = f.get_lut();
 
-        for (int bit = 0; bit < n; ++bit) {
-            for (int mask = 0; mask < N; ++mask) {
-                if (mask & (1 << bit)) {
-                    v[mask] ^= v[mask ^ (1 << bit)];
+        for (int k = 1; k <= n; k++)
+        {
+            N = 1 << (n-k);
+            for (int i = 0; i <= N; i++)
+            {
+                N_k = (1 << (k - 1)); 
+                for (int j = 0; j < N_k; j++)
+                {
+                    v[2*i*N_k+ N_k+j] = (v[j+2*i*N_k] + v[2*i*N_k+N_k+j]) %2;
                 }
             }
         }
         return v;
     }
 }
-
 
 /////////////////////////////////////////////////
 
