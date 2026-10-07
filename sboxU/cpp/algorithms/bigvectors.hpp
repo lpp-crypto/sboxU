@@ -250,4 +250,29 @@ inline bool operator<(const cpp_BigF2Vector & x,
     }
 }
 
+cpp_BigF2Vector apply_perm(const cpp_BigF2Vector &v,
+                           const Lut &perm)
+{
+    const unsigned int N = v.size();
+    if (perm.size() != N)
+    {
+        throw std::runtime_error("The permutation and the vector you want to permute need to be of the same size");
+    }
+
+    cpp_BigF2Vector res(N); 
+    BoolBlock word = 0;
+
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        word |= BoolBlock(v.is_set(static_cast<unsigned int>(perm[i]))) << BLOCK_POS(i);
+        if (BLOCK_POS(i) == BLOCK_SIZE - 1 || i == N - 1)
+        {
+            res.content[BLOCK_INDEX(i)] = word;
+            word = 0;
+        }
+    }
+
+    res.set_msb();
+    return res;
+}
 #endif

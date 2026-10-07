@@ -1,4 +1,5 @@
 #include "anf.hpp"
+#include "../algorithms/bigvectors.hpp"
 
 // !SECTION! Functions on Boolean Functions
 
@@ -32,13 +33,35 @@ std::vector<BinWord> cpp_anf_component(const cpp_S_box &f)
     }
 }
 
-/////////////////////////////////////////////////
+cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector u, unsigned int n){
+    if (u.size() != (1 << n)){
+        throw std::runtime_error("Vector of wrong length in mobisu_transform");
+    }
+    cpp_BigF2Vector v = cpp_BigF2Vector(u.content, 1 <<n);
+    int N;
+    int N_k;
+    for (int k = 1; k <= n; k++)
+    {
+        N = 1 << (n - k);
+        for (int i = 0; i < N; i++)
+        {
+            N_k = (1 << (k - 1));
+            for (int j = 0; j < N_k; j++)
+            {
+                v.content[2 * i * N_k + N_k + j] ^= v.content[j + 2 * i * N_k];
+            }
+        }
+    }
+    return v;
+}
 
+    /////////////////////////////////////////////////
 
-/// @brief Computes a compact representation of a quadratic function using its monomials
-/// @param f a ccp_S_box
-/// @return a vector of BinWord containing the representation
-std::vector<BinWord> cpp_quadratic_compact_representation( const cpp_S_box &f){
+    /// @brief Computes a compact representation of a quadratic function using its monomials
+    /// @param f a ccp_S_box
+    /// @return a vector of BinWord containing the representation
+    std::vector<BinWord> cpp_quadratic_compact_representation(const cpp_S_box &f)
+{
 
     // !! CAREFUL !! 
     // We do not check is the degree is 2 for efficiency concerns
@@ -103,8 +126,7 @@ std::vector<BinWord> cpp_quadratic_compact_representation( const cpp_S_box &f){
         }
     }
     return(compact_representation);
-}  
-
+}
 
 /// @brief Computes a compact representation of a linear function using its monomials
 /// @param f a ccp_S_box
