@@ -73,6 +73,9 @@ Integer cpp_rank_of_vector_set(std::vector<BinWord> l);
 
 #define GLUE(x,y) _##x##y
 #define VAR(x,y) GLUE(x,y)
+// Note: `1l << cpp_msb(a)` uses a long literal which is 32-bit on Windows
+// (MSVC/MinGW), causing overflow for bit-lengths >= 31. Replace with
+// `(BinWord)1 << cpp_msb(a)` if Windows support is needed.
 #define FOR_ENUMERATE_DIFFERENCE_COSETS(x,a,size) \
     for(BinWord x = 0, VAR(x,_max) = size, VAR(x,_msb) = (a == 0 || a >= VAR(x,_max)) ? VAR(x,_max) : 1l << cpp_msb(a); x < VAR(x,_max); x+=VAR(x,_msb))\
         for(BinWord VAR(x,_ceil) = x + VAR(x,_msb); x < VAR(x,_ceil); x++)
