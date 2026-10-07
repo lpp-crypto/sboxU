@@ -33,25 +33,35 @@ std::vector<BinWord> cpp_anf_component(const cpp_S_box &f)
     }
 }
 
-cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector u, unsigned int n){
-    if (u.size() != (1 << n)){
-        throw std::runtime_error("Vector of wrong length in mobisu_transform");
-    }
-    cpp_BigF2Vector v = cpp_BigF2Vector(u.content, 1 <<n);
-    int N;
-    int N_k;
-    for (int k = 1; k <= n; k++)
+cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector &u, unsigned int n)
+{
+    if (u.size() != (1u << n))
+        throw std::runtime_error("Vector of wrong length in mobius_transform");
+
+    cpp_BigF2Vector v(u);
+    // Bit x is stored at position BLOCK_POS(x) of the block content[BLOCK_INDEX(x)].
+
+    // Steps k = 0..5 (stride 2^k < 64): both halves lie in the same block.
+    // mask selects the positions whose bit k is 0, which are added to the
+    // positions 2^k above them.
+    static const BoolBlock masks[6] = {
+        0x5555555555555555ULL, 0x3333333333333333ULL, 0x0F0F0F0F0F0F0F0FULL,
+        0x00FF00FF00FF00FFULL, 0x0000FFFF0000FFFFULL, 0x00000000FFFFFFFFULL};
+    for (unsigned int k = 0; k < n && k < 6; k++)
+        for (auto &w : v.content)
+            w ^= (w & masks[k]) << (1u << k);
+
+    // Steps k >= 6 (stride 2^k >= 64): whole blocks are added together.
+    const unsigned int n_blocks = v.content.size();
+    for (unsigned int k = 6; k < n; k++)
     {
-        N = 1 << (n - k);
-        for (int i = 0; i < N; i++)
-        {
-            N_k = (1 << (k - 1));
-            for (int j = 0; j < N_k; j++)
-            {
-                v.content[2 * i * N_k + N_k + j] ^= v.content[j + 2 * i * N_k];
-            }
-        }
+        const unsigned int S = 1u << (k - 6); // stride counted in blocks
+        for (unsigned int i = 0; i < n_blocks; i += 2 * S)
+            for (unsigned int j = 0; j < S; j++)
+                v.content[i + S + j] ^= v.content[i + j];
     }
+
+    v.set_msb();
     return v;
 }
 

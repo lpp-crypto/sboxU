@@ -250,7 +250,7 @@ inline bool operator<(const cpp_BigF2Vector & x,
     }
 }
 
-cpp_BigF2Vector apply_perm_BigF2Vector(const cpp_BigF2Vector &v,
+inline cpp_BigF2Vector apply_perm_BigF2Vector(const cpp_BigF2Vector &v,
                                         const Lut &perm)
 {
     const unsigned int N = v.size();

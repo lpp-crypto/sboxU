@@ -43,6 +43,8 @@ add_library(
   ./algorithms/binLinearBasis.cpp
   ./algorithms/linearSystem.cpp
   ./algorithms/spaceSearch.cpp
+  ./algorithms/BinLinearBigBasis.cpp
+  ./algorithms/invariants.cpp
 )
 target_link_libraries(libalgorithms PRIVATE libcore)
 

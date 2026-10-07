@@ -10,7 +10,7 @@
 
 std::vector<BinWord> cpp_anf_component( const cpp_S_box &f);
 
-cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector u, unsigned int n);
+cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector &u, unsigned int n);
 
 std::vector<BinWord> cpp_quadratic_compact_representation(const cpp_S_box &f);
 
