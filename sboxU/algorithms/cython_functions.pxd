@@ -129,6 +129,11 @@ cdef extern from "../cpp/algorithms/linearSystem.cpp":
 cdef extern from "../cpp/algorithms/bigvectors.hpp":
     pass
 
+cdef extern from "../cpp/algorithms/invariants.hpp":
+    std_vector[Bytearray] cpp_all_invariants_up_to_degree(const cpp_S_box &s, BinWord d)
+        
+cdef extern from "../cpp/algorithms/invariants.cpp":
+    pass
 
 # !SECTION! Declaring cython code
 

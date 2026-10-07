@@ -1,7 +1,7 @@
 # -*- python -*-
 
 from sboxU.config import MAX_N_THREADS
-from sboxU.core import oplus
+from sboxU.core import oplus,get_sbox
 from sboxU.core.f2functions import get_F2AffineMap, rank_of_vector_set
 from math import log
 from random import randint
@@ -653,3 +653,9 @@ cdef class BinLinearBigBasis:
     #     for x in dereference(self.cpp_blb).get_basis():
     #         result += "{:x}, ".format(x)
     #     return result[:-2] + ")"
+
+
+def all_invariants_up_to_degree(s,d):
+    sb=get_sbox(s)
+    result=cpp_all_invariants_up_to_degree(dereference((<S_box>sb).cpp_sb),d)
+    return result
