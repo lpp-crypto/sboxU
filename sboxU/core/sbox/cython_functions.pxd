@@ -38,6 +38,10 @@ cdef extern from "../../cpp/core/s_box.hpp":
     
     cpp_S_box cpp_translation(const BinWord a, const int64_t input_bit_length)
 
+    # !SUBSECTION! Cycle decomposition
+
+    std_vector[std_vector[BinWord]] cpp_cycle_decomposition(const cpp_S_box &s)
+
 
 # !SUBSECTION! Loading the cpp file 
 cdef extern from "../../cpp/core/s_box.cpp":

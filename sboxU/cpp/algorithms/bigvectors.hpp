@@ -159,16 +159,16 @@ public:
         return result;
     }
 
-    Bytearray to_bits_merlin() const
-{   
-    Bytearray result;
-    result.reserve(total_length);
+//     Bytearray to_bits_merlin() const
+// {   
+//     Bytearray result;
+//     result.reserve(total_length);
 
-    for (unsigned int i = 0; i < total_length; ++i)
-        result.push_back(is_set(i) ? 1 : 0);
+//     for (unsigned int i = 0; i < total_length; ++i)
+//         result.push_back(is_set(i) ? 1 : 0);
 
-    return result;
-}
+//     return result;
+// }
 
 
     
@@ -250,4 +250,29 @@ inline bool operator<(const cpp_BigF2Vector & x,
     }
 }
 
+cpp_BigF2Vector apply_perm_BigF2Vector(const cpp_BigF2Vector &v,
+                                        const Lut &perm)
+{
+    const unsigned int N = v.size();
+    if (perm.size() != N)
+    {
+        throw std::runtime_error("The permutation and the vector you want to permute need to be of the same size");
+    }
+
+    cpp_BigF2Vector res(N); 
+    BoolBlock word = 0;
+
+    for (unsigned int i = 0; i < N; ++i)
+    {
+        word |= BoolBlock(v.is_set(static_cast<unsigned int>(perm[i]))) << BLOCK_POS(i);
+        if (BLOCK_POS(i) == BLOCK_SIZE - 1 || i == N - 1)
+        {
+            res.content[BLOCK_INDEX(i)] = word;
+            word = 0;
+        }
+    }
+
+    res.set_msb();
+    return res;
+}
 #endif

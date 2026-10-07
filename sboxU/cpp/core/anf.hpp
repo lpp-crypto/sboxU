@@ -5,11 +5,14 @@
 #include "../common.hpp"
 #include "f2functions.hpp"
 #include "spectrum.hpp"
+#include "../algorithms/bigvectors.hpp"
 
 
 std::vector<BinWord> cpp_anf_component( const cpp_S_box &f);
 
-std::vector<BinWord>cpp_quadratic_compact_representation( const cpp_S_box &f);
+cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector u, unsigned int n);
+
+std::vector<BinWord> cpp_quadratic_compact_representation(const cpp_S_box &f);
 
 std::vector<BinWord> cpp_quadratic_sbox_from_compact_representation( std::vector<BinWord> compact_representation, int64_t n, int64_t m);
 
