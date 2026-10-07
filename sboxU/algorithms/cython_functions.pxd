@@ -78,6 +78,12 @@ cdef extern from "../cpp/algorithms/binLinearBasis.hpp":
         const cpp_BinLinearBasis & b2
     )
 
+cdef extern from "../cpp/algorithms/bigvectors.hpp":
+    cppclass cpp_BigF2Vector:
+        unsigned int size() const
+        bool is_set(unsigned int index) const
+        Bytearray to_bits() const
+
         
 cdef extern from "../cpp/algorithms/binLinearBasis.cpp":
     pass
@@ -99,7 +105,7 @@ cdef extern from "../cpp/algorithms/BinLinearBigBasis.hpp":
             std_vector[BinWord] x
         ) const
         
-        std_vector[Bytearray] get_basis() const
+        std_vector[cpp_BigF2Vector] get_basis() const
         
         int64_t rank() const
 
@@ -126,11 +132,9 @@ cdef extern from "../cpp/algorithms/linearSystem.hpp":
 cdef extern from "../cpp/algorithms/linearSystem.cpp":
     pass
 
-cdef extern from "../cpp/algorithms/bigvectors.hpp":
-    pass
 
 cdef extern from "../cpp/algorithms/invariants.hpp":
-    std_vector[Bytearray] cpp_all_invariants_up_to_degree(const cpp_S_box &s, BinWord d)
+    std_vector[cpp_BigF2Vector] cpp_all_invariants_up_to_degree(const cpp_S_box &s, BinWord d)
         
 cdef extern from "../cpp/algorithms/invariants.cpp":
     pass

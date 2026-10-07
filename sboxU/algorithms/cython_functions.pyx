@@ -595,8 +595,8 @@ cdef class BinLinearBigBasis:
 
 
     def basis_vectors(self):
-        return [list(byte_vec)
-            for byte_vec in dereference(self.cpp_blb).get_basis()]
+        cdef std_vector[cpp_BigF2Vector] basis = dereference(self.cpp_blb).get_basis()
+        return [big_vector_to_list(v) for v in basis]
 
 
     
@@ -655,7 +655,13 @@ cdef class BinLinearBigBasis:
     #     return result[:-2] + ")"
 
 
-def all_invariants_up_to_degree(s,d):
-    sb=get_sbox(s)
-    result=cpp_all_invariants_up_to_degree(dereference((<S_box>sb).cpp_sb),d)
-    return result
+cdef list big_vector_to_list(const cpp_BigF2Vector & v):
+    cdef Bytearray bits = v.to_bits()
+    return [bits[i] for i in range(v.size())]
+
+
+def all_invariants_up_to_degree(s, d):
+    sb = get_sbox(s)
+    cdef std_vector[cpp_BigF2Vector] invariants = cpp_all_invariants_up_to_degree(
+        dereference((<S_box>sb).cpp_sb), d)
+    return [big_vector_to_list(g) for g in invariants]
