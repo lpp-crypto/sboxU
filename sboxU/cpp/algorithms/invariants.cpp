@@ -1,6 +1,7 @@
 #include "./invariants.hpp"
 #include "bigvectors.hpp"
 #include "BinLinearBigBasis.hpp"
+#include "../core/s_box.hpp"
 #include <bit>
 #include <tuple>
 
@@ -89,27 +90,21 @@ std::tuple<Lut,BinWord> yann_permutation(BinWord d, BinWord n) // Computes a per
     }
 }
 
-std::vector<cpp_S_box> cpp_all_invariants_up_to_degree(const cpp_S_box S, BinWord d){
-    // n=S.get_input_length()
-    // debut=time()
-    // perm=my_permutation(n,d)
-    // inv_perm=perm.inverse()
-    // print("Temps passé à calculer perm  et inv_perm",time()-debut)
-    // B_S=BinLinearBigBasis([apply_permutation(perm, anf_component(b)) for b in basis_invariants_bis(S)],2**n)
-    // bound=sum([binomial(n,t) for t in range(0,d+1)])
-    // res=[]
-    // for b in B_S.basis_vectors() :
-    //     if last_non_zero_index(b) >= bound:
-    //         break
-    //     res.append(get_sbox(anf_component(apply_permutation(inv_perm,b)))) ## The Mobius Transform is involutive
-    // return res
-    BinWord n=S.get_input_length();
+std::vector<cpp_BigF2Vector> cpp_all_invariants_up_to_degree(const cpp_S_box S, BinWord d){
+    std::vector < cpp_BigF2Vector> result;
+    BinWord n = S.get_input_length();
     auto [perm,bound]= yann_permutation(d,n);
     Lut inv_perm= cpp_inverse(perm);
     cpp_BinLinearBigBasis basis = cpp_BinLinearBigBasis(1 << n);
     for (auto b : cpp_basis_invariants_from_cycles(S)){
-        basis.add_to_span(apply_perm(mobius_transform(b,n),perm));
+        basis.add_to_span(apply_perm_BigF2Vector(mobius_transform(b,n),perm));
     }
-    for (auto b : basis)
-
+    for (auto b : basis.get_basis())
+    {
+        if (b.get_msb()>bound){
+            break;
+        }
+        result.push_back(mobius_transform(apply_perm_BigF2Vector(b,inv_perm),n));
+    }
+    return result;
 }

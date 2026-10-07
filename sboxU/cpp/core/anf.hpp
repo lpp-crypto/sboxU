@@ -5,6 +5,7 @@
 #include "../common.hpp"
 #include "f2functions.hpp"
 #include "spectrum.hpp"
+#include "../algorithms/bigvectors.hpp"
 
 
 std::vector<BinWord> cpp_anf_component( const cpp_S_box &f);

@@ -159,16 +159,16 @@ public:
         return result;
     }
 
-    Bytearray to_bits_merlin() const
-{   
-    Bytearray result;
-    result.reserve(total_length);
+//     Bytearray to_bits_merlin() const
+// {   
+//     Bytearray result;
+//     result.reserve(total_length);
 
-    for (unsigned int i = 0; i < total_length; ++i)
-        result.push_back(is_set(i) ? 1 : 0);
+//     for (unsigned int i = 0; i < total_length; ++i)
+//         result.push_back(is_set(i) ? 1 : 0);
 
-    return result;
-}
+//     return result;
+// }
 
 
     
@@ -250,8 +250,8 @@ inline bool operator<(const cpp_BigF2Vector & x,
     }
 }
 
-cpp_BigF2Vector apply_perm(const cpp_BigF2Vector &v,
-                           const Lut &perm)
+cpp_BigF2Vector apply_perm_BigF2Vector(const cpp_BigF2Vector &v,
+                                        const Lut &perm)
 {
     const unsigned int N = v.size();
     if (perm.size() != N)

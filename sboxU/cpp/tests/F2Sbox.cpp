@@ -44,5 +44,11 @@ int main()
         }
         std::cout << "\n";
     }
+
+
+    std::vector<cpp_BigF2Vector> invariants_quad=cpp_all_invariants_up_to_degree(midori64_sbox,2);
+    for (auto g: invariants_quad){
+        std::cout << g.to_string() << "\n";
+    }
         return 0;
 }
