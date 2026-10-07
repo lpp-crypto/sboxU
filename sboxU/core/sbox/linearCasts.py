@@ -27,10 +27,9 @@ def loop_over_structure(input_lengths, masks=None):
         empty = True
         for y in loop_over_structure(input_lengths[:-1], masks[:-1]):
             empty = False
-            yield y+ [masks[0]] 
+            yield y + [masks[-1]]
         if empty:
-            # !CHECK! shouldn't this be [-1] ? 
-            yield [masks[0]]
+            yield [masks[-1]]
     return
 
 
