@@ -12,6 +12,7 @@ from sboxU.ccz import \
     thickness_spectrum, \
     get_WalshZeroesSpaces, \
     ccz_equivalent_function, \
+    ccz_equivalences, \
     are_ea_equivalent, \
     are_ea_equivalent_from_vq, \
     are_ccz_equivalent
@@ -477,6 +478,32 @@ TYPE_CCZ_MAPPING  = 1   # CCZ-equivalent to a stored quadratic; representation =
 TYPE_NONQUADRATIC = 2   # non-CCZ-quadratic APN; representation = LUT bytes
 
 
+def mapping_to_bytes(mapping, n):
+    """Serializes an F2AffineMap on F_2^(2n) as its 2n image vectors followed by its constant.
+
+    Each value is stored as ceil(2n/8) bytes in little-endian order.
+    Total size: (2n + 1) * ceil(2n/8) bytes.
+    """
+    bpv = APNFunctions_compact._bytes_per_val(n)
+    result = bytearray()
+    for iv in mapping.get_image_vectors():
+        result += int(iv).to_bytes(bpv, 'little')
+    result += int(mapping.get_cste()).to_bytes(bpv, 'little')
+    return result
+
+
+def bytes_to_mapping(rep, n):
+    """Deserializes an F2AffineMap on F_2^(2n) from bytes produced by mapping_to_bytes."""
+    bpv = APNFunctions_compact._bytes_per_val(n)
+    n_ivs = 2 * n
+    ivs = [int.from_bytes(rep[i * bpv:(i + 1) * bpv], 'little') for i in range(n_ivs)]
+    cstte = int.from_bytes(rep[n_ivs * bpv:(n_ivs + 1) * bpv], 'little')
+    mapping = get_F2AffineMap(ivs)
+    if cstte != 0:
+        mapping = mapping + cstte
+    return mapping
+
+
 class APNFunctions_compact(FunctionsDB):
     """Compact database of n-bit APN functions supporting three entry types:
 
@@ -587,29 +614,12 @@ class APNFunctions_compact(FunctionsDB):
         return (2 * n + 7) // 8
 
     def _mapping_to_bytes(self, mapping):
-        """Serializes an F2AffineMap as its 2n image vectors followed by its constant.
-
-        Each value is stored as ceil(2n/8) bytes in little-endian order.
-        Total size: (2n + 1) * ceil(2n/8) bytes.
-        """
-        bpv = self._bytes_per_val(self.n)
-        result = bytearray()
-        for iv in mapping.get_image_vectors():
-            result += int(iv).to_bytes(bpv, 'little')
-        result += int(mapping.get_cste()).to_bytes(bpv, 'little')
-        return result
+        """mapping_to_bytes for this database's n."""
+        return mapping_to_bytes(mapping, self.n)
 
     def _bytes_to_mapping(self, rep):
-        """Deserializes an F2AffineMap from bytes produced by _mapping_to_bytes."""
-        n = self.n
-        bpv = self._bytes_per_val(n)
-        n_ivs = 2 * n
-        ivs = [int.from_bytes(rep[i * bpv:(i + 1) * bpv], 'little') for i in range(n_ivs)]
-        cstte = int.from_bytes(rep[n_ivs * bpv:(n_ivs + 1) * bpv], 'little')
-        mapping = get_F2AffineMap(ivs)
-        if cstte != 0:
-            mapping = mapping + cstte
-        return mapping
+        """bytes_to_mapping for this database's n."""
+        return bytes_to_mapping(rep, self.n)
 
 
     # !SUBSECTION! Row parsing
@@ -905,11 +915,9 @@ class APNFunctions_compact(FunctionsDB):
         as a TYPE_QUADRATIC entry in its own new CCZ class.
 
         Equivalent to calling `insert_quadratic` once per function, but performs
-        a single bulk INSERT instead of one INSERT per function — this matters
-        as the database grows, since inserting one function at a time pays the
-        per-call database round-trip overhead N times over.
+        a single bulk INSERT instead of one INSERT per function.
 
-        The "thickness" column is NOT computed here and is stored as
+        The "thickness" column is not computed here and is stored as
         `_THICKNESS_NOT_COMPUTED` (-1): computing it requires enumerating all
         Walsh zero spaces of the function for efficiency reasons. Use the populate function
         or the update_database function to add thel afterwards.
@@ -1085,12 +1093,9 @@ class APNFunctions_compact(FunctionsDB):
         # linearity is also CCZ-invariant
         lin = abs_walsh.maximum()
 
-        # Aut(sb) and the orbit reduction it induces are computed explicitly (instead of
+        # Aut(sb) and the orbit reduction it induces are computed explicitly, instead of
         # calling get_WalshZeroesSpaces_quadratic_apn, which would redo the Walsh zero space
-        # search from scratch) so we get the automorphism-group size and the CCZ-class size
-        # (number of EA classes) directly, in addition to reusing ws_full's bases.
-        # ws_reduced is a copy: it must NOT be used as the space being transported for
-        # thickness, ws_full (unreduced) is.
+        # search from scratch
         aut = automorphisms_from_ortho_derivative(sb)
         ws_reduced = ws_full.copy()
         ws_reduced.init_mappings_using_automorphisms(aut)
@@ -1130,10 +1135,8 @@ class APNFunctions_compact(FunctionsDB):
     def populate_non_quadratic_ccz_class(self, entry_id, comment=None):
         """Populates an existing TYPE_NONQUADRATIC entry with its CCZ-class EA representatives.
 
-        Because automorphisms cannot be computed cheaply for non-quadratic functions, all admissible
-        mappings are enumerated without filtering.  Each CCZ-equivalent function is inserted
-        as a TYPE_NONQUADRATIC entry under the same ccz_id only if it is EA-new with respect
-        to the current database state (checked via `is_new` after every insertion).
+        The reference's graph automorphism group Aut(f) is computed via `ccz_equivalences(f, f)` ,
+        a generic LAT-based self-equivalence search.
 
         Population is skipped when the number of entries sharing the reference's ccz_id is
         already greater than 1, meaning the class has been (at least partially) populated
@@ -1144,7 +1147,9 @@ class APNFunctions_compact(FunctionsDB):
 
         Args:
             entry_id: the row id of a TYPE_NONQUADRATIC entry.
-            comment: free-text note logged to the journal (see `log_journal`), or None.
+            comment: free-text note logged to the journal (see `log_journal`) for every
+                     modification made by this call (the ccz_size/aut_size field updates and
+                     every inserted EA representative), or None.
 
         Returns:
             A list of the inserted row ids, or an empty list if the class was already
@@ -1175,9 +1180,21 @@ class APNFunctions_compact(FunctionsDB):
         if n_existing > 1:
             return []
 
-        ws = get_WalshZeroesSpaces(sb)
+        # Graph automorphisms via a generic self-equivalence search
+        aut_pairs = ccz_equivalences(sb, sb)
+        aut_size = len(aut_pairs)
+        aut_linear_parts = [A for A, cst in aut_pairs]
+
+        ws_reduced = get_WalshZeroesSpaces(sb).copy()
+        ws_reduced.init_mappings_using_automorphisms(aut_linear_parts)
+        mappings = ws_reduced.get_mappings()
+        ccz_size = len(mappings)
+
+        self.update_database([entry_id], "ccz_size", [ccz_size], comment=None)
+        self.update_database([entry_id], "aut_size", [aut_size], comment=None)
+
         inserted_ids = []
-        for L in ws.get_mappings():
+        for L in mappings:
             g_sb = ccz_equivalent_function(sb, L)
             if len(g_sb) == 0:
                 continue
@@ -1190,7 +1207,10 @@ class APNFunctions_compact(FunctionsDB):
             lin = linearity(g_sb)
             thk = thickness_spectrum(g_sb).maximum()
             inserted_ids.append(
-                self._insert_entry(TYPE_NONQUADRATIC, ccz_id, invariant, rep, deg, lin, thk, source)
+                self._insert_entry(
+                    TYPE_NONQUADRATIC, ccz_id, invariant, rep, deg, lin, thk, source,
+                    ccz_size=ccz_size, aut_size=aut_size
+                )
             )
         self.log_journal("populate_non_quadratic_ccz_class", comment)
         return inserted_ids
@@ -1226,10 +1246,9 @@ class APNFunctions_compact(FunctionsDB):
         # Computing Walsh Zeroes once and reusing them (via transport) for every EA class
         ws_full = get_WalshZeroesSpaces(sb_stored)
 
-        # Aut(sb_stored) and the orbit reduction it induces are computed explicitly (instead
+        # Aut(sb_stored) and the orbit reduction it induces are computed explicitly,instead
         # of calling get_WalshZeroesSpaces_quadratic_apn, which would redo the Walsh zero
-        # space search from scratch) so we get the automorphism-group size and the CCZ-class
-        # size (number of EA classes) directly, in addition to reusing ws_full's bases.
+        # space search from scratch
         aut = automorphisms_from_ortho_derivative(sb_stored)
         ws_reduced = ws_full.copy()
         ws_reduced.init_mappings_using_automorphisms(aut)

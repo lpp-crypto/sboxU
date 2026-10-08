@@ -97,38 +97,39 @@ void cpp_WalshZeroesSpaces::init_mappings(
     const std::vector<cpp_F2AffineMap> & automorphisms_2
     )
 {
-    // G1_t  = lin(g1).T          for g1 in G1
-    // G2_ti = lin(g2).T^{-1}     for g2 in G2
-    std::vector<cpp_F2AffineMap> G1_t, G2_ti;
+    // Both groups act through lin(g).T. No inverse: g -> g^T and g -> g^{-T} give the same set over
+    // a group, hence the same orbits (and derivative automorphisms are involutions anyway).
+    std::vector<cpp_F2AffineMap> G1_t, G2_t;
     for (auto & a : automorphisms_1)
         G1_t.push_back((a + a.get_cstte()).transpose());
     for (auto & b : automorphisms_2)
-        G2_ti.push_back((b + b.get_cstte()).transpose().inverse());
+        G2_t.push_back((b + b.get_cstte()).transpose());
 
-    // Use the smaller group for step 1 to minimise the preimage map size.
-    const auto & G_map  = (G1_t.size() <= G2_ti.size()) ? G1_t : G2_ti;
-    const auto & G_walk = (G1_t.size() <= G2_ti.size()) ? G2_ti : G1_t;
+    const auto & G_map  = (G1_t.size() <= G2_t.size()) ? G1_t : G2_t;
+    const auto & G_walk = (G1_t.size() <= G2_t.size()) ? G2_t : G1_t;
 
-    // Build the preimage map: for each V_i and each g in G_map,
-    // insert W = g(V_i) → i.  The first space to claim a given W keeps it;
-    // any later claimant is G_map-equivalent to the owner and is marked non-relevant.
-    std::map<cpp_BinLinearBasis, unsigned int> preimage;
-    std::vector<bool> relevant(bases.size(), true);
+    // Step 1: orbit_rep[W] = index of the representative of W's G_map-orbit, the first space whose
+    // G_map-orbit contains W. A space that already has one lies in an orbit that was fully mapped
+    // before, so its own images are skipped.
+    std::map<cpp_BinLinearBasis, unsigned int> orbit_rep;
+    std::vector<bool> relevant(bases.size(), false);
     for (unsigned int i = 0; i < bases.size(); i++) {
-        for (auto & g : G_map) {
-            auto [it, inserted] = preimage.emplace(bases[i].image_by(g), i);
-            if (!inserted && it->second != i)
-                relevant[i] = false;
-        }
+        if (orbit_rep.contains(bases[i]))
+            continue;
+        relevant[i] = true;
+        orbit_rep.emplace(bases[i], i);
+        for (auto & g : G_map)
+            orbit_rep.emplace(bases[i].image_by(g), i);
     }
 
-    // For each relevant space, apply every g in G_walk to its preimage entries;
-    // if the result is another preimage, mark that space non-relevant.
-    for (auto & [W, i] : preimage) {
-        if (!relevant[i]) continue;
+    // Step 2: as Aut = G_map * G_walk, G_walk applied to a single space V already meets every
+    // G_map-orbit of Aut(V), so one sweep per surviving representative is enough.
+    for (unsigned int i = 0; i < bases.size(); i++) {
+        if (!relevant[i])
+            continue;
         for (auto & g : G_walk) {
-            auto it = preimage.find(W.image_by(g));
-            if (it != preimage.end() && it->second != i)
+            auto it = orbit_rep.find(bases[i].image_by(g));
+            if (it != orbit_rep.end() && it->second != i)
                 relevant[it->second] = false;
         }
     }

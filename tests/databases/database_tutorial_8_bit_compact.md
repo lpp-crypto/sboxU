@@ -28,7 +28,7 @@ from sboxU.scripts.apnDB.reprs8 import (
 )
 
 # (function group getter, human label, biblio_8 source index)
-GROUPS = [
+APNS = [
     (all_WenTanGon, "Weng, Tan & Gong (2013)",           5),
     (first_QAMs,    "Yu, Wang & Li (2014) - first QAM",  1),
     (second_QAMs,   "Yu & Perrin (2022) - second QAM",   2),
@@ -63,7 +63,7 @@ We then batch-insert each source group in turn, tagging every batch with a comme
 
 ```python
     section("Batch-inserting quadratic CCZ-class representatives")
-    for group_fn, label, source in GROUPS:
+    for group_fn, label, source in APNS:
         subsection(label)
         functions = group_fn()
         print("  {} functions (source {})".format(len(functions), source))

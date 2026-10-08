@@ -76,38 +76,41 @@ std::vector<cpp_F2AffineMap> cpp_automorphisms_from_ortho_derivative(
 }
 
 
+/// @brief Computes the EA mappings between two quadratic APN functions from the linear
+/// equivalences of their ortho-derivatives, each of which is completed into an EA mapping by
+/// trying every candidate C.
+/// @param s a quadratic APN function as a cpp_S_box
+/// @param s_prime a quadratic APN function as a cpp_S_box
+/// @param n_threads number of threads for parallel computation
+/// @param mode "standard": all the EA mappings.
+///             "single":   stops at the first EA mapping found.
+/// @return a vector of EA mappings L such that graph(s) = L(graph(s_prime)) + c, for some
+/// constant c that is not returned; empty if s and s_prime are not EA-equivalent
 std::vector<cpp_F2AffineMap> cpp_ea_mappings_from_ortho_derivative(
     const cpp_S_box & s,
     const cpp_S_box & s_prime,
-    const unsigned int n_threads
+    const unsigned int n_threads,
+    const std::string & mode
     )
 {
     cpp_S_box
         o = cpp_ortho_derivative(s),
         o_prime = cpp_ortho_derivative(s_prime);
-    std::vector<cpp_F2AffineMap> automorphisms_asd =
-        cpp_equivalences_from_lat(o, o_prime, false, n_threads, "linear");
     BinWord pw_n = s.input_space_size();
-    std::vector<cpp_F2AffineMap> automorphisms;
-    for(auto autom : automorphisms_asd)
-    {   
-        auto abcd = cpp_ccz_block_decomposition(autom);
-        cpp_F2AffineMap
-            L_A_inv = cpp_F2AffineMap(abcd[0]),
-            L_B = cpp_F2AffineMap(abcd[1]),
-            L_A = L_A_inv.inverse(),
-            L_B_T = L_B.transpose();
+    cpp_FunctionGraph
+        G_s(s),
+        G_s_prime(s_prime);
+    const bool single = (mode == "single");
+    std::vector<cpp_F2AffineMap> mappings;
+
+    // Appends to `mappings` the EA mappings completing the linear equivalence (L_A_inv, L_B) of
+    // the ortho-derivatives, stopping at the first one in "single" mode.
+    auto lift = [&](const cpp_F2AffineMap & L_A_inv, const cpp_F2AffineMap & L_B)
+    {
+        cpp_F2AffineMap L_B_T = L_B.transpose();
         cpp_S_box
             L_A_inv_sb = L_A_inv.get_cpp_S_box(),
-            L_B_T_sb   = L_B_T.get_cpp_S_box(),
-            L_A_sb = L_A.get_cpp_S_box(),
-            L_B_sb = L_B.get_cpp_S_box();
-        
-        
-        cpp_FunctionGraph
-            G_s(s),
-            G_s_prime(s_prime);
-
+            L_B_T_sb   = L_B_T.get_cpp_S_box();
         // now need to find C
         for(BinWord delta=0; delta<pw_n; delta++)
         {
@@ -119,17 +122,53 @@ std::vector<cpp_F2AffineMap> cpp_ea_mappings_from_ortho_derivative(
                 BinWord e_i = 1 << i;
                 img_L_C[i] = C_0 ^ s[e_i^delta] ^ L_B_T_sb[s_prime[L_A_inv_sb[e_i]]];
             }
-            // then we deduce what would be the linear part of an automorphism
+            // then we deduce what would be the linear part of an EA mapping
             cpp_F2AffineMap
                 L_C(img_L_C),
                 L = cpp_EA_mapping(L_A_inv, L_B_T, L_C);
             // and then we check if the resulting graphs are XOR-equivalent
-            std::vector<BinWord> offsets = G_s.xor_equivalence(G_s_prime.image_by(L));
-            if (offsets.size() > 0)
-                automorphisms.push_back(L);
+            if (G_s.xor_equivalence(G_s_prime.image_by(L)).size() > 0)
+            {
+                mappings.push_back(L);
+                if (single)
+                    return;
+            }
         }
+    };
+    auto lift_all = [&](const std::vector<cpp_F2AffineMap> & equivalences)
+    {
+        for (auto & autom : equivalences)
+        {
+            auto abcd = cpp_ccz_block_decomposition(autom);
+            lift(abcd[0], abcd[1]);
+            if (single && !mappings.empty())
+                return;
+        }
+    };
+
+    if (!single)
+    {
+        lift_all(cpp_equivalences_from_lat(o, o_prime, false, n_threads, "linear"));
+        return mappings;
     }
-    return automorphisms;
+    // The single-answer search of cpp_equivalences_from_lat skips the identity, so try it first
+    // when it is a candidate, i.e. when the ortho-derivatives are equal.
+    if (o == o_prime)
+    {
+        cpp_F2AffineMap Id_n = identity_F2AffineMap(s.get_input_length());
+        lift(Id_n, Id_n);
+        if (!mappings.empty())
+            return mappings;
+    }
+    std::vector<cpp_F2AffineMap> first = cpp_equivalences_from_lat(o, o_prime, true, n_threads, "linear");
+    if (first.empty())
+        return mappings;
+    lift_all(first);
+    // Nothing guarantees that every linear equivalence of the ortho-derivatives lifts to an EA
+    // mapping: if the first ones found do not, fall back to the full search.
+    if (mappings.empty())
+        lift_all(cpp_equivalences_from_lat(o, o_prime, false, n_threads, "linear"));
+    return mappings;
 }
 
 

@@ -104,7 +104,8 @@ def automorphisms_from_ortho_derivative(s, n_threads=MAX_N_THREADS, mode="standa
 def ea_mappings_from_ortho_derivative(
         s,
         s_prime,
-        n_threads=MAX_N_THREADS
+        n_threads=MAX_N_THREADS,
+        mode="standard"
 ):
     """Returns all the EL mappings L such that graph(s) = L(graph(s_prime)) + c, for some constant c that is not returned. Works only for quadratic APN functions since it is based on the ortho-derivative.
 
@@ -112,9 +113,10 @@ def ea_mappings_from_ortho_derivative(
         s: an S-boxable object corresponding to a quadratic APN function
         s_prime: an S-boxable object corresponding to a quadratic APN function
         n_threads: the number of threads to use. Defaults to `MAX_N_THREADS`.
+        mode: "standard" returns all the mappings; "single" stops at the first one found, which suffices when only the existence of an equivalence, or one representative of it, is needed (all of them form a coset of the automorphism group). Defaults to "standard".
 
     Returns:
-        A list of F2AffineMaps L_i such that the graph of s is, up to a constant addition, the same as the image of the graph of s_prime under the linear permutation L_i.
+        A list of F2AffineMaps L_i such that the graph of s is, up to a constant addition, the same as the image of the graph of s_prime under the linear permutation L_i; at most one in "single" mode.
     
     """
     sb, sb_prime = get_sbox(s), get_sbox(s_prime)
@@ -122,7 +124,8 @@ def ea_mappings_from_ortho_derivative(
     cdef std_vector[cpp_F2AffineMap] ea_mappings  = cpp_ea_mappings_from_ortho_derivative(
             dereference((<S_box>sb).cpp_sb),
             dereference((<S_box>sb_prime).cpp_sb),
-            n_threads
+            n_threads,
+            mode.encode()
     )
     for L in ea_mappings:
         new_blm = F2AffineMap()
@@ -245,12 +248,13 @@ def graph_el_automorphisms_from_ortho_derivative(s,n_threads=MAX_N_THREADS):
 
 # !SECTION! Switching Neighbours
 
+# !!TODO!! Remove, the filter version is enough. Kept for now for retrocompatibility.
 def non_trivial_sn(s,ne,ns):
     sb = get_sbox(s)
     result = []
     i = 0
     SW = cpp_non_trivial_sn(dereference((<S_box>sb).cpp_sb),<cpp_Integer> ne, <cpp_Integer> ns )
-    for sw_u in SW: 
+    for sw_u in SW:
         res_u = []
         for new_s in sw_u:
             new_sb = S_box(name=b"SW-" + sb.name() + b"_" + str(i).encode("UTF-8"))
@@ -259,3 +263,42 @@ def non_trivial_sn(s,ne,ns):
             i += 1
         result.append(res_u)
     return result
+
+
+def non_trivial_sn_filter(s,ne):
+    sb = get_sbox(s)
+    result = []
+    i = 0
+    SW = cpp_non_trivial_sn_filter(dereference((<S_box>sb).cpp_sb),<cpp_Integer> ne)
+    for sw_u in SW:
+        res_u = []
+        for new_s in sw_u:
+            new_sb = S_box(name=b"SW-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+            new_sb.set_inner_sbox(<cpp_S_box>new_s)
+            res_u.append(new_sb)
+            i += 1
+        result.append(res_u)
+    return result
+
+
+# Per-dimension NE that minimizes non_trivial_sn_filter's running time
+# No tests were made after 10, so we use a generic 2*2**n bound
+_COMPUTE_SN_DEFAULT_NE = {6: 64, 7: 128, 8: 270, 9: 620, 10: 1400}
+
+
+def compute_sn(s, n_rows=None):
+    """Computes the switching neighbours of the APN function `s` via non_trivial_sn_filter.
+
+    Args:
+        s: an S_boxable APN function.
+        n_rows: number of equations (NE) to pass to non_trivial_sn_filter, or None (the
+            default) to use the per-dimension optimum from _COMPUTE_SN_DEFAULT_NE, falling
+            back to 2*2^n for dimensions that table doesn't cover.
+
+    Returns:
+        Same as non_trivial_sn_filter: one list per nonzero switching point.
+    """
+    sb = get_sbox(s)
+    n = sb.get_input_length()
+    ne = n_rows if n_rows is not None else _COMPUTE_SN_DEFAULT_NE.get(n, 2 * (2 ** n))
+    return non_trivial_sn_filter(sb, ne)

@@ -397,9 +397,8 @@ def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
         n_threads: number of threads.
         mode: "standard" — iterate full Aut(q_f);
               "product"  — exploit the G1⋊G2 semidirect product structure;
-              "test"     — direct C++ translation of the Python reference in
-                           ccz/equivalence_from_vq.py (applies map_q^{-T} twice
-                           to the full WalshZeroesSpaces, iterates via L^{T,-1}).
+              "generators" — walk of the orbit of V_f under generating
+                           sets of G1 and G2 (never enumerates Aut(q_f));
 
     Returns:
         A list containing one EA mapping if s1 and s2 are EA-equivalent, else [].
