@@ -34,7 +34,7 @@ with Experiment("Testing APN functions-related functions"):
         print(algebraic_degree(lut_from_compact) == 2)
         print("The Compact Representation is APN:", end =" ")
         print(is_differential_uniformity_smaller_than(lut_from_compact,2))
-        b = are_ea_equivalent_from_vq(s,lut_from_compact)
+        b = are_ea_equivalent_from_quadratic_representative(s,lut_from_compact)
         print("The Compact Representation is EA-equivalent to the original:", end =" ")
         print(b)
         print()

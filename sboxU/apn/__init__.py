@@ -13,7 +13,7 @@ from sboxU.apn.cython_functions import \
     graph_el_automorphisms_from_ortho_derivative, graph_automorphisms_from_derivatives, \
     gen_set_graph_automorphisms_from_derivatives, gen_set_F2AffineMap_group, \
     get_WalshZeroesSpaces_quadratic_apn, \
-    non_trivial_sn, non_trivial_sn_filter, compute_sn
+    non_trivial_sn, non_trivial_sn_filter, switching_neighbours
 
 
 from sboxU.apn.database import APNFunctions, sixBitAPNs

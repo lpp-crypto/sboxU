@@ -389,7 +389,7 @@ def ccz_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MA
         n_threads
     )
 
-def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
+def ea_mapping_from_quadratic_representative(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
     """Returns an EA mapping between s1 and s2 via the Walsh-zero-space orbit method.
 
     Args:
@@ -405,7 +405,7 @@ def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
     """
     sb1 = get_sbox(s1)
     sb2 = get_sbox(s2)
-    mappings = cpp_ea_mapping_from_vq(
+    mappings = cpp_ea_mapping_from_quadratic_representative(
         dereference((<S_box>sb1).cpp_sb),
         dereference((<S_box>sb2).cpp_sb),
         n_threads,
@@ -420,12 +420,13 @@ def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
     return result
 
 
-def are_ea_equivalent_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
+def are_ea_equivalent_from_quadratic_representative(s1, s2, n_threads=MAX_N_THREADS,
+                                                    mode="standard"):
     """Returns True iff s1 and s2 are EA-equivalent (via Walsh-zero-space orbit check).
 
-    Accepts the same `mode` values as `ea_mapping_from_vq`.
+    Accepts the same `mode` values as `ea_mapping_from_quadratic_representative`.
     """
-    return len(ea_mapping_from_vq(s1, s2, n_threads, mode)) > 0
+    return len(ea_mapping_from_quadratic_representative(s1, s2, n_threads, mode)) > 0
 
 # !SUBSECTION! Boolean tests
 

@@ -119,7 +119,7 @@ cdef extern from "../cpp/ccz/partition_preserving_linear_mapping/pplm.cpp" :
 # !SUBSECTION!  Equivalence from Vq
 
 cdef extern from "../cpp/ccz/ea_from_vq.hpp":
-    std_vector[cpp_F2AffineMap] cpp_ea_mapping_from_vq(
+    std_vector[cpp_F2AffineMap] cpp_ea_mapping_from_quadratic_representative(
         const cpp_S_box f,
         const cpp_S_box g,
         const unsigned int n_threads,

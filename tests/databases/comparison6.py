@@ -23,7 +23,7 @@ from sboxU.apn import APNFunctions, APNFunctions_compact, sixBitAPNs
 from sboxU.apn import apn_ea_mugshot, apn_ea_mugshot_from_spectra, sigma_multiplicities
 from sboxU.core import algebraic_degree, degree_spectrum
 from sboxU.statistics import absolute_walsh_spectrum
-from sboxU.ccz import are_ea_equivalent, thickness_spectrum, are_ea_equivalent_from_vq
+from sboxU.ccz import are_ea_equivalent, thickness_spectrum, are_ea_equivalent_from_quadratic_representative
 
 DB_COMPACT  = os.path.join(os.path.dirname(os.path.abspath(__file__)), "compact6.db")
 DB_CLASSIC  = sixBitAPNs()
@@ -120,7 +120,7 @@ def compare():
                 c_sb       = c_entry["sbox"]
                 mug        = raw_mugshot(c_sb)
                 candidates = classic_by_mugshot.get(mug, [])
-                ea_check = lambda f, g: are_ea_equivalent_from_vq(f.lut(), g.lut())
+                ea_check = lambda f, g: are_ea_equivalent_from_quadratic_representative(f.lut(), g.lut())
     
                 matches    = sum(
                     1 for cl_entry in candidates

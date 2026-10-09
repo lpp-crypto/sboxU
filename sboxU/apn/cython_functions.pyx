@@ -286,7 +286,7 @@ def non_trivial_sn_filter(s,ne):
 _COMPUTE_SN_DEFAULT_NE = {6: 64, 7: 128, 8: 270, 9: 620, 10: 1400}
 
 
-def compute_sn(s, n_rows=None):
+def switching_neighbours(s, n_rows=None):
     """Computes the switching neighbours of the APN function `s` via non_trivial_sn_filter.
 
     Args:

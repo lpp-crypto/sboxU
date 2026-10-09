@@ -1,6 +1,6 @@
-# ea_mapping_from_vq — correctness and mode benchmark
+# ea_mapping_from_quadratic_representative — correctness and mode benchmark
 
-Tests `ea_mapping_from_vq` against the reference `are_ea_equivalent`, then
+Tests `ea_mapping_from_quadratic_representative` against the reference `are_ea_equivalent`, then
 compares the timing of its two modes.
 
 All experiments use quadratic APN functions from the 6-bit database.  Three
@@ -56,7 +56,7 @@ pprint("Negative CCZ classes: {}".format(chosen[3:]))
 ## Correctness
 
 For each source function, `are_ea_equivalent` and both modes of
-`ea_mapping_from_vq` must agree: True for the EA-generated variant,
+`ea_mapping_from_quadratic_representative` must agree: True for the EA-generated variant,
 False for the unrelated function from a different CCZ class.
 
 ```python
@@ -64,8 +64,8 @@ n_ok = n_fail = 0
 for i in range(3):
     fi, gi = src_funcs[i], ea_funcs[i]
     ref  = are_ea_equivalent(fi, gi)
-    std  = len(ea_mapping_from_vq(fi, gi, mode="standard")) > 0
-    prod = len(ea_mapping_from_vq(fi, gi, mode="product"))  > 0
+    std  = len(ea_mapping_from_quadratic_representative(fi, gi, mode="standard")) > 0
+    prod = len(ea_mapping_from_quadratic_representative(fi, gi, mode="product"))  > 0
     if ref == std == prod == True:
         success("positive pair {}: ref, standard, product all True".format(i))
         n_ok += 1
@@ -75,8 +75,8 @@ for i in range(3):
 for i in range(3):
     fi, gi = neg_funcs[i], ea_funcs[i]
     ref  = are_ea_equivalent(fi, gi)
-    std  = len(ea_mapping_from_vq(fi, gi, mode="standard")) > 0
-    prod = len(ea_mapping_from_vq(fi, gi, mode="product"))  > 0
+    std  = len(ea_mapping_from_quadratic_representative(fi, gi, mode="standard")) > 0
+    prod = len(ea_mapping_from_quadratic_representative(fi, gi, mode="product"))  > 0
     if ref == std == prod == False:
         success("negative pair {}: ref, standard, product all False".format(i))
         n_ok += 1
@@ -88,7 +88,7 @@ for i in range(3):
 
 ## Mode comparison
 
-Both modes of `ea_mapping_from_vq` are timed on the same six pairs
+Both modes of `ea_mapping_from_quadratic_representative` are timed on the same six pairs
 (3 positive, 3 negative).  Mean time per pair is reported at the end.
 
 ```python
@@ -97,7 +97,7 @@ timings = {m: 0.0 for m in modes}
 pairs = list(zip(src_funcs + neg_funcs, ea_funcs + ea_funcs))
 for fi, gi in pairs:
     for m in modes:
-        t = time(); ea_mapping_from_vq(fi, gi, mode=m); timings[m] += time() - t
+        t = time(); ea_mapping_from_quadratic_representative(fi, gi, mode=m); timings[m] += time() - t
 pprint("Mean time per pair ({} pairs):".format(len(pairs)))
 for m in modes:
     pprint("  {}: {:.3f}s".format(m, timings[m] / len(pairs)))

@@ -14,7 +14,7 @@ from sboxU.ccz import \
     ccz_equivalent_function, \
     ccz_equivalences, \
     are_ea_equivalent, \
-    are_ea_equivalent_from_vq, \
+    are_ea_equivalent_from_quadratic_representative, \
     are_ccz_equivalent
 
 from sboxU.apn import \
@@ -686,9 +686,9 @@ class APNFunctions_compact(FunctionsDB):
         """Returns True iff `s` is not EA-equivalent to any function already in the database.
 
         Looks up candidates by their stored invariant.  When `s` is CCZ-quadratic,
-        uses the fast Walsh-zero-space EA check (`are_ea_equivalent_from_vq`) against
-        candidates that are themselves CCZ-quadratic; otherwise falls back to
-        `are_ea_equivalent`.
+        uses the fast Walsh-zero-space EA check
+        (`are_ea_equivalent_from_quadratic_representative`) against candidates that are
+        themselves CCZ-quadratic; otherwise falls back to `are_ea_equivalent`.
 
         Args:
             s:   an S-boxable APN function.
@@ -720,7 +720,7 @@ class APNFunctions_compact(FunctionsDB):
             entry = {col: row[i] for i, col in enumerate(sorted_columns)}
             candidate_lut = self.get_lut(entry)
             if sb_is_ccz_quadratic and len(ccz_equivalent_quadratic_function(candidate_lut)) > 0:
-                if are_ea_equivalent_from_vq(sb_lut, candidate_lut):
+                if are_ea_equivalent_from_quadratic_representative(sb_lut, candidate_lut):
                     return False
             else:
                 if are_ea_equivalent(sb_lut, candidate_lut):

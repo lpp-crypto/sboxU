@@ -106,7 +106,7 @@ std::pair<int,int> cpp_product_walsh_match_indices(
 ///             "generators": Walk of the orbit of Vf under generating sets of
 ///                         G1 and G2, never enumerating Aut(q_f) itself.
 /// @return A vector containing an EA mapping from q_f to q_g if f =_EA g, empty otherwise.
-std::vector<cpp_F2AffineMap> cpp_ea_mapping_from_vq(
+std::vector<cpp_F2AffineMap> cpp_ea_mapping_from_quadratic_representative(
     const cpp_S_box f,
     const cpp_S_box g,
     const unsigned int n_threads,

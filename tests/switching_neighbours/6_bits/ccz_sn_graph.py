@@ -105,7 +105,7 @@ def at_distance_1_6(f,n,db,known_ccz_id,known_id):
                         good_set = same_mug_s_id.intersection(non_ccz_quad_id)
                         for j in list(good_set):
                                 if algebraic_degree(db[j]["sbox"].lut())==2 and algebraic_degree(s)==2:
-                                    valve = are_ea_equivalent_from_vq(db[j]["sbox"].lut(),s)
+                                    valve = are_ea_equivalent_from_quadratic_representative(db[j]["sbox"].lut(),s)
                                 else:
                                     valve = are_ea_equivalent(db[j]["sbox"].lut(),s)
                                 if valve:
