@@ -22,6 +22,33 @@ int main()
               << rand_sbox.is_invertible()
               << "   "
               << cpp_differential_spectrum(rand_sbox, 4).content_string_repr() << std::endl;
-    
-    return 0;
+
+    cpp_S_box midori64_sbox(std::vector<BinWord>{{12, 10, 13, 3, 14, 11, 15, 7, 8, 9, 1, 5, 0, 2, 4, 6}});
+
+    std::cout << "\nMidori_Sb0" << std::endl
+              << midori64_sbox.content_string_repr() << std::endl;
+    std::vector<std::vector<BinWord>> cycles = cpp_cycle_decomposition(midori64_sbox);
+    for (int i=0; i<cycles.size(); i++){
+        std::cout << "Cycle " << i << " : (";
+        for (int j=0; j<cycles[i].size(); j++){
+            std::cout << cycles[i][j] << " ";
+        }
+        std::cout << ")\n";
+    }
+    for (int u =0; u < 4 ; u++){
+        std::cout<< "Anf vector of coordinate " << u << " of Midori64 Sbox : ";
+        std::vector<BinWord> anf_midori = cpp_anf_component(midori64_sbox.coordinate(u));
+        for (int i = 0; i < anf_midori.size(); i++)
+        {
+            std::cout << anf_midori[i] << " ";
+        }
+        std::cout << "\n";
+    }
+
+
+    std::vector<cpp_BigF2Vector> invariants_quad=cpp_all_invariants_up_to_degree(midori64_sbox,2);
+    for (auto g: invariants_quad){
+        std::cout << g.to_string() << "\n";
+    }
+        return 0;
 }

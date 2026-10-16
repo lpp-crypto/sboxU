@@ -1,24 +1,31 @@
 #include "anf.hpp"
+#include "../algorithms/bigvectors.hpp"
 
 // !SECTION! Functions on Boolean Functions
 
 
-// Naive version for now
-// See  https://www.joux.biz/algcrypt/PROGRAMS/Walsh_9-2.html for an optimized version
-
-std::vector<BinWord> cpp_anf_component( const cpp_S_box &f)
-{   if (f.get_output_length()!=1){
+std::vector<BinWord> cpp_anf_component(const cpp_S_box &f)
+{
+    if (f.get_output_length() != 1)
+    {
         throw std::runtime_error("This function is for boolean functions only");
     }
-    else{
-        int n= f.get_input_length();
-        int N = 1<<n;
+    else
+    {
+        int n = f.get_input_length();
+        int N;
+        int N_k;
         std::vector<BinWord> v = f.get_lut();
 
-        for (int bit = 0; bit < n; ++bit) {
-            for (int mask = 0; mask < N; ++mask) {
-                if (mask & (1 << bit)) {
-                    v[mask] ^= v[mask ^ (1 << bit)];
+        for (int k = 1; k <= n; k++)
+        {
+            N = 1 << (n-k);
+            for (int i = 0; i < N; i++)
+            {
+                N_k = (1 << (k - 1)); 
+                for (int j = 0; j < N_k; j++)
+                {
+                    v[2*i*N_k+ N_k+j] ^= (v[j+2*i*N_k]);
                 }
             }
         }
@@ -26,14 +33,45 @@ std::vector<BinWord> cpp_anf_component( const cpp_S_box &f)
     }
 }
 
+cpp_BigF2Vector mobius_transform(const cpp_BigF2Vector &u, unsigned int n)
+{
+    if (u.size() != (1u << n))
+        throw std::runtime_error("Vector of wrong length in mobius_transform");
 
-/////////////////////////////////////////////////
+    cpp_BigF2Vector v(u);
+    // Bit x is stored at position BLOCK_POS(x) of the block content[BLOCK_INDEX(x)].
 
+    // Steps k = 0..5 (stride 2^k < 64): both halves lie in the same block.
+    // mask selects the positions whose bit k is 0, which are added to the
+    // positions 2^k above them.
+    static const BoolBlock masks[6] = {
+        0x5555555555555555ULL, 0x3333333333333333ULL, 0x0F0F0F0F0F0F0F0FULL,
+        0x00FF00FF00FF00FFULL, 0x0000FFFF0000FFFFULL, 0x00000000FFFFFFFFULL};
+    for (unsigned int k = 0; k < n && k < 6; k++)
+        for (auto &w : v.content)
+            w ^= (w & masks[k]) << (1u << k);
 
-/// @brief Computes a compact representation of a quadratic function using its monomials
-/// @param f a ccp_S_box
-/// @return a vector of BinWord containing the representation
-std::vector<BinWord> cpp_quadratic_compact_representation( const cpp_S_box &f){
+    // Steps k >= 6 (stride 2^k >= 64): whole blocks are added together.
+    const unsigned int n_blocks = v.content.size();
+    for (unsigned int k = 6; k < n; k++)
+    {
+        const unsigned int S = 1u << (k - 6); // stride counted in blocks
+        for (unsigned int i = 0; i < n_blocks; i += 2 * S)
+            for (unsigned int j = 0; j < S; j++)
+                v.content[i + S + j] ^= v.content[i + j];
+    }
+
+    v.set_msb();
+    return v;
+}
+
+    /////////////////////////////////////////////////
+
+    /// @brief Computes a compact representation of a quadratic function using its monomials
+    /// @param f a ccp_S_box
+    /// @return a vector of BinWord containing the representation
+    std::vector<BinWord> cpp_quadratic_compact_representation(const cpp_S_box &f)
+{
 
     // !! CAREFUL !! 
     // We do not check is the degree is 2 for efficiency concerns
@@ -98,8 +136,7 @@ std::vector<BinWord> cpp_quadratic_compact_representation( const cpp_S_box &f){
         }
     }
     return(compact_representation);
-}  
-
+}
 
 /// @brief Computes a compact representation of a linear function using its monomials
 /// @param f a ccp_S_box

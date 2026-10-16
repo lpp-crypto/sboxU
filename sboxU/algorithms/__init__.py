@@ -14,4 +14,4 @@ from sboxU.algorithms.cython_functions import \
     BinLinearBasis, is_affine, is_sum_full_rank, \
     complete_basis, complete_basis_reversed, \
     generating_F2AffineMap_r,generating_F2AffineMap, F2AffineMap_from_masks,F2AffineMap_from_range_and_image, \
-    F2LinearSystem,BinLinearBigBasis
+    F2LinearSystem,BinLinearBigBasis,all_invariants_up_to_degree

@@ -128,16 +128,22 @@ bool cpp_BinLinearBigBasis::is_in_span(std::vector<BoolBlock> x) const
     return (big_x.is_zero());
 }
 
-
-std::vector<Bytearray> cpp_BinLinearBigBasis::get_basis() const
+// std::vector<Bytearray> cpp_BinLinearBigBasis::get_basis() const
+// {
+//     std::vector<Bytearray> result;
+//     result.reserve(basis.size());
+//     for (auto b : basis)
+//         result.push_back((b.second).to_bits_merlin());
+//     return result;
+// }
+std::vector<cpp_BigF2Vector> cpp_BinLinearBigBasis::get_basis() const
 {
-    std::vector<Bytearray> result;
-    result.reserve(basis.size());
-    for (auto b : basis)
-        result.push_back((b.second).to_bits_merlin());
+    std::vector<cpp_BigF2Vector> result;
+    for (auto b:basis){
+        result.push_back(b.second);
+    }
     return result;
 }
-
 
 // std::vector<cpp_BigF2Vector> cpp_BinLinearBigBasis::span() const
 // {

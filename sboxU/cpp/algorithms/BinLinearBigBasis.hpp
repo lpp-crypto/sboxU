@@ -24,7 +24,7 @@ public:
 
     bool is_in_span(std::vector<BoolBlock> x) const ;
 
-    std::vector<Bytearray> get_basis() const;
+    std::vector<cpp_BigF2Vector> get_basis() const;
 
     inline unsigned int size() const
     {
