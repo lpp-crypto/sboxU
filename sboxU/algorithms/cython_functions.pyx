@@ -373,7 +373,7 @@ def generating_F2AffineMap_r(basis: std_vector[BinWord], N: int) -> F2AffineMap:
         for all i < len(basis).
 
     """
-    return get_F2AffineMap(complete_basis_reversed(basis,N),N,N)
+    return get_F2AffineMap(complete_basis_reversed(basis,N), c=0, input_length=N, output_length=N)
 
 
 def generating_F2AffineMap(basis: std_vector[BinWord], N: int) -> F2AffineMap:
@@ -387,7 +387,7 @@ def generating_F2AffineMap(basis: std_vector[BinWord], N: int) -> F2AffineMap:
         A F2AffineMap L from N bits to N bits such that L(1 << i) = basis[i] for all i < len(basis) and such that L is a bijection.
     
     """
-    return get_F2AffineMap(complete_basis(basis,N),N,N)
+    return get_F2AffineMap(complete_basis(basis,N), c=0, input_length=N, output_length=N)
 
 
 def F2AffineMap_from_masks(masks: std_vector[BinWord], N: int, M: int) -> F2AffineMap:
@@ -402,7 +402,7 @@ def F2AffineMap_from_masks(masks: std_vector[BinWord], N: int, M: int) -> F2Affi
         A F2AffineMap L from N bits to M bits such that L(1 << i) = basis[i] for all i < len(basis) and L(1<<i)=0 for all i >= len(basis).
     
     """
-    return get_F2AffineMap(masks + [0 for _ in range(len(masks), N)], N, M)
+    return get_F2AffineMap(masks + [0 for _ in range(len(masks), N)], c=0, input_length=N, output_length=M)
 
 
 def F2AffineMap_from_range_and_image(inputs: std_vector[BinWord], outputs: std_vector[BinWord], N:int, M: int) -> F2AffineMap:
