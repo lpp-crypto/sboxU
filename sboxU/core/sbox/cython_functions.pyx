@@ -986,8 +986,14 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
 
     """
 
-    if isinstance(s, (S_box, S_box_fp)):
-        return s
+    if isinstance(s, (S_box)):
+        sprime = S_box(name=name)
+        (<S_box>sprime).set_inner_sbox(<cpp_S_box>(dereference((<S_box>s).cpp_sb)))
+        return sprime
+    elif isinstance(s, (S_box_fp)):
+        sprime = S_box_fp(name=name)                            
+        (<S_box_fp>sprime).set_inner_sbox(<cpp_S_box_fp>(dereference((<S_box_fp>s).cpp_sb)))
+        return sprime
     else:
         t = type(s)
         if t in SBOXU_TYPE_TO_FACTORY.keys():
