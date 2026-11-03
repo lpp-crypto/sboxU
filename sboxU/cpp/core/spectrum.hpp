@@ -2,82 +2,54 @@
 #define _STAT_SPECTRUM_
 
 #include "../common.hpp"
-#include "include.hpp"
 
-
-
-class cpp_Spectrum
-{
+class cpp_Spectrum {
 private:
-    std::map<Integer, Integer> content;
-    
+  std::map<Integer, Integer> content;
+
 public:
-    
-    cpp_Spectrum() : content() {} ;
+  cpp_Spectrum() : content() {};
 
-    void destruct()
-    {
-        content.clear();
-    }
+  void destruct() { content.clear(); }
 
-    Integer maximum() const;
+  Integer maximum() const;
 
-    inline Integer size() const
-    {
-        return content.size();
-    }
-    
-    inline std::map<Integer, Integer>::const_iterator cbegin() const
-    {
-        return content.cbegin();
-    };
+  inline Integer size() const { return content.size(); }
 
-    inline std::map<Integer, Integer>::const_iterator cend() const
-    {
-        return content.cend();
-    };
-    
-    inline Integer & operator[] (const Integer x)
-    {
-        return content[x];
-    };
-    
-    inline Integer operator[] (const Integer x) const
-    {
-        return content.at(x);
-    };
-    
-    inline void erase(const Integer x)
-    {
-        content.erase(x);
-    }
-    
-    void operator+= (const cpp_Spectrum sp) ;
+  inline std::map<Integer, Integer>::const_iterator cbegin() const {
+    return content.cbegin();
+  };
 
-    std::vector<Integer> keys() const ;
+  inline std::map<Integer, Integer>::const_iterator cend() const {
+    return content.cend();
+  };
 
-    inline void incr(const Integer entry)
-    {
-        content[entry] ++;
-    }
-    
-    inline void incr_by_amount(const Integer entry, const Integer amount)
-    {
-        content[entry] += amount;
-    }
+  inline Integer &operator[](const Integer x) { return content[x]; };
 
-    void incr_by_counting(const std::vector<Integer> & vector_to_count);
+  inline Integer operator[](const Integer x) const { return content.at(x); };
 
-    cpp_Spectrum absolute() const;
+  inline void erase(const Integer x) { content.erase(x); }
 
-    std::string content_string_repr() const;
+  void operator+=(const cpp_Spectrum sp);
 
-    bool contains(const Integer entry) const
-    {
-        return content.contains(entry);
-    }
+  std::vector<Integer> keys() const;
+
+  inline void incr(const Integer entry) { content[entry]++; }
+
+  inline void incr_by_amount(const Integer entry, const Integer amount) {
+    content[entry] += amount;
+  }
+
+  void incr_by_counting(const std::vector<Integer> &vector_to_count);
+
+  cpp_Spectrum absolute() const;
+
+  std::string content_string_repr() const;
+
+  bool contains(const Integer entry) const { return content.contains(entry); }
 };
 
-#pragma omp declare reduction(aggregateSpectrum : cpp_Spectrum : omp_out+=omp_in)
+#pragma omp declare reduction(aggregateSpectrum:cpp_Spectrum : omp_out +=      \
+                                  omp_in)
 
 #endif
