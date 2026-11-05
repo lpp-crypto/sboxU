@@ -56,7 +56,8 @@ std::vector<BinWord> cpp_vectors_of_hamming_weight(BinWord h, BinWord n) // Ge
 
 }
 
-std::tuple<Lut,BinWord> yann_permutation(BinWord d, BinWord n) // Computes a permutation of [0,2^{n}-1] such that all intgers of hamming_weigth <= d appear first
+std::tuple<Lut,BinWord> special_permutation_fru26(BinWord d, BinWord n) // Computes a permutation of [0,2^{n}-1] such that all intgers of hamming_weigth <= d appear first
+// We thank Yann Rotella (https://rotella.fr/) for this original idea.
 {
     if (d >=n){
         throw std::runtime_error("In yann_permutation we need d<n");
@@ -79,7 +80,7 @@ std::tuple<Lut,BinWord> yann_permutation(BinWord d, BinWord n) // Computes a per
 std::vector<cpp_BigF2Vector> cpp_all_invariants_up_to_degree(const cpp_S_box &S, BinWord d){
     std::vector < cpp_BigF2Vector> result;
     BinWord n = S.get_input_length();
-    auto [perm,bound]= yann_permutation(d,n);
+    auto [perm, bound] = special_permutation_fru26(d, n);
     Lut inv_perm= cpp_inverse(perm);
     cpp_BinLinearBigBasis basis = cpp_BinLinearBigBasis(1 << n);
     for (auto b : cpp_basis_invariants_from_cycles(S)){
