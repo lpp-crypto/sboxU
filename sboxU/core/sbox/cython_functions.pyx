@@ -1,5 +1,3 @@
-# -*- python -*-
-
 from sboxU.core.f2functions cimport *
 from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
 from sboxU.core.sbox.linearCasts import casts_from_field
@@ -506,7 +504,7 @@ cdef class S_box_fp:
         return result
 
 
-    def __eq__(S_box_fp self, other) -> bool:
+    def __eq__(S_box_fp self, S_box_fp other) -> bool:
         """Tests equality with another S-box over F_p.
 
         Args:

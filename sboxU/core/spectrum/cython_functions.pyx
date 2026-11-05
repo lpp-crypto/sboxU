@@ -1,5 +1,3 @@
-# -*- python -*-
-
 from sboxU.config import n_threads_from_sbox_size
 
 from libcpp.memory cimport unique_ptr, make_unique
@@ -14,17 +12,17 @@ cdef class Spectrum:
     def __init__(self, name=b"Spc"):
         self.name = name
         self.cpp_sp = make_unique[cpp_Spectrum]()
-       
-        
+
+
 
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp):
         self.cpp_sp = make_unique[cpp_Spectrum](sp)
-        
+
 
     def __getitem__(self, int64_t k):
         return dereference(self.cpp_sp)[k]
 
-    
+
     def __len__(self):
         return dereference(self.cpp_sp).size()
 
@@ -35,7 +33,6 @@ cdef class Spectrum:
         for k in ks:
             result += "{:d}:{:d}, ".format(k, dereference(self.cpp_sp)[k])
         return result[:-2] + "}"
-
 
     def __rich_str__(self):
         result = "[bright_black]{:12s}[/] ".format(self.name.decode("UTF-8"))
@@ -56,7 +53,12 @@ cdef class Spectrum:
                 )
             return result[:-2] + "}"
 
-    
+    def __eq__(Spectrum self, Spectrum other) -> bool :
+        return dereference(self.cpp_sp)==dereference(other.cpp_sp)
+
+    def __hash__(Spectrum self):
+        return hash(str(self).encode("UTF-8"))
+
     def __iter__(self):
         for x in dereference(self.cpp_sp).cpp_keys():
             yield x
@@ -66,16 +68,16 @@ cdef class Spectrum:
         result = Spectrum(name=b"|" + self.name + b"|")
         result.set_inner_sp(dereference(self.cpp_sp).absolute())
         return result
-        
-    
+
+
     def keys(self):
         return dereference(self.cpp_sp).cpp_keys()
 
-    
+
     def incr(self, x):
         dereference(self.cpp_sp).incr(x)
 
-    
+
     def incr_by_amount(self, x, c):
         dereference(self.cpp_sp).incr_by_amount(x, c)
 
@@ -83,10 +85,10 @@ cdef class Spectrum:
     def incr_by_counting(self, v):
         dereference(self.cpp_sp).incr_by_counting(v)
 
-        
+
     def maximum(self):
         return dereference(self.cpp_sp).maximum()
-    
+
 
     def occurrence_of_maximum(self):
         return dereference(self.cpp_sp)[self.cpp_sp_maximum()]
@@ -102,4 +104,3 @@ def get_Spectrum(x):
         return result
     else:
         raise NotImplementedError("{} is not a valid input type for get_Spectrum".format(type(x)))
-

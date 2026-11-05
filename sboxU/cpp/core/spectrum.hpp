@@ -30,7 +30,9 @@ public:
 
   inline void erase(const Integer x) { content.erase(x); }
 
-  void operator+=(const cpp_Spectrum sp);
+  void operator+=(const cpp_Spectrum& sp);
+
+  bool operator==(const cpp_Spectrum& sp) const;
 
   std::vector<Integer> keys() const;
 

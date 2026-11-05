@@ -54,6 +54,26 @@ def main_test():
         print(collision_table(sprime))
         print(f"Collision spectrum :")
         print(collision_spectrum(sprime))
+        section("Testing spectrum equality")
+        ssecond_lat = [3, 3, 3, 2, 2, 2, 0, 0]
+        ssecond = get_sbox(ssecond_lat)
+        # sprime and ssecond should have the same collision spectrum
+        coll_spec_sprime = collision_spectrum(sprime)
+        coll_spec_ssecond = collision_spectrum(ssecond)
+        print(f"First collision spectrum : {coll_spec_sprime}, from S_box : {sprime}")
+        print(
+            f"Second collision spectrum : {coll_spec_ssecond}, from S_box : {ssecond}"
+        )
+        print("Does the equality test work on the two spectrums ?")
+        if coll_spec_sprime == coll_spec_ssecond:
+            success("The equality test works")
+        else:
+            fail("Problem with the equality test of spectrums")
+        section("Testing hashing of spectrums")
+        if hash(coll_spec_sprime) == hash(coll_spec_ssecond):
+            success("Hashing equal spectrums returns equal hashes")
+        else:
+            fail("Hashing equal spectrum does not return equal hashes")
         section("References")
     return exit_code()
 
