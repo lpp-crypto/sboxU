@@ -74,6 +74,20 @@ def main_test():
             success("Hashing equal spectrums returns equal hashes")
         else:
             fail("Hashing equal spectrum does not return equal hashes")
+        section(
+            "Testing initialization of spectrums using the factory on dictionnaries"
+        )
+        dic = {0: 1, 2: 1, 3: 2}
+        spec_from_dic = get_Spectrum(dic)
+        print(
+            f"With dictionnary : {dic} as input, got the spectrum : {spec_from_dic} by calling the get_Spectrum factory"
+        )
+        if spec_from_dic == coll_spec_sprime:
+            success("The spectrum was correctly initialized from a dictionnary")
+        else:
+            fail(
+                "There was an issue when calling the spectrum factory on a disctionnary"
+            )
         section("References")
     return exit_code()
 

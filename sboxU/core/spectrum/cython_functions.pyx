@@ -1,5 +1,7 @@
 from sboxU.config import n_threads_from_sbox_size
 
+from sage.all import Integer as sage_Integer
+
 from libcpp.memory cimport unique_ptr, make_unique
 from cython.operator cimport dereference
 
@@ -102,5 +104,14 @@ def get_Spectrum(x):
         result = Spectrum()
         result.incr_by_counting(x)
         return result
+    if isinstance(x, (dict)):
+        if all(isinstance(key, (int,sage_Integer)) and isinstance(key, (int,sage_Integer)) for key in x):
+            result = Spectrum()
+            for key in x :
+                result.incr_by_amount(int(key),int(x[key]))
+            return result
+        else :
+            raise NotImplementedError(f"Cannot convert dictionnary {x} whose entries are not of type int or sage Integer to a spectrum")
     else:
         raise NotImplementedError("{} is not a valid input type for get_Spectrum".format(type(x)))
+
