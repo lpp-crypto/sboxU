@@ -36,6 +36,9 @@ cdef class Spectrum:
             result += "{:d}:{:d}, ".format(k, dereference(self.cpp_sp)[k])
         return result[:-2] + "}"
 
+    def __repr__(self):
+        return f"get_Spectrum({str(self)})"
+
     def __rich_str__(self):
         result = "[bright_black]{:12s}[/] ".format(self.name.decode("UTF-8"))
         result += "{"

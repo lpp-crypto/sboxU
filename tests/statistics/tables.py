@@ -88,6 +88,8 @@ def main_test():
             fail(
                 "There was an issue when calling the spectrum factory on a disctionnary"
             )
+        subsection("repr of a spectrum")
+        print(f"Spectrum {spec_from_dic} has repr : repr(spec)={repr(spec_from_dic)}")
         section("References")
     return exit_code()
 
