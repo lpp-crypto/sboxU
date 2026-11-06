@@ -9,7 +9,7 @@ The idea here is not yet to study S-boxes, only to generate them, and store them
 from sboxU.core.sbox.cython_functions import \
     get_sbox, S_box, \
     new_sbox_name, \
-    F2_trans, identity_S_box
+    F2_trans, identity_S_box, cycle_decomposition
 
 from sboxU.core.sbox.misc import \
     random_permutation_S_box, random_function_S_box, \
