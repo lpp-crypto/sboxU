@@ -1,6 +1,9 @@
 # -*- python -*-
 
-from sage.all import Matrix, GF, Polynomial,vector
+from sage.all import GF, Polynomial, PolynomialRing
+from sage.all import Integer as SAGE_INTEGER
+from sage.rings.finite_rings.finite_field_base import FiniteField
+
 from sboxU.core.f2functions.field_arithmetic import i2f_and_f2i
 
 from cython.operator cimport dereference
@@ -86,6 +89,8 @@ def circ_shift(BinWord x, int n, int shift) -> BinWord:
     """
     return cpp_circ_shift(x,n,shift)
 
+
+
 # !SUBSECTION! Convenient XOR abstractions
 
 def xor(*args) -> BinWord:
@@ -129,224 +134,89 @@ def to_bin(BinWord x, int n) -> list:
 def from_bin(std_vector[int] l) -> BinWord:
     return cpp_from_bin(l)
 
-# !SECTION! The F2AffineMap class
 
-cdef class F2AffineMap:
-    """This class models a linear mapping defined over F_2. It encapsulates a C++ class, `cpp_F2AffineMap`, for speed.
 
-    While it implements methods corresponding to matrix operations, such as `transpose`, it does not rely on a matrix representation internally. Instead, it stores the vectors corresponding to the images of the canonical basis of F_2^n, and operates on these.
+# !SECTION! The F2Transformation class
 
-    Unless you are working *on* (rather than *with* `sboxU`), do not use the constructor of this class. Instead, you should rely on the `get_F2AffineMap` factory.
+
+cdef class F2Transformation:
+    """!TODO!
+
+    Actual instanciations have to implement the following methods:
+    - __getitem__(self, x: BinWord) -> BinWord that corresponds to the evaluation of the transformation on the F_2^n element corresponding to the integer x;
+    - get_input_length(self) -> BinWord
+    - get_output_length(self) -> BinWord
     
     """
-    
-    def __init__(self):
-        pass
+    # !SUBSECTION! Construction and Initialization
 
-    
-    cdef set_inner_map(self, A : cpp_F2AffineMap):
-        self.cpp_map = make_unique[cpp_F2AffineMap](A)
+ 
+    def __init__(self, name=None, input_casts : list=[], output_casts: list=[]):
+        self.rename(name)
+        self.input_casts = input_casts
+        self.output_casts = output_casts
 
-    def is_linear(self):
-        return dereference(self.cpp_map).is_linear()
         
-    def get_input_length(self) -> int:
-        return dereference(self.cpp_map).get_input_length()
-
-    
-    def get_output_length(self) -> int:
-        return dereference(self.cpp_map).get_output_length()
-
-    
-    def __call__(self, x : BinWord) -> BinWord:
-        return dereference(self.cpp_map)(x)
-
-    
-    def __add__(self, L : F2AffineMap) -> F2AffineMap:
-        result = F2AffineMap()
-        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + dereference((<F2AffineMap>L).cpp_map))
-        return result
-
-    def __add__(self, cst : BinWord) -> F2AffineMap:
-        result = F2AffineMap()
-        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) + cst)
-        return result
-
-    def __radd__(self, cst : BinWord) -> F2AffineMap:
-       return self + cst
-
-    
-    def __hash__(self):
-        # !TODO! improve the implementation of F2AffineMap.__hash__() 
-        return hash(self.get_S_box())
-
-    
-    def __mul__(self, F2AffineMap L) -> F2AffineMap:
-        result = F2AffineMap()
-        result.set_inner_map(dereference((<F2AffineMap>self).cpp_map) * dereference((<F2AffineMap>L).cpp_map))
-        return result
-
-    
-    def inverse(self) -> F2AffineMap | Exception:
-        if (dereference(self.cpp_map).is_invertible()):
-            result = F2AffineMap()
-            result.set_inner_map(dereference(self.cpp_map).inverse())
-            return result
+    def rename(self, name):
+        if name == None:
+            self.name = b"F"
+        elif isinstance(name, bytes):
+            self.name = name
+        elif isinstance(name, str):
+            self.name = name.encode("UTF-8")
         else:
-            print("Trying to invert a non-invertible F2AffineMap")
-            raise Exception("Trying to invert a non-invertible F2AffineMap")
+            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
 
-    
-    def transpose(self) -> F2AffineMap:
-        result = F2AffineMap()
-        result.set_inner_map(dereference(self.cpp_map).transpose())
-        return result
-
-    
-    def rank(self) -> int:
-        return dereference(self.cpp_map).rank()
+        
+    def attach_casts_pair(self, input_cast, output_cast) -> None:
+        self.input_casts.append(input_cast)
+        self.output_casts.append(output_cast)
 
 
-    def __str__(self) -> str:
-        return str(vector(GF(2),cpp_to_bin(self.get_cste(),self.get_output_length())))+ "\n+\n" + str(Matrix(
-            GF(2),
-            [cpp_to_bin(x, self.get_output_length())
-             for x in dereference(self.cpp_map).get_image_vectors()]
-        ).transpose())
+    # !SUBSECTION! Field interaction
 
+    def interpolate_in(self, field, var_name="X"):
+        # sanity checks        
+        if not isinstance(field, FiniteField):
+            raise Exception("F2Transformation.interpolate_in(f) expects f to be a binary field")
+        elif field.characteristic() != 2:
+            raise Exception("F2Transformation.interpolate_in(f) expects f to be a binary field")
+        # actual Lagrange interpolation
+        i2f, f2i = i2f_and_f2i(field)
+        io_pairs = [(i2f(x), i2f(self[x]))
+                     for x in range(0, 2**self.get_input_length())]
+        return PolynomialRing(field, var_name).lagrange_polynomial(io_pairs)
+                       
 
-    def get_S_box(self) -> S_box:
-        result = S_box(name="L")
-        result.set_inner_sbox(dereference(self.cpp_map).get_cpp_S_box())
-        return result
-    
-    
-    def get_image_vectors(self):
-        return dereference(self.cpp_map).get_image_vectors()
+    # !SUBSECTION! The __call__ method
 
-    def get_cste(self):
-        return dereference(self.cpp_map).get_cstte()
+    def __call__(self, x):
+        """Querying evaluating the transformation on an input of any supported type.
 
-    
-    # !TODO! __rich_repr__
+        Unlike __getitem__, the input does not have to be an integer; however, it needs to be a of a type that this S_box isntance can cast to an integer. The integer obtained by querying the lookup is then cast to another type using `self.output_cast`.
 
-    # !TODO! from_blob / to_blob
-
-    def __eq__(self,F2AffineMap L) -> bool:
-        return dereference(self.cpp_map).get_image_vectors() == dereference(L.cpp_map).get_image_vectors()
-
-# !SUBSECTION! Factories 
-
-def identity_F2AffineMap(int64_t n) -> F2AffineMap:
-    return get_F2AffineMap([(1 << i) for i in range(0, n)],n,n)
-
-
-def zero_F2AffineMap(n : BinWord, m : BinWord) -> F2AffineMap:
-    return get_F2AffineMap([0 for i in range(0, n)], n, m)
-
-
-def block_diagonal_F2AffineMap(A, B) -> F2AffineMap:
-    Ablm = get_F2AffineMap(A)
-    Bblm = get_F2AffineMap(B)
-    result = F2AffineMap()
-    result.set_inner_map(cpp_block_diagonal_F2AffineMap(
-        dereference((<F2AffineMap>Ablm).cpp_map),
-        dereference((<F2AffineMap>Bblm).cpp_map),
-    ))
-    return result
-
-def F2AffineMap_from_blocks(A, B, C, D) -> F2AffineMap:
-    Ablm = get_F2AffineMap(A)
-    Bblm = get_F2AffineMap(B)
-    Cblm = get_F2AffineMap(C)
-    Dblm = get_F2AffineMap(D)
-    result = F2AffineMap()
-    result.set_inner_map(cpp_F2AffineMap_from_blocks(
-        dereference((<F2AffineMap>Ablm).cpp_map),
-        dereference((<F2AffineMap>Bblm).cpp_map),
-        dereference((<F2AffineMap>Cblm).cpp_map),
-        dereference((<F2AffineMap>Dblm).cpp_map),
-    ))
-    return result
-
-
-def circ_shift_F2AffineMap(int n, int shift) -> F2AffineMap:
-    """A circular shift is the operation of rearranging the entries in a vector, either by moving the final entry to the first position, while shifting all other entries to the next position, or by performing the inverse operation. 
-
-    Args : 
-        - n : a positive integer
-        - shift : a signed integer
-    Returns :
-        A F2AffineMap object which encodes the circular shift by 'shift' positions. This linear map is an automorphism of (F_2)^n. As for circ_shift, the LSB-first decomposition of a vector x is shifted to the left if shift is positive and to the right otherwise. 
-    """
-    return get_F2AffineMap([circ_shift(1 <<i,n,shift) for i in range(0, n)], n, n)
-
-def bit_permutation_F2AffineMap(p) -> F2AffineMap:
-    """
-    A bit permutation is the operation of rearranging the entries in a F2 vector, according to a given permutation. 
-    
-    Args :
-        p : The lut of the bit permutation.
-    
-    Returns : 
-        A BinLinearMap corresponding to bit permutation associated to p.
-    """
-    return get_F2AffineMap([1 << p[i] for i in range(len(p))])
-    
-# !SUBSECTION! The main factory
-
-
-def get_F2AffineMap(l, input_length=None, output_length=None) -> F2AffineMap:
-
-    # !TODO! rewrite this factory in the style of the get_sbox factory 
-    if isinstance(l, (F2AffineMap)):
-        return l
-    elif input_length is None and output_length is None:
-        result = F2AffineMap()
-        if isinstance(l, (list)):
-            result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l))
-        elif isinstance(l, (S_box)):
-            result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
-        elif isinstance(l, Polynomial):
-            # case of a univariate polynomial
-            field = l.base_ring()
-            if field.characteristic() == 2:
-                n = field.degree()
-                i2f, f2i = i2f_and_f2i(field)
-                imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
-                result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs))
-            else:
-                raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
+        Because of the logic related to casting, it is slower than __getitem__.
+        
+        Args:
+            x: a valid input for the cast `self.input_cast`.
+        
+        Returns:
+            The result of calling this transformation after casting `x` to an integer, and then casting the result to the correct type.
+        """
+        if isinstance(x, (int, SAGE_INTEGER)):
+            return self[<BinWord>x]
         else:
-            # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplementedError("Blm function cannot process input of type {}".format(type(l)))
-        return result
-    elif (input_length is None) or (output_length is None):
-        raise NotImplementedError("You must specify both input_length and output_length or none of them")
-    else :
-        result = F2AffineMap()
-        if isinstance(l, (list)):
-            result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>l,
-                                                 input_length,
-                                                 output_length))
-        elif isinstance(l, (S_box)):
-            if l.get_input_length()!=input_length or l.get_output_length()!= output_length:
-                raise Exception("You specified uncompatible input or output length")
-            result.set_inner_map(cpp_F2AffineMap(dereference((<S_box>l).cpp_sb)))
-        elif isinstance(l, Polynomial):
-            # case of a univariate polynomial
-            field = l.base_ring()
-            if field.characteristic() == 2:
-                n = field.degree()
-                i2f, f2i = i2f_and_f2i(field)
-                imgs = [f2i(l(i2f(1 << i))) for i in range(0, n)]
-                result.set_inner_map(cpp_F2AffineMap(<std_vector[BinWord]>imgs,
-                                                     input_length,
-                                                     output_length))
-            else:
-                raise Exception("A polynomial in characteristic 2 is needed for a F2AffineMap")
-        else:
-            # !TODO! implement Blm processing of SAGE matrices 
-            raise NotImplementedError("Blm function cannot process input of type {}".format(type(l)))
-        return result
+            for i, c in enumerate(self.input_casts):
+                if c.is_valid_input(x):
+                    return self.output_casts[i](self[c(x)])
+            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
+
+
+    
+    def __getitem__(self, x):
+        raise Exception("Trying to call a 'virtual' method: F2Transformation.__getitem__()")
+
+    
+
+
 

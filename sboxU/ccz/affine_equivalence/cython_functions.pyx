@@ -1,8 +1,7 @@
 # -*- python -*-
 
 
-from sboxU.core import get_sbox, oplus
-from sboxU.core.sbox import F2_trans
+from sboxU.core import get_sbox, oplus, F2_trans
 from sboxU.config import MAX_N_THREADS
 from collections import defaultdict
 

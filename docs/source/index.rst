@@ -1,7 +1,7 @@
 sboxU
 =====
 
-.. figure:: ./docs/source/logo-v2-5.png
+.. figure:: ./logo-v2-5.png
    :alt: The logo of sboxU, showing a box being built or disassembled.
 
    The logo of sboxU, showing a box being built or disassembled.
@@ -164,6 +164,7 @@ Contributors
    ./test_ea_mapping_from_vq.rst
    ./test_product_walsh_match.rst
    ./test_walsh_generator_orbit_check.rst
+   ./f2affinemap.rst
    ./basicF2SBox.rst
    ./basicFpSBox.rst
    ./anomalies.rst

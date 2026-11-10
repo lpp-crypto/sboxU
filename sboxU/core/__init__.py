@@ -5,6 +5,7 @@
 
 from sboxU.core.sbox import *
 from sboxU.core.f2functions import * 
+from sboxU.core.f2affinemap import * 
 from sboxU.core.building_blocks import *
 from sboxU.core.spectrum import *
 from sboxU.core.anf import *
