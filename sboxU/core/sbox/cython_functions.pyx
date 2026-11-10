@@ -134,15 +134,19 @@ cdef class S_box(F2Transformation):
         return result
 
 
-    def __eq__(self, s) -> bool:
-        if len(s) != dereference(self.cpp_sb).size():
+    def __eq__(self, sb) -> bool:
+        if sb == None or sb == False:
             return False
         else:
-            for x in self.input_space():
-                if s[x] != self[x]:
-                    return False
-        return True
-
+            s = get_sbox(sb)
+            if len(s) != dereference(self.cpp_sb).size():
+                return False
+            else:
+                for x in self.input_space():
+                    if s[x] != self[x]:
+                        return False
+            return True
+    
 
     def __ne__(self, s) -> bool:
         return not self.__eq__(s)
@@ -273,7 +277,7 @@ cdef class S_box(F2Transformation):
         s = get_sbox(_s)
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
-        name = self.name + "◦".encode("UTF-8") + s.name
+        name = (self.name.decode("UTF-8") + "◦" + s.name.decode("UTF-8")).encode("UTF-8")
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
@@ -985,11 +989,14 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
     """
 
     if isinstance(s, (S_box)):
-        sprime = S_box(name=name)
+        if name != None:
+            sprime = S_box(name=name)
+        else:
+            sprime = S_box(name=s.name)
         (<S_box>sprime).set_inner_sbox(<cpp_S_box>(dereference((<S_box>s).cpp_sb)))
         return sprime
     elif isinstance(s, (S_box_fp)):
-        sprime = S_box_fp(name=name)                            
+        sprime = S_box_fp(name=s.name)                            
         (<S_box_fp>sprime).set_inner_sbox(<cpp_S_box_fp>(dereference((<S_box_fp>s).cpp_sb)))
         return sprime
     else:
