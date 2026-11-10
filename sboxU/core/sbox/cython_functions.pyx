@@ -1,5 +1,3 @@
-# -*- python -*-
-
 from sboxU.core.f2functions cimport *
 from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i, casts_from_field
 
@@ -499,7 +497,7 @@ cdef class S_box_fp:
         return result
 
 
-    def __eq__(S_box_fp self, other) -> bool:
+    def __eq__(S_box_fp self, S_box_fp other) -> bool:
         """Tests equality with another S-box over F_p.
 
         Args:
@@ -986,8 +984,14 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
 
     """
 
-    if isinstance(s, (S_box, S_box_fp)):
-        return s
+    if isinstance(s, (S_box)):
+        sprime = S_box(name=name)
+        (<S_box>sprime).set_inner_sbox(<cpp_S_box>(dereference((<S_box>s).cpp_sb)))
+        return sprime
+    elif isinstance(s, (S_box_fp)):
+        sprime = S_box_fp(name=name)                            
+        (<S_box_fp>sprime).set_inner_sbox(<cpp_S_box_fp>(dereference((<S_box_fp>s).cpp_sb)))
+        return sprime
     else:
         t = type(s)
         if t in SBOXU_TYPE_TO_FACTORY.keys():
@@ -1001,3 +1005,62 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
             raise NotImplementedError("Cannot build an Sbox from this input type")
             
 
+# !SUBSECTION! Other basic structures
+
+def identity_S_box(length) -> S_box:
+    """Returns an S_box instance corresponding to the identity
+    function, i.e. the one mapping x to itself.
+
+    """
+    return get_sbox(list(range(0, length)))
+
+
+cdef S_box pyx_F2_trans(BinWord k, n):
+    """Wrapper for the `cpp_translation` function. """
+    result = S_box(name="Add_{}".format(k))
+    result.set_inner_sbox(cpp_translation(k, n))
+    return result
+
+
+def F2_trans(BinWord additive_cstte, field=None, bit_length=None) -> S_box:
+    """Returns an S_box containing the lookup table of a simple XOR over a given field extension of F_2.
+
+    If additive_cstte is an integer, then either `field` or `bit_length` must be set. If it is a field element, both `field` and `bit_length` will be ignored.
+    
+    Args:
+        additive_cstte: the constant to add. Can be a field element or an integer. If an integer, then the field used must be specified.
+        field: the field in which the multiplication must be made if `additive_cstte` is an integer.
+        bit_length: the bit-length to use for both the input and output if `additive_cstte` is an integer.
+
+    Returns:
+        An S_box instance
+    """
+    if isinstance(additive_cstte, (int, sage_Integer)):
+        k = additive_cstte
+        if isinstance(bit_length, (int, sage_Integer)):
+            n = bit_length
+        elif "degree" in dir(field): # case of a field
+            n = field.degree()
+        else:
+            inputs = {"field": field, "bit_length": bit_length}
+            raise Exception("If `additive_cstte` is an integer then either `field` or `bit_length` must be specified, instead, got {}".format(inputs))
+    else: # case where the additive constant is a finite field element
+        k = ffe_to_int(additive_cstte)
+        n = additive_cstte.parent().degree()
+    return pyx_F2_trans(k, n)
+
+# !SUBSECTION! Cycle decomposition
+
+def cycle_decomposition(s):
+    """
+    The cycle decomposition of a permutation, is given by a list of cyclic permutations with disjoint support. The permutation is then equal to the composition of all its cycles.
+
+    Args :
+        s: an S-boxable object over F_2
+    
+    Returns :
+        list: A list of lists corresponding to the list of the cycles of `s`.
+    """
+    sb=get_sbox(s)
+    result = cpp_cycle_decomposition(dereference((<S_box>sb).cpp_sb))
+    return result

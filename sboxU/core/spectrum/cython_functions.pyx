@@ -1,6 +1,6 @@
-# -*- python -*-
-
 from sboxU.config import n_threads_from_sbox_size
+
+from sage.all import Integer as sage_Integer
 
 from libcpp.memory cimport unique_ptr, make_unique
 from cython.operator cimport dereference
@@ -14,17 +14,17 @@ cdef class Spectrum:
     def __init__(self, name):
         self.name = name
         self.cpp_sp = make_unique[cpp_Spectrum]()
-       
-        
+
+
 
     cdef set_inner_sp(Spectrum self, cpp_Spectrum sp):
         self.cpp_sp = make_unique[cpp_Spectrum](sp)
-        
+
 
     def __getitem__(self, int64_t k):
         return dereference(self.cpp_sp)[k]
 
-    
+
     def __len__(self):
         return dereference(self.cpp_sp).size()
 
@@ -36,11 +36,11 @@ cdef class Spectrum:
             result += "{:d}:{:d}, ".format(k, dereference(self.cpp_sp)[k])
         return result[:-2] + "}"
 
-    
+      
     def __repr__(self):
-        return "get_Spectrum({}, name={})".format(str(self), self.name)
-    
+        return f"get_Spectrum({str(self)}, name={self.name})"
 
+      
     def __rich__(self):
         result = "[bright_black]{:12s}[/] ".format(self.name.decode("UTF-8"))
         result += "{"
@@ -60,7 +60,12 @@ cdef class Spectrum:
                 )
             return result[:-2] + "}"
 
-    
+    def __eq__(Spectrum self, Spectrum other) -> bool :
+        return dereference(self.cpp_sp)==dereference(other.cpp_sp)
+
+    def __hash__(Spectrum self):
+        return hash(str(self).encode("UTF-8"))
+
     def __iter__(self):
         for x in dereference(self.cpp_sp).cpp_keys():
             yield x
@@ -70,16 +75,16 @@ cdef class Spectrum:
         result = Spectrum(name=b"|" + self.name + b"|")
         result.set_inner_sp(dereference(self.cpp_sp).absolute())
         return result
-        
-    
+
+
     def keys(self):
         return dereference(self.cpp_sp).cpp_keys()
 
-    
+
     def incr(self, x):
         dereference(self.cpp_sp).incr(x)
 
-    
+
     def incr_by_amount(self, x, c):
         dereference(self.cpp_sp).incr_by_amount(x, c)
 
@@ -87,10 +92,10 @@ cdef class Spectrum:
     def incr_by_counting(self, v):
         dereference(self.cpp_sp).incr_by_counting(v)
 
-        
+
     def maximum(self):
         return dereference(self.cpp_sp).maximum()
-    
+
 
     def occurrence_of_maximum(self):
         return dereference(self.cpp_sp)[self.cpp_sp_maximum()]
@@ -100,12 +105,18 @@ cdef class Spectrum:
 
 
 def get_Spectrum(x, name="Spc"):
-    # handling name
-    if isinstance(name, str):
-        name = name.encode("UTF-8")
-    # constructing actual content
-    if isinstance(x, Spectrum):
-        return x
+    if isinstance(x, (list)):
+        result = Spectrum()
+        result.incr_by_counting(x)
+        return result
+    if isinstance(x, (dict)):
+        if all(isinstance(key, (int,sage_Integer)) and isinstance(key, (int,sage_Integer)) for key in x):
+            result = Spectrum()
+            for key in x :
+                result.incr_by_amount(int(key),int(x[key]))
+            return result
+        else :
+            raise NotImplementedError(f"Cannot convert dictionnary {x} whose entries are not of type int or sage Integer to a spectrum")
     else:
         result = Spectrum(name)
         if isinstance(x, list):

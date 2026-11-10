@@ -405,3 +405,31 @@ def linear_structures_vectorial_spectrum(s):
     result=Spectrum(name="Linear Structures".encode("UTF-8"))
     result.set_inner_sp(cpp_linear_structures_vectorial_spectrum(dereference((<S_box>sb).cpp_sb)))
     return result
+
+# !SECTION! Collision properties
+
+def collision_table(s):
+    """
+    Args :
+        s: an S-boxable object over F_2
+    Returns :
+        A list l such that l[i] is the size of the preimage set of i by sbox S
+    """
+    sb = get_sbox(s)
+    result = cpp_collision_table(dereference((<S_box>sb).cpp_sb))
+    return result
+
+def collision_spectrum(s):
+    """
+    Args :
+        s: an S-boxable object over F_2
+
+    Returns :
+        Spectrum: a Spectrum instance `d` such that `d[c]` is the number of linear structures of the Boolean function c.s , where `.` is the
+        scalar product. The spectrum only contains keys for which the number of linear structures is non-zero.
+
+    """
+    sb = get_sbox(s)
+    result = Spectrum(name="Collision spectrum".encode("UTF-8"))
+    result.set_inner_sp(cpp_f2_collision_spectrum(dereference((<S_box>sb).cpp_sb)))
+    return result

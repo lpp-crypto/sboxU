@@ -13,10 +13,11 @@ from sboxU.apn.cython_functions import \
     graph_el_automorphisms_from_ortho_derivative, graph_automorphisms_from_derivatives, \
     gen_set_graph_automorphisms_from_derivatives, gen_set_F2AffineMap_group, \
     get_WalshZeroesSpaces_quadratic_apn, \
-    non_trivial_sn
+    non_trivial_sn, non_trivial_sn_filter, switching_neighbours
 
 
 from sboxU.apn.database import APNFunctions, sixBitAPNs
 from sboxU.apn.database import APNQuadraticFunctions_ccz_only
-from sboxU.apn.database import APNQuadraticFunctions_compact
+from sboxU.apn.database import APNFunctions_compact
+from sboxU.apn.biblio_dict import from_which_paper
 

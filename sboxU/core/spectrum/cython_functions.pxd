@@ -1,4 +1,3 @@
-# -*- python -*-
 
 from sboxU.cython_types cimport *
 
@@ -30,6 +29,8 @@ cdef extern from "../../cpp/core/spectrum.hpp":
             const int64_t key
         ) const
 
+        bool operator==(const cpp_Spectrum&) const
+        
         # renaming is needed because the compiler otherwise mistakes
         # the "keys" method for the one of a dictionary
         std_vector[int64_t] cpp_keys "keys"() const

@@ -32,5 +32,6 @@ std::string cpp_apn_ea_mugshot(
     const cpp_S_box & s,
     const unsigned int n_threads
     );
-    
+
+
 #endif

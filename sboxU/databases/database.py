@@ -1,5 +1,6 @@
 from sage.all import Integer as sage_Integer
 import sqlite3
+import json
 
 
 from sboxU.core import get_sbox
@@ -34,6 +35,7 @@ class FunctionsDB:
             self.row_structure["id"] = "INTEGER"
         self.functions_table = "functions"
         self.bibliography_table = "bibliography"
+        self.journal_table = "journal"
         # preparing queries
         self.function_insertion_query = "INSERT INTO {} VALUES ({} ?)".format(
             self.functions_table,
@@ -52,7 +54,16 @@ class FunctionsDB:
         except Exception:
             self.create()
 
-        
+        # CREATE TABLE IF NOT EXISTS for compatibility with db without the journal
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS {} (id INTEGER, timestamp TEXT, operation TEXT, comment TEXT)".format(
+                self.journal_table
+            )
+        )
+        self.cursor.execute("SELECT COUNT(id) FROM {}".format(self.journal_table))
+        self.number_of_journal_entries = self.cursor.fetchone()[0]
+
+
     def create(self):
         creation_query = "CREATE TABLE IF NOT EXISTS {} (".format(self.functions_table)
         for column in sorted(self.row_structure.keys()):
@@ -61,10 +72,45 @@ class FunctionsDB:
         self.cursor.execute(creation_query)
         self.number_of_functions = 0
         self.new_db = True
-        
-        
 
-    # !SECTION! Handling queries 
+
+
+    # !SECTION! Journal
+
+    def log_journal(self, operation, comment=None):
+        """Appends an entry to this database's journal, unless `comment` is None.
+
+        Args:
+            operation: short string naming the operation performed (e.g. "update_database",
+                       "insert_quadratic", "add_quadratic_ccz_class").
+            comment:   free-text note chosen by the caller describing the change, or None.
+
+        Returns:
+            The row id of the inserted journal entry, or None if `comment` is None.
+        """
+        if comment is None:
+            return None
+        entry_id = self.number_of_journal_entries
+        self.cursor.execute(
+            "INSERT INTO {} VALUES (?, datetime('now'), ?, ?)".format(self.journal_table),
+            (entry_id, operation, comment)
+        )
+        self.number_of_journal_entries += 1
+        return entry_id
+
+
+    def get_journal(self):
+        """Returns the full journal as a list of dicts, ordered by id."""
+        self.cursor.execute(
+            "SELECT id, timestamp, operation, comment FROM {} ORDER BY id".format(self.journal_table)
+        )
+        return [
+            {"id": row[0], "timestamp": row[1], "operation": row[2], "comment": row[3]}
+            for row in self.cursor.fetchall()
+        ]
+
+
+    # !SECTION! Handling queries
 
     
     def parse_function_from_row(self, row):
@@ -74,6 +120,7 @@ class FunctionsDB:
     def query_functions(self, query_description):
         """Queries the database using a dictionary of selectors and returns the result as a list.
 
+        Be careful with the queries depending on the database: **.query_functions({}) returns the entire database and can flood your RAM    
         !TODO! finish the docstring
         
         """
@@ -128,6 +175,32 @@ class FunctionsDB:
             return entry["id"]
         except Exception as e:
             raise Exception("Insertion failed for \n {}\n".format(entry)) from e
+
+
+    def batch_insert_function(self, entries):
+        """Batch analog of `insert_function`: inserts a list of entries with a
+        single `executemany` call instead of one `execute` per entry.
+
+        Args:
+            entries: a list of dicts, one per row, using the same column keys
+                     as `insert_function` ("id" is added/overwritten automatically).
+
+        Returns:
+            A list of row ids, one per element of `entries`, in the same order.
+        """
+        start_id = self.number_of_functions
+        columns = sorted(self.row_structure.keys())
+        ids = list(range(start_id, start_id + len(entries)))
+        rows = []
+        for entry, row_id in zip(entries, ids):
+            entry["id"] = row_id
+            rows.append(tuple(entry[k] for k in columns))
+        try:
+            self.cursor.executemany(self.function_insertion_query, rows)
+            self.number_of_functions = start_id + len(entries)
+            return ids
+        except Exception as e:
+            raise Exception("Batch insertion failed for {} entries\n".format(len(entries))) from e
 
 
 

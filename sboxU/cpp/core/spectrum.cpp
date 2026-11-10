@@ -14,13 +14,17 @@ Integer cpp_Spectrum::maximum() const
         return result;
     }
 }
-    
-void cpp_Spectrum::operator+= (const cpp_Spectrum sp) 
+
+void cpp_Spectrum::operator+= (const cpp_Spectrum& sp)
 {
     for(auto row=sp.cbegin(); row!=sp.cend(); row++)
         incr_by_amount(row->first, row->second);
 }
 
+bool cpp_Spectrum::operator== (const cpp_Spectrum& sp) const
+{
+    return content == sp.content;
+}
 
 std::vector<Integer> cpp_Spectrum::keys() const
 {

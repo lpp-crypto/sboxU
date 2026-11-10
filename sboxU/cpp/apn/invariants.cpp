@@ -10,8 +10,8 @@
 
 void cpp_sigma_multiplicities_local(
     cpp_Spectrum & result,
+    const std::vector<Integer> & component_power_sum,
     const cpp_S_box &f,
-    const Integer k,
     const unsigned int s_min,
     const unsigned int s_max)
 {
@@ -21,14 +21,7 @@ void cpp_sigma_multiplicities_local(
         for (unsigned int b=0; b<f.output_space_size(); b++)
         {
             int sign = (cpp_scal_prod(b, s) == 0) ? 1 : -1;
-            std::vector<Integer> w = cpp_walsh_transform(f.component(b));
-            for (auto &l : w)
-            {
-                Integer pow = l;
-                for (unsigned int i=1; i<k; i++)
-                    pow *= l;
-                multiplicity += sign * pow; 
-            }
+            multiplicity += sign * component_power_sum[b];
         }
         result.incr(multiplicity >> (2*f.get_input_length()));
     }
@@ -41,9 +34,27 @@ cpp_Spectrum cpp_sigma_multiplicities(
     const Integer n_threads)
 {
     cpp_Spectrum result;
+
+    // Change: the sum (Walsh(component(b))[l])^k does not depend on 
+    // We pass it to the local version
+    std::vector<Integer> component_power_sum(f.output_space_size());
+    for (unsigned int b=0; b<f.output_space_size(); b++)
+    {
+        std::vector<Integer> w = cpp_walsh_transform(f.component(b));
+        Integer sum = 0;
+        for (auto &l : w)
+        {
+            Integer pow = l;
+            for (unsigned int i=1; i<k; i++)
+                pow *= l;
+            sum += pow;
+        }
+        component_power_sum[b] = sum;
+    }
+
     if (n_threads == 1)         // single thread
     {
-        cpp_sigma_multiplicities_local(std::ref(result), f, k, 0, f.size());
+        cpp_sigma_multiplicities_local(std::ref(result), component_power_sum, f, 0, f.size());
     }
     else                        // strict multi-threading
     {
@@ -56,8 +67,8 @@ cpp_Spectrum cpp_sigma_multiplicities(
             BinWord upper_bound = ((i+1)*f.output_space_size())/n_threads;
             threads.push_back(std::thread(cpp_sigma_multiplicities_local,
                                           std::ref(local_counts[i]),
+                                          std::ref(component_power_sum),
                                           f,
-                                          k,
                                           lower_bound,
                                           upper_bound));
             lower_bound = upper_bound;

@@ -47,6 +47,13 @@ cdef extern from "../cpp/statistics/differential.cpp":
     pass
 
 
+# !SUBSECTION! Collision spectrum for F_2
+
+cdef extern from "../cpp/statistics/collision_spectrum.hpp":
+    std_vector[cpp_Integer] cpp_collision_table(const cpp_S_box &s)
+    cpp_Spectrum cpp_f2_collision_spectrum(const cpp_S_box &s)
+
+
 # !SUBSECTION! Differential properties for F_p
 
 cdef extern from "../cpp/statistics/differential_fp.hpp":
