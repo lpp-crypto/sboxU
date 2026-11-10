@@ -321,5 +321,5 @@ def swap_F2AffineMap(t,n,m):
         resultat.append((1<<i))
     for i in range(m-t):
         resultat.append(1<<(t+n+i))
-    return get_F2AffineMap(resultat,n+m,n+m)
+    return get_F2AffineMap(resultat, c=0, input_length=n+m, output_length=n+m)
     
