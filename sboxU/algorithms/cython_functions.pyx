@@ -2,7 +2,7 @@
 
 from sboxU.config import MAX_N_THREADS
 
-from sboxU.core import oplus, get_F2AffineMap, rank_of_vector_set
+from sboxU.core import oplus, get_F2AffineMap, rank_of_vector_set, get_sbox
 from math import log
 from random import randint
 
