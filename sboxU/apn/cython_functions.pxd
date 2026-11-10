@@ -66,7 +66,8 @@ cdef extern from "../cpp/apn/ccz_class.hpp":
     std_vector[cpp_F2AffineMap] cpp_ea_mappings_from_ortho_derivative(
         const cpp_S_box & s,
         const cpp_S_box & s_prime,
-        const unsigned int n_threads
+        const unsigned int n_threads,
+        const string & mode
     )
 
     std_vector[cpp_S_box] cpp_enumerate_ea_classes_quadratic_apn(
@@ -109,6 +110,7 @@ cdef extern from "../cpp/apn/ccz_class.cpp":
 cdef extern from "../../cpp/apn/sn.hpp":
     
     std_vector[std_vector[cpp_S_box]] cpp_non_trivial_sn (const cpp_S_box & f, cpp_Integer n_eq, cpp_Integer n_step)
+    std_vector[std_vector[cpp_S_box]] cpp_non_trivial_sn_filter (const cpp_S_box & f, cpp_Integer n_eq)
 
 cdef extern from "../../cpp/apn/sn.cpp":
     pass

@@ -1,8 +1,5 @@
-# -*- python -*-
-
 from sboxU.core.f2functions cimport *
-from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i
-from sboxU.core.sbox.linearCasts import casts_from_field
+from sboxU.core.f2functions import ffe_to_int, to_bin, from_bin, i2f_and_f2i, casts_from_field
 
 from typing import Union
 
@@ -38,6 +35,7 @@ cdef cpp_S_box pyx_concat_sboxes(cpp_S_box s, cpp_S_box t):
     """A wrapper for the cpp_S_box overloaded operator |."""
     return s.concat(t)
 
+
 def new_sbox_name() -> bytes:
     """Returns a unique name that can be given to an S-box.
 
@@ -45,12 +43,49 @@ def new_sbox_name() -> bytes:
 
     Returns:
         A bytearray corresponding to the next unique S_box name.
+
+    # !TODO! factor out this function in the F2Transform class 
+
     """
     global sboxU_SBOXES_COUNTER
     result = bytes("S_{}".format(sboxU_SBOXES_COUNTER).encode("UTF-8"))
     sboxU_SBOXES_COUNTER += 1
     return result
 
+
+# !SUBSECTION! Simple wrappers
+
+def inverse(s):
+    """Compositional inversion.
+    
+    Args:
+        - s: an S_boxable object.
+
+    Returns:
+        An S_box object corresponding to the compositional inverse of s.
+    """
+    if isinstance(s, (S_box)):
+        return s.inverse()
+    else:        
+        sb = get_sbox(s)
+        return sb.inverse()
+
+
+def is_permutation(s):
+    """Returns True if and only if `s` is an S_boxable object corresponding to a bijective function.
+
+    Args:
+        - s: an S_boxable object
+
+    Returns:
+        True if and only if s corresponds to a bijection.
+    """
+    if isinstance(s, (S_box)):
+        return s.is_invertible()
+    else:        
+        sb = get_sbox(s)
+        return sb.is_invertible()
+    
 
     
 # !SUBSECTION! Global variables 
@@ -61,7 +96,7 @@ cdef BinWord sboxU_SBOXES_COUNTER = 0
 
 # !SECTION! The S_box class
 
-cdef class S_box:
+cdef class S_box(F2Transformation):
     # "cdef" attributes are declared in the .pxd file
     """The S_box class stores the lookup table of an vectorial boolean function, and provides useful methods to interact with it.
 
@@ -69,34 +104,13 @@ cdef class S_box:
     Objects of this class should be initialized using the :py:func:get_sbox function.
 
     """
-                                 
     
     # !SUBSECTION! Initialization and destruction
 
  
     def __init__(self, name=None, input_casts : list=[], output_casts: list=[]):
-        self.rename(name)
-        self.input_casts = input_casts
-        self.output_casts = output_casts
+        super().__init__(name, input_casts, output_casts)
 
-
-        
-    # !SUBSECTION! Dealing with basic attributes
-    
-    def rename(self, name):
-        if name == None:
-            self.cpp_name = new_sbox_name()
-        elif isinstance(name, bytes):
-            self.cpp_name = name
-        elif isinstance(name, str):
-            self.cpp_name = name.encode("UTF-8")
-        else:
-            raise NotImplementedError("trying to give invalid name to S_box: {}".format(name))
-
-        
-    def attach_casts_pair(self, input_cast, output_cast) -> None:
-        self.input_casts.append(input_cast)
-        self.output_casts.append(output_cast)
 
         
     # !SUBSECTION! Python built-in methods
@@ -113,33 +127,11 @@ cdef class S_box:
         s = get_sbox(_s)
         if len(s) != len(self):
             raise Exception("Trying to add S_boxes of different lengths:\n{}\n{}".format(self, s))
-        name = self.cpp_name + b"+" + s.name()
+        name = self.name + b"+" + s.name
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_add_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
         return result
-
-    
-    def __call__(self, x) -> BinWord:
-        """Querying the S-box on a specific input.
-
-        Unlike __getitem__, the input does not have to be an integer; however, it needs to be a of a type that this S_box isntance can cast to an integer. The integer obtained by querying the lookup is then cast to another type using `self.output_cast`.
-
-        Because of the logic related to casting, it is slower than __getitem__.
-        
-        Args:
-            x: a valid input for the cast `self.input_cast`.
-        
-        Returns:
-            The result of calling this S-box on the input of `x`, and then casting the result to the correct type.
-        """
-        if isinstance(x, (int, sage_Integer)):
-            return dereference(self.cpp_sb).brackets(<BinWord>x)
-        else:
-            for i, c in enumerate(self.input_casts):
-                if c.is_valid_input(x):
-                    return self.output_casts[i](dereference(self.cpp_sb).brackets(c(x)))
-            raise Exception("Could not cast input of type {} to an integer using {}".format(type(x), self.input_cast))
 
 
     def __eq__(self, s) -> bool:
@@ -177,16 +169,18 @@ cdef class S_box:
     
     def __str__(self) -> str:
         return dereference(self.cpp_sb).content_string_repr().decode("UTF-8")
-
-
-    def __rich_str__(self) -> str:
+  
+    def __repr__(self) -> str:
+        return "get_sbox({}, name={})".format(str(self), self.name)
+        
+    def __rich__(self) -> str:
         if self.get_input_length() == 0:
             return "[bold][[/] [red]∅[/] [bold]][/]"
         else:
             result = "([bold blue]{:2d}[/],[bold bright_black]{:2d}[/]) [bright_black]{}[/]\n".format(
                 self.get_input_length(),
                 self.get_output_length(),
-                self.cpp_name.decode("UTF-8"),
+                self.name.decode("UTF-8"),
             )
             # first row
             if self.get_input_length() <= 4:
@@ -246,7 +240,7 @@ cdef class S_box:
         elif d == -1:
             return self.inverse()
         else:
-            result = S_box(name=self.name() + b"**" + str(d).encode("UTF-8"))
+            result = S_box(name=self.name + b"**" + str(d).encode("UTF-8"))
             (<S_box>result).set_inner_sbox(cpp_S_box(<std_vector[BinWord]> list(self.input_space())))
             if d >= 0:
                 for i in range(0, d):
@@ -279,7 +273,7 @@ cdef class S_box:
         s = get_sbox(_s)
         if self.get_input_length() != s.get_output_length():
             raise Exception("Trying to compose S_boxes of incompatible lengths:\n{}\n{}".format(self, s))
-        name = self.cpp_name + "◦".encode("UTF-8") + s.name()
+        name = self.name + "◦".encode("UTF-8") + s.name
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_mul_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
@@ -295,7 +289,7 @@ cdef class S_box:
             An S_box corresponding to the function "F | _s", where F is the current S-box, and _s is the input to the function.
         """
         s = get_sbox(_s)
-        name = self.cpp_name + "|".encode("UTF-8") + s.name()
+        name = self.name + "|".encode("UTF-8") + s.name
         result = S_box(name)
         (<S_box>result).set_inner_sbox(pyx_concat_sboxes(dereference(self.cpp_sb),
                                                       dereference((<S_box>s).cpp_sb)))
@@ -343,9 +337,6 @@ cdef class S_box:
     def to_bytes(self) -> bytes:
         return bytes(dereference(self.cpp_sb).to_bytes())
 
-    
-    def name(self) -> bytes:
-        return self.cpp_name
 
     
     # !SUBSUBSECTION! Components and coordinates
@@ -359,7 +350,7 @@ cdef class S_box:
         
         """
         assert i < dereference(self.cpp_sb).get_output_length()
-        result = S_box(name=self.cpp_name + ("_{:x}".format(i)).encode("UTF-8"))
+        result = S_box(name=self.name + ("_{:x}".format(i)).encode("UTF-8"))
         result.set_inner_sbox(dereference(self.cpp_sb).coordinate(<BinWord>i))
         return result
     
@@ -369,7 +360,7 @@ cdef class S_box:
             An S_box instance mapping n bits to 1 corresponding to the component x \mapsto S(x) \cdot a, where \cdot is the standard scalar product.
         
         """
-        result = S_box(name=self.cpp_name + ("•{:x}".format(a)).encode("UTF-8"))
+        result = S_box(name=self.name + ("•{:x}".format(a)).encode("UTF-8"))
         result.set_inner_sbox(dereference(self.cpp_sb).component(<BinWord>a))
         return result
         
@@ -381,7 +372,7 @@ cdef class S_box:
             An S_box of the same dimension as S corresponding to its derivative in the direction delta, i.e. x \mapsto S(x+delta)+S(x).
         
         """
-        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8") + self.cpp_name)
+        result = S_box(name=("Δ_{:x} ".format(delta)).encode("UTF-8") + self.name)
         result.set_inner_sbox(dereference(self.cpp_sb).derivative(<BinWord>delta))
         return result
         
@@ -403,7 +394,7 @@ cdef class S_box:
         If the current S_box is not invertible, will probably crash.
         """
         if self.is_invertible():
-            name = self.cpp_name + b"^-1"
+            name = self.name + b"^-1"
             result = S_box(name=name) 
             (<S_box>result).set_inner_sbox(dereference(self.cpp_sb).inverse())
             return result
@@ -506,7 +497,7 @@ cdef class S_box_fp:
         return result
 
 
-    def __eq__(S_box_fp self, other) -> bool:
+    def __eq__(S_box_fp self, S_box_fp other) -> bool:
         """Tests equality with another S-box over F_p.
 
         Args:
@@ -617,7 +608,7 @@ cdef class S_box_fp:
         """
         return dereference(self.cpp_sb).content_string_repr().decode("UTF-8")
 
-    #! SUBSECTION! Getters dealing with the underlying cpp object
+    # !SUBSECTION! Getters dealing with the underlying cpp object
 
     def get_p(S_box_fp self) -> int :
         """Returns:
@@ -801,6 +792,14 @@ cdef class S_box_fp:
 # !SECTION! Generating S-boxes
 
 
+def identity_S_box(length) -> S_box:
+    """Returns an S_box instance corresponding to the identity
+    function, i.e. the one mapping x to itself.
+
+    """
+    return get_sbox(list(range(0, length)))
+
+
 # !SUBSECTION! Basic factories
 
 def get_Sbox_from_lut(s : list, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
@@ -891,12 +890,12 @@ def get_Sbox_from_sage_SBox(s : sage_SBox, name, input_casts : list, output_cast
     return result
 
 
-def get_Sbox_from_F2AffineMap(s : F2AffineMap, name, input_casts : list, output_casts: list) -> S_box:
-    result = S_box(name=name,
-                   input_casts=input_casts,
-                   output_casts=output_casts)
-    (<S_box>result).set_inner_sbox(dereference((<F2AffineMap>s).cpp_map).get_cpp_S_box())
-    return result
+# def get_Sbox_from_F2AffineMap(s : F2AffineMap, name, input_casts : list, output_casts: list) -> S_box:
+#     result = S_box(name=name,
+#                    input_casts=input_casts,
+#                    output_casts=output_casts)
+#     (<S_box>result).set_inner_sbox(dereference((<F2AffineMap>s).cpp_map).get_cpp_S_box())
+#     return result
 
 
 def get_Sbox_from_univariate_polynomial(s : Polynomial, name, input_casts : list, output_casts: list) -> S_box | S_box_fp:
@@ -961,7 +960,6 @@ def get_Sbox_from_string(key : str, name, input_casts : list, output_casts: list
 
 SBOXU_TYPE_TO_FACTORY = {
     sage_SBox    : get_Sbox_from_sage_SBox,
-    F2AffineMap  : get_Sbox_from_F2AffineMap,
     list         : get_Sbox_from_list,
     bytes        : get_Sbox_from_bytes,
     bytearray    : get_Sbox_from_bytes,
@@ -986,8 +984,14 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
 
     """
 
-    if isinstance(s, (S_box, S_box_fp)):
-        return s
+    if isinstance(s, (S_box)):
+        sprime = S_box(name=name)
+        (<S_box>sprime).set_inner_sbox(<cpp_S_box>(dereference((<S_box>s).cpp_sb)))
+        return sprime
+    elif isinstance(s, (S_box_fp)):
+        sprime = S_box_fp(name=name)                            
+        (<S_box_fp>sprime).set_inner_sbox(<cpp_S_box_fp>(dereference((<S_box_fp>s).cpp_sb)))
+        return sprime
     else:
         t = type(s)
         if t in SBOXU_TYPE_TO_FACTORY.keys():
@@ -995,11 +999,12 @@ def get_sbox(s, name=None, input_casts=[], output_casts=[]) -> Union[S_box, S_bo
         elif isinstance(s, Polynomial):
             # this separate test is needed because `Polynomial` is not a real type, it is a collection of types
             return SBOXU_TYPE_TO_FACTORY[Polynomial](s, name, input_casts, output_casts)
+        elif hasattr(s, "get_sbox"):
+                return s.get_sbox() 
         else:
             raise NotImplementedError("Cannot build an Sbox from this input type")
             
 
-        
 # !SUBSECTION! Other basic structures
 
 def identity_S_box(length) -> S_box:
@@ -1043,3 +1048,19 @@ def F2_trans(BinWord additive_cstte, field=None, bit_length=None) -> S_box:
         k = ffe_to_int(additive_cstte)
         n = additive_cstte.parent().degree()
     return pyx_F2_trans(k, n)
+
+# !SUBSECTION! Cycle decomposition
+
+def cycle_decomposition(s):
+    """
+    The cycle decomposition of a permutation, is given by a list of cyclic permutations with disjoint support. The permutation is then equal to the composition of all its cycles.
+
+    Args :
+        s: an S-boxable object over F_2
+    
+    Returns :
+        list: A list of lists corresponding to the list of the cycles of `s`.
+    """
+    sb=get_sbox(s)
+    result = cpp_cycle_decomposition(dereference((<S_box>sb).cpp_sb))
+    return result

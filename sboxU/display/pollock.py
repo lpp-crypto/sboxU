@@ -138,7 +138,7 @@ def lat_interactive_view(
               for b in range(0, len(t[a]))]
              for a in range(0, len(t))]
     table_interactive_view(t,
-                           title="LAT of {}".format(sb.name().decode("UTF-8")),
+                           title="LAT of {}".format(sb.name.decode("UTF-8")),
                            desc="$\\sum_x (-1)^{ax +bS(x)}$",
                            cmap=cmap,
                            vmin=vmin,
@@ -164,7 +164,7 @@ def ddt_interactive_view(
               for b in range(0, len(t[a]))]
              for a in range(0, len(t))]
     table_interactive_view(t,
-                           title="DDT of {}".format(sb.name().decode("UTF-8")),
+                           title="DDT of {}".format(sb.name.decode("UTF-8")),
                            desc="$\\#\\{x, S(x+a)+S(x)=b\\}$",
                            cmap=cmap,
                            vmin=vmin,
@@ -191,7 +191,7 @@ def bct_interactive_view(
               for b in range(0, len(t[a]))]
              for a in range(0, len(t))]
     table_interactive_view(t,
-                           title="BCT of {}".format(sb.name().decode("UTF-8")),
+                           title="BCT of {}".format(sb.name.decode("UTF-8")),
                            desc="$\\#\\{x, S^{-1}(S(x)+b) + S^{-1}(S(x+a)+b)=a\\}$",
                            cmap=cmap,
                            vmin=vmin,
@@ -218,7 +218,7 @@ def fbct_interactive_view(
               for b in range(0, len(t[a]))]
              for a in range(0, len(t))]
     table_interactive_view(t,
-                           title="F-BCT of {}".format(sb.name().decode("UTF-8")),
+                           title="F-BCT of {}".format(sb.name.decode("UTF-8")),
                            desc="$\\#\\{x, \\sum_{y \\in x+<a, b>}S(y)\\}$",
                            cmap=cmap,
                            vmin=vmin,
@@ -372,7 +372,7 @@ def interactive_distribution_comparison_lat(s, y_log_scale=True):
             sb.get_output_length(),
             lat_coeff_probability_permutation,
             title="LAT",
-            name=sb.name().decode("UTF-8"),
+            name=sb.name.decode("UTF-8"),
             y_log_scale=y_log_scale
         )
     else:
@@ -382,7 +382,7 @@ def interactive_distribution_comparison_lat(s, y_log_scale=True):
             sb.get_output_length(),
             lat_coeff_probability_function,
             title="LAT",
-            name=sb.name().decode("UTF-8"),
+            name=sb.name.decode("UTF-8"),
             y_log_scale=y_log_scale
         )
         
@@ -396,7 +396,7 @@ def interactive_distribution_comparison_ddt(s, y_log_scale=True):
         sb.get_output_length(),
         ddt_coeff_probability,
         title="DDT",
-        name=sb.name().decode("UTF-8"),
+        name=sb.name.decode("UTF-8"),
         y_log_scale=y_log_scale
     )
             
@@ -410,7 +410,7 @@ def interactive_distribution_comparison_bct(s, y_log_scale=True):
         sb.get_output_length(),
         bct_coeff_probability,
         title="BCT",
-        name=sb.name().decode("UTF-8"),
+        name=sb.name.decode("UTF-8"),
         y_log_scale=y_log_scale
     )
             

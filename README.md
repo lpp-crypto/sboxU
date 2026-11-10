@@ -105,7 +105,7 @@ sage setup.py build_ext --inplace -j 8
 
 ### How to
 
-TODO
+The simplest is to get in touch with us at sboxu-dev dot inria dot fr
 
 ### Contributors
 

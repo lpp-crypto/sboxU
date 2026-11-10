@@ -8,17 +8,47 @@ When possible the functions are multi-threaded. In particular, computing "spectr
 
 """
 
-from sboxU.statistics.cython_functions import \
-    differential_spectrum, ddt, differential_uniformity, is_differential_uniformity_smaller_than, \
-    fp_ddt, fp_differential_spectrum, fp_differential_uniformity, \
-    walsh_transform, walsh_spectrum, absolute_walsh_spectrum, lat, invert_lat, linearity, \
-    boomerang_spectrum, bct, boomerang_uniformity, \
-    fbct_spectrum, fbct,xddt,yddt,zddt, linear_structures, linear_structures_vectorial, linear_structures_vectorial_spectrum
+from sboxU.statistics.cython_functions import (
+    differential_spectrum,
+    ddt,
+    differential_uniformity,
+    is_differential_uniformity_smaller_than,
+    fp_ddt,
+    fp_differential_spectrum,
+    fp_differential_uniformity,
+    walsh_transform,
+    walsh_spectrum,
+    absolute_walsh_spectrum,
+    lat,
+    invert_lat,
+    linearity,
+    boomerang_spectrum,
+    bct,
+    boomerang_uniformity,
+    fbct_spectrum,
+    fbct,
+    xddt,
+    yddt,
+    zddt,
+    linear_structures,
+    linear_structures_vectorial,
+    linear_structures_vectorial_spectrum,
+    collision_table,
+    collision_spectrum,
+)
 
 
-from sboxU.statistics.anomalies import \
-    ddt_coeff_probability, expected_differential_uniformity_distribution_permutation, \
-    lat_coeff_probability_permutation, lat_coeff_probability_function, expected_linearity_distribution_permutation, expected_linearity_distribution_function, \
-    bct_coeff_probability, expected_boomerang_uniformity_distribution_permutation, \
-    probability_of_max_and_occurrences, get_proba_func, \
-    table_anomaly, table_negative_anomaly
+from sboxU.statistics.anomalies import (
+    ddt_coeff_probability,
+    expected_differential_uniformity_distribution_permutation,
+    lat_coeff_probability_permutation,
+    lat_coeff_probability_function,
+    expected_linearity_distribution_permutation,
+    expected_linearity_distribution_function,
+    bct_coeff_probability,
+    expected_boomerang_uniformity_distribution_permutation,
+    probability_of_max_and_occurrences,
+    get_proba_func,
+    table_anomaly,
+    table_negative_anomaly,
+)

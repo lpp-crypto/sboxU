@@ -23,7 +23,38 @@ biblio_8 = {
     6: "Beierle, C., Langevin, P., Leander, G., Polujan, A., & Rasoolzadeh, S. (2025). Millions of inequivalent quadratic APN functions in eight variables [Data set]. Zenodo. https://doi.org/10.5281/zenodo.16752428",
 }
 
-_BIBLIO = {6: biblio_6, 7: biblio_7, 8: biblio_8}
+biblio_9 = {
+    -1: "NOT SPECIFIED",
+    0: "Gold Monomial",
+    1: "Kasami Monomial",
+    2: "Welch Monomial",
+    3: "Inverse Monomial",
+    4: "L. Budaghyan, C. Carlet, G. Leander. Constructing new APN functions from known ones.",
+    5: "L. Budaghyan, C. Carlet, G. Leander. On a construction of quadratic APN functions.",
+    6: "L. Budaghyan, M. Calderini, C. Carlet, R. S. Coulter, I. Villa. Constructing APN Functions through Isotopic Shifts",
+    7: "L. Budaghyan, C. Carlet, G. Leander. Constructing new APN functions from known ones",
+    8: "LK23",
+    9: "LZLQ22a"
+}
+
+biblio_10 = {
+    -1: "NOT SPECIFIED",
+    0: "Gold Monomial",
+    1: "Kasami Monomial",
+    2: "Dobbertin Monomial",
+    3: "BCL09",
+    4: "T19",
+    5: "BHK20",
+    6: "BCV20",
+    7: "G22",
+    8: "CLV22",
+    9: "ZKLPT22",
+    10: "LZLQ22b",
+    11: "SPZ25",
+    12: "TBD"
+}
+
+_BIBLIO = {6: biblio_6, 7: biblio_7, 8: biblio_8, 9: biblio_9, 10: biblio_10}
 
 
 def from_which_paper(n, k):

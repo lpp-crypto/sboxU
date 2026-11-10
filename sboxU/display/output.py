@@ -10,7 +10,7 @@ from collections import defaultdict
 
 from rich.console import Console
 from rich.theme import Theme
-
+from rich.pretty import pprint
 
 # !SUBSECTION! Importing tools to run a timer 
 
@@ -26,32 +26,33 @@ from sboxU.config import SECTION_TEMPLATES, KEYWORD_TEMPLATES
 CONSOLE = Console(theme=Theme({}, inherit=False))
 ONGOING_EXPERIMENT = None
 
+pprint = CONSOLE.print
 
 
 
-# !SECTION! The main pretty printing function 
+# # !SECTION! The main pretty printing function 
 
-def pprint(*args):
-    result = ""
-    all_pretty = True
-    for x in args:
-        if hasattr(x, "__rich_str__"):
-            result += x.__rich_str__()
-        elif isinstance(x, (dict, defaultdict)):
-            result = "{ "
-            for k in sorted(x.keys()):
-                result += "[bold]{}[/bold]: {}, ".format(k, x[k])
-            result = result[:-2] + " }"
-        else:
-            result += str(x)
-            if not isinstance(x, (str)):
-                all_pretty = False
-        result += ", "
-    result = result[:-2] # ditching superfluous ", " 
-    if all_pretty:
-        CONSOLE.print(result)
-    else:
-        print(result)
+# def pprint(*args):
+#     result = ""
+#     all_pretty = True
+#     for x in args:
+#         if hasattr(x, "__rich_str__"):
+#             result += x.__rich_str__()
+#         elif isinstance(x, (dict, defaultdict)):
+#             result = "{ "
+#             for k in sorted(x.keys()):
+#                 result += "[bold]{}[/bold]: {}, ".format(k, x[k])
+#             result = result[:-2] + " }"
+#         else:
+#             result += str(x)
+#             if not isinstance(x, (str)):
+#                 all_pretty = False
+#         result += ", "
+#     result = result[:-2] # ditching superfluous ", " 
+#     if all_pretty:
+#         CONSOLE.print(args)
+#     else:
+#         print(result)
 
 
         

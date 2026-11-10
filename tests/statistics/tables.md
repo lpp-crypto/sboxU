@@ -19,7 +19,7 @@ The study of equations of the form $S(x+a)=S(x)+b$ is of crucial importance, for
 First, let's pick a 6-bit permutation uniformly at random.
 
 ```python
-s = random_permutation_S_box(6)
+s = rand_invertible_S_box(6)
 ```
 
 ### Derivatives

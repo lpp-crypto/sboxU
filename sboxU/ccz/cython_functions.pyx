@@ -199,7 +199,7 @@ def ccz_equivalent_function(s, L):
     """
     sb = get_sbox(s)
     basis = get_F2AffineMap(L)
-    result = S_box(name=b"CCZ-" + sb.name())
+    result = S_box(name=b"CCZ-" + sb.name)
     result.set_inner_sbox(
         cpp_ccz_equivalent_function(
             dereference((<S_box>sb).cpp_sb),
@@ -218,7 +218,7 @@ def enumerate_ea_classes(s):
         MAX_N_THREADS
     )
     for new_s in ea_classes :
-        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb = S_box(name=b"CCZ-" + sb.name + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
         i += 1
@@ -234,7 +234,7 @@ def enumerate_permutations_in_ccz_class(s):
         MAX_N_THREADS
     )
     for new_s in permutations_in_ccz_class :
-        new_sb = S_box(name=b"CCZ-" + sb.name() + b"_" + str(i).encode("UTF-8"))
+        new_sb = S_box(name=b"CCZ-" + sb.name + b"_" + str(i).encode("UTF-8"))
         new_sb.set_inner_sbox(<cpp_S_box>new_s)
         result.append(new_sb)
         i += 1
@@ -389,7 +389,7 @@ def ccz_equivalences(sbox1, sbox2, single_non_trivial_answer=False, n_threads=MA
         n_threads
     )
 
-def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
+def ea_mapping_from_quadratic_representative(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
     """Returns an EA mapping between s1 and s2 via the Walsh-zero-space orbit method.
 
     Args:
@@ -397,16 +397,15 @@ def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
         n_threads: number of threads.
         mode: "standard" — iterate full Aut(q_f);
               "product"  — exploit the G1⋊G2 semidirect product structure;
-              "test"     — direct C++ translation of the Python reference in
-                           ccz/equivalence_from_vq.py (applies map_q^{-T} twice
-                           to the full WalshZeroesSpaces, iterates via L^{T,-1}).
+              "generators" — walk of the orbit of V_f under generating
+                           sets of G1 and G2 (never enumerates Aut(q_f));
 
     Returns:
         A list containing one EA mapping if s1 and s2 are EA-equivalent, else [].
     """
     sb1 = get_sbox(s1)
     sb2 = get_sbox(s2)
-    mappings = cpp_ea_mapping_from_vq(
+    mappings = cpp_ea_mapping_from_quadratic_representative(
         dereference((<S_box>sb1).cpp_sb),
         dereference((<S_box>sb2).cpp_sb),
         n_threads,
@@ -421,12 +420,13 @@ def ea_mapping_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
     return result
 
 
-def are_ea_equivalent_from_vq(s1, s2, n_threads=MAX_N_THREADS, mode="standard"):
+def are_ea_equivalent_from_quadratic_representative(s1, s2, n_threads=MAX_N_THREADS,
+                                                    mode="standard"):
     """Returns True iff s1 and s2 are EA-equivalent (via Walsh-zero-space orbit check).
 
-    Accepts the same `mode` values as `ea_mapping_from_vq`.
+    Accepts the same `mode` values as `ea_mapping_from_quadratic_representative`.
     """
-    return len(ea_mapping_from_vq(s1, s2, n_threads, mode)) > 0
+    return len(ea_mapping_from_quadratic_representative(s1, s2, n_threads, mode)) > 0
 
 # !SUBSECTION! Boolean tests
 

@@ -1,5 +1,5 @@
 from sage.all import Integer as sage_Integer
-from sboxU.core.f2functions import oplus, i2f_and_f2i
+from sboxU.core.f2functions.cython_functions import oplus, i2f_and_f2i
 
 WILDCARD = "*"
 

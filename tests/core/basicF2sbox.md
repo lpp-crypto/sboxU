@@ -146,6 +146,14 @@ The multiplication operation (`*`) is also overloaded, but it corresponds to fun
 
 
 
+
+
+
+
+
+
+
+
 ## References
 
 [^EC-DaeRij02]: Joan Daemen and Vincent Rijmen. AES and the wide trail design strategy. In Lars R. Knudsen, editor, Advances in Cryptology - EUROCRYPT 2002, International Conference on the Theory and Applications of Cryptographic Techniques, Amsterdam, The Netherlands, April 28 - May 2, 2002, Proceedings, Lecture Notes in Computer Science, 108–109. Springer, 2002. URL: https://doi.org/10.1007/3-540-46035-7_7, doi:10.1007/3-540-46035-7_7.
