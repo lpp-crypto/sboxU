@@ -3,6 +3,7 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 from matplotlib.backend_bases import MouseEvent
 from matplotlib.widgets import Slider, RadioButtons
+from sage.all import Integer as SAGE_INTEGER
 
 from sboxU.core import get_sbox
 from sboxU.statistics import \
@@ -266,11 +267,19 @@ class TableCursor:
             self.horizontal_line.set_ydata([y])
             self.vertical_line.set_xdata([x])
             a, b = int(round(y)), int(round(x))
-            self.text.set_text('a=0x{:02x}   b=0x{:02x}   {}={:3d}'.format(
-                a, b,
-                self.desc,
-                self.values_function(a, b)
-            ))
+            value = self.values_function(a, b)
+            if isinstance(value, (int, SAGE_INTEGER)):
+                self.text.set_text('a=0x{:02x}   b=0x{:02x}   {}={:3d}'.format(
+                    a, b,
+                    self.desc,
+                    value
+                ))
+            elif isinstance(value, float):
+                self.text.set_text('a=0x{:02x}   b=0x{:02x}   {}={:6.3f}'.format(
+                    a, b,
+                    self.desc,
+                    value
+                ))
             self.text.set_fontfamily("monospace")
             self.ax.figure.canvas.draw()
 
